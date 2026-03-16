@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "431108629745",
+    "project_id": "an-ki-9b02b",
+    "storage_bucket": "an-ki-9b02b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:431108629745:android:4ec3a2dcc60ac395eaf550",
+        "android_client_info": {
+          "package_name": "com.github.nautiii.an_ki"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByKee29xDPxRMFOOhSClGE9ExBt2z-o48"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
