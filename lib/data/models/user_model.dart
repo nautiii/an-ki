@@ -14,7 +14,7 @@ class UserModel {
   factory UserModel.fromFirestore(
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
   ) {
-    final data = doc.data();
+    final Map<String, dynamic> data = doc.data();
 
     return UserModel(id: doc.id, name: data['name'], surname: data['surname']);
   }

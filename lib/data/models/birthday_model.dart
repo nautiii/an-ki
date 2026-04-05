@@ -1,33 +1,34 @@
+import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum BirthdayCategory { family, friend, colleague }
+enum BirthdayCategory { family, friend, colleague, other }
 
 class BirthdayModel {
   final String id;
   final String name;
   final String surname;
   final DateTime date;
-  final BirthdayCategory? category;
+  final BirthdayCategory category;
 
   const BirthdayModel({
     required this.id,
     required this.name,
     required this.surname,
     required this.date,
-    this.category,
+    required this.category,
   });
 
   factory BirthdayModel.fromFirestore(
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
   ) {
-    final data = doc.data();
+    final Map<String, dynamic> data = doc.data();
 
     return BirthdayModel(
       id: doc.id,
       name: data['name'],
       surname: data['surname'],
       date: (data['date'] as Timestamp).toDate(),
-      category: data['category'],
+      category: (data['category'] as String).toBirthdayCategory(),
     );
   }
 
@@ -36,7 +37,7 @@ class BirthdayModel {
       "name": name,
       "surname": surname,
       "date": Timestamp.fromDate(date),
-      "category": null,
+      "category": category.name,
     };
   }
 }

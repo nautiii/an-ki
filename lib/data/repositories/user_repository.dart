@@ -1,6 +1,5 @@
+import 'package:an_ki/data/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-import '../models/user_model.dart';
 
 class UserRepository {
   final CollectionReference<Map<String, dynamic>> _users = FirebaseFirestore
@@ -11,7 +10,7 @@ class UserRepository {
     required String name,
     required String surname,
   }) async {
-    final query =
+    final QuerySnapshot<Map<String, dynamic>> query =
         await _users
             .where('name', isEqualTo: name)
             .where('surname', isEqualTo: surname)

@@ -1,31 +1,21 @@
+import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../models/birthday_model.dart';
+import '../models/create_birthday_input.dart';
 
 class BirthdayRepository {
+  final CollectionReference<Map<String, dynamic>> _birthdays = FirebaseFirestore
+      .instance
+      .collection('birthday');
+
   Stream<List<BirthdayModel>> watchBirthdays() {
-    return FirebaseFirestore.instance
-        .collection('birthday')
-        .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs
-                  .map((doc) => BirthdayModel.fromFirestore(doc))
-                  .toList(),
-        );
+    return _birthdays.snapshots().map(
+      (QuerySnapshot<Map<String, dynamic>> snapshot) =>
+          snapshot.docs.map(BirthdayModel.fromFirestore).toList(),
+    );
   }
 
-  // DateTime nextBirthday(DateTime birthDate) {
-  //   final now = DateTime.now();
-  //
-  //   DateTime next = DateTime(now.year, birthDate.month, birthDate.day);
-  //
-  //   if (next.isBefore(now)) {
-  //     next = DateTime(now.year + 1, birthDate.month, birthDate.day);
-  //   }
-  //
-  //   return next;
-  // }
-  // birthdays.sort((a, b) =>
-  // nextBirthday(a.date).compareTo(nextBirthday(b.date)));
+  Future<void> createBirthday(CreateBirthdayInput input) async {
+    await _birthdays.add(input.toJson());
+  }
 }

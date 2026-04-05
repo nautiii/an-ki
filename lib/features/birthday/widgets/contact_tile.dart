@@ -1,7 +1,12 @@
+import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:flutter/material.dart';
 
+import '../../../data/models/birthday_model.dart';
+
 class ContactTile extends StatelessWidget {
-  const ContactTile({super.key});
+  final BirthdayModel birthday;
+
+  const ContactTile({super.key, required this.birthday});
 
   @override
   Widget build(BuildContext context) {
@@ -14,22 +19,22 @@ class ContactTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const CircleAvatar(radius: 22),
+          const CircleAvatar(radius: 22, child: Icon(Icons.person)),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Paul Martin",
-                  style: TextStyle(
+                  "${birthday.name} ${birthday.surname}",
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
-                  "15 Mars 1985 • 39 ans",
-                  style: TextStyle(color: Colors.white54),
+                  "${birthday.formattedDate} • ${birthday.age} ans",
+                  style: const TextStyle(color: Colors.white54),
                 ),
               ],
             ),

@@ -1,11 +1,13 @@
+import 'package:an_ki/core/extensions/common_extensions.dart';
 import 'package:flutter/material.dart';
 
 import 'contact_tile.dart';
 
 class SectionWidget extends StatelessWidget {
   final String title;
+  final List<ContactTile> children;
 
-  const SectionWidget({super.key, required this.title});
+  const SectionWidget({super.key, required this.title, required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +18,7 @@ class SectionWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              title,
+              title.capitalize(),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -30,8 +32,7 @@ class SectionWidget extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        const ContactTile(),
-        const ContactTile(),
+        ...children,
         const SizedBox(height: 20),
       ],
     );

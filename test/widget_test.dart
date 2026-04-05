@@ -1,30 +1,55 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:an_ki/core/app_initializer.dart';
+import 'package:an_ki/data/models/user_model.dart';
+import 'package:an_ki/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
-import 'package:an_ki/main.dart';
+import 'support/fake_providers.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const App());
+  testWidgets('AppInitializer loads the user after the first frame', (
+    WidgetTester tester,
+  ) async {
+    final FakeUserProvider userProvider = FakeUserProvider();
+    userProvider.preparePendingLoad();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      ChangeNotifierProvider<UserProvider>.value(
+        value: userProvider,
+        child: const MaterialApp(home: AppInitializer(child: TestChild())),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    expect(find.text('Child ready'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(tester.takeException(), isNull);
+
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(userProvider.receivedName, 'Maillard');
+    expect(userProvider.receivedSurname, 'Quentin');
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('Child ready'), findsNothing);
+    expect(tester.takeException(), isNull);
+
+    userProvider.completePendingLoad(
+      const UserModel(id: '1', name: 'Quentin', surname: 'Maillard'),
+    );
+    await tester.pump();
+
+    expect(find.text('Child ready'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(tester.takeException(), isNull);
   });
+}
+
+
+class TestChild extends StatelessWidget {
+  const TestChild({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: Text('Child ready')));
+  }
 }

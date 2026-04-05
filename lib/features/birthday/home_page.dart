@@ -1,56 +1,40 @@
+import 'package:an_ki/core/common/bottom_bar.dart';
+import 'package:an_ki/core/common/header.dart';
+import 'package:an_ki/core/common/search_bar.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
-import 'package:an_ki/data/repositories/birthday_repository.dart';
-import 'package:an_ki/features/birthday/widgets/custom_bottom_bar.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
-import 'package:an_ki/features/birthday/widgets/search_bar.dart';
-import 'package:an_ki/header.dart';
+import 'package:an_ki/providers/birthday_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'contact_sections.dart';
+import 'create_birthday_page.dart';
 
 class HomePage extends StatelessWidget {
-  HomePage({super.key});
-
-  final repository = BirthdayRepository();
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<BirthdayModel>>(
-      stream: repository.watchBirthdays(),
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        switch (snapshot.connectionState) {
-          case ConnectionState.waiting:
-            return Center(child: CircularProgressIndicator());
-          case ConnectionState.active:
-            {
-              if (snapshot.hasError) {
-                return Center(
-                  child: Text('Error loading data: ${snapshot.error}'),
-                );
-              }
-              return snapshot.hasData
-                  ? BirthdayList(birthdays: snapshot.data!)
-                  : const Center(child: Text('No birthday data found.'));
-            }
-          default:
-            return const Text(
-              "No active connection, please restart the application",
-            );
-        }
-      },
+    final bool isLoading = context.select(
+      (BirthdayProvider provider) => provider.isLoading,
     );
-  }
-}
+    final List<BirthdayModel> birthdays = context.select(
+      (BirthdayProvider provider) => provider.birthdays,
+    );
 
-class BirthdayList extends StatelessWidget {
-  const BirthdayList({super.key, required this.birthdays});
-
-  final List<BirthdayModel> birthdays;
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B1C2C),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFD9A08B),
+        elevation: 0,
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const CreateBirthdayPage()),
+          );
+        },
+        child: const Icon(Icons.add_rounded, color: Colors.white, size: 34),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -64,12 +48,39 @@ class BirthdayList extends StatelessWidget {
               const SizedBox(height: 20),
               const SearchBarWidget(),
               const SizedBox(height: 20),
-              const Expanded(child: ContactSections()),
+              Expanded(
+                child: _HomeContent(isLoading: isLoading, birthdays: birthdays),
+              ),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: const CustomBottomBar(),
+      bottomNavigationBar: const BottomBar(),
     );
+  }
+}
+
+class _HomeContent extends StatelessWidget {
+  const _HomeContent({required this.isLoading, required this.birthdays});
+
+  final bool isLoading;
+  final List<BirthdayModel> birthdays;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (birthdays.isEmpty) {
+      return const Center(
+        child: Text(
+          'Aucun anniversaire trouvé.',
+          style: TextStyle(color: Colors.white70),
+        ),
+      );
+    }
+
+    return ContactSections(birthdays: birthdays);
   }
 }

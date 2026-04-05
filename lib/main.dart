@@ -1,9 +1,14 @@
-import 'package:an_ki/core/common/firebase_options.dart';
+import 'package:an_ki/core/firebase_options.dart';
 import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/birthday/home_page.dart';
+import 'package:an_ki/providers/birthday_provider.dart';
+import 'package:an_ki/providers/user_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'core/app_initializer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,7 +18,15 @@ void main() async {
     persistenceEnabled: true,
   );
 
-  runApp(const App());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => BirthdayProvider()),
+      ],
+      child: const App(),
+    ),
+  );
 }
 
 class App extends StatelessWidget {
@@ -23,11 +36,10 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'An Ki',
-      debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.system,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      home: HomePage(),
+      home: const AppInitializer(child: HomePage()),
     );
   }
 }
