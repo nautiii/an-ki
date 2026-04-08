@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/data/models/create_birthday_input.dart';
 import 'package:an_ki/providers/birthday_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class CreateBirthdayPage extends StatefulWidget {
@@ -30,6 +33,7 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
 
   BirthdayCategory _selectedCategory = BirthdayCategory.friend;
   DateTime _selectedDate = DateTime(2000, 6, 5);
+  XFile? _selectedImage;
 
   @override
   void initState() {
@@ -57,6 +61,7 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
       surname: _surnameController.text,
       date: _selectedDate,
       category: _selectedCategory,
+      pictureFile: _selectedImage,
     );
 
     try {
@@ -77,6 +82,18 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
           content: Text("Impossible d'enregistrer l'anniversaire."),
         ),
       );
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? image = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+      maxWidth: 512,
+      maxHeight: 512,
+    );
+    if (image != null) {
+      setState(() => _selectedImage = image);
     }
   }
 
@@ -222,7 +239,10 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
             key: _formKey,
             child: Column(
               children: [
-                const _AvatarSection(),
+                _AvatarSection(
+                  imageFile: _selectedImage,
+                  onPickImage: _pickImage,
+                ),
                 const SizedBox(height: 28),
                 _InputCard(
                   label: 'Prénom',
@@ -265,41 +285,52 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
 }
 
 class _AvatarSection extends StatelessWidget {
-  const _AvatarSection();
+  const _AvatarSection({required this.imageFile, required this.onPickImage});
+
+  final XFile? imageFile;
+  final VoidCallback onPickImage;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 120,
-      height: 120,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          const Align(
-            alignment: Alignment.center,
-            child: CircleAvatar(
-              radius: 44,
-              backgroundColor: Colors.white24,
-              child: Icon(Icons.person, size: 44, color: Colors.white),
-            ),
-          ),
-          Positioned(
-            right: 12,
-            bottom: 18,
-            child: Container(
-              width: 42,
-              height: 42,
-              decoration: const BoxDecoration(
-                color: _CreateBirthdayPageState._accentColor,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.photo_camera_outlined,
-                color: _CreateBirthdayPageState._pageColor,
+    return GestureDetector(
+      onTap: onPickImage,
+      child: SizedBox(
+        width: 120,
+        height: 120,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Align(
+              alignment: Alignment.center,
+              child: CircleAvatar(
+                radius: 44,
+                backgroundColor: Colors.white24,
+                backgroundImage: imageFile != null
+                    ? FileImage(File(imageFile!.path)) as ImageProvider
+                    : null,
+                child: imageFile == null
+                    ? const Icon(Icons.person, size: 44, color: Colors.white)
+                    : null,
               ),
             ),
-          ),
-        ],
+            Positioned(
+              right: 12,
+              bottom: 18,
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: const BoxDecoration(
+                  color: _CreateBirthdayPageState._accentColor,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.photo_camera_outlined,
+                  color: _CreateBirthdayPageState._pageColor,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

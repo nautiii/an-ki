@@ -9,6 +9,7 @@ class BirthdayModel {
   final String surname;
   final DateTime date;
   final BirthdayCategory category;
+  final String? picture;
 
   const BirthdayModel({
     required this.id,
@@ -16,6 +17,7 @@ class BirthdayModel {
     required this.surname,
     required this.date,
     required this.category,
+    this.picture,
   });
 
   factory BirthdayModel.fromFirestore(
@@ -29,15 +31,17 @@ class BirthdayModel {
       surname: data['surname'],
       date: (data['date'] as Timestamp).toDate(),
       category: (data['category'] as String).toBirthdayCategory(),
+      picture: data['picture'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      "name": name,
-      "surname": surname,
-      "date": Timestamp.fromDate(date),
-      "category": category.name,
+      'name': name,
+      'surname': surname,
+      'date': Timestamp.fromDate(date),
+      'category': category.name,
+      if (picture != null) 'picture': picture,
     };
   }
 }
