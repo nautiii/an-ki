@@ -5,6 +5,8 @@ class SearchBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Expanded(
@@ -12,14 +14,17 @@ class SearchBarWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white10,
+              color: colorScheme.surfaceContainerHigh,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.search, color: Colors.white54),
-                SizedBox(width: 8),
-                Text("Rechercher...", style: TextStyle(color: Colors.white54)),
+                Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+                const SizedBox(width: 8),
+                Text(
+                  "Rechercher...",
+                  style: TextStyle(color: colorScheme.onSurfaceVariant),
+                ),
               ],
             ),
           ),
@@ -29,10 +34,10 @@ class SearchBarWidget extends StatelessWidget {
           height: 48,
           width: 48,
           decoration: BoxDecoration(
-            color: Colors.white10,
+            color: colorScheme.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(14),
           ),
-          child: const Icon(Icons.tune, color: Colors.white),
+          child: Icon(Icons.tune, color: colorScheme.onSurface),
         ),
       ],
     );

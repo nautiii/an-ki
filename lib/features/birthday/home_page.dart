@@ -21,19 +21,19 @@ class HomePage extends StatelessWidget {
     final List<BirthdayModel> birthdays = context.select(
       (BirthdayProvider provider) => provider.birthdays,
     );
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1C2C),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFD9A08B),
+        backgroundColor: colorScheme.primary,
         elevation: 0,
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute<void>(builder: (_) => const CreateBirthdayPage()),
           );
         },
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 34),
+        child: Icon(Icons.add_rounded, color: colorScheme.onPrimary, size: 34),
       ),
       body: SafeArea(
         child: Padding(
@@ -68,15 +68,17 @@ class _HomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
     if (birthdays.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'Aucun anniversaire trouvé.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: colorScheme.onSurfaceVariant),
         ),
       );
     }

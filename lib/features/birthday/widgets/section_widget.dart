@@ -11,6 +11,8 @@ class SectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -19,15 +21,15 @@ class SectionWidget extends StatelessWidget {
           children: [
             Text(
               title.capitalize(),
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: colorScheme.onSurface,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const Text(
+            Text(
               "Voir tout",
-              style: TextStyle(color: Colors.orangeAccent),
+              style: TextStyle(color: colorScheme.primary),
             ),
           ],
         ),

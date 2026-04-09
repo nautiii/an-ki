@@ -16,21 +16,22 @@ class NextBirthdayCard extends StatelessWidget {
       (BirthdayProvider provider) => provider.birthdays,
     );
     final BirthdayModel? nextBirthday = birthdays.nextBirthday;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF7B5E57), Color(0xFFD6A48F)],
+        gradient: LinearGradient(
+          colors: [colorScheme.primary, colorScheme.tertiary],
         ),
       ),
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 24,
-            backgroundColor: Colors.white24,
-            child: Icon(Icons.cake_outlined, color: Colors.white, size: 22),
+            backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.2),
+            child: Icon(Icons.cake_outlined, color: colorScheme.onPrimary, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -40,7 +41,7 @@ class NextBirthdayCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          const Icon(Icons.cake, color: Colors.white),
+          Icon(Icons.cake, color: colorScheme.onPrimary),
         ],
       ),
     );
@@ -63,6 +64,7 @@ class _BirthdayContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final DateTime? nextDate = birthday?.nextOccurrence;
     final int? days = birthday?.daysUntilNext;
 
@@ -70,39 +72,39 @@ class _BirthdayContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text(
+        Text(
           'Prochain anniversaire',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: colorScheme.onPrimary.withValues(alpha: 0.7)),
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 4),
         if (isLoading)
-          const SizedBox(
+          SizedBox(
             width: 18,
             height: 18,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: Colors.white,
+              color: colorScheme.onPrimary,
             ),
           )
         else if (birthday == null)
-          const Text(
+          Text(
             'Aucun anniversaire enregistré',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: TextStyle(color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
             overflow: TextOverflow.ellipsis,
           )
         else ...[
           Text(
             '${birthday!.surname} ${birthday!.name}',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: colorScheme.onPrimary,
               fontWeight: FontWeight.bold,
             ),
             overflow: TextOverflow.ellipsis,
           ),
           Text(
             '${_daysLabel(days!)} • ${_formatDate(nextDate!)}',
-            style: const TextStyle(color: Colors.white70),
+            style: TextStyle(color: colorScheme.onPrimary.withValues(alpha: 0.7)),
             overflow: TextOverflow.ellipsis,
           ),
         ],

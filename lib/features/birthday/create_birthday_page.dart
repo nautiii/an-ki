@@ -16,10 +16,6 @@ class CreateBirthdayPage extends StatefulWidget {
 }
 
 class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
-  static const Color _pageColor = Color(0xFF0B1C2C);
-  static const Color _cardColor = Color(0xFF16263E);
-  static const Color _accentColor = Color(0xFFD9A08B);
-  static const Color _mutedTextColor = Color(0xFF98A6BD);
   static const List<BirthdayCategory> _availableCategories = <BirthdayCategory>[
     BirthdayCategory.family,
     BirthdayCategory.friend,
@@ -99,10 +95,11 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
 
   Future<void> _pickDate() async {
     DateTime temporaryDate = _selectedDate;
+    final colorScheme = Theme.of(context).colorScheme;
 
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: _cardColor,
+      backgroundColor: colorScheme.surfaceContainerHigh,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -121,10 +118,10 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
                         onPressed: () => Navigator.of(context).pop(),
                         child: const Text('Annuler'),
                       ),
-                      const Text(
+                      Text(
                         'Date de naissance',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -144,7 +141,7 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
                     ],
                   ),
                 ),
-                const Divider(color: Colors.white12),
+                const Divider(),
                 Expanded(
                   child: CupertinoDatePicker(
                     mode: CupertinoDatePickerMode.date,
@@ -197,35 +194,43 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
     final bool isCreating = context.select<BirthdayProvider, bool>(
       (BirthdayProvider provider) => provider.isCreating,
     );
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: _pageColor,
       appBar: AppBar(
-        backgroundColor: _pageColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
           onPressed: isCreating ? null : () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: colorScheme.onSurfaceVariant,
+          ),
         ),
-        title: const Text(
+        title: Text(
           'Nouvel anniversaire',
-          style: TextStyle(fontWeight: FontWeight.w700),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: isCreating ? null : _save,
             child:
                 isCreating
-                    ? const SizedBox(
+                    ? SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: colorScheme.primary,
+                      ),
                     )
-                    : const Text(
+                    : Text(
                       'Enregistrer',
                       style: TextStyle(
-                        color: _accentColor,
+                        color: colorScheme.primary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -292,6 +297,8 @@ class _AvatarSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: onPickImage,
       child: SizedBox(
@@ -304,13 +311,19 @@ class _AvatarSection extends StatelessWidget {
               alignment: Alignment.center,
               child: CircleAvatar(
                 radius: 44,
-                backgroundColor: Colors.white24,
-                backgroundImage: imageFile != null
-                    ? FileImage(File(imageFile!.path)) as ImageProvider
-                    : null,
-                child: imageFile == null
-                    ? const Icon(Icons.person, size: 44, color: Colors.white)
-                    : null,
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                backgroundImage:
+                    imageFile != null
+                        ? FileImage(File(imageFile!.path)) as ImageProvider
+                        : null,
+                child:
+                    imageFile == null
+                        ? Icon(
+                          Icons.person,
+                          size: 44,
+                          color: colorScheme.onSurfaceVariant,
+                        )
+                        : null,
               ),
             ),
             Positioned(
@@ -319,13 +332,13 @@ class _AvatarSection extends StatelessWidget {
               child: Container(
                 width: 42,
                 height: 42,
-                decoration: const BoxDecoration(
-                  color: _CreateBirthdayPageState._accentColor,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.photo_camera_outlined,
-                  color: _CreateBirthdayPageState._pageColor,
+                  color: colorScheme.onPrimary,
                 ),
               ),
             ),
@@ -353,10 +366,12 @@ class _InputCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
       decoration: BoxDecoration(
-        color: _CreateBirthdayPageState._cardColor,
+        color: colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(22),
       ),
       child: TextFormField(
@@ -364,19 +379,19 @@ class _InputCard extends StatelessWidget {
         validator: validator,
         textInputAction: textInputAction,
         autofillHints: autofillHints,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: colorScheme.onSurface,
           fontSize: 22,
           fontWeight: FontWeight.w600,
         ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(
-            color: _CreateBirthdayPageState._mutedTextColor,
+          labelStyle: TextStyle(
+            color: colorScheme.onSurfaceVariant,
             fontSize: 18,
           ),
           border: InputBorder.none,
-          errorStyle: const TextStyle(color: Colors.redAccent),
+          errorStyle: TextStyle(color: colorScheme.error),
         ),
       ),
     );
@@ -396,22 +411,21 @@ class _CategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
       decoration: BoxDecoration(
-        color: _CreateBirthdayPageState._cardColor,
+        color: colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(22),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Catégorie',
-            style: TextStyle(
-              color: _CreateBirthdayPageState._mutedTextColor,
-              fontSize: 18,
-            ),
+            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 18),
           ),
           const SizedBox(height: 16),
           Row(
@@ -450,12 +464,11 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final Color backgroundColor =
-        isSelected
-            ? _CreateBirthdayPageState._accentColor
-            : const Color(0xFF0F1B2D);
+        isSelected ? colorScheme.primary : colorScheme.surfaceContainerLow;
     final Color foregroundColor =
-        isSelected ? _CreateBirthdayPageState._pageColor : Colors.white;
+        isSelected ? colorScheme.onPrimary : colorScheme.onSurface;
 
     return InkWell(
       borderRadius: BorderRadius.circular(20),
@@ -500,13 +513,15 @@ class _DateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return InkWell(
       borderRadius: BorderRadius.circular(22),
       onTap: onTap,
       child: Ink(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
         decoration: BoxDecoration(
-          color: _CreateBirthdayPageState._cardColor,
+          color: colorScheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(22),
         ),
         child: Column(
@@ -514,32 +529,29 @@ class _DateCard extends StatelessWidget {
           children: [
             Text(
               label,
-              style: const TextStyle(
-                color: _CreateBirthdayPageState._mutedTextColor,
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
                 fontSize: 18,
               ),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
-                const Icon(
-                  Icons.calendar_month_outlined,
-                  color: _CreateBirthdayPageState._accentColor,
-                ),
+                Icon(Icons.calendar_month_outlined, color: colorScheme.primary),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     value,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.keyboard_arrow_down_rounded,
-                  color: Colors.white70,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ],
             ),
@@ -556,9 +568,9 @@ extension on BirthdayCategory {
       case BirthdayCategory.family:
         return 'Famille';
       case BirthdayCategory.friend:
-        return 'Amis';
+        return 'Ami';
       case BirthdayCategory.colleague:
-        return 'Collègues';
+        return 'Collègue';
       case BirthdayCategory.other:
         return 'Autre';
     }
