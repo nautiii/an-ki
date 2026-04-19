@@ -1,3 +1,4 @@
+import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -22,6 +23,8 @@ class _AppInitializerState extends State<AppInitializer> {
           name: "Maillard",
           surname: "Quentin",
         );
+        // Demande les permissions push après le premier rendu
+        NotificationService.instance.requestPermissions();
       }
     });
   }

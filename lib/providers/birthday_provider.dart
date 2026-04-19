@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/data/models/create_birthday_input.dart';
 import 'package:an_ki/data/repositories/birthday_repository.dart';
@@ -23,6 +24,8 @@ class BirthdayProvider extends ChangeNotifier {
         birthdays = data;
         isLoading = false;
         notifyListeners();
+        // Replanifier toutes les notifications à chaque mise à jour de la liste
+        NotificationService.instance.scheduleAll(data);
       },
       onError: (_) {
         isLoading = false;
