@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/data/models/create_birthday_input.dart';
 import 'package:an_ki/providers/birthday_provider.dart';
@@ -85,8 +86,8 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
       Navigator.of(context).pop(true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Impossible d'enregistrer l'anniversaire."),
+        SnackBar(
+          content: Text(context.l10n.errorSavingBirthday),
         ),
       );
     }
@@ -127,10 +128,10 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
                     children: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Annuler'),
+                        child: Text(context.l10n.cancel),
                       ),
                       Text(
-                        'Date de naissance',
+                        context.l10n.birthDate,
                         style: TextStyle(
                           color: colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
@@ -147,7 +148,7 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
                           });
                           Navigator.of(context).pop();
                         },
-                        child: const Text('Valider'),
+                        child: Text(context.l10n.validate),
                       ),
                     ],
                   ),
@@ -174,19 +175,19 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
   }
 
   String _formatDate(DateTime date) {
-    const List<String> months = <String>[
-      'Janvier',
-      'Février',
-      'Mars',
-      'Avril',
-      'Mai',
-      'Juin',
-      'Juillet',
-      'Août',
-      'Septembre',
-      'Octobre',
-      'Novembre',
-      'Décembre',
+    final months = [
+      context.l10n.january,
+      context.l10n.february,
+      context.l10n.march,
+      context.l10n.april,
+      context.l10n.may,
+      context.l10n.june,
+      context.l10n.july,
+      context.l10n.august,
+      context.l10n.september,
+      context.l10n.october,
+      context.l10n.november,
+      context.l10n.december,
     ];
 
     return '${date.day} ${months[date.month - 1]} ${date.year}';
@@ -194,7 +195,7 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
 
   String? _requiredValidator(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Champ requis';
+      return context.l10n.requiredField;
     }
 
     return null;
@@ -220,8 +221,8 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
         ),
         title: Text(
           widget.birthdayToEdit != null
-              ? "Modifier l'anniversaire"
-              : 'Nouvel anniversaire',
+              ? context.l10n.editBirthday
+              : context.l10n.newBirthday,
           style: TextStyle(
             color: colorScheme.onSurface,
             fontWeight: FontWeight.w700,
@@ -241,7 +242,7 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
                       ),
                     )
                     : Text(
-                      'Enregistrer',
+                      context.l10n.save,
                       style: TextStyle(
                         color: colorScheme.primary,
                         fontWeight: FontWeight.w700,
@@ -263,7 +264,7 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
                 ),
                 const SizedBox(height: 28),
                 _InputCard(
-                  label: 'Prénom',
+                  label: context.l10n.firstName,
                   controller: _nameController,
                   validator: _requiredValidator,
                   textInputAction: TextInputAction.next,
@@ -271,7 +272,7 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
                 ),
                 const SizedBox(height: 16),
                 _InputCard(
-                  label: 'Nom',
+                  label: context.l10n.lastName,
                   controller: _surnameController,
                   validator: _requiredValidator,
                   textInputAction: TextInputAction.done,
@@ -289,7 +290,7 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
                 ),
                 const SizedBox(height: 16),
                 _DateCard(
-                  label: 'Date de naissance',
+                  label: context.l10n.birthDate,
                   value: _formatDate(_selectedDate),
                   onTap: _pickDate,
                 ),
@@ -437,7 +438,7 @@ class _CategorySection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Catégorie',
+            context.l10n.category,
             style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 18),
           ),
           const SizedBox(height: 16),
@@ -498,7 +499,7 @@ class _CategoryCard extends StatelessWidget {
             Icon(category.icon, color: foregroundColor, size: 28),
             const SizedBox(height: 10),
             Text(
-              category.label,
+              category.label(context),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: foregroundColor,
@@ -575,17 +576,17 @@ class _DateCard extends StatelessWidget {
   }
 }
 
-extension on BirthdayCategory {
-  String get label {
+extension BirthdayCategoryExtension on BirthdayCategory {
+  String label(BuildContext context) {
     switch (this) {
       case BirthdayCategory.family:
-        return 'Famille';
+        return context.l10n.family;
       case BirthdayCategory.friend:
-        return 'Ami';
+        return context.l10n.friend;
       case BirthdayCategory.colleague:
-        return 'Collègue';
+        return context.l10n.colleague;
       case BirthdayCategory.other:
-        return 'Autre';
+        return context.l10n.other;
     }
   }
 

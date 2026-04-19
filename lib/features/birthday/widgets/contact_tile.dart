@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
+import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/birthday/create_birthday_page.dart';
 import 'package:flutter/material.dart';
 
@@ -47,7 +48,7 @@ class ContactTile extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "${birthday.formattedDate} • ${birthday.age} ans",
+                  "${birthday.formattedDate} • ${birthday.age} ${context.l10n.yearsOld}",
                   style: TextStyle(color: colorScheme.onSurfaceVariant),
                 ),
               ],

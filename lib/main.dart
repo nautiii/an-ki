@@ -4,6 +4,7 @@ import 'package:an_ki/features/auth/auth_choice_page.dart';
 import 'package:an_ki/features/auth/login_page.dart';
 import 'package:an_ki/features/auth/signup_page.dart';
 import 'package:an_ki/features/birthday/home_page.dart';
+import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:an_ki/providers/auth_provider.dart';
 import 'package:an_ki/providers/birthday_provider.dart';
 import 'package:an_ki/providers/theme_provider.dart';
@@ -59,6 +60,8 @@ class App extends StatelessWidget {
         '/signup': (context) => const SignUpPage(),
         '/home': (context) => const AppInitializer(child: HomePage()),
       },
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }

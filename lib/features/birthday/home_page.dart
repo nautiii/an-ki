@@ -1,6 +1,7 @@
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/search_bar.dart';
+import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:an_ki/providers/birthday_provider.dart';
@@ -77,7 +78,7 @@ class _HomeContent extends StatelessWidget {
     if (birthdays.isEmpty) {
       return Center(
         child: Text(
-          'Aucun anniversaire trouvé.',
+          context.l10n.noBirthdaysFound,
           style: TextStyle(color: colorScheme.onSurfaceVariant),
         ),
       );

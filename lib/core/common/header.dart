@@ -1,3 +1,4 @@
+import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/user_model.dart';
 import 'package:an_ki/providers/auth_provider.dart';
 import 'package:an_ki/providers/theme_provider.dart';
@@ -24,20 +25,18 @@ class Header extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Bonjour 👋",
-              style: TextStyle(color: colorScheme.onSurfaceVariant),
-            ),
+            Text(context.l10n.hello,
+                style: TextStyle(color: colorScheme.onSurfaceVariant)),
             user == null
                 ? const Center(child: CircularProgressIndicator())
                 : Text(
-                  "${user.surname} ${user.name}",
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
+                    "${user.surname} ${user.name}",
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
-                ),
           ],
         ),
         Row(
@@ -69,7 +68,10 @@ class Header extends StatelessWidget {
                 padding: const EdgeInsets.all(10),
               ),
               onPressed: () => _handleSignOut(context),
-              icon: Icon(Icons.logout_rounded, color: colorScheme.onSurface),
+              icon: Icon(
+                Icons.logout_rounded,
+                color: colorScheme.onSurface,
+              ),
             ),
           ],
         ),
@@ -80,27 +82,26 @@ class Header extends StatelessWidget {
   void _handleSignOut(BuildContext context) {
     showDialog(
       context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: const Text('Déconnexion'),
-            content: const Text('Êtes-vous sûr de vouloir vous déconnecter?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: const Text('Annuler'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                  context.read<AuthProvider>().signOut();
-                },
-                child: const Text(
-                  'Déconnecter',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.signOut),
+        content: Text(context.l10n.signOutConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(context.l10n.cancel),
           ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              context.read<AuthProvider>().signOut();
+            },
+            child: Text(
+              context.l10n.signOut,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,14 +16,14 @@ class AuthChoicePage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'An Ki',
+                context.l10n.appName,
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 16),
               Text(
-                'Gérez vos anniversaires',
+                context.l10n.manageBirthdays,
                 style: Theme.of(context).textTheme.bodyLarge,
                 textAlign: TextAlign.center,
               ),
@@ -43,7 +44,7 @@ class AuthChoicePage extends StatelessWidget {
                                     authProvider,
                                   ),
                           icon: const Icon(Icons.login),
-                          label: const Text('Connexion Google'),
+                          label: Text(context.l10n.loginWithGoogle),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -57,7 +58,7 @@ class AuthChoicePage extends StatelessWidget {
                                   : () =>
                                       Navigator.of(context).pushNamed('/login'),
                           icon: const Icon(Icons.email),
-                          label: const Text('Connexion Email'),
+                          label: Text(context.l10n.loginWithEmail),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -73,14 +74,14 @@ class AuthChoicePage extends StatelessWidget {
                                     authProvider,
                                   ),
                           icon: const Icon(Icons.person_outline),
-                          label: const Text('Continuer sans compte'),
+                          label: Text(context.l10n.continueWithoutAccount),
                         ),
                       ),
                       const SizedBox(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('Pas encore de compte ? '),
+                          Text(context.l10n.noAccountYet),
                           TextButton(
                             onPressed:
                                 authProvider.isLoading
@@ -88,7 +89,7 @@ class AuthChoicePage extends StatelessWidget {
                                     : () => Navigator.of(
                                       context,
                                     ).pushNamed('/signup'),
-                            child: const Text('S\'inscrire'),
+                            child: Text(context.l10n.signUp),
                           ),
                         ],
                       ),
