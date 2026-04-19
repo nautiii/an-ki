@@ -9,7 +9,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class CreateBirthdayPage extends StatefulWidget {
-  const CreateBirthdayPage({super.key});
+  final BirthdayModel? birthdayToEdit;
+
+  const CreateBirthdayPage({super.key, this.birthdayToEdit});
 
   @override
   State<CreateBirthdayPage> createState() => _CreateBirthdayPageState();
@@ -36,6 +38,17 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
     super.initState();
     _nameController = TextEditingController();
     _surnameController = TextEditingController();
+
+    if (widget.birthdayToEdit != null) {
+      _populateFields(widget.birthdayToEdit!);
+    }
+  }
+
+  void _populateFields(BirthdayModel birthday) {
+    _nameController.text = birthday.name;
+    _surnameController.text = birthday.surname;
+    _selectedDate = birthday.date;
+    _selectedCategory = birthday.category;
   }
 
   @override
@@ -61,18 +74,16 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
     );
 
     try {
-      await context.read<BirthdayProvider>().createBirthday(input);
-
-      if (!mounted) {
-        return;
+      if (widget.birthdayToEdit != null) {
+        await context.read<BirthdayProvider>().updateBirthday(
+          widget.birthdayToEdit!.id,
+          input,
+        );
+      } else {
+        await context.read<BirthdayProvider>().createBirthday(input);
       }
-
       Navigator.of(context).pop(true);
-    } catch (_) {
-      if (!mounted) {
-        return;
-      }
-
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Impossible d'enregistrer l'anniversaire."),
@@ -208,7 +219,9 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
           ),
         ),
         title: Text(
-          'Nouvel anniversaire',
+          widget.birthdayToEdit != null
+              ? "Modifier l'anniversaire"
+              : 'Nouvel anniversaire',
           style: TextStyle(
             color: colorScheme.onSurface,
             fontWeight: FontWeight.w700,

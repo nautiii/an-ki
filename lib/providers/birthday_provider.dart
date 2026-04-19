@@ -50,6 +50,22 @@ class BirthdayProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> updateBirthday(String birthdayId, CreateBirthdayInput input) async {
+    if (isCreating) {
+      return;
+    }
+
+    isCreating = true;
+    notifyListeners();
+
+    try {
+      await repository.updateBirthday(birthdayId, input);
+    } finally {
+      isCreating = false;
+      notifyListeners();
+    }
+  }
+
   @override
   void dispose() {
     _subscription?.cancel();

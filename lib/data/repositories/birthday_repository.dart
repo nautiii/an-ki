@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:an_ki/data/models/birthday_model.dart';
@@ -32,5 +33,23 @@ class BirthdayRepository {
     }
 
     await _birthdays.add(data);
+  }
+
+  Future<void> updateBirthday(
+    String birthdayId,
+    CreateBirthdayInput input,
+  ) async {
+    final Map<String, dynamic> data = input.toJson();
+
+    if (input.pictureFile != null) {
+      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      // final Reference ref = _storageRef.child(fileName);
+      final Uint8List bytes = await input.pictureFile!.readAsBytes();
+      // String base64 = base64Encode(bytes);
+      // await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
+      data['picture'] = base64Encode(bytes); // await ref.getDownloadURL();
+    }
+
+    await _birthdays.doc(birthdayId).update(data);
   }
 }

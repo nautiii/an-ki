@@ -1,6 +1,10 @@
 import 'package:an_ki/core/firebase_options.dart';
 import 'package:an_ki/core/theme/themes.dart';
+import 'package:an_ki/features/auth/auth_choice_page.dart';
+import 'package:an_ki/features/auth/login_page.dart';
+import 'package:an_ki/features/auth/signup_page.dart';
 import 'package:an_ki/features/birthday/home_page.dart';
+import 'package:an_ki/providers/auth_provider.dart';
 import 'package:an_ki/providers/birthday_provider.dart';
 import 'package:an_ki/providers/theme_provider.dart';
 import 'package:an_ki/providers/user_provider.dart';
@@ -23,6 +27,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => BirthdayProvider()),
       ],
@@ -37,13 +42,23 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeMode = context.watch<ThemeProvider>().themeMode;
+    final authProvider = context.watch<AuthProvider>();
 
     return MaterialApp(
       title: 'An Ki',
       themeMode: themeMode,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      home: const AppInitializer(child: HomePage()),
+      home:
+          authProvider.isAuthenticated
+              ? const AppInitializer(child: HomePage())
+              : const AuthChoicePage(),
+      routes: {
+        '/auth': (context) => const AuthChoicePage(),
+        '/login': (context) => const LoginPage(),
+        '/signup': (context) => const SignUpPage(),
+        '/home': (context) => const AppInitializer(child: HomePage()),
+      },
     );
   }
 }

@@ -129,4 +129,20 @@ class FakeBirthdayProvider extends ChangeNotifier implements BirthdayProvider {
     _isCreating = false;
     notifyListeners();
   }
+
+  @override
+  Future<void> updateBirthday(String birthdayId, CreateBirthdayInput input) async {
+    if (_isCreating) {
+      return;
+    }
+
+    _isCreating = true;
+    notifyListeners();
+
+    createdInputs.add(input);
+    await Future<void>.value();
+
+    _isCreating = false;
+    notifyListeners();
+  }
 }
