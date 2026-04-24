@@ -1,4 +1,5 @@
 import 'package:an_ki/core/extensions/common_extensions.dart';
+import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:flutter/material.dart';
 
 import 'contact_tile.dart';
@@ -28,7 +29,7 @@ class SectionWidget extends StatelessWidget {
               ),
             ),
             Text(
-              "Voir tout",
+              context.l10n.viewAll,
               style: TextStyle(color: colorScheme.primary),
             ),
           ],

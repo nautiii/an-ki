@@ -1,3 +1,4 @@
+import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -40,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
     if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.errorMessage ?? 'Erreur de connexion'),
+          content: Text(authProvider.errorMessage ?? context.l10n.connectionError),
         ),
       );
     }
@@ -49,7 +50,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('An Ki - Connexion')),
+      appBar: AppBar(title: Text(context.l10n.loginTitle)),
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
           return Padding(
@@ -58,7 +59,7 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Connectez-vous',
+                  context.l10n.signInText,
                   style: Theme.of(context).textTheme.headlineSmall,
                   textAlign: TextAlign.center,
                 ),
@@ -66,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
                 TextField(
                   controller: _emailController,
                   decoration: InputDecoration(
-                    hintText: 'Email',
+                    hintText: context.l10n.email,
                     prefixIcon: const Icon(Icons.email),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -79,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
                 TextField(
                   controller: _passwordController,
                   decoration: InputDecoration(
-                    hintText: 'Mot de passe',
+                    hintText: context.l10n.password,
                     prefixIcon: const Icon(Icons.lock),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -111,14 +112,14 @@ class _LoginPageState extends State<LoginPage> {
                               width: 24,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                            : const Text('Se connecter'),
+                            : Text(context.l10n.signInButton),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Pas encore de compte ? '),
+                    Text(context.l10n.dontHaveAccount),
                     TextButton(
                       onPressed:
                           authProvider.isLoading
@@ -126,7 +127,7 @@ class _LoginPageState extends State<LoginPage> {
                               : () => Navigator.of(
                                 context,
                               ).pushReplacementNamed('/signup'),
-                      child: const Text('S\'inscrire'),
+                      child: Text(context.l10n.signUp),
                     ),
                   ],
                 ),

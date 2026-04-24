@@ -145,4 +145,60 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get december => 'December';
+
+  @override
+  String get nextBirthday => 'Next birthday';
+
+  @override
+  String get noBirthdayRegistered => 'No birthday registered';
+
+  @override
+  String get today => 'Today 🎉';
+
+  @override
+  String get tomorrow => 'Tomorrow';
+
+  @override
+  String inDays(int days) {
+    return 'In $days days';
+  }
+
+  @override
+  String get viewAll => 'View all';
+
+  @override
+  String get search => 'Search...';
+
+  @override
+  String get connectionError => 'Login error';
+
+  @override
+  String get registrationError => 'Registration error';
+
+  @override
+  String get loginTitle => 'An Ki - Login';
+
+  @override
+  String get signUpTitle => 'An Ki - Registration';
+
+  @override
+  String get signInButton => 'Sign in';
+
+  @override
+  String get signUpButton => 'Sign up';
+
+  @override
+  String get createAccount => 'Create account';
+
+  @override
+  String get signInText => 'Sign in';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get haveAccount => 'Already have an account? ';
+
+  @override
+  String get dontHaveAccount => 'No account yet? ';
 }

@@ -27,6 +27,7 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
+        shape: CircleBorder(),
         backgroundColor: colorScheme.primary,
         elevation: 0,
         onPressed: () {

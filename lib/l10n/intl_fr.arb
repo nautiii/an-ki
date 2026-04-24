@@ -44,6 +44,33 @@
   "september": "Septembre",
   "october": "Octobre",
   "november": "Novembre",
-  "december": "Décembre"
+  "december": "Décembre",
+  "nextBirthday": "Prochain anniversaire",
+  "noBirthdayRegistered": "Aucun anniversaire enregistré",
+  "today": "Aujourd'hui 🎉",
+  "tomorrow": "Demain",
+  "inDays": "Dans {days} jours",
+  "@inDays": {
+    "description": "Number of days until next birthday",
+    "placeholders": {
+      "days": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "viewAll": "Voir tout",
+  "search": "Rechercher...",
+  "connectionError": "Erreur de connexion",
+  "registrationError": "Erreur d'inscription",
+  "loginTitle": "An Ki - Connexion",
+  "signUpTitle": "An Ki - Inscription",
+  "signInButton": "Se connecter",
+  "signUpButton": "S'inscrire",
+  "createAccount": "Créer un compte",
+  "signInText": "Connectez-vous",
+  "name": "Nom",
+  "haveAccount": "Vous avez déjà un compte ? ",
+  "dontHaveAccount": "Pas encore de compte ? "
 }
 

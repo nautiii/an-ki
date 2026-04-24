@@ -1,4 +1,5 @@
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
+import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/providers/birthday_provider.dart';
 import 'package:flutter/material.dart';
@@ -56,10 +57,10 @@ class _BirthdayContent extends StatelessWidget {
 
   String _formatDate(DateTime date) => '${date.day} ${months[date.month - 1]}';
 
-  String _daysLabel(int days) {
-    if (days == 0) return "Aujourd'hui 🎉";
-    if (days == 1) return 'Demain';
-    return 'Dans $days jours';
+  String _daysLabel(int days, BuildContext context) {
+    if (days == 0) return context.l10n.today;
+    if (days == 1) return context.l10n.tomorrow;
+    return context.l10n.inDays(days);
   }
 
   @override
@@ -73,7 +74,7 @@ class _BirthdayContent extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Prochain anniversaire',
+          context.l10n.nextBirthday,
           style: TextStyle(color: colorScheme.onPrimary.withValues(alpha: 0.7)),
           overflow: TextOverflow.ellipsis,
         ),
@@ -89,7 +90,7 @@ class _BirthdayContent extends StatelessWidget {
           )
         else if (birthday == null)
           Text(
-            'Aucun anniversaire enregistré',
+            context.l10n.noBirthdayRegistered,
             style: TextStyle(color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
             overflow: TextOverflow.ellipsis,
           )
@@ -103,7 +104,7 @@ class _BirthdayContent extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           Text(
-            '${_daysLabel(days!)} • ${_formatDate(nextDate!)}',
+            '${_daysLabel(days!, context)} • ${_formatDate(nextDate!)}',
             style: TextStyle(color: colorScheme.onPrimary.withValues(alpha: 0.7)),
             overflow: TextOverflow.ellipsis,
           ),

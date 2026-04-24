@@ -1,3 +1,4 @@
+import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -38,7 +39,7 @@ class _SignUpPageState extends State<SignUpPage> {
   void _handleSignUp() async {
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Les mots de passe ne correspondent pas')),
+        SnackBar(content: Text(context.l10n.passwordsDoNotMatch)),
       );
       return;
     }
@@ -55,7 +56,7 @@ class _SignUpPageState extends State<SignUpPage> {
     if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.errorMessage ?? 'Erreur d\'inscription'),
+          content: Text(authProvider.errorMessage ?? context.l10n.registrationError),
         ),
       );
     }
@@ -64,7 +65,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('An Ki - Inscription')),
+      appBar: AppBar(title: Text(context.l10n.signUpTitle)),
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
           return Padding(
@@ -74,7 +75,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Créer un compte',
+                    context.l10n.createAccount,
                     style: Theme.of(context).textTheme.headlineSmall,
                     textAlign: TextAlign.center,
                   ),
@@ -82,7 +83,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   TextField(
                     controller: _nameController,
                     decoration: InputDecoration(
-                      hintText: 'Nom',
+                      hintText: context.l10n.name,
                       prefixIcon: const Icon(Icons.person),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -94,7 +95,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   TextField(
                     controller: _emailController,
                     decoration: InputDecoration(
-                      hintText: 'Email',
+                      hintText: context.l10n.email,
                       prefixIcon: const Icon(Icons.email),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -107,7 +108,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   TextField(
                     controller: _passwordController,
                     decoration: InputDecoration(
-                      hintText: 'Mot de passe',
+                      hintText: context.l10n.password,
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -130,7 +131,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   TextField(
                     controller: _confirmPasswordController,
                     decoration: InputDecoration(
-                      hintText: 'Confirmer le mot de passe',
+                      hintText: context.l10n.confirmPassword,
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -168,14 +169,14 @@ class _SignUpPageState extends State<SignUpPage> {
                                   strokeWidth: 2,
                                 ),
                               )
-                              : const Text("S'inscrire"),
+                              : Text(context.l10n.signUpButton),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Vous avez déjà un compte ? '),
+                      Text(context.l10n.haveAccount),
                       TextButton(
                         onPressed:
                             authProvider.isLoading
@@ -183,7 +184,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 : () => Navigator.of(
                                   context,
                                 ).pushReplacementNamed('/login'),
-                        child: const Text('Se connecter'),
+                        child: Text(context.l10n.signIn),
                       ),
                     ],
                   ),

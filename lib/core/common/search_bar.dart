@@ -1,3 +1,4 @@
+import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:flutter/material.dart';
 
 class SearchBarWidget extends StatelessWidget {
@@ -22,7 +23,7 @@ class SearchBarWidget extends StatelessWidget {
                 Icon(Icons.search, color: colorScheme.onSurfaceVariant),
                 const SizedBox(width: 8),
                 Text(
-                  "Rechercher...",
+                  context.l10n.search,
                   style: TextStyle(color: colorScheme.onSurfaceVariant),
                 ),
               ],

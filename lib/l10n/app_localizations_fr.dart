@@ -147,4 +147,60 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get december => 'Décembre';
+
+  @override
+  String get nextBirthday => 'Prochain anniversaire';
+
+  @override
+  String get noBirthdayRegistered => 'Aucun anniversaire enregistré';
+
+  @override
+  String get today => 'Aujourd\'hui 🎉';
+
+  @override
+  String get tomorrow => 'Demain';
+
+  @override
+  String inDays(int days) {
+    return 'Dans $days jours';
+  }
+
+  @override
+  String get viewAll => 'Voir tout';
+
+  @override
+  String get search => 'Rechercher...';
+
+  @override
+  String get connectionError => 'Erreur de connexion';
+
+  @override
+  String get registrationError => 'Erreur d\'inscription';
+
+  @override
+  String get loginTitle => 'An Ki - Connexion';
+
+  @override
+  String get signUpTitle => 'An Ki - Inscription';
+
+  @override
+  String get signInButton => 'Se connecter';
+
+  @override
+  String get signUpButton => 'S\'inscrire';
+
+  @override
+  String get createAccount => 'Créer un compte';
+
+  @override
+  String get signInText => 'Connectez-vous';
+
+  @override
+  String get name => 'Nom';
+
+  @override
+  String get haveAccount => 'Vous avez déjà un compte ? ';
+
+  @override
+  String get dontHaveAccount => 'Pas encore de compte ? ';
 }

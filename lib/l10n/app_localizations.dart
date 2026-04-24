@@ -373,6 +373,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'December'**
   String get december;
+
+  /// No description provided for @nextBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Next birthday'**
+  String get nextBirthday;
+
+  /// No description provided for @noBirthdayRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'No birthday registered'**
+  String get noBirthdayRegistered;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today 🎉'**
+  String get today;
+
+  /// No description provided for @tomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get tomorrow;
+
+  /// Number of days until next birthday
+  ///
+  /// In en, this message translates to:
+  /// **'In {days} days'**
+  String inDays(int days);
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get viewAll;
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search...'**
+  String get search;
+
+  /// No description provided for @connectionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Login error'**
+  String get connectionError;
+
+  /// No description provided for @registrationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration error'**
+  String get registrationError;
+
+  /// No description provided for @loginTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'An Ki - Login'**
+  String get loginTitle;
+
+  /// No description provided for @signUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'An Ki - Registration'**
+  String get signUpTitle;
+
+  /// No description provided for @signInButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signInButton;
+
+  /// No description provided for @signUpButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get signUpButton;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createAccount;
+
+  /// No description provided for @signInText.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signInText;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
+
+  /// No description provided for @haveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? '**
+  String get haveAccount;
+
+  /// No description provided for @dontHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'No account yet? '**
+  String get dontHaveAccount;
 }
 
 class _AppLocalizationsDelegate
