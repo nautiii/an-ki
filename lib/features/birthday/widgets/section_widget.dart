@@ -7,8 +7,18 @@ import 'contact_tile.dart';
 class SectionWidget extends StatelessWidget {
   final String title;
   final List<ContactTile> children;
+  final VoidCallback? onViewAllPressed;
+  final bool isExpanded;
+  final bool showViewAll;
 
-  const SectionWidget({super.key, required this.title, required this.children});
+  const SectionWidget({
+    super.key,
+    required this.title,
+    required this.children,
+    this.onViewAllPressed,
+    this.isExpanded = false,
+    this.showViewAll = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +38,14 @@ class SectionWidget extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Text(
-              context.l10n.viewAll,
-              style: TextStyle(color: colorScheme.primary),
-            ),
+            if (showViewAll)
+              GestureDetector(
+                onTap: onViewAllPressed,
+                child: Text(
+                  isExpanded ? context.l10n.showLess : context.l10n.viewAll,
+                  style: TextStyle(color: colorScheme.primary),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 12),

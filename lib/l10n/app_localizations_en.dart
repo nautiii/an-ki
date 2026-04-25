@@ -15,7 +15,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageBirthdays => 'Manage your birthdays';
 
   @override
-  String get hello => 'Hello 👋';
+  String get hello => 'Hello';
 
   @override
   String get loginWithGoogle => 'Login with Google';
@@ -165,6 +165,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewAll => 'View all';
+
+  @override
+  String get showLess => 'Show less';
 
   @override
   String get search => 'Search...';

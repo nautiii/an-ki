@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/data/models/create_birthday_input.dart';
@@ -573,33 +574,5 @@ class _DateCard extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-extension BirthdayCategoryExtension on BirthdayCategory {
-  String label(BuildContext context) {
-    switch (this) {
-      case BirthdayCategory.family:
-        return context.l10n.family;
-      case BirthdayCategory.friend:
-        return context.l10n.friend;
-      case BirthdayCategory.colleague:
-        return context.l10n.colleague;
-      case BirthdayCategory.other:
-        return context.l10n.other;
-    }
-  }
-
-  IconData get icon {
-    switch (this) {
-      case BirthdayCategory.family:
-        return Icons.group_outlined;
-      case BirthdayCategory.friend:
-        return Icons.people_outline_rounded;
-      case BirthdayCategory.colleague:
-        return Icons.work_outline_rounded;
-      case BirthdayCategory.other:
-        return Icons.category_outlined;
-    }
   }
 }

@@ -1,4 +1,34 @@
+import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
+import 'package:flutter/material.dart';
+
+extension BirthdayCategoryX on BirthdayCategory {
+  String label(BuildContext context) {
+    switch (this) {
+      case BirthdayCategory.family:
+        return context.l10n.family;
+      case BirthdayCategory.friend:
+        return context.l10n.friend;
+      case BirthdayCategory.colleague:
+        return context.l10n.colleague;
+      case BirthdayCategory.other:
+        return context.l10n.other;
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case BirthdayCategory.family:
+        return Icons.group_outlined;
+      case BirthdayCategory.friend:
+        return Icons.people_outline_rounded;
+      case BirthdayCategory.colleague:
+        return Icons.work_outline_rounded;
+      case BirthdayCategory.other:
+        return Icons.category_outlined;
+    }
+  }
+}
 
 const List<String> months = <String>[
   'Janvier',
@@ -58,15 +88,21 @@ extension BirthdaySection on List<BirthdayModel> {
         );
   }
 
-  Map<String, List<BirthdayModel>> toSections() {
+  Map<String, List<BirthdayModel>> toSections(BuildContext context) {
     final Map<String, List<BirthdayModel>> sections = {};
 
+    // Grouper par catégorie
     for (final birthday in this) {
-      final String key = birthday.category.name.toUpperCase();
+      final String key = birthday.category.label(context).toUpperCase();
 
       sections.putIfAbsent(key, () => []);
       sections[key]!.add(birthday);
     }
+
+    // Trier chaque section par date (anniversaire le plus proche en premier)
+    sections.forEach((_, birthdays) {
+      birthdays.sort((a, b) => a.daysUntilNext.compareTo(b.daysUntilNext));
+    });
 
     return sections;
   }

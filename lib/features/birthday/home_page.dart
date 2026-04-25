@@ -11,8 +11,28 @@ import 'package:provider/provider.dart';
 import 'contact_sections.dart';
 import 'create_birthday_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String _searchQuery = '';
+
+  List<BirthdayModel> _filterBirthdays(List<BirthdayModel> birthdays) {
+    if (_searchQuery.isEmpty) {
+      return birthdays;
+    }
+
+    final query = _searchQuery.toLowerCase();
+    return birthdays
+        .where((birthday) =>
+            birthday.name.toLowerCase().contains(query) ||
+            birthday.surname.toLowerCase().contains(query))
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,11 +43,12 @@ class HomePage extends StatelessWidget {
       (BirthdayProvider provider) => provider.birthdays,
     );
     final colorScheme = Theme.of(context).colorScheme;
+    final filteredBirthdays = _filterBirthdays(birthdays);
 
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
-        shape: CircleBorder(),
+        shape: const CircleBorder(),
         backgroundColor: colorScheme.primary,
         elevation: 0,
         onPressed: () {
@@ -48,10 +69,19 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 24),
               const NextBirthdayCard(),
               const SizedBox(height: 20),
-              const SearchBarWidget(),
+              SearchBarWidget(
+                onSearchChanged: (query) {
+                  setState(() {
+                    _searchQuery = query;
+                  });
+                },
+              ),
               const SizedBox(height: 20),
               Expanded(
-                child: _HomeContent(isLoading: isLoading, birthdays: birthdays),
+                child: _HomeContent(
+                  isLoading: isLoading,
+                  birthdays: filteredBirthdays,
+                ),
               ),
             ],
           ),

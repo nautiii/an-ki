@@ -1,7 +1,7 @@
 {
   "appName": "An Ki",
   "manageBirthdays": "Gérez vos anniversaires",
-  "hello": "Bonjour 👋",
+  "hello": "Bonjour",
   "loginWithGoogle": "Connexion Google",
   "loginWithEmail": "Connexion Email",
   "continueWithoutAccount": "Continuer sans compte",
@@ -60,6 +60,7 @@
     }
   },
   "viewAll": "Voir tout",
+  "showLess": "Réduire",
   "search": "Rechercher...",
   "connectionError": "Erreur de connexion",
   "registrationError": "Erreur d'inscription",

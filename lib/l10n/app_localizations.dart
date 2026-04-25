@@ -100,386 +100,392 @@ abstract class AppLocalizations {
 
   /// No description provided for @appName.
   ///
-  /// In en, this message translates to:
+  /// In fr, this message translates to:
   /// **'An Ki'**
   String get appName;
 
   /// No description provided for @manageBirthdays.
   ///
-  /// In en, this message translates to:
-  /// **'Manage your birthdays'**
+  /// In fr, this message translates to:
+  /// **'Gérez vos anniversaires'**
   String get manageBirthdays;
 
   /// No description provided for @hello.
   ///
-  /// In en, this message translates to:
-  /// **'Hello 👋'**
+  /// In fr, this message translates to:
+  /// **'Bonjour'**
   String get hello;
 
   /// No description provided for @loginWithGoogle.
   ///
-  /// In en, this message translates to:
-  /// **'Login with Google'**
+  /// In fr, this message translates to:
+  /// **'Connexion Google'**
   String get loginWithGoogle;
 
   /// No description provided for @loginWithEmail.
   ///
-  /// In en, this message translates to:
-  /// **'Login with Email'**
+  /// In fr, this message translates to:
+  /// **'Connexion Email'**
   String get loginWithEmail;
 
   /// No description provided for @continueWithoutAccount.
   ///
-  /// In en, this message translates to:
-  /// **'Continue without account'**
+  /// In fr, this message translates to:
+  /// **'Continuer sans compte'**
   String get continueWithoutAccount;
 
   /// No description provided for @noAccountYet.
   ///
-  /// In en, this message translates to:
-  /// **'No account yet?'**
+  /// In fr, this message translates to:
+  /// **'Pas encore de compte ?'**
   String get noAccountYet;
 
   /// No description provided for @signUp.
   ///
-  /// In en, this message translates to:
-  /// **'Sign up'**
+  /// In fr, this message translates to:
+  /// **'S\'inscrire'**
   String get signUp;
 
   /// No description provided for @signIn.
   ///
-  /// In en, this message translates to:
-  /// **'Sign in'**
+  /// In fr, this message translates to:
+  /// **'Se connecter'**
   String get signIn;
 
   /// No description provided for @firstName.
   ///
-  /// In en, this message translates to:
-  /// **'First name'**
+  /// In fr, this message translates to:
+  /// **'Prénom'**
   String get firstName;
 
   /// No description provided for @lastName.
   ///
-  /// In en, this message translates to:
-  /// **'Last name'**
+  /// In fr, this message translates to:
+  /// **'Nom'**
   String get lastName;
 
   /// No description provided for @email.
   ///
-  /// In en, this message translates to:
+  /// In fr, this message translates to:
   /// **'Email'**
   String get email;
 
   /// No description provided for @password.
   ///
-  /// In en, this message translates to:
-  /// **'Password'**
+  /// In fr, this message translates to:
+  /// **'Mot de passe'**
   String get password;
 
   /// No description provided for @confirmPassword.
   ///
-  /// In en, this message translates to:
-  /// **'Confirm password'**
+  /// In fr, this message translates to:
+  /// **'Confirmer le mot de passe'**
   String get confirmPassword;
 
   /// No description provided for @birthDate.
   ///
-  /// In en, this message translates to:
-  /// **'Birth date'**
+  /// In fr, this message translates to:
+  /// **'Date de naissance'**
   String get birthDate;
 
   /// No description provided for @category.
   ///
-  /// In en, this message translates to:
-  /// **'Category'**
+  /// In fr, this message translates to:
+  /// **'Catégorie'**
   String get category;
 
   /// No description provided for @family.
   ///
-  /// In en, this message translates to:
-  /// **'Family'**
+  /// In fr, this message translates to:
+  /// **'Famille'**
   String get family;
 
   /// No description provided for @friend.
   ///
-  /// In en, this message translates to:
-  /// **'Friend'**
+  /// In fr, this message translates to:
+  /// **'Ami'**
   String get friend;
 
   /// No description provided for @colleague.
   ///
-  /// In en, this message translates to:
-  /// **'Colleague'**
+  /// In fr, this message translates to:
+  /// **'Collègue'**
   String get colleague;
 
   /// No description provided for @other.
   ///
-  /// In en, this message translates to:
-  /// **'Other'**
+  /// In fr, this message translates to:
+  /// **'Autre'**
   String get other;
 
   /// No description provided for @save.
   ///
-  /// In en, this message translates to:
-  /// **'Save'**
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
   String get save;
 
   /// No description provided for @cancel.
   ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
+  /// In fr, this message translates to:
+  /// **'Annuler'**
   String get cancel;
 
   /// No description provided for @validate.
   ///
-  /// In en, this message translates to:
-  /// **'Validate'**
+  /// In fr, this message translates to:
+  /// **'Valider'**
   String get validate;
 
   /// No description provided for @newBirthday.
   ///
-  /// In en, this message translates to:
-  /// **'New birthday'**
+  /// In fr, this message translates to:
+  /// **'Nouvel anniversaire'**
   String get newBirthday;
 
   /// No description provided for @editBirthday.
   ///
-  /// In en, this message translates to:
-  /// **'Edit birthday'**
+  /// In fr, this message translates to:
+  /// **'Modifier l\'anniversaire'**
   String get editBirthday;
 
   /// No description provided for @noBirthdaysFound.
   ///
-  /// In en, this message translates to:
-  /// **'No birthdays found.'**
+  /// In fr, this message translates to:
+  /// **'Aucun anniversaire trouvé.'**
   String get noBirthdaysFound;
 
   /// No description provided for @yearsOld.
   ///
-  /// In en, this message translates to:
-  /// **'years old'**
+  /// In fr, this message translates to:
+  /// **'ans'**
   String get yearsOld;
 
   /// No description provided for @requiredField.
   ///
-  /// In en, this message translates to:
-  /// **'Required field'**
+  /// In fr, this message translates to:
+  /// **'Champ obligatoire'**
   String get requiredField;
 
   /// No description provided for @passwordsDoNotMatch.
   ///
-  /// In en, this message translates to:
-  /// **'Passwords do not match'**
+  /// In fr, this message translates to:
+  /// **'Les mots de passe ne correspondent pas'**
   String get passwordsDoNotMatch;
 
   /// No description provided for @signOut.
   ///
-  /// In en, this message translates to:
-  /// **'Sign out'**
+  /// In fr, this message translates to:
+  /// **'Se déconnecter'**
   String get signOut;
 
   /// No description provided for @signOutConfirmation.
   ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to sign out?'**
+  /// In fr, this message translates to:
+  /// **'Êtes-vous sûr de vouloir vous déconnecter ?'**
   String get signOutConfirmation;
 
   /// No description provided for @errorSavingBirthday.
   ///
-  /// In en, this message translates to:
-  /// **'Error saving birthday'**
+  /// In fr, this message translates to:
+  /// **'Erreur lors de l\'enregistrement de l\'anniversaire'**
   String get errorSavingBirthday;
 
   /// No description provided for @login.
   ///
-  /// In en, this message translates to:
-  /// **'Login'**
+  /// In fr, this message translates to:
+  /// **'Connexion'**
   String get login;
 
   /// No description provided for @registration.
   ///
-  /// In en, this message translates to:
-  /// **'Registration'**
+  /// In fr, this message translates to:
+  /// **'Inscription'**
   String get registration;
 
   /// No description provided for @january.
   ///
-  /// In en, this message translates to:
-  /// **'January'**
+  /// In fr, this message translates to:
+  /// **'Janvier'**
   String get january;
 
   /// No description provided for @february.
   ///
-  /// In en, this message translates to:
-  /// **'February'**
+  /// In fr, this message translates to:
+  /// **'Février'**
   String get february;
 
   /// No description provided for @march.
   ///
-  /// In en, this message translates to:
-  /// **'March'**
+  /// In fr, this message translates to:
+  /// **'Mars'**
   String get march;
 
   /// No description provided for @april.
   ///
-  /// In en, this message translates to:
-  /// **'April'**
+  /// In fr, this message translates to:
+  /// **'Avril'**
   String get april;
 
   /// No description provided for @may.
   ///
-  /// In en, this message translates to:
-  /// **'May'**
+  /// In fr, this message translates to:
+  /// **'Mai'**
   String get may;
 
   /// No description provided for @june.
   ///
-  /// In en, this message translates to:
-  /// **'June'**
+  /// In fr, this message translates to:
+  /// **'Juin'**
   String get june;
 
   /// No description provided for @july.
   ///
-  /// In en, this message translates to:
-  /// **'July'**
+  /// In fr, this message translates to:
+  /// **'Juillet'**
   String get july;
 
   /// No description provided for @august.
   ///
-  /// In en, this message translates to:
-  /// **'August'**
+  /// In fr, this message translates to:
+  /// **'Août'**
   String get august;
 
   /// No description provided for @september.
   ///
-  /// In en, this message translates to:
-  /// **'September'**
+  /// In fr, this message translates to:
+  /// **'Septembre'**
   String get september;
 
   /// No description provided for @october.
   ///
-  /// In en, this message translates to:
-  /// **'October'**
+  /// In fr, this message translates to:
+  /// **'Octobre'**
   String get october;
 
   /// No description provided for @november.
   ///
-  /// In en, this message translates to:
-  /// **'November'**
+  /// In fr, this message translates to:
+  /// **'Novembre'**
   String get november;
 
   /// No description provided for @december.
   ///
-  /// In en, this message translates to:
-  /// **'December'**
+  /// In fr, this message translates to:
+  /// **'Décembre'**
   String get december;
 
   /// No description provided for @nextBirthday.
   ///
-  /// In en, this message translates to:
-  /// **'Next birthday'**
+  /// In fr, this message translates to:
+  /// **'Prochain anniversaire'**
   String get nextBirthday;
 
   /// No description provided for @noBirthdayRegistered.
   ///
-  /// In en, this message translates to:
-  /// **'No birthday registered'**
+  /// In fr, this message translates to:
+  /// **'Aucun anniversaire enregistré'**
   String get noBirthdayRegistered;
 
   /// No description provided for @today.
   ///
-  /// In en, this message translates to:
-  /// **'Today 🎉'**
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui 🎉'**
   String get today;
 
   /// No description provided for @tomorrow.
   ///
-  /// In en, this message translates to:
-  /// **'Tomorrow'**
+  /// In fr, this message translates to:
+  /// **'Demain'**
   String get tomorrow;
 
   /// Number of days until next birthday
   ///
-  /// In en, this message translates to:
-  /// **'In {days} days'**
+  /// In fr, this message translates to:
+  /// **'Dans {days} jours'**
   String inDays(int days);
 
   /// No description provided for @viewAll.
   ///
-  /// In en, this message translates to:
-  /// **'View all'**
+  /// In fr, this message translates to:
+  /// **'Voir tout'**
   String get viewAll;
+
+  /// No description provided for @showLess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réduire'**
+  String get showLess;
 
   /// No description provided for @search.
   ///
-  /// In en, this message translates to:
-  /// **'Search...'**
+  /// In fr, this message translates to:
+  /// **'Rechercher...'**
   String get search;
 
   /// No description provided for @connectionError.
   ///
-  /// In en, this message translates to:
-  /// **'Login error'**
+  /// In fr, this message translates to:
+  /// **'Erreur de connexion'**
   String get connectionError;
 
   /// No description provided for @registrationError.
   ///
-  /// In en, this message translates to:
-  /// **'Registration error'**
+  /// In fr, this message translates to:
+  /// **'Erreur d\'inscription'**
   String get registrationError;
 
   /// No description provided for @loginTitle.
   ///
-  /// In en, this message translates to:
-  /// **'An Ki - Login'**
+  /// In fr, this message translates to:
+  /// **'An Ki - Connexion'**
   String get loginTitle;
 
   /// No description provided for @signUpTitle.
   ///
-  /// In en, this message translates to:
-  /// **'An Ki - Registration'**
+  /// In fr, this message translates to:
+  /// **'An Ki - Inscription'**
   String get signUpTitle;
 
   /// No description provided for @signInButton.
   ///
-  /// In en, this message translates to:
-  /// **'Sign in'**
+  /// In fr, this message translates to:
+  /// **'Se connecter'**
   String get signInButton;
 
   /// No description provided for @signUpButton.
   ///
-  /// In en, this message translates to:
-  /// **'Sign up'**
+  /// In fr, this message translates to:
+  /// **'S\'inscrire'**
   String get signUpButton;
 
   /// No description provided for @createAccount.
   ///
-  /// In en, this message translates to:
-  /// **'Create account'**
+  /// In fr, this message translates to:
+  /// **'Créer un compte'**
   String get createAccount;
 
   /// No description provided for @signInText.
   ///
-  /// In en, this message translates to:
-  /// **'Sign in'**
+  /// In fr, this message translates to:
+  /// **'Connectez-vous'**
   String get signInText;
 
   /// No description provided for @name.
   ///
-  /// In en, this message translates to:
-  /// **'Name'**
+  /// In fr, this message translates to:
+  /// **'Nom'**
   String get name;
 
   /// No description provided for @haveAccount.
   ///
-  /// In en, this message translates to:
-  /// **'Already have an account? '**
+  /// In fr, this message translates to:
+  /// **'Vous avez déjà un compte ? '**
   String get haveAccount;
 
   /// No description provided for @dontHaveAccount.
   ///
-  /// In en, this message translates to:
-  /// **'No account yet? '**
+  /// In fr, this message translates to:
+  /// **'Pas encore de compte ? '**
   String get dontHaveAccount;
 }
 

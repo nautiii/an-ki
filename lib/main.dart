@@ -46,10 +46,11 @@ class App extends StatelessWidget {
     final authProvider = context.watch<AuthProvider>();
 
     return MaterialApp(
-      title: 'An Ki',
+      title: 'AnKi',
       themeMode: themeMode,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
+      locale: const Locale('fr'),
       home:
           authProvider.isAuthenticated
               ? const AppInitializer(child: HomePage())
