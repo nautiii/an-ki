@@ -35,6 +35,7 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String password,
     required String name,
+    required String surname,
   }) async {
     try {
       _isLoading = true;
@@ -46,8 +47,11 @@ class AuthProvider extends ChangeNotifier {
         password: password,
       );
 
-      await userCredential.user?.updateDisplayName(name);
-      await userCredential.user?.reload();
+      final user = userCredential.user;
+      if (user != null) {
+        await user.updateDisplayName("$name $surname");
+        await user.reload();
+      }
 
       _user = _firebaseAuth.currentUser;
       _isLoading = false;
@@ -156,6 +160,47 @@ class AuthProvider extends ChangeNotifier {
       return false;
     } catch (e) {
       _errorMessage = 'Erreur lors de la connexion Google';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> linkWithGoogle() async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // On lie les identifiants Google au compte anonyme actuel
+      final userCredential = await _user?.linkWithCredential(credential);
+      _user = userCredential?.user;
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on FirebaseAuthException catch (e) {
+      _errorMessage = _getErrorMessage(e.code);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Erreur lors de la liaison du compte';
       _isLoading = false;
       notifyListeners();
       return false;

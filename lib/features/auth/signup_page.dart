@@ -3,6 +3,8 @@ import 'package:an_ki/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../providers/user_provider.dart';
+
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
@@ -12,6 +14,7 @@ class SignUpPage extends StatefulWidget {
 
 class _SignUpPageState extends State<SignUpPage> {
   late final TextEditingController _nameController;
+  late final TextEditingController _surnameController;
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
   late final TextEditingController _confirmPasswordController;
@@ -22,6 +25,7 @@ class _SignUpPageState extends State<SignUpPage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController();
+    _surnameController = TextEditingController();
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
@@ -30,6 +34,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _surnameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -38,25 +43,36 @@ class _SignUpPageState extends State<SignUpPage> {
 
   void _handleSignUp() async {
     if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.passwordsDoNotMatch)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.passwordsDoNotMatch)));
       return;
     }
 
     final authProvider = context.read<AuthProvider>();
+    final userProvider = context.read<UserProvider>();
+
     final success = await authProvider.signUp(
       email: _emailController.text.trim(),
       password: _passwordController.text,
       name: _nameController.text.trim(),
+      surname: _surnameController.text.trim(),
     );
 
     if (!mounted) return;
 
-    if (!success) {
+    if (success && authProvider.user != null) {
+      await userProvider.createUser(
+        uid: authProvider.user!.uid,
+        name: _nameController.text.trim(),
+        surname: _surnameController.text.trim(),
+      );
+    } else if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.errorMessage ?? context.l10n.registrationError),
+          content: Text(
+            authProvider.errorMessage ?? context.l10n.registrationError,
+          ),
         ),
       );
     }
@@ -83,8 +99,20 @@ class _SignUpPageState extends State<SignUpPage> {
                   TextField(
                     controller: _nameController,
                     decoration: InputDecoration(
-                      hintText: context.l10n.name,
+                      hintText: context.l10n.firstName,
                       prefixIcon: const Icon(Icons.person),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    enabled: !authProvider.isLoading,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _surnameController,
+                    decoration: InputDecoration(
+                      hintText: context.l10n.lastName,
+                      prefixIcon: const Icon(Icons.person_outline),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

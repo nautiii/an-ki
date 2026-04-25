@@ -6,19 +6,18 @@ class UserRepository {
       .instance
       .collection('user');
 
-  Future<UserModel?> fetchUser({
-    required String name,
-    required String surname,
-  }) async {
-    final QuerySnapshot<Map<String, dynamic>> query =
-        await _users
-            .where('name', isEqualTo: name)
-            .where('surname', isEqualTo: surname)
-            .limit(1)
-            .get();
+  Future<UserModel?> fetchUser(String uid) async {
+    final DocumentSnapshot<Map<String, dynamic>> doc =
+        await _users.doc(uid).get();
 
-    return query.docs.isEmpty
-        ? null
-        : UserModel.fromFirestore(query.docs.first);
+    return doc.exists ? UserModel.fromFirestore(doc) : null;
+  }
+
+  Future<void> createUser(UserModel user) async {
+    await _users.doc(user.id).set(user.toJson());
+  }
+
+  Future<void> updateUser(UserModel user) async {
+    await _users.doc(user.id).update(user.toJson());
   }
 }

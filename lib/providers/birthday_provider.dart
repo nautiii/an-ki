@@ -14,24 +14,33 @@ class BirthdayProvider extends ChangeNotifier {
   bool isLoading = true;
   bool isCreating = false;
 
-  BirthdayProvider() {
-    _listenBirthdays();
-  }
+  BirthdayProvider();
 
-  void _listenBirthdays() {
+  void startListening() {
+    _subscription?.cancel();
+    isLoading = true;
+    notifyListeners();
+
     _subscription = repository.watchBirthdays().listen(
       (List<BirthdayModel> data) {
         birthdays = data;
         isLoading = false;
         notifyListeners();
-        // Replanifier toutes les notifications à chaque mise à jour de la liste
         NotificationService.instance.scheduleAll(data);
       },
-      onError: (_) {
+      onError: (e) {
         isLoading = false;
         notifyListeners();
       },
     );
+  }
+
+  void clear() {
+    _subscription?.cancel();
+    _subscription = null;
+    birthdays = [];
+    isLoading = true;
+    notifyListeners();
   }
 
   Future<void> createBirthday(CreateBirthdayInput input) async {

@@ -11,11 +11,17 @@ class UserModel {
     required this.surname,
   });
 
-  factory UserModel.fromFirestore(
-    QueryDocumentSnapshot<Map<String, dynamic>> doc,
-  ) {
-    final Map<String, dynamic> data = doc.data();
+  factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final Map<String, dynamic> data = doc.data()!;
 
-    return UserModel(id: doc.id, name: data['name'], surname: data['surname']);
+    return UserModel(
+      id: doc.id,
+      name: data['name'] ?? '',
+      surname: data['surname'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'name': name, 'surname': surname};
   }
 }

@@ -1,6 +1,7 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/user_model.dart';
 import 'package:an_ki/providers/auth_provider.dart';
+import 'package:an_ki/providers/birthday_provider.dart';
 import 'package:an_ki/providers/theme_provider.dart';
 import 'package:an_ki/providers/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -25,18 +26,18 @@ class Header extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(context.l10n.hello,
-                style: TextStyle(color: colorScheme.onSurfaceVariant)),
-            user == null
-                ? const Center(child: CircularProgressIndicator())
-                : Text(
-                    "${user.surname} ${user.name}",
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
+            Text(
+              context.l10n.hello,
+              style: TextStyle(color: colorScheme.onSurfaceVariant),
+            ),
+            Text(
+              user != null ? "${user.surname} ${user.name}" : "...",
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
           ],
         ),
         Row(
@@ -80,23 +81,51 @@ class Header extends StatelessWidget {
   }
 
   void _handleSignOut(BuildContext context) {
+    final authProvider = context.read<AuthProvider>();
+    final isAnonymous = authProvider.isAnonymous;
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.signOut),
-        content: Text(context.l10n.signOutConfirmation),
+        title: Text(isAnonymous ? "Attention" : dialogContext.l10n.signOut),
+        content: Text(
+          isAnonymous
+              ? "En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?"
+              : dialogContext.l10n.signOutConfirmation,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(context.l10n.cancel),
+            child: Text(dialogContext.l10n.cancel),
           ),
+          if (isAnonymous)
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                final success = await authProvider.linkWithGoogle();
+                if (success && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Compte sauvegardé avec succès !")),
+                  );
+                }
+              },
+              child: const Text("Sauvegarder mes données"),
+            ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              final authProvider = dialogContext.read<AuthProvider>();
+              final userProvider = dialogContext.read<UserProvider>();
+              final birthdayProvider = dialogContext.read<BirthdayProvider>();
+
               Navigator.of(dialogContext).pop();
-              context.read<AuthProvider>().signOut();
+
+              userProvider.clear();
+              birthdayProvider.clear();
+
+              await authProvider.signOut();
             },
             child: Text(
-              context.l10n.signOut,
+              isAnonymous ? "Supprimer et quitter" : dialogContext.l10n.signOut,
               style: const TextStyle(color: Colors.red),
             ),
           ),
