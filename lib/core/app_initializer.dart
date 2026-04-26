@@ -1,10 +1,9 @@
 import 'package:an_ki/core/services/notification_service.dart';
+import 'package:an_ki/providers/auth_provider.dart';
 import 'package:an_ki/providers/birthday_provider.dart';
 import 'package:an_ki/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../providers/auth_provider.dart';
 
 class AppInitializer extends StatefulWidget {
   final StatefulWidget child;

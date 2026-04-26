@@ -2,10 +2,9 @@ import 'dart:convert';
 
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/create_birthday_page.dart';
 import 'package:flutter/material.dart';
-
-import '../../../data/models/birthday_model.dart';
 
 class ContactTile extends StatelessWidget {
   final BirthdayModel birthday;
@@ -28,12 +27,15 @@ class ContactTile extends StatelessWidget {
           CircleAvatar(
             radius: 22,
             backgroundColor: colorScheme.primaryContainer,
-            backgroundImage: birthday.picture != null
-                ? MemoryImage(base64Decode(birthday.picture!)) as ImageProvider
-                : null,
-            child: birthday.picture == null
-                ? Icon(Icons.person, color: colorScheme.onPrimaryContainer)
-                : null,
+            backgroundImage:
+                birthday.picture != null
+                    ? MemoryImage(base64Decode(birthday.picture!))
+                        as ImageProvider
+                    : null,
+            child:
+                birthday.picture == null
+                    ? Icon(Icons.person, color: colorScheme.onPrimaryContainer)
+                    : null,
           ),
           const SizedBox(width: 12),
           Expanded(

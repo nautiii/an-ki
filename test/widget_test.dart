@@ -44,10 +44,14 @@ void main() {
   });
 }
 
-
-class TestChild extends StatelessWidget {
+class TestChild extends StatefulWidget {
   const TestChild({super.key});
 
+  @override
+  State<TestChild> createState() => _TestChildState();
+}
+
+class _TestChildState extends State<TestChild> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(body: Center(child: Text('Child ready')));
