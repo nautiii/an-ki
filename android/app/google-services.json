@@ -12,7 +12,28 @@
           "package_name": "com.github.nautiii.an_ki"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "431108629745-g1olvh624g3q8lf6t91re5bj0sbh0eee.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.github.nautiii.an_ki",
+            "certificate_hash": "368c24f2d82093569280856ad80ba69abc96fc0c"
+          }
+        },
+        {
+          "client_id": "431108629745-ld39m64af938pcaihdqu42v4ree5utqc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.github.nautiii.an_ki",
+            "certificate_hash": "c7ccc1c68467f28e940de5e16bad0887417556f2"
+          }
+        },
+        {
+          "client_id": "431108629745-dn8tsmqkm0i616gpc61u7kmhipb5033j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyByKee29xDPxRMFOOhSClGE9ExBt2z-o48"
@@ -20,7 +41,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "431108629745-dn8tsmqkm0i616gpc61u7kmhipb5033j.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "431108629745-f06c3q3is3rm2t07hf4s0nuoae14pqhc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.github.nautiii.anKi"
+              }
+            }
+          ]
         }
       }
     }

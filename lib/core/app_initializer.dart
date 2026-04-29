@@ -28,31 +28,26 @@ class _AppInitializerState extends State<AppInitializer> {
         if (authProvider.user != null) {
           final uid = authProvider.user!.uid;
 
-          // On lance les deux en parallèle
           Future.wait([
             userProvider.loadUser(uid).then((_) async {
-              // Si l'utilisateur n'existe pas encore dans Firestore, on le crée
               if (userProvider.user == null) {
                 final displayName = authProvider.user!.displayName ?? "";
                 final parts = displayName.split(" ");
-                final firstName =
-                    parts.isNotEmpty && parts.first.isNotEmpty
-                        ? parts.first
-                        : (authProvider.isAnonymous ? "Invité" : "Prénom");
-                final lastName =
-                    parts.length > 1 ? parts.sublist(1).join(" ") : "Nom";
 
                 await userProvider.createUser(
                   uid: uid,
-                  name: firstName,
-                  surname: lastName,
+                  name:
+                      parts.isNotEmpty && parts.first.isNotEmpty
+                          ? parts.first
+                          : (authProvider.isAnonymous ? "Invité" : "Prénom"),
+                  surname:
+                      parts.length > 1 ? parts.sublist(1).join(" ") : "Nom",
                 );
               }
             }),
-            Future.microtask(() => birthdayProvider.startListening()),
+            Future.microtask(() => birthdayProvider.startListening(uid)),
           ]);
         }
-        // Demande les permissions push après le premier rendu
         NotificationService.instance.requestPermissions();
       }
     });

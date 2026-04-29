@@ -4,6 +4,7 @@ import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/data/models/create_birthday_input.dart';
+import 'package:an_ki/providers/auth_provider.dart';
 import 'package:an_ki/providers/birthday_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -68,6 +69,7 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
     }
 
     final CreateBirthdayInput input = CreateBirthdayInput(
+      uid: context.read<AuthProvider>().user?.uid ?? '',
       name: _nameController.text,
       surname: _surnameController.text,
       date: _selectedDate,
@@ -86,11 +88,9 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
       }
       Navigator.of(context).pop(true);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.errorSavingBirthday),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.errorSavingBirthday)));
     }
   }
 

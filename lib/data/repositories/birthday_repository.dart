@@ -14,11 +14,14 @@ class BirthdayRepository {
     'birthdays',
   );
 
-  Stream<List<BirthdayModel>> watchBirthdays() {
-    return _birthdays.snapshots().map(
-      (QuerySnapshot<Map<String, dynamic>> snapshot) =>
-          snapshot.docs.map(BirthdayModel.fromFirestore).toList(),
-    );
+  Stream<List<BirthdayModel>> watchBirthdays(String uid) {
+    return _birthdays
+        .where('uid', isEqualTo: uid)
+        .snapshots()
+        .map(
+          (QuerySnapshot<Map<String, dynamic>> snapshot) =>
+              snapshot.docs.map(BirthdayModel.fromFirestore).toList(),
+        );
   }
 
   Future<void> createBirthday(CreateBirthdayInput input) async {
@@ -42,7 +45,6 @@ class BirthdayRepository {
     final Map<String, dynamic> data = input.toJson();
 
     if (input.pictureFile != null) {
-      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       // final Reference ref = _storageRef.child(fileName);
       final Uint8List bytes = await input.pictureFile!.readAsBytes();
       // String base64 = base64Encode(bytes);

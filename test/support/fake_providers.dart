@@ -167,7 +167,7 @@ class FakeBirthdayProvider extends ChangeNotifier implements BirthdayProvider {
   }
 
   @override
-  void startListening() {
+  void startListening(String user) {
     // TODO: implement startListening
   }
 }

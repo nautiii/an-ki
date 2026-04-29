@@ -5,6 +5,7 @@ enum BirthdayCategory { family, friend, colleague, other }
 
 class BirthdayModel {
   final String id;
+  final String uid;
   final String name;
   final String surname;
   final DateTime date;
@@ -13,6 +14,7 @@ class BirthdayModel {
 
   const BirthdayModel({
     required this.id,
+    required this.uid,
     required this.name,
     required this.surname,
     required this.date,
@@ -27,6 +29,7 @@ class BirthdayModel {
 
     return BirthdayModel(
       id: doc.id,
+      uid: data['uid'],
       name: data['name'],
       surname: data['surname'],
       date: (data['date'] as Timestamp).toDate(),
@@ -37,6 +40,7 @@ class BirthdayModel {
 
   Map<String, dynamic> toJson() {
     return {
+      'uid': uid,
       'name': name,
       'surname': surname,
       'date': Timestamp.fromDate(date),
