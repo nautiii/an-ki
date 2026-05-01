@@ -48,7 +48,11 @@ class _AppInitializerState extends State<AppInitializer> {
             Future.microtask(() => birthdayProvider.startListening(uid)),
           ]);
         }
-        NotificationService.instance.requestPermissions();
+        NotificationService.instance.requestPermissions().then((granted) {
+          if (granted) {
+            NotificationService.instance.showTestNotification();
+          }
+        });
       }
     });
   }

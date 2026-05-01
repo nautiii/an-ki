@@ -81,7 +81,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get newBirthday => 'Nouvel anniversaire';
 
   @override
-  String get editBirthday => 'Modifier l\'anniversaire';
+  String get editBirthday => 'Modifier';
 
   @override
   String get noBirthdaysFound => 'Aucun anniversaire trouvé.';

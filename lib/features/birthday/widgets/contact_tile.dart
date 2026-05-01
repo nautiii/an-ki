@@ -15,6 +15,16 @@ class ContactTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    ImageProvider? backgroundImage;
+
+    if (birthday.picture != null) {
+      try {
+        backgroundImage = MemoryImage(base64Decode(birthday.picture!));
+      } catch (e) {
+        backgroundImage = null;
+      }
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
@@ -27,13 +37,9 @@ class ContactTile extends StatelessWidget {
           CircleAvatar(
             radius: 22,
             backgroundColor: colorScheme.primaryContainer,
-            backgroundImage:
-                birthday.picture != null
-                    ? MemoryImage(base64Decode(birthday.picture!))
-                        as ImageProvider
-                    : null,
+            backgroundImage: backgroundImage,
             child:
-                birthday.picture == null
+                backgroundImage == null
                     ? Icon(Icons.person, color: colorScheme.onPrimaryContainer)
                     : null,
           ),

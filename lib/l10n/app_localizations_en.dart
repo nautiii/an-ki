@@ -81,7 +81,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newBirthday => 'New birthday';
 
   @override
-  String get editBirthday => 'Edit birthday';
+  String get editBirthday => 'Edit';
 
   @override
   String get noBirthdaysFound => 'No birthdays found.';

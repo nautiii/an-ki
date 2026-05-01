@@ -1,4 +1,3 @@
-import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/search_bar.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
@@ -28,9 +27,11 @@ class _HomePageState extends State<HomePage> {
 
     final query = _searchQuery.toLowerCase();
     return birthdays
-        .where((birthday) =>
-            birthday.name.toLowerCase().contains(query) ||
-            birthday.surname.toLowerCase().contains(query))
+        .where(
+          (birthday) =>
+              birthday.name.toLowerCase().contains(query) ||
+              birthday.surname.toLowerCase().contains(query),
+        )
         .toList();
   }
 
@@ -87,7 +88,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      bottomNavigationBar: const BottomBar(),
+      // bottomNavigationBar: const BottomBar(),
     );
   }
 }

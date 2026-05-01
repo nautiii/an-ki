@@ -45,7 +45,7 @@ class BirthdayProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> createBirthday(CreateBirthdayInput input) async {
+  Future<void> createBirthday(String uid, CreateBirthdayInput input) async {
     if (isCreating) {
       return;
     }
@@ -54,7 +54,7 @@ class BirthdayProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await repository.createBirthday(input);
+      await repository.createBirthday(uid, input);
     } finally {
       isCreating = false;
       notifyListeners();

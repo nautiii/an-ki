@@ -9,6 +9,7 @@ import 'package:timezone/timezone.dart' as tz;
 /// Service singleton gérant les notifications locales d'anniversaire.
 class NotificationService {
   NotificationService._();
+
   static final NotificationService instance = NotificationService._();
 
   final FlutterLocalNotificationsPlugin _plugin =
@@ -41,8 +42,9 @@ class NotificationService {
     }
 
     // 3. Paramètres d'init Android / iOS
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
@@ -65,9 +67,11 @@ class NotificationService {
   Future<bool> requestPermissions() async {
     bool granted = false;
 
-    final android = _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final android =
+        _plugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
 
     if (android != null) {
       final notifGranted =
@@ -77,16 +81,15 @@ class NotificationService {
       granted = notifGranted && exactGranted;
     }
 
-    final ios = _plugin
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
+    final ios =
+        _plugin
+            .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin
+            >();
 
     if (ios != null) {
-      granted = await ios.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          ) ??
+      granted =
+          await ios.requestPermissions(alert: true, badge: true, sound: true) ??
           false;
     }
 
@@ -156,7 +159,36 @@ class NotificationService {
       tz.TZDateTime(tz.local, date.year, date.month, date.day, hour);
 
   /// Identifiant entier stable et unique dérivé de l'ID Firestore.
-  int _notificationId(String birthdayId) =>
-      birthdayId.hashCode.abs() % 100000;
-}
+  int _notificationId(String birthdayId) => birthdayId.hashCode.abs() % 100000;
 
+  // ── Test ──────────────────────────────────────────────────────────────────
+
+  /// Affiche une notification immédiate pour tester le fonctionnement.
+  Future<void> showTestNotification() async {
+    if (!_initialized) return;
+
+    const androidDetails = AndroidNotificationDetails(
+      _channelId,
+      _channelName,
+      channelDescription: _channelDescription,
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    await _plugin.show(
+      id: 999,
+      title: 'Test AnKi 🎂',
+      body: 'Si vous voyez ceci, les notifications fonctionnent !',
+      notificationDetails: const NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      ),
+    );
+  }
+}

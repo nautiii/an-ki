@@ -245,7 +245,7 @@ abstract class AppLocalizations {
   /// No description provided for @editBirthday.
   ///
   /// In fr, this message translates to:
-  /// **'Modifier l\'anniversaire'**
+  /// **'Modifier'**
   String get editBirthday;
 
   /// No description provided for @noBirthdaysFound.

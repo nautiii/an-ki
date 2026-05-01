@@ -1,4 +1,5 @@
 import 'package:an_ki/core/firebase_options.dart';
+import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/auth/auth_choice_page.dart';
 import 'package:an_ki/features/auth/login_page.dart';
@@ -23,6 +24,8 @@ void main() async {
   FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: true,
   );
+
+  await NotificationService.instance.initialize();
 
   runApp(
     MultiProvider(

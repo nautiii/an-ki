@@ -32,7 +32,11 @@ class NextBirthdayCard extends StatelessWidget {
           CircleAvatar(
             radius: 24,
             backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.2),
-            child: Icon(Icons.cake_outlined, color: colorScheme.onPrimary, size: 22),
+            child: Icon(
+              Icons.cake_outlined,
+              color: colorScheme.onPrimary,
+              size: 22,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -91,12 +95,15 @@ class _BirthdayContent extends StatelessWidget {
         else if (birthday == null)
           Text(
             context.l10n.noBirthdayRegistered,
-            style: TextStyle(color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: colorScheme.onPrimary,
+              fontWeight: FontWeight.bold,
+            ),
             overflow: TextOverflow.ellipsis,
           )
         else ...[
           Text(
-            '${birthday!.surname} ${birthday!.name}',
+            '${birthday!.name} ${birthday!.surname}',
             style: TextStyle(
               color: colorScheme.onPrimary,
               fontWeight: FontWeight.bold,
@@ -105,7 +112,9 @@ class _BirthdayContent extends StatelessWidget {
           ),
           Text(
             '${_daysLabel(days!, context)} • ${_formatDate(nextDate!)}',
-            style: TextStyle(color: colorScheme.onPrimary.withValues(alpha: 0.7)),
+            style: TextStyle(
+              color: colorScheme.onPrimary.withValues(alpha: 0.7),
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ],

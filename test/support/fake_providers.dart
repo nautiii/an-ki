@@ -69,7 +69,9 @@ class FakeUserProvider extends ChangeNotifier implements UserProvider {
 
   @override
   void clear() {
-    // TODO: implement clear
+    _user = null;
+    _isLoading = false;
+    notifyListeners();
   }
 
   @override
@@ -77,9 +79,9 @@ class FakeUserProvider extends ChangeNotifier implements UserProvider {
     required String uid,
     required String name,
     required String surname,
-  }) {
-    // TODO: implement createUser
-    throw UnimplementedError();
+  }) async {
+    _user = UserModel(id: uid, name: name, surname: surname);
+    notifyListeners();
   }
 }
 
@@ -127,7 +129,7 @@ class FakeBirthdayProvider extends ChangeNotifier implements BirthdayProvider {
   BirthdayRepository get repository => throw UnimplementedError();
 
   @override
-  Future<void> createBirthday(CreateBirthdayInput input) async {
+  Future<void> createBirthday(String uid, CreateBirthdayInput input) async {
     if (_isCreating) {
       return;
     }
@@ -163,11 +165,14 @@ class FakeBirthdayProvider extends ChangeNotifier implements BirthdayProvider {
 
   @override
   void clear() {
-    // TODO: implement clear
+    _birthdays = [];
+    _isLoading = false;
+    notifyListeners();
   }
 
   @override
-  void startListening(String user) {
-    // TODO: implement startListening
+  void startListening(String uid) {
+    _isLoading = false;
+    notifyListeners();
   }
 }

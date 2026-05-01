@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
@@ -78,19 +79,25 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
     );
 
     try {
+      final authProvider = context.read<AuthProvider>();
+      final uid = authProvider.user!.uid;
+      final navigator = Navigator.of(context);
+
       if (widget.birthdayToEdit != null) {
         await context.read<BirthdayProvider>().updateBirthday(
           widget.birthdayToEdit!.id,
           input,
         );
       } else {
-        await context.read<BirthdayProvider>().createBirthday(input);
+        await context.read<BirthdayProvider>().createBirthday(uid, input);
       }
-      Navigator.of(context).pop(true);
+      navigator.pop(true);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(context.l10n.errorSavingBirthday)));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.errorSavingBirthday)),
+        );
+      }
     }
   }
 
@@ -261,6 +268,7 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
               children: [
                 _AvatarSection(
                   imageFile: _selectedImage,
+                  initialImageUrl: widget.birthdayToEdit?.picture,
                   onPickImage: _pickImage,
                 ),
                 const SizedBox(height: 28),
@@ -305,14 +313,32 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
 }
 
 class _AvatarSection extends StatelessWidget {
-  const _AvatarSection({required this.imageFile, required this.onPickImage});
+  const _AvatarSection({
+    required this.imageFile,
+    required this.onPickImage,
+    this.initialImageUrl,
+  });
 
   final XFile? imageFile;
+  final String? initialImageUrl;
   final VoidCallback onPickImage;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
+    ImageProvider? backgroundImage;
+
+    if (imageFile != null) {
+      backgroundImage = FileImage(File(imageFile!.path));
+    } else if (initialImageUrl != null) {
+      try {
+        backgroundImage = MemoryImage(base64Decode(initialImageUrl!));
+      } catch (e) {
+        // Fallback if base64 is invalid
+        backgroundImage = null;
+      }
+    }
 
     return GestureDetector(
       onTap: onPickImage,
@@ -327,12 +353,9 @@ class _AvatarSection extends StatelessWidget {
               child: CircleAvatar(
                 radius: 44,
                 backgroundColor: colorScheme.surfaceContainerHighest,
-                backgroundImage:
-                    imageFile != null
-                        ? FileImage(File(imageFile!.path)) as ImageProvider
-                        : null,
+                backgroundImage: backgroundImage,
                 child:
-                    imageFile == null
+                    backgroundImage == null
                         ? Icon(
                           Icons.person,
                           size: 44,
