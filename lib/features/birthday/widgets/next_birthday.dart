@@ -1,22 +1,17 @@
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
-import 'package:an_ki/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class NextBirthdayCard extends StatelessWidget {
+class NextBirthdayCard extends ConsumerWidget {
   const NextBirthdayCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final bool isLoading = context.select(
-      (BirthdayProvider provider) => provider.isLoading,
-    );
-    final List<BirthdayModel> birthdays = context.select(
-      (BirthdayProvider provider) => provider.birthdays,
-    );
-    final BirthdayModel? nextBirthday = birthdays.nextBirthday;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final birthdayState = ref.watch(birthdayProvider);
+    final BirthdayModel? nextBirthday = birthdayState.birthdays.nextBirthday;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -42,7 +37,7 @@ class NextBirthdayCard extends StatelessWidget {
           Expanded(
             child: _BirthdayContent(
               birthday: nextBirthday,
-              isLoading: isLoading,
+              isLoading: birthdayState.isLoading,
             ),
           ),
           const SizedBox(width: 12),

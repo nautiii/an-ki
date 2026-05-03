@@ -4,11 +4,92 @@ import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/data/models/create_birthday_input.dart';
 import 'package:an_ki/data/models/user_model.dart';
 import 'package:an_ki/data/repositories/birthday_repository.dart';
-import 'package:an_ki/providers/birthday_provider.dart';
-import 'package:an_ki/providers/user_provider.dart';
-import 'package:flutter/foundation.dart';
+import 'package:an_ki/data/repositories/user_repository.dart';
+import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/user/providers/user_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 
-class FakeUserProvider extends ChangeNotifier implements UserProvider {
+class MockUser extends Fake implements firebase_auth.User {
+  @override
+  String get uid => 'fake-uid';
+  @override
+  String? get displayName => 'Fake User';
+  @override
+  bool get isAnonymous => false;
+}
+
+class FakeUserRepository extends UserRepository {
+  @override
+  Future<UserModel?> fetchUser(String uid) async => null;
+  @override
+  Future<void> createUser(UserModel user) async {}
+  @override
+  Future<void> updateUser(UserModel user) async {}
+}
+
+class FakeBirthdayRepository extends BirthdayRepository {
+  @override
+  Stream<List<BirthdayModel>> watchBirthdays(String uid) => Stream.value([]);
+  @override
+  Future<void> createBirthday(String uid, CreateBirthdayInput input) async {}
+  @override
+  Future<void> updateBirthday(String uid, String birthdayId, CreateBirthdayInput input) async {}
+}
+
+class FakeAuthProvider extends AuthProvider {
+  FakeAuthProvider({AuthState? initialState}) : super(firebaseAuth: null, googleSignIn: null) {
+    if (initialState != null) state = initialState;
+  }
+
+  @override
+  void initializeAuth() {
+    // Do nothing to avoid accessing Firebase in tests
+  }
+
+  void updateState(AuthState newState) {
+    state = newState;
+  }
+
+  @override
+  Future<void> signOut() async {
+    state = AuthState();
+  }
+
+  @override
+  Future<bool> signIn({required String email, required String password}) async {
+    return true;
+  }
+
+  @override
+  Future<bool> signInAnonymously() async {
+    return true;
+  }
+
+  @override
+  Future<bool> signInWithGoogle() async {
+    return true;
+  }
+
+  @override
+  Future<bool> signUp({
+    required String email,
+    required String password,
+    required String name,
+    required String surname,
+  }) async {
+    return true;
+  }
+
+  @override
+  Future<bool> linkWithGoogle() async {
+    return true;
+  }
+}
+
+class FakeUserProvider extends UserProvider {
   FakeUserProvider({
     UserModel? initialUser,
     this.defaultLoadedUser = const UserModel(
@@ -16,34 +97,19 @@ class FakeUserProvider extends ChangeNotifier implements UserProvider {
       name: 'Quentin',
       surname: 'Maillard',
     ),
-  }) : _user = initialUser;
+  }) : super(FakeUserRepository()) {
+    state = UserState(user: initialUser);
+  }
 
   final UserModel? defaultLoadedUser;
   Completer<UserModel?>? _pendingLoad;
-  UserModel? _user;
-  bool _isLoading = false;
-
-  String? receivedName;
-  String? receivedSurname;
-
-  @override
-  UserModel? get user => _user;
-
-  @override
-  set user(UserModel? value) {
-    _user = value;
-  }
-
-  @override
-  bool get isLoading => _isLoading;
 
   void preparePendingLoad() {
     _pendingLoad = Completer<UserModel?>();
   }
 
   void completePendingLoad([UserModel? user]) {
-    final Completer<UserModel?>? completer = _pendingLoad;
-
+    final completer = _pendingLoad;
     if (completer != null && !completer.isCompleted) {
       completer.complete(user);
     }
@@ -51,27 +117,20 @@ class FakeUserProvider extends ChangeNotifier implements UserProvider {
 
   @override
   Future<void> loadUser(String uid) async {
-    final Completer<UserModel?>? completer = _pendingLoad;
+    final completer = _pendingLoad;
     if (completer == null) {
-      _user = defaultLoadedUser;
-      notifyListeners();
+      state = state.copyWith(user: defaultLoadedUser);
       return;
     }
 
-    _isLoading = true;
-    notifyListeners();
-
-    _user = await completer.future;
-
-    _isLoading = false;
-    notifyListeners();
+    state = state.copyWith(isLoading: true);
+    final user = await completer.future;
+    state = state.copyWith(user: user, isLoading: false);
   }
 
   @override
   void clear() {
-    _user = null;
-    _isLoading = false;
-    notifyListeners();
+    state = UserState();
   }
 
   @override
@@ -80,99 +139,47 @@ class FakeUserProvider extends ChangeNotifier implements UserProvider {
     required String name,
     required String surname,
   }) async {
-    _user = UserModel(id: uid, name: name, surname: surname);
-    notifyListeners();
+    state = state.copyWith(user: UserModel(id: uid, name: name, surname: surname));
   }
 }
 
-class FakeBirthdayProvider extends ChangeNotifier implements BirthdayProvider {
+class FakeBirthdayProvider extends BirthdayProvider {
   FakeBirthdayProvider({
-    List<BirthdayModel> initialBirthdays = const <BirthdayModel>[],
+    List<BirthdayModel> initialBirthdays = const [],
     bool isLoading = false,
-  }) : _birthdays = List<BirthdayModel>.from(initialBirthdays),
-       _isLoading = isLoading;
-
-  final List<CreateBirthdayInput> createdInputs = <CreateBirthdayInput>[];
-
-  List<BirthdayModel> _birthdays;
-  bool _isLoading;
-  bool _isCreating = false;
-
-  @override
-  List<BirthdayModel> get birthdays => _birthdays;
-
-  @override
-  set birthdays(List<BirthdayModel> value) {
-    _birthdays = value;
-    notifyListeners();
+  }) : super(FakeBirthdayRepository()) {
+    state = BirthdayState(birthdays: initialBirthdays, isLoading: isLoading);
   }
 
-  @override
-  bool get isLoading => _isLoading;
+  final List<CreateBirthdayInput> createdInputs = [];
 
   @override
-  set isLoading(bool value) {
-    _isLoading = value;
-    notifyListeners();
+  void startListening(String uid) {
+    state = state.copyWith(isLoading: false);
   }
-
-  @override
-  bool get isCreating => _isCreating;
-
-  @override
-  set isCreating(bool value) {
-    _isCreating = value;
-    notifyListeners();
-  }
-
-  @override
-  BirthdayRepository get repository => throw UnimplementedError();
 
   @override
   Future<void> createBirthday(String uid, CreateBirthdayInput input) async {
-    if (_isCreating) {
-      return;
-    }
-
-    _isCreating = true;
-    notifyListeners();
-
+    state = state.copyWith(isCreating: true);
     createdInputs.add(input);
-    await Future<void>.value();
-
-    _isCreating = false;
-    notifyListeners();
+    await Future.value();
+    state = state.copyWith(isCreating: false);
   }
 
   @override
   Future<void> updateBirthday(
+    String uid,
     String birthdayId,
     CreateBirthdayInput input,
   ) async {
-    if (_isCreating) {
-      return;
-    }
-
-    _isCreating = true;
-    notifyListeners();
-
+    state = state.copyWith(isCreating: true);
     createdInputs.add(input);
-    await Future<void>.value();
-
-    _isCreating = false;
-    notifyListeners();
+    await Future.value();
+    state = state.copyWith(isCreating: false);
   }
 
   @override
   void clear() {
-    _birthdays = [];
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  @override
-  void startListening(String uid) {
-    _isLoading = false;
-    notifyListeners();
+    state = BirthdayState();
   }
 }

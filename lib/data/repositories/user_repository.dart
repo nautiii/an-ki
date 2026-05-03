@@ -1,10 +1,18 @@
 import 'package:an_ki/data/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class UserRepository {
-  final CollectionReference<Map<String, dynamic>> _users = FirebaseFirestore
-      .instance
-      .collection('user');
+  final FirebaseFirestore? _firestoreOverride;
+
+  UserRepository({FirebaseFirestore? firestore})
+      : _firestoreOverride = firestore;
+
+  FirebaseFirestore get _firestore =>
+      _firestoreOverride ?? FirebaseFirestore.instance;
+
+  CollectionReference<Map<String, dynamic>> get _users =>
+      _firestore.collection('users');
 
   Future<UserModel?> fetchUser(String uid) async {
     final DocumentSnapshot<Map<String, dynamic>> doc =
@@ -21,3 +29,7 @@ class UserRepository {
     await _users.doc(user.id).update(user.toJson());
   }
 }
+
+final userRepositoryProvider = Provider<UserRepository>(
+  (ref) => UserRepository(),
+);

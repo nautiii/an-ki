@@ -4,16 +4,14 @@ import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/auth/auth_choice_page.dart';
 import 'package:an_ki/features/auth/login_page.dart';
 import 'package:an_ki/features/auth/signup_page.dart';
+import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/core/theme/providers/theme_provider.dart';
 import 'package:an_ki/features/birthday/home_page.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
-import 'package:an_ki/providers/auth_provider.dart';
-import 'package:an_ki/providers/birthday_provider.dart';
-import 'package:an_ki/providers/theme_provider.dart';
-import 'package:an_ki/providers/user_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/app_initializer.dart';
 
@@ -28,25 +26,19 @@ void main() async {
   await NotificationService.instance.initialize();
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (_) => BirthdayProvider()),
-      ],
-      child: const App(),
+    const ProviderScope(
+      child: App(),
     ),
   );
 }
 
-class App extends StatelessWidget {
+class App extends ConsumerWidget {
   const App({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final themeMode = context.watch<ThemeProvider>().themeMode;
-    final authProvider = context.watch<AuthProvider>();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
+    final authState = ref.watch(authProvider);
 
     return MaterialApp(
       title: 'AnKi',
@@ -55,7 +47,7 @@ class App extends StatelessWidget {
       darkTheme: AppTheme.dark,
       locale: const Locale('fr'),
       home:
-          authProvider.isAuthenticated
+          authState.isAuthenticated
               ? const AppInitializer(child: HomePage())
               : const AuthChoicePage(),
       routes: {

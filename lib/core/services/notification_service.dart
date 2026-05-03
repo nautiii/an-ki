@@ -65,6 +65,8 @@ class NotificationService {
 
   /// Demande les permissions nécessaires selon la plateforme.
   Future<bool> requestPermissions() async {
+    if (!_initialized) return false;
+
     bool granted = false;
 
     final android =

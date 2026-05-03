@@ -1,17 +1,17 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/providers/auth_provider.dart';
-import 'package:an_ki/providers/user_provider.dart';
+import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SignUpPage extends StatefulWidget {
+class SignUpPage extends ConsumerStatefulWidget {
   const SignUpPage({super.key});
 
   @override
-  State<SignUpPage> createState() => _SignUpPageState();
+  ConsumerState<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class _SignUpPageState extends ConsumerState<SignUpPage> {
   late final TextEditingController _nameController;
   late final TextEditingController _surnameController;
   late final TextEditingController _emailController;
@@ -48,10 +48,10 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
 
-    final authProvider = context.read<AuthProvider>();
-    final userProvider = context.read<UserProvider>();
+    final authNotifier = ref.read(authProvider.notifier);
+    final userNotifier = ref.read(userProvider.notifier);
 
-    final success = await authProvider.signUp(
+    final success = await authNotifier.signUp(
       email: _emailController.text.trim(),
       password: _passwordController.text,
       name: _nameController.text.trim(),
@@ -60,9 +60,10 @@ class _SignUpPageState extends State<SignUpPage> {
 
     if (!mounted) return;
 
-    if (success && authProvider.user != null) {
-      await userProvider.createUser(
-        uid: authProvider.user!.uid,
+    final authState = ref.read(authProvider);
+    if (success && authState.user != null) {
+      await userNotifier.createUser(
+        uid: authState.user!.uid,
         name: _nameController.text.trim(),
         surname: _surnameController.text.trim(),
       );
@@ -70,7 +71,7 @@ class _SignUpPageState extends State<SignUpPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            authProvider.errorMessage ?? context.l10n.registrationError,
+            authState.errorMessage ?? context.l10n.registrationError,
           ),
         ),
       );
@@ -79,147 +80,145 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.signUpTitle)),
-      body: Consumer<AuthProvider>(
-        builder: (context, authProvider, _) {
-          return Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: SingleChildScrollView(
-              child: Column(
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                context.l10n.createAccount,
+                style: Theme.of(context).textTheme.headlineSmall,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  hintText: context.l10n.firstName,
+                  prefixIcon: const Icon(Icons.person),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                enabled: !authState.isLoading,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _surnameController,
+                decoration: InputDecoration(
+                  hintText: context.l10n.lastName,
+                  prefixIcon: const Icon(Icons.person_outline),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                enabled: !authState.isLoading,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  hintText: context.l10n.email,
+                  prefixIcon: const Icon(Icons.email),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                enabled: !authState.isLoading,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  hintText: context.l10n.password,
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() => _obscurePassword = !_obscurePassword);
+                    },
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                obscureText: _obscurePassword,
+                enabled: !authState.isLoading,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _confirmPasswordController,
+                decoration: InputDecoration(
+                  hintText: context.l10n.confirmPassword,
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(
+                        () =>
+                            _obscureConfirmPassword =
+                                !_obscureConfirmPassword,
+                      );
+                    },
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                obscureText: _obscureConfirmPassword,
+                enabled: !authState.isLoading,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: authState.isLoading ? null : _handleSignUp,
+                  child:
+                      authState.isLoading
+                          ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                          : Text(context.l10n.signUpButton),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    context.l10n.createAccount,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      hintText: context.l10n.firstName,
-                      prefixIcon: const Icon(Icons.person),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    enabled: !authProvider.isLoading,
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _surnameController,
-                    decoration: InputDecoration(
-                      hintText: context.l10n.lastName,
-                      prefixIcon: const Icon(Icons.person_outline),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    enabled: !authProvider.isLoading,
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      hintText: context.l10n.email,
-                      prefixIcon: const Icon(Icons.email),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                    enabled: !authProvider.isLoading,
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      hintText: context.l10n.password,
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(() => _obscurePassword = !_obscurePassword);
-                        },
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    obscureText: _obscurePassword,
-                    enabled: !authProvider.isLoading,
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _confirmPasswordController,
-                    decoration: InputDecoration(
-                      hintText: context.l10n.confirmPassword,
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(
-                            () =>
-                                _obscureConfirmPassword =
-                                    !_obscureConfirmPassword,
-                          );
-                        },
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    obscureText: _obscureConfirmPassword,
-                    enabled: !authProvider.isLoading,
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: authProvider.isLoading ? null : _handleSignUp,
-                      child:
-                          authProvider.isLoading
-                              ? const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                              : Text(context.l10n.signUpButton),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(context.l10n.haveAccount),
-                      TextButton(
-                        onPressed:
-                            authProvider.isLoading
-                                ? null
-                                : () => Navigator.of(
-                                  context,
-                                ).pushReplacementNamed('/login'),
-                        child: Text(context.l10n.signIn),
-                      ),
-                    ],
+                  Text(context.l10n.haveAccount),
+                  TextButton(
+                    onPressed:
+                        authState.isLoading
+                            ? null
+                            : () => Navigator.of(
+                              context,
+                            ).pushReplacementNamed('/login'),
+                    child: Text(context.l10n.signIn),
                   ),
                 ],
               ),
-            ),
-          );
-        },
+            ],
+          ),
+        ),
       ),
     );
   }

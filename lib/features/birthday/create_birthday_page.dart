@@ -5,23 +5,23 @@ import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/data/models/create_birthday_input.dart';
-import 'package:an_ki/providers/auth_provider.dart';
-import 'package:an_ki/providers/birthday_provider.dart';
+import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
 
-class CreateBirthdayPage extends StatefulWidget {
+class CreateBirthdayPage extends ConsumerStatefulWidget {
   final BirthdayModel? birthdayToEdit;
 
   const CreateBirthdayPage({super.key, this.birthdayToEdit});
 
   @override
-  State<CreateBirthdayPage> createState() => _CreateBirthdayPageState();
+  ConsumerState<CreateBirthdayPage> createState() => _CreateBirthdayPageState();
 }
 
-class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
+class _CreateBirthdayPageState extends ConsumerState<CreateBirthdayPage> {
   static const List<BirthdayCategory> _availableCategories = <BirthdayCategory>[
     BirthdayCategory.family,
     BirthdayCategory.friend,
@@ -69,8 +69,11 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
       return;
     }
 
+    final authState = ref.read(authProvider);
+    final birthdayNotifier = ref.read(birthdayProvider.notifier);
+
     final CreateBirthdayInput input = CreateBirthdayInput(
-      uid: context.read<AuthProvider>().user?.uid ?? '',
+      uid: authState.user?.uid ?? '',
       name: _nameController.text,
       surname: _surnameController.text,
       date: _selectedDate,
@@ -79,17 +82,17 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
     );
 
     try {
-      final authProvider = context.read<AuthProvider>();
-      final uid = authProvider.user!.uid;
+      final uid = authState.user!.uid;
       final navigator = Navigator.of(context);
 
       if (widget.birthdayToEdit != null) {
-        await context.read<BirthdayProvider>().updateBirthday(
+        await birthdayNotifier.updateBirthday(
+          uid,
           widget.birthdayToEdit!.id,
           input,
         );
       } else {
-        await context.read<BirthdayProvider>().createBirthday(uid, input);
+        await birthdayNotifier.createBirthday(uid, input);
       }
       navigator.pop(true);
     } catch (e) {
@@ -211,9 +214,8 @@ class _CreateBirthdayPageState extends State<CreateBirthdayPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isCreating = context.select<BirthdayProvider, bool>(
-      (BirthdayProvider provider) => provider.isCreating,
-    );
+    final birthdayState = ref.watch(birthdayProvider);
+    final bool isCreating = birthdayState.isCreating;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(

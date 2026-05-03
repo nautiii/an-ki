@@ -1,23 +1,22 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/data/models/user_model.dart';
-import 'package:an_ki/providers/auth_provider.dart';
-import 'package:an_ki/providers/birthday_provider.dart';
-import 'package:an_ki/providers/theme_provider.dart';
-import 'package:an_ki/providers/user_provider.dart';
+import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/core/theme/providers/theme_provider.dart';
+import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class Header extends StatelessWidget {
+class Header extends ConsumerWidget {
   const Header({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final UserModel? user = context.watch<UserProvider>().user;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userProvider).user;
     final colorScheme = Theme.of(context).colorScheme;
-    final themeProvider = context.watch<ThemeProvider>();
+    final themeMode = ref.watch(themeProvider);
     final bool isDark =
-        themeProvider.isDark ||
-        (themeProvider.themeMode == ThemeMode.system &&
+        themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
             MediaQuery.platformBrightnessOf(context) == Brightness.dark);
 
     return Row(
@@ -48,7 +47,7 @@ class Header extends StatelessWidget {
                 shape: const CircleBorder(),
                 padding: const EdgeInsets.all(10),
               ),
-              onPressed: () => context.read<ThemeProvider>().toggle(context),
+              onPressed: () => ref.read(themeProvider.notifier).toggle(context),
               icon: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
                 transitionBuilder:
@@ -68,7 +67,7 @@ class Header extends StatelessWidget {
                 shape: const CircleBorder(),
                 padding: const EdgeInsets.all(10),
               ),
-              onPressed: () => _handleSignOut(context),
+              onPressed: () => _handleSignOut(context, ref),
               icon: Icon(
                 Icons.logout_rounded,
                 color: colorScheme.onSurface,
@@ -80,9 +79,9 @@ class Header extends StatelessWidget {
     );
   }
 
-  void _handleSignOut(BuildContext context) {
-    final authProvider = context.read<AuthProvider>();
-    final isAnonymous = authProvider.isAnonymous;
+  void _handleSignOut(BuildContext context, WidgetRef ref) {
+    final authState = ref.read(authProvider);
+    final isAnonymous = authState.isAnonymous;
 
     showDialog(
       context: context,
@@ -102,10 +101,13 @@ class Header extends StatelessWidget {
             TextButton(
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
-                final success = await authProvider.linkWithGoogle();
+                final success =
+                    await ref.read(authProvider.notifier).linkWithGoogle();
                 if (success && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Compte sauvegardé avec succès !")),
+                    const SnackBar(
+                      content: Text("Compte sauvegardé avec succès !"),
+                    ),
                   );
                 }
               },
@@ -113,16 +115,16 @@ class Header extends StatelessWidget {
             ),
           TextButton(
             onPressed: () async {
-              final authProvider = dialogContext.read<AuthProvider>();
-              final userProvider = dialogContext.read<UserProvider>();
-              final birthdayProvider = dialogContext.read<BirthdayProvider>();
+              final authNotifier = ref.read(authProvider.notifier);
+              final userNotifier = ref.read(userProvider.notifier);
+              final birthdayNotifier = ref.read(birthdayProvider.notifier);
 
               Navigator.of(dialogContext).pop();
 
-              userProvider.clear();
-              birthdayProvider.clear();
+              userNotifier.clear();
+              birthdayNotifier.clear();
 
-              await authProvider.signOut();
+              await authNotifier.signOut();
             },
             child: Text(
               isAnonymous ? "Supprimer et quitter" : dialogContext.l10n.signOut,

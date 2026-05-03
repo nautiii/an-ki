@@ -3,21 +3,21 @@ import 'package:an_ki/core/common/search_bar.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
-import 'package:an_ki/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'contact_sections.dart';
 import 'create_birthday_page.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
   String _searchQuery = '';
 
   List<BirthdayModel> _filterBirthdays(List<BirthdayModel> birthdays) {
@@ -37,14 +37,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isLoading = context.select(
-      (BirthdayProvider provider) => provider.isLoading,
-    );
-    final List<BirthdayModel> birthdays = context.select(
-      (BirthdayProvider provider) => provider.birthdays,
-    );
+    final birthdayState = ref.watch(birthdayProvider);
     final colorScheme = Theme.of(context).colorScheme;
-    final filteredBirthdays = _filterBirthdays(birthdays);
+    final filteredBirthdays = _filterBirthdays(birthdayState.birthdays);
 
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -80,7 +75,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 20),
               Expanded(
                 child: _HomeContent(
-                  isLoading: isLoading,
+                  isLoading: birthdayState.isLoading,
                   birthdays: filteredBirthdays,
                 ),
               ),

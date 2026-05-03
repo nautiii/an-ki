@@ -5,14 +5,24 @@ import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/data/models/create_birthday_input.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class BirthdayRepository {
-  final CollectionReference<Map<String, dynamic>> _birthdays = FirebaseFirestore
-      .instance
-      .collection('birthday');
-  final Reference _storageRef = FirebaseStorage.instance.ref().child(
-    'birthdays',
-  );
+  final FirebaseFirestore? _firestoreOverride;
+  final FirebaseStorage? _storageOverride;
+
+  BirthdayRepository({FirebaseFirestore? firestore, FirebaseStorage? storage})
+      : _firestoreOverride = firestore,
+        _storageOverride = storage;
+
+  FirebaseFirestore get _firestore =>
+      _firestoreOverride ?? FirebaseFirestore.instance;
+  FirebaseStorage get _storage =>
+      _storageOverride ?? FirebaseStorage.instance;
+
+  CollectionReference<Map<String, dynamic>> get _birthdays =>
+      _firestore.collection('birthday');
+  Reference get _storageRef => _storage.ref().child('birthdays');
 
   Stream<List<BirthdayModel>> watchBirthdays(String uid) {
     return _birthdays
@@ -40,10 +50,12 @@ class BirthdayRepository {
   }
 
   Future<void> updateBirthday(
+    String uid,
     String birthdayId,
     CreateBirthdayInput input,
   ) async {
     final Map<String, dynamic> data = input.toJson();
+    data['uid'] = uid;
 
     if (input.pictureFile != null) {
       final Uint8List bytes = await input.pictureFile!.readAsBytes();
@@ -53,3 +65,7 @@ class BirthdayRepository {
     await _birthdays.doc(birthdayId).update(data);
   }
 }
+
+final birthdayRepositoryProvider = Provider<BirthdayRepository>(
+  (ref) => BirthdayRepository(),
+);

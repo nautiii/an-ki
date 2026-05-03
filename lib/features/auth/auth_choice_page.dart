@@ -1,13 +1,15 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AuthChoicePage extends StatelessWidget {
+class AuthChoicePage extends ConsumerWidget {
   const AuthChoicePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -28,90 +30,86 @@ class AuthChoicePage extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
-              Consumer<AuthProvider>(
-                builder: (context, authProvider, _) {
-                  return Column(
+              Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      onPressed:
+                          authState.isLoading
+                              ? null
+                              : () => _handleGoogleSignIn(
+                                context,
+                                ref,
+                              ),
+                      icon: const Icon(Icons.login),
+                      label: Text(context.l10n.loginWithGoogle),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      onPressed:
+                          authState.isLoading
+                              ? null
+                              : () =>
+                                  Navigator.of(context).pushNamed('/login'),
+                      icon: const Icon(Icons.email),
+                      label: Text(context.l10n.loginWithEmail),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      onPressed:
+                          authState.isLoading
+                              ? null
+                              : () => _handleAnonymousSignIn(
+                                context,
+                                ref,
+                              ),
+                      icon: const Icon(Icons.person_outline),
+                      label: Text(context.l10n.continueWithoutAccount),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton.icon(
-                          onPressed:
-                              authProvider.isLoading
-                                  ? null
-                                  : () => _handleGoogleSignIn(
-                                    context,
-                                    authProvider,
-                                  ),
-                          icon: const Icon(Icons.login),
-                          label: Text(context.l10n.loginWithGoogle),
-                        ),
+                      Text(context.l10n.noAccountYet),
+                      TextButton(
+                        onPressed:
+                            authState.isLoading
+                                ? null
+                                : () => Navigator.of(
+                                  context,
+                                ).pushNamed('/signup'),
+                        child: Text(context.l10n.signUp),
                       ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton.icon(
-                          onPressed:
-                              authProvider.isLoading
-                                  ? null
-                                  : () =>
-                                      Navigator.of(context).pushNamed('/login'),
-                          icon: const Icon(Icons.email),
-                          label: Text(context.l10n.loginWithEmail),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: OutlinedButton.icon(
-                          onPressed:
-                              authProvider.isLoading
-                                  ? null
-                                  : () => _handleAnonymousSignIn(
-                                    context,
-                                    authProvider,
-                                  ),
-                          icon: const Icon(Icons.person_outline),
-                          label: Text(context.l10n.continueWithoutAccount),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(context.l10n.noAccountYet),
-                          TextButton(
-                            onPressed:
-                                authProvider.isLoading
-                                    ? null
-                                    : () => Navigator.of(
-                                      context,
-                                    ).pushNamed('/signup'),
-                            child: Text(context.l10n.signUp),
-                          ),
-                        ],
-                      ),
-                      if (authProvider.isLoading)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 24.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      if (authProvider.errorMessage != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 24.0),
-                          child: Text(
-                            authProvider.errorMessage!,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
                     ],
-                  );
-                },
+                  ),
+                  if (authState.isLoading)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 24.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  if (authState.errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24.0),
+                      child: Text(
+                        authState.errorMessage!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                ],
               ),
             ],
           ),
@@ -122,29 +120,33 @@ class AuthChoicePage extends StatelessWidget {
 
   void _handleGoogleSignIn(
     BuildContext context,
-    AuthProvider authProvider,
+    WidgetRef ref,
   ) async {
-    final success = await authProvider.signInWithGoogle();
+    final authNotifier = ref.read(authProvider.notifier);
+    final success = await authNotifier.signInWithGoogle();
     if (!context.mounted) return;
 
-    if (!success && authProvider.errorMessage != null) {
+    final authState = ref.read(authProvider);
+    if (!success && authState.errorMessage != null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(authProvider.errorMessage!)));
+      ).showSnackBar(SnackBar(content: Text(authState.errorMessage!)));
     }
   }
 
   void _handleAnonymousSignIn(
     BuildContext context,
-    AuthProvider authProvider,
+    WidgetRef ref,
   ) async {
-    final success = await authProvider.signInAnonymously();
+    final authNotifier = ref.read(authProvider.notifier);
+    final success = await authNotifier.signInAnonymously();
     if (!context.mounted) return;
 
-    if (!success && authProvider.errorMessage != null) {
+    final authState = ref.read(authProvider);
+    if (!success && authState.errorMessage != null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(authProvider.errorMessage!)));
+      ).showSnackBar(SnackBar(content: Text(authState.errorMessage!)));
     }
   }
 }

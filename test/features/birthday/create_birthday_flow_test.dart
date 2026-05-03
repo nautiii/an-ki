@@ -1,11 +1,13 @@
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/data/models/user_model.dart';
 import 'package:an_ki/features/birthday/home_page.dart';
-import 'package:an_ki/providers/birthday_provider.dart';
-import 'package:an_ki/providers/user_provider.dart';
+import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/user/providers/user_provider.dart';
+import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
 
 import '../../support/fake_providers.dart';
 
@@ -15,17 +17,17 @@ void main() {
   testWidgets(
     'HomePage opens the create birthday page from the floating button',
     (WidgetTester tester) async {
-      final FakeBirthdayProvider birthdayProvider = FakeBirthdayProvider();
+      final birthdayProviderInstance = FakeBirthdayProvider();
 
-      tester.view.physicalSize = const Size(430, 932);
+      tester.view.physicalSize = const Size(600, 1000);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
-        _TestApp(birthdayProvider: birthdayProvider),
+        _TestApp(birthdayProviderInstance: birthdayProviderInstance),
       );
-      await tester.pump();
+      await tester.pumpAndSettle(); // Wait for localizations and first frame
 
       expect(find.byType(FloatingActionButton), findsOneWidget);
 
@@ -39,14 +41,16 @@ void main() {
   testWidgets('Create birthday flow submits a new birthday to the provider', (
     WidgetTester tester,
   ) async {
-    final FakeBirthdayProvider birthdayProvider = FakeBirthdayProvider();
+    final birthdayProviderInstance = FakeBirthdayProvider();
 
-    tester.view.physicalSize = const Size(430, 932);
+    tester.view.physicalSize = const Size(600, 1000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(_TestApp(birthdayProvider: birthdayProvider));
+    await tester.pumpWidget(
+      _TestApp(birthdayProviderInstance: birthdayProviderInstance),
+    );
     await tester.pump();
 
     await tester.tap(find.byType(FloatingActionButton));
@@ -58,11 +62,11 @@ void main() {
     await tester.tap(find.text('Enregistrer'));
     await tester.pumpAndSettle();
 
-    expect(birthdayProvider.createdInputs, hasLength(1));
-    expect(birthdayProvider.createdInputs.single.name, 'Thomas');
-    expect(birthdayProvider.createdInputs.single.surname, 'Leroy');
+    expect(birthdayProviderInstance.createdInputs, hasLength(1));
+    expect(birthdayProviderInstance.createdInputs.single.name, 'Thomas');
+    expect(birthdayProviderInstance.createdInputs.single.surname, 'Leroy');
     expect(
-      birthdayProvider.createdInputs.single.category,
+      birthdayProviderInstance.createdInputs.single.category,
       BirthdayCategory.friend,
     );
     expect(find.text('Nouvel anniversaire'), findsNothing);
@@ -70,16 +74,19 @@ void main() {
 }
 
 class _TestApp extends StatelessWidget {
-  const _TestApp({required this.birthdayProvider});
+  const _TestApp({required this.birthdayProviderInstance});
 
-  final FakeBirthdayProvider birthdayProvider;
+  final FakeBirthdayProvider birthdayProviderInstance;
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<UserProvider>.value(
-          value: FakeUserProvider(
+    return ProviderScope(
+      overrides: [
+        authProvider.overrideWith(
+          (ref) => FakeAuthProvider(initialState: AuthState(user: MockUser())),
+        ),
+        userProvider.overrideWith(
+          (ref) => FakeUserProvider(
             initialUser: const UserModel(
               id: '1',
               name: 'Marie',
@@ -87,9 +94,14 @@ class _TestApp extends StatelessWidget {
             ),
           ),
         ),
-        ChangeNotifierProvider<BirthdayProvider>.value(value: birthdayProvider),
+        birthdayProvider.overrideWith((ref) => birthdayProviderInstance),
       ],
-      child: const MaterialApp(home: HomePage()),
+      child: const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: Locale('fr'),
+        home: HomePage(),
+      ),
     );
   }
 }
