@@ -170,8 +170,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     onPressed: () {
                       setState(
                         () =>
-                            _obscureConfirmPassword =
-                                !_obscureConfirmPassword,
+                            _obscureConfirmPassword = !_obscureConfirmPassword,
                       );
                     },
                   ),
@@ -193,9 +192,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                           ? const SizedBox(
                             height: 24,
                             width: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           )
                           : Text(context.l10n.signUpButton),
                 ),

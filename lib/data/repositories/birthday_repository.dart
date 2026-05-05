@@ -12,16 +12,17 @@ class BirthdayRepository {
   final FirebaseStorage? _storageOverride;
 
   BirthdayRepository({FirebaseFirestore? firestore, FirebaseStorage? storage})
-      : _firestoreOverride = firestore,
-        _storageOverride = storage;
+    : _firestoreOverride = firestore,
+      _storageOverride = storage;
 
   FirebaseFirestore get _firestore =>
       _firestoreOverride ?? FirebaseFirestore.instance;
-  FirebaseStorage get _storage =>
-      _storageOverride ?? FirebaseStorage.instance;
+
+  FirebaseStorage get _storage => _storageOverride ?? FirebaseStorage.instance;
 
   CollectionReference<Map<String, dynamic>> get _birthdays =>
       _firestore.collection('birthday');
+
   Reference get _storageRef => _storage.ref().child('birthdays');
 
   Stream<List<BirthdayModel>> watchBirthdays(String uid) {

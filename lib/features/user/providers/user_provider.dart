@@ -7,15 +7,9 @@ class UserState {
   final UserModel? user;
   final bool isLoading;
 
-  UserState({
-    this.user,
-    this.isLoading = false,
-  });
+  UserState({this.user, this.isLoading = false});
 
-  UserState copyWith({
-    UserModel? user,
-    bool? isLoading,
-  }) {
+  UserState copyWith({UserModel? user, bool? isLoading}) {
     return UserState(
       user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,

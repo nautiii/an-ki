@@ -6,7 +6,7 @@ class UserRepository {
   final FirebaseFirestore? _firestoreOverride;
 
   UserRepository({FirebaseFirestore? firestore})
-      : _firestoreOverride = firestore;
+    : _firestoreOverride = firestore;
 
   FirebaseFirestore get _firestore =>
       _firestoreOverride ?? FirebaseFirestore.instance;

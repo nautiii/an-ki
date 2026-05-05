@@ -1,5 +1,4 @@
 import 'package:an_ki/core/app_initializer.dart';
-import 'package:an_ki/data/models/user_model.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -38,7 +37,9 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
 
     // Now let's simulate being authenticated
-    final container = ProviderScope.containerOf(tester.element(find.byType(AppInitializer)));
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(AppInitializer)),
+    );
     // We can't easily set the user on FakeAuthProvider if it's already created.
     // Actually, we can use ref.read(authProvider.notifier).state = ...
     // But StateNotifier.state is protected.

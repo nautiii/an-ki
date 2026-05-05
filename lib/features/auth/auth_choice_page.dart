@@ -39,10 +39,7 @@ class AuthChoicePage extends ConsumerWidget {
                       onPressed:
                           authState.isLoading
                               ? null
-                              : () => _handleGoogleSignIn(
-                                context,
-                                ref,
-                              ),
+                              : () => _handleGoogleSignIn(context, ref),
                       icon: const Icon(Icons.login),
                       label: Text(context.l10n.loginWithGoogle),
                     ),
@@ -55,8 +52,7 @@ class AuthChoicePage extends ConsumerWidget {
                       onPressed:
                           authState.isLoading
                               ? null
-                              : () =>
-                                  Navigator.of(context).pushNamed('/login'),
+                              : () => Navigator.of(context).pushNamed('/login'),
                       icon: const Icon(Icons.email),
                       label: Text(context.l10n.loginWithEmail),
                     ),
@@ -69,10 +65,7 @@ class AuthChoicePage extends ConsumerWidget {
                       onPressed:
                           authState.isLoading
                               ? null
-                              : () => _handleAnonymousSignIn(
-                                context,
-                                ref,
-                              ),
+                              : () => _handleAnonymousSignIn(context, ref),
                       icon: const Icon(Icons.person_outline),
                       label: Text(context.l10n.continueWithoutAccount),
                     ),
@@ -86,9 +79,8 @@ class AuthChoicePage extends ConsumerWidget {
                         onPressed:
                             authState.isLoading
                                 ? null
-                                : () => Navigator.of(
-                                  context,
-                                ).pushNamed('/signup'),
+                                : () =>
+                                    Navigator.of(context).pushNamed('/signup'),
                         child: Text(context.l10n.signUp),
                       ),
                     ],
@@ -118,10 +110,7 @@ class AuthChoicePage extends ConsumerWidget {
     );
   }
 
-  void _handleGoogleSignIn(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
+  void _handleGoogleSignIn(BuildContext context, WidgetRef ref) async {
     final authNotifier = ref.read(authProvider.notifier);
     final success = await authNotifier.signInWithGoogle();
     if (!context.mounted) return;
@@ -134,10 +123,7 @@ class AuthChoicePage extends ConsumerWidget {
     }
   }
 
-  void _handleAnonymousSignIn(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
+  void _handleAnonymousSignIn(BuildContext context, WidgetRef ref) async {
     final authNotifier = ref.read(authProvider.notifier);
     final success = await authNotifier.signInAnonymously();
     if (!context.mounted) return;

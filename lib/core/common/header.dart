@@ -1,7 +1,7 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/theme/providers/theme_provider.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
-import 'package:an_ki/core/theme/providers/theme_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,10 +68,7 @@ class Header extends ConsumerWidget {
                 padding: const EdgeInsets.all(10),
               ),
               onPressed: () => _handleSignOut(context, ref),
-              icon: Icon(
-                Icons.logout_rounded,
-                color: colorScheme.onSurface,
-              ),
+              icon: Icon(Icons.logout_rounded, color: colorScheme.onSurface),
             ),
           ],
         ),
@@ -85,54 +82,57 @@ class Header extends ConsumerWidget {
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(isAnonymous ? "Attention" : dialogContext.l10n.signOut),
-        content: Text(
-          isAnonymous
-              ? "En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?"
-              : dialogContext.l10n.signOutConfirmation,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(dialogContext.l10n.cancel),
-          ),
-          if (isAnonymous)
-            TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop();
-                final success =
-                    await ref.read(authProvider.notifier).linkWithGoogle();
-                if (success && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Compte sauvegardé avec succès !"),
-                    ),
-                  );
-                }
-              },
-              child: const Text("Sauvegarder mes données"),
+      builder:
+          (dialogContext) => AlertDialog(
+            title: Text(isAnonymous ? "Attention" : dialogContext.l10n.signOut),
+            content: Text(
+              isAnonymous
+                  ? "En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?"
+                  : dialogContext.l10n.signOutConfirmation,
             ),
-          TextButton(
-            onPressed: () async {
-              final authNotifier = ref.read(authProvider.notifier);
-              final userNotifier = ref.read(userProvider.notifier);
-              final birthdayNotifier = ref.read(birthdayProvider.notifier);
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(dialogContext.l10n.cancel),
+              ),
+              if (isAnonymous)
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(dialogContext).pop();
+                    final success =
+                        await ref.read(authProvider.notifier).linkWithGoogle();
+                    if (success && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Compte sauvegardé avec succès !"),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text("Sauvegarder mes données"),
+                ),
+              TextButton(
+                onPressed: () async {
+                  final authNotifier = ref.read(authProvider.notifier);
+                  final userNotifier = ref.read(userProvider.notifier);
+                  final birthdayNotifier = ref.read(birthdayProvider.notifier);
 
-              Navigator.of(dialogContext).pop();
+                  Navigator.of(dialogContext).pop();
 
-              userNotifier.clear();
-              birthdayNotifier.clear();
+                  userNotifier.clear();
+                  birthdayNotifier.clear();
 
-              await authNotifier.signOut();
-            },
-            child: Text(
-              isAnonymous ? "Supprimer et quitter" : dialogContext.l10n.signOut,
-              style: const TextStyle(color: Colors.red),
-            ),
+                  await authNotifier.signOut();
+                },
+                child: Text(
+                  isAnonymous
+                      ? "Supprimer et quitter"
+                      : dialogContext.l10n.signOut,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }

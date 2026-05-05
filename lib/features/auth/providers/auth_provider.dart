@@ -7,17 +7,9 @@ class AuthState {
   final bool isLoading;
   final String? errorMessage;
 
-  AuthState({
-    this.user,
-    this.isLoading = false,
-    this.errorMessage,
-  });
+  AuthState({this.user, this.isLoading = false, this.errorMessage});
 
-  AuthState copyWith({
-    User? user,
-    bool? isLoading,
-    String? errorMessage,
-  }) {
+  AuthState copyWith({User? user, bool? isLoading, String? errorMessage}) {
     return AuthState(
       user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,
@@ -26,6 +18,7 @@ class AuthState {
   }
 
   bool get isAuthenticated => user != null;
+
   bool get isAnonymous => user?.isAnonymous ?? false;
 }
 
@@ -34,13 +27,15 @@ class AuthProvider extends StateNotifier<AuthState> {
   final GoogleSignIn? _googleSignInOverride;
 
   AuthProvider({FirebaseAuth? firebaseAuth, GoogleSignIn? googleSignIn})
-      : _firebaseAuthOverride = firebaseAuth,
-        _googleSignInOverride = googleSignIn,
-        super(AuthState()) {
+    : _firebaseAuthOverride = firebaseAuth,
+      _googleSignInOverride = googleSignIn,
+      super(AuthState()) {
     initializeAuth();
   }
 
-  FirebaseAuth get _firebaseAuth => _firebaseAuthOverride ?? FirebaseAuth.instance;
+  FirebaseAuth get _firebaseAuth =>
+      _firebaseAuthOverride ?? FirebaseAuth.instance;
+
   GoogleSignIn get _googleSignIn => _googleSignInOverride ?? GoogleSignIn();
 
   void initializeAuth() {
@@ -69,10 +64,7 @@ class AuthProvider extends StateNotifier<AuthState> {
         await user.reload();
       }
 
-      state = state.copyWith(
-        user: _firebaseAuth.currentUser,
-        isLoading: false,
-      );
+      state = state.copyWith(user: _firebaseAuth.currentUser, isLoading: false);
       return true;
     } on FirebaseAuthException catch (e) {
       state = state.copyWith(
@@ -92,10 +84,7 @@ class AuthProvider extends StateNotifier<AuthState> {
         password: password,
       );
 
-      state = state.copyWith(
-        user: userCredential.user,
-        isLoading: false,
-      );
+      state = state.copyWith(user: userCredential.user, isLoading: false);
       return true;
     } on FirebaseAuthException catch (e) {
       state = state.copyWith(
@@ -126,10 +115,7 @@ class AuthProvider extends StateNotifier<AuthState> {
       state = state.copyWith(isLoading: true, errorMessage: null);
 
       final userCredential = await _firebaseAuth.signInAnonymously();
-      state = state.copyWith(
-        user: userCredential.user,
-        isLoading: false,
-      );
+      state = state.copyWith(user: userCredential.user, isLoading: false);
       return true;
     } on FirebaseAuthException catch (e) {
       state = state.copyWith(
@@ -161,10 +147,7 @@ class AuthProvider extends StateNotifier<AuthState> {
       final userCredential = await _firebaseAuth.signInWithCredential(
         credential,
       );
-      state = state.copyWith(
-        user: userCredential.user,
-        isLoading: false,
-      );
+      state = state.copyWith(user: userCredential.user, isLoading: false);
       return true;
     } on FirebaseAuthException catch (e) {
       state = state.copyWith(
@@ -201,10 +184,7 @@ class AuthProvider extends StateNotifier<AuthState> {
 
       // On lie les identifiants Google au compte anonyme actuel
       final userCredential = await state.user?.linkWithCredential(credential);
-      state = state.copyWith(
-        user: userCredential?.user,
-        isLoading: false,
-      );
+      state = state.copyWith(user: userCredential?.user, isLoading: false);
       return true;
     } on FirebaseAuthException catch (e) {
       state = state.copyWith(

@@ -9,7 +9,6 @@ import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class MockUser extends Fake implements firebase_auth.User {
@@ -36,11 +35,16 @@ class FakeBirthdayRepository extends BirthdayRepository {
   @override
   Future<void> createBirthday(String uid, CreateBirthdayInput input) async {}
   @override
-  Future<void> updateBirthday(String uid, String birthdayId, CreateBirthdayInput input) async {}
+  Future<void> updateBirthday(
+    String uid,
+    String birthdayId,
+    CreateBirthdayInput input,
+  ) async {}
 }
 
 class FakeAuthProvider extends AuthProvider {
-  FakeAuthProvider({AuthState? initialState}) : super(firebaseAuth: null, googleSignIn: null) {
+  FakeAuthProvider({AuthState? initialState})
+    : super(firebaseAuth: null, googleSignIn: null) {
     if (initialState != null) state = initialState;
   }
 
@@ -139,7 +143,9 @@ class FakeUserProvider extends UserProvider {
     required String name,
     required String surname,
   }) async {
-    state = state.copyWith(user: UserModel(id: uid, name: name, surname: surname));
+    state = state.copyWith(
+      user: UserModel(id: uid, name: name, surname: surname),
+    );
   }
 }
 

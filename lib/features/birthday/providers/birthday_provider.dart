@@ -40,15 +40,17 @@ class BirthdayProvider extends StateNotifier<BirthdayState> {
     _subscription?.cancel();
     state = state.copyWith(isLoading: true);
 
-    _subscription = _repository.watchBirthdays(uid).listen(
-      (List<BirthdayModel> data) {
-        state = state.copyWith(birthdays: data, isLoading: false);
-        NotificationService.instance.scheduleAll(data);
-      },
-      onError: (e) {
-        state = state.copyWith(isLoading: false);
-      },
-    );
+    _subscription = _repository
+        .watchBirthdays(uid)
+        .listen(
+          (List<BirthdayModel> data) {
+            state = state.copyWith(birthdays: data, isLoading: false);
+            NotificationService.instance.scheduleAll(data);
+          },
+          onError: (e) {
+            state = state.copyWith(isLoading: false);
+          },
+        );
   }
 
   void clear() {
@@ -96,8 +98,9 @@ class BirthdayProvider extends StateNotifier<BirthdayState> {
   }
 }
 
-final birthdayProvider =
-    StateNotifierProvider<BirthdayProvider, BirthdayState>((ref) {
-      final repository = ref.watch(birthdayRepositoryProvider);
-      return BirthdayProvider(repository);
-    });
+final birthdayProvider = StateNotifierProvider<BirthdayProvider, BirthdayState>(
+  (ref) {
+    final repository = ref.watch(birthdayRepositoryProvider);
+    return BirthdayProvider(repository);
+  },
+);

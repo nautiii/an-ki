@@ -1,11 +1,11 @@
 import 'package:an_ki/core/firebase_options.dart';
 import 'package:an_ki/core/services/notification_service.dart';
+import 'package:an_ki/core/theme/providers/theme_provider.dart';
 import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/auth/auth_choice_page.dart';
 import 'package:an_ki/features/auth/login_page.dart';
-import 'package:an_ki/features/auth/signup_page.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/core/theme/providers/theme_provider.dart';
+import 'package:an_ki/features/auth/signup_page.dart';
 import 'package:an_ki/features/birthday/home_page.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -25,11 +25,7 @@ void main() async {
 
   await NotificationService.instance.initialize();
 
-  runApp(
-    const ProviderScope(
-      child: App(),
-    ),
-  );
+  runApp(const ProviderScope(child: App()));
 }
 
 class App extends ConsumerWidget {
@@ -46,6 +42,8 @@ class App extends ConsumerWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       locale: const Locale('fr'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home:
           authState.isAuthenticated
               ? const AppInitializer(child: HomePage())
@@ -56,8 +54,6 @@ class App extends ConsumerWidget {
         '/signup': (context) => const SignUpPage(),
         '/home': (context) => const AppInitializer(child: HomePage()),
       },
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }

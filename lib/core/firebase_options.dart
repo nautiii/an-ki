@@ -72,5 +72,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'an-ki-9b02b.firebasestorage.app',
     iosBundleId: 'com.github.nautiii.anKi',
   );
-
 }
