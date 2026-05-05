@@ -17,9 +17,8 @@ anniversaire. Simple, élégante et efficace.
 
 - **Framework** : [Flutter](https://flutter.dev/)
 - **Backend** : [Firebase](https://firebase.google.com/) (Auth, Firestore, Storage)
-- **Gestion d'état** : [Provider](https://pub.dev/packages/provider)
-- **Notifications
-  ** : [Flutter Local Notifications](https://pub.dev/packages/flutter_local_notifications)
+- **Gestion d'état** : [Riverpod](https://riverpod.dev/)
+- **Notifications** : [Flutter Local Notifications](https://pub.dev/packages/flutter_local_notifications)
 - **Localisation** : `flutter_localizations` (ARB files)
 
 ## 📦 Installation
@@ -46,12 +45,25 @@ anniversaire. Simple, élégante et efficace.
    ```bash
    flutter run
    ```
-5. **Déploiement** :
 
-   Si vous désirez déployer l'application sur votre téléphone, utilisez le script de déploiement :
-    ```powerShell
-    .\build_and_deploy.ps1
-    ```
+6. **Génération d'assets (Icônes & Splash)** :
+
+   Après avoir modifié les configurations dans `pubspec.yaml` :
+   - **Icônes d'application** :
+     ```bash
+     dart run flutter_launcher_icons
+     ```
+   - **Splash Screen** :
+     ```bash
+     dart run flutter_native_splash:create
+     ```
+
+## 🛠️ Scripts & Déploiement
+
+Si vous désirez déployer l'application sur votre téléphone, utilisez le script de déploiement :
+ ```powerShell
+ .\build_and_deploy.ps1
+ ```
 
 ## 📂 Structure du projet
 

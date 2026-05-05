@@ -8,7 +8,7 @@ architecture, and is scalable for future features.
 
 ## Project Intent {:#main-goal}
 
-This is a Flutter mobile application focused on managing date-based reminders → birthdays, events,
+This is a Flutter mobile application called **AnKi**, focused on managing date-based reminders → birthdays, events,
 subscriptions, etc...
 The app is designed first to handle birthdays, then evolve into a multiple reminder types and
 user-based personalization. Core product goals are:
@@ -32,6 +32,7 @@ scalability expectations, while preserving a strong and scalable architecture.
 ## State Management {:#state-management}
 
 @./shared/state-guidance.md
+(Using Riverpod 3 Notifier API)
 
 ## Firebase Integration {:#firebase-integration}
 
@@ -40,3 +41,10 @@ scalability expectations, while preserving a strong and scalable architecture.
 ## Global Instructions {:#global-instructions}
 
 @./shared/global-guidance.md
+
+## Common Commands {:#common-commands}
+
+- **Generate Launcher Icons**: `dart run flutter_launcher_icons`
+- **Generate Splash Screen**: `dart run flutter_native_splash:create`
+- **Clean Splash Screen**: `dart run flutter_native_splash:remove`
+- **L10n Generation**: `flutter gen-l10n`

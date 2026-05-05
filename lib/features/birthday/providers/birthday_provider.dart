@@ -30,11 +30,15 @@ class BirthdayState {
   }
 }
 
-class BirthdayProvider extends StateNotifier<BirthdayState> {
-  final BirthdayRepository _repository;
-  StreamSubscription<List<BirthdayModel>>? _subscription;
+class BirthdayNotifier extends Notifier<BirthdayState> {
+  @override
+  BirthdayState build() {
+    ref.onDispose(() => _subscription?.cancel());
+    return BirthdayState();
+  }
 
-  BirthdayProvider(this._repository) : super(BirthdayState());
+  BirthdayRepository get _repository => ref.watch(birthdayRepositoryProvider);
+  StreamSubscription<List<BirthdayModel>>? _subscription;
 
   void startListening(String uid) {
     _subscription?.cancel();
@@ -44,11 +48,15 @@ class BirthdayProvider extends StateNotifier<BirthdayState> {
         .watchBirthdays(uid)
         .listen(
           (List<BirthdayModel> data) {
-            state = state.copyWith(birthdays: data, isLoading: false);
-            NotificationService.instance.scheduleAll(data);
+            if (ref.mounted) {
+              state = state.copyWith(birthdays: data, isLoading: false);
+              NotificationService.instance.scheduleAll(data);
+            }
           },
           onError: (e) {
-            state = state.copyWith(isLoading: false);
+            if (ref.mounted) {
+              state = state.copyWith(isLoading: false);
+            }
           },
         );
   }
@@ -69,7 +77,9 @@ class BirthdayProvider extends StateNotifier<BirthdayState> {
     try {
       await _repository.createBirthday(uid, input);
     } finally {
-      state = state.copyWith(isCreating: false);
+      if (ref.mounted) {
+        state = state.copyWith(isCreating: false);
+      }
     }
   }
 
@@ -87,20 +97,13 @@ class BirthdayProvider extends StateNotifier<BirthdayState> {
     try {
       await _repository.updateBirthday(uid, birthdayId, input);
     } finally {
-      state = state.copyWith(isCreating: false);
+      if (ref.mounted) {
+        state = state.copyWith(isCreating: false);
+      }
     }
-  }
-
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    super.dispose();
   }
 }
 
-final birthdayProvider = StateNotifierProvider<BirthdayProvider, BirthdayState>(
-  (ref) {
-    final repository = ref.watch(birthdayRepositoryProvider);
-    return BirthdayProvider(repository);
-  },
+final birthdayProvider = NotifierProvider<BirthdayNotifier, BirthdayState>(
+  BirthdayNotifier.new,
 );

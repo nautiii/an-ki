@@ -17,7 +17,7 @@ void main() {
   testWidgets(
     'HomePage opens the create birthday page from the floating button',
     (WidgetTester tester) async {
-      final birthdayProviderInstance = FakeBirthdayProvider();
+      final birthdayNotifierInstance = FakeBirthdayNotifier();
 
       tester.view.physicalSize = const Size(600, 1000);
       tester.view.devicePixelRatio = 1.0;
@@ -25,7 +25,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
-        _TestApp(birthdayProviderInstance: birthdayProviderInstance),
+        _TestApp(birthdayNotifierInstance: birthdayNotifierInstance),
       );
       await tester.pumpAndSettle(); // Wait for localizations and first frame
 
@@ -41,7 +41,7 @@ void main() {
   testWidgets('Create birthday flow submits a new birthday to the provider', (
     WidgetTester tester,
   ) async {
-    final birthdayProviderInstance = FakeBirthdayProvider();
+    final birthdayNotifierInstance = FakeBirthdayNotifier();
 
     tester.view.physicalSize = const Size(600, 1000);
     tester.view.devicePixelRatio = 1.0;
@@ -49,7 +49,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
-      _TestApp(birthdayProviderInstance: birthdayProviderInstance),
+      _TestApp(birthdayNotifierInstance: birthdayNotifierInstance),
     );
     await tester.pump();
 
@@ -62,11 +62,11 @@ void main() {
     await tester.tap(find.text('Enregistrer'));
     await tester.pumpAndSettle();
 
-    expect(birthdayProviderInstance.createdInputs, hasLength(1));
-    expect(birthdayProviderInstance.createdInputs.single.name, 'Thomas');
-    expect(birthdayProviderInstance.createdInputs.single.surname, 'Leroy');
+    expect(birthdayNotifierInstance.createdInputs, hasLength(1));
+    expect(birthdayNotifierInstance.createdInputs.single.name, 'Thomas');
+    expect(birthdayNotifierInstance.createdInputs.single.surname, 'Leroy');
     expect(
-      birthdayProviderInstance.createdInputs.single.category,
+      birthdayNotifierInstance.createdInputs.single.category,
       BirthdayCategory.friend,
     );
     expect(find.text('Nouvel anniversaire'), findsNothing);
@@ -74,27 +74,29 @@ void main() {
 }
 
 class _TestApp extends StatelessWidget {
-  const _TestApp({required this.birthdayProviderInstance});
+  const _TestApp({required this.birthdayNotifierInstance});
 
-  final FakeBirthdayProvider birthdayProviderInstance;
+  final FakeBirthdayNotifier birthdayNotifierInstance;
 
   @override
   Widget build(BuildContext context) {
     return ProviderScope(
       overrides: [
         authProvider.overrideWith(
-          (ref) => FakeAuthProvider(initialState: AuthState(user: MockUser())),
+          () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
         ),
         userProvider.overrideWith(
-          (ref) => FakeUserProvider(
-            initialUser: const UserModel(
-              id: '1',
-              name: 'Marie',
-              surname: 'Martin',
+          () => FakeUserNotifier(
+            initialState: UserState(
+              user: const UserModel(
+                id: '1',
+                name: 'Marie',
+                surname: 'Martin',
+              ),
             ),
           ),
         ),
-        birthdayProvider.overrideWith((ref) => birthdayProviderInstance),
+        birthdayProvider.overrideWith(() => birthdayNotifierInstance),
       ],
       child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -105,4 +107,3 @@ class _TestApp extends StatelessWidget {
     );
   }
 }
-

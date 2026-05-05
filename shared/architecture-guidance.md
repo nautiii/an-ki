@@ -2,14 +2,14 @@
 
 The project follows a strict layered architecture:
 
-```id="arch1"
+```
 UI (Widgets)
  ↓
 Provider (State)
  ↓
-Repository (Data access)
+Repository (Data access) / Services (External features)
  ↓
-Firebase (Firestore)
+Firebase (Firestore) / Local Plugin
 ```
 
 ## Hard Rules
@@ -19,6 +19,7 @@ Firebase (Firestore)
 * Providers are the ONLY source of state
 * Repositories handle ALL external data interactions
 * Models must be pure Dart objects
+* Use `context.l10n` for all UI-visible strings
 
 ## Models
 
@@ -55,6 +56,15 @@ Example responsibilities:
 * priority
 
 NO switch/case should exist in UI for enums.
+
+## Naming
+
+Never change the name of collections or fields in Firestore as it may lead to unexpected behavior.
+
+```
+CollectionReference<Map<String, dynamic>> get _users =>
+      _firestore.collection('user'); --> DO NOT RENAME TO 'users'
+```
 
 ## Forbidden
 

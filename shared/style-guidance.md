@@ -24,5 +24,5 @@ You should generate code that is:
 
 ## Import files
 
-* Always use absolute imports ("package:pkg_name/**.dart").
+* Always use absolute imports (`package:an_ki/**.dart`).
 * Never use relative imports for files within the same package.

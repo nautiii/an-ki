@@ -42,10 +42,13 @@ class FakeBirthdayRepository extends BirthdayRepository {
   ) async {}
 }
 
-class FakeAuthProvider extends AuthProvider {
-  FakeAuthProvider({AuthState? initialState})
-    : super(firebaseAuth: null, googleSignIn: null) {
-    if (initialState != null) state = initialState;
+class FakeAuthNotifier extends AuthNotifier {
+  final AuthState? _initialState;
+  FakeAuthNotifier({AuthState? initialState}) : _initialState = initialState;
+
+  @override
+  AuthState build() {
+    return _initialState ?? AuthState();
   }
 
   @override
@@ -93,19 +96,24 @@ class FakeAuthProvider extends AuthProvider {
   }
 }
 
-class FakeUserProvider extends UserProvider {
-  FakeUserProvider({
-    UserModel? initialUser,
+class FakeUserNotifier extends UserNotifier {
+  final UserState? _initialState;
+  final UserModel? defaultLoadedUser;
+
+  FakeUserNotifier({
+    UserState? initialState,
     this.defaultLoadedUser = const UserModel(
       id: 'default-user',
       name: 'Quentin',
       surname: 'Maillard',
     ),
-  }) : super(FakeUserRepository()) {
-    state = UserState(user: initialUser);
+  }) : _initialState = initialState;
+
+  @override
+  UserState build() {
+    return _initialState ?? UserState();
   }
 
-  final UserModel? defaultLoadedUser;
   Completer<UserModel?>? _pendingLoad;
 
   void preparePendingLoad() {
@@ -149,12 +157,13 @@ class FakeUserProvider extends UserProvider {
   }
 }
 
-class FakeBirthdayProvider extends BirthdayProvider {
-  FakeBirthdayProvider({
-    List<BirthdayModel> initialBirthdays = const [],
-    bool isLoading = false,
-  }) : super(FakeBirthdayRepository()) {
-    state = BirthdayState(birthdays: initialBirthdays, isLoading: isLoading);
+class FakeBirthdayNotifier extends BirthdayNotifier {
+  final BirthdayState? _initialState;
+  FakeBirthdayNotifier({BirthdayState? initialState}) : _initialState = initialState;
+
+  @override
+  BirthdayState build() {
+    return _initialState ?? BirthdayState(isLoading: false);
   }
 
   final List<CreateBirthdayInput> createdInputs = [];

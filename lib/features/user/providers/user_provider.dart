@@ -17,10 +17,11 @@ class UserState {
   }
 }
 
-class UserProvider extends StateNotifier<UserState> {
-  final UserRepository _repository;
+class UserNotifier extends Notifier<UserState> {
+  @override
+  UserState build() => UserState();
 
-  UserProvider(this._repository) : super(UserState());
+  UserRepository get _repository => ref.watch(userRepositoryProvider);
 
   Future<void> loadUser(String uid) async {
     try {
@@ -49,7 +50,4 @@ class UserProvider extends StateNotifier<UserState> {
   }
 }
 
-final userProvider = StateNotifierProvider<UserProvider, UserState>((ref) {
-  final repository = ref.watch(userRepositoryProvider);
-  return UserProvider(repository);
-});
+final userProvider = NotifierProvider<UserNotifier, UserState>(UserNotifier.new);

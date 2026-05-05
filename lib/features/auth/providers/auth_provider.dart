@@ -2,6 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
+final googleSignInProvider = Provider<GoogleSignIn>((ref) => GoogleSignIn());
+
 class AuthState {
   final User? user;
   final bool isLoading;
@@ -22,25 +25,22 @@ class AuthState {
   bool get isAnonymous => user?.isAnonymous ?? false;
 }
 
-class AuthProvider extends StateNotifier<AuthState> {
-  final FirebaseAuth? _firebaseAuthOverride;
-  final GoogleSignIn? _googleSignInOverride;
-
-  AuthProvider({FirebaseAuth? firebaseAuth, GoogleSignIn? googleSignIn})
-    : _firebaseAuthOverride = firebaseAuth,
-      _googleSignInOverride = googleSignIn,
-      super(AuthState()) {
+class AuthNotifier extends Notifier<AuthState> {
+  @override
+  AuthState build() {
     initializeAuth();
+    return AuthState();
   }
 
-  FirebaseAuth get _firebaseAuth =>
-      _firebaseAuthOverride ?? FirebaseAuth.instance;
+  FirebaseAuth get _firebaseAuth => ref.watch(firebaseAuthProvider);
 
-  GoogleSignIn get _googleSignIn => _googleSignInOverride ?? GoogleSignIn();
+  GoogleSignIn get _googleSignIn => ref.watch(googleSignInProvider);
 
   void initializeAuth() {
     _firebaseAuth.authStateChanges().listen((User? user) {
-      state = state.copyWith(user: user);
+      if (ref.mounted) {
+        state = state.copyWith(user: user);
+      }
     });
   }
 
@@ -219,6 +219,4 @@ class AuthProvider extends StateNotifier<AuthState> {
   }
 }
 
-final authProvider = StateNotifierProvider<AuthProvider, AuthState>(
-  (ref) => AuthProvider(),
-);
+final authProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);

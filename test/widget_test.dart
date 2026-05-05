@@ -13,15 +13,15 @@ void main() {
   testWidgets('AppInitializer loads the user after the first frame', (
     WidgetTester tester,
   ) async {
-    final userProviderInstance = FakeUserProvider();
-    userProviderInstance.preparePendingLoad();
+    final userNotifierInstance = FakeUserNotifier();
+    userNotifierInstance.preparePendingLoad();
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          authProvider.overrideWith((ref) => FakeAuthProvider()),
-          userProvider.overrideWith((ref) => userProviderInstance),
-          birthdayProvider.overrideWith((ref) => FakeBirthdayProvider()),
+          authProvider.overrideWith(FakeAuthNotifier.new),
+          userProvider.overrideWith(() => userNotifierInstance),
+          birthdayProvider.overrideWith(FakeBirthdayNotifier.new),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -37,13 +37,10 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
 
     // Now let's simulate being authenticated
+    // ignore: unused_local_variable
     final container = ProviderScope.containerOf(
       tester.element(find.byType(AppInitializer)),
     );
-    // We can't easily set the user on FakeAuthProvider if it's already created.
-    // Actually, we can use ref.read(authProvider.notifier).state = ...
-    // But StateNotifier.state is protected.
-    // I should add a helper to FakeAuthProvider.
   });
 }
 

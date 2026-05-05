@@ -1,25 +1,42 @@
-# State Management (Provider)
+# State Management (Riverpod 3)
 
 ## Usage rules
 
-* NEVER use `context.watch` inside `initState`
-* Avoid `FutureBuilder` when a Provider exists
+* Use `Notifier` (or `AsyncNotifier`) for complex state and `Provider` for read-only repositories/services.
+* Use `ref.watch` in `build` methods and `ref.read` in callbacks.
+* Always check `if (ref.mounted)` before updating `state` after an `await` or inside a listener.
+* `StateNotifier` is deprecated; prefer `Notifier`.
 
 ## Pattern
 
 ```id="provider_pattern"
-class XProvider extends ChangeNotifier {
-  final XRepository repository;
+class XState {
+  final List<Data> items;
+  final bool isLoading;
+  // ...
+  XState({this.items = const [], this.isLoading = true});
+  XState copyWith({List<Data>? items, bool? isLoading}) => ...
+}
 
-  XProvider(this.repository) {
+class XNotifier extends Notifier<XState> {
+  StreamSubscription? _subscription;
+
+  @override
+  XState build() {
     _init();
+    ref.onDispose(() => _subscription?.cancel());
+    return XState();
   }
 
   void _init() {
-    repository.stream().listen((data) {
-      // update state
-      notifyListeners();
+    final repository = ref.watch(xRepositoryProvider);
+    _subscription = repository.stream().listen((data) {
+      if (ref.mounted) {
+        state = state.copyWith(items: data, isLoading: false);
+      }
     });
   }
 }
+
+final xProvider = NotifierProvider<XNotifier, XState>(XNotifier.new);
 ```
