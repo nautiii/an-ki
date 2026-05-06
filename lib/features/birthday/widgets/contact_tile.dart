@@ -50,14 +50,15 @@ class ContactTile extends StatelessWidget {
               children: [
                 Text(
                   "${birthday.name} ${birthday.surname}",
-                  style: TextStyle(
-                    color: colorScheme.onSurface,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
                   "${birthday.formattedDate} • ${birthday.age} ${context.l10n.yearsOld}",
-                  style: TextStyle(color: colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),

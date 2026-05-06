@@ -65,6 +65,7 @@ class _BirthdayContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final DateTime? nextDate = birthday?.nextOccurrence;
     final int? days = birthday?.daysUntilNext;
 
@@ -74,7 +75,9 @@ class _BirthdayContent extends StatelessWidget {
       children: [
         Text(
           context.l10n.nextBirthday,
-          style: TextStyle(color: colorScheme.onPrimary.withValues(alpha: 0.7)),
+          style: textTheme.bodySmall?.copyWith(
+            color: colorScheme.onPrimary.withValues(alpha: 0.7),
+          ),
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 4),
@@ -90,7 +93,7 @@ class _BirthdayContent extends StatelessWidget {
         else if (birthday == null)
           Text(
             context.l10n.noBirthdayRegistered,
-            style: TextStyle(
+            style: textTheme.titleMedium?.copyWith(
               color: colorScheme.onPrimary,
               fontWeight: FontWeight.bold,
             ),
@@ -99,7 +102,7 @@ class _BirthdayContent extends StatelessWidget {
         else ...[
           Text(
             '${birthday!.name} ${birthday!.surname}',
-            style: TextStyle(
+            style: textTheme.titleLarge?.copyWith(
               color: colorScheme.onPrimary,
               fontWeight: FontWeight.bold,
             ),
@@ -107,7 +110,7 @@ class _BirthdayContent extends StatelessWidget {
           ),
           Text(
             '${_daysLabel(days!, context)} • ${_formatDate(nextDate!)}',
-            style: TextStyle(
+            style: textTheme.bodyMedium?.copyWith(
               color: colorScheme.onPrimary.withValues(alpha: 0.7),
             ),
             overflow: TextOverflow.ellipsis,

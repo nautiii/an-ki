@@ -13,6 +13,7 @@ class Header extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider).user;
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final themeMode = ref.watch(themeProvider);
     final bool isDark =
         themeMode == ThemeMode.dark ||
@@ -27,14 +28,14 @@ class Header extends ConsumerWidget {
           children: [
             Text(
               context.l10n.hello,
-              style: TextStyle(color: colorScheme.onSurfaceVariant),
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             Text(
               user != null ? "${user.surname} ${user.name}" : "...",
-              style: TextStyle(
+              style: textTheme.headlineMedium?.copyWith(
                 fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
               ),
             ),
           ],

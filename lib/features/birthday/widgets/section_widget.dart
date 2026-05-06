@@ -23,6 +23,7 @@ class SectionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,9 +33,7 @@ class SectionWidget extends StatelessWidget {
           children: [
             Text(
               title.capitalize(),
-              style: TextStyle(
-                color: colorScheme.onSurface,
-                fontSize: 18,
+              style: textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -43,7 +42,10 @@ class SectionWidget extends StatelessWidget {
                 onTap: onViewAllPressed,
                 child: Text(
                   isExpanded ? context.l10n.showLess : context.l10n.viewAll,
-                  style: TextStyle(color: colorScheme.primary),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
           ],
