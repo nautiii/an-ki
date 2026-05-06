@@ -1,5 +1,5 @@
 name: an_ki
-description: Gèrer une liste d'anniversaires
+description: Gérer une liste d'anniversaires
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -39,7 +39,7 @@ dependencies:
   cloud_firestore: ^6.3.0
   firebase_storage: ^13.3.0
   firebase_auth: ^6.4.0
-  google_sign_in: ^6.3.0
+  google_sign_in: ^7.2.0
   image_picker: ^1.2.2
   flutter_local_notifications: ^21.0.0
   timezone: ^0.11.0
