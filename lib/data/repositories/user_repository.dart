@@ -6,7 +6,7 @@ class UserRepository {
   final FirebaseFirestore? _firestoreOverride;
 
   UserRepository({FirebaseFirestore? firestore})
-      : _firestoreOverride = firestore;
+    : _firestoreOverride = firestore;
 
   FirebaseFirestore get _firestore =>
       _firestoreOverride ?? FirebaseFirestore.instance;
@@ -16,7 +16,7 @@ class UserRepository {
 
   Future<UserModel?> fetchUser(String uid) async {
     final DocumentSnapshot<Map<String, dynamic>> doc =
-    await _users.doc(uid).get();
+        await _users.doc(uid).get();
 
     return doc.exists ? UserModel.fromFirestore(doc) : null;
   }
@@ -31,5 +31,5 @@ class UserRepository {
 }
 
 final userRepositoryProvider = Provider<UserRepository>(
-      (ref) => UserRepository(),
+  (ref) => UserRepository(),
 );

@@ -50,4 +50,6 @@ class UserNotifier extends Notifier<UserState> {
   }
 }
 
-final userProvider = NotifierProvider<UserNotifier, UserState>(UserNotifier.new);
+final userProvider = NotifierProvider<UserNotifier, UserState>(
+  UserNotifier.new,
+);

@@ -10,8 +10,8 @@ class NextBirthdayCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final birthdayState = ref.watch(birthdayProvider);
-    final BirthdayModel? nextBirthday = birthdayState.birthdays.nextBirthday;
+    final nextBirthday = ref.watch(nextBirthdayProvider);
+    final isLoading = ref.watch(birthdayProvider.select((s) => s.isLoading));
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -37,7 +37,7 @@ class NextBirthdayCard extends ConsumerWidget {
           Expanded(
             child: _BirthdayContent(
               birthday: nextBirthday,
-              isLoading: birthdayState.isLoading,
+              isLoading: isLoading,
             ),
           ),
           const SizedBox(width: 12),

@@ -2,8 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
-final googleSignInProvider = Provider<GoogleSignIn>((ref) => GoogleSignIn.instance);
+final firebaseAuthProvider = Provider<FirebaseAuth>(
+  (ref) => FirebaseAuth.instance,
+);
+final googleSignInProvider = Provider<GoogleSignIn>(
+  (ref) => GoogleSignIn.instance,
+);
 
 class AuthState {
   final User? user;
@@ -135,8 +139,9 @@ class AuthNotifier extends Notifier<AuthState> {
       );
 
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-      final GoogleSignInClientAuthorization authorization =
-          await googleUser.authorizationClient.authorizeScopes(['email']);
+      final GoogleSignInClientAuthorization authorization = await googleUser
+          .authorizationClient
+          .authorizeScopes(['email']);
 
       final credential = GoogleAuthProvider.credential(
         accessToken: authorization.accessToken,
@@ -172,8 +177,9 @@ class AuthNotifier extends Notifier<AuthState> {
       );
 
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-      final GoogleSignInClientAuthorization authorization =
-          await googleUser.authorizationClient.authorizeScopes(['email']);
+      final GoogleSignInClientAuthorization authorization = await googleUser
+          .authorizationClient
+          .authorizeScopes(['email']);
 
       final credential = GoogleAuthProvider.credential(
         accessToken: authorization.accessToken,
@@ -217,4 +223,6 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 }
 
-final authProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+final authProvider = NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);

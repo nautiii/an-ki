@@ -10,36 +10,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'contact_sections.dart';
 import 'create_birthday_page.dart';
 
-class HomePage extends ConsumerStatefulWidget {
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
-  ConsumerState<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends ConsumerState<HomePage> {
-  String _searchQuery = '';
-
-  List<BirthdayModel> _filterBirthdays(List<BirthdayModel> birthdays) {
-    if (_searchQuery.isEmpty) {
-      return birthdays;
-    }
-
-    final query = _searchQuery.toLowerCase();
-    return birthdays
-        .where(
-          (birthday) =>
-              birthday.name.toLowerCase().contains(query) ||
-              birthday.surname.toLowerCase().contains(query),
-        )
-        .toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final birthdayState = ref.watch(birthdayProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filteredBirthdays = ref.watch(filteredBirthdaysProvider);
+    final isLoading = ref.watch(birthdayProvider.select((s) => s.isLoading));
     final colorScheme = Theme.of(context).colorScheme;
-    final filteredBirthdays = _filterBirthdays(birthdayState.birthdays);
 
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -61,21 +39,19 @@ class _HomePageState extends ConsumerState<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              Header(),
+              const Header(),
               const SizedBox(height: 24),
               const NextBirthdayCard(),
               const SizedBox(height: 20),
               SearchBarWidget(
                 onSearchChanged: (query) {
-                  setState(() {
-                    _searchQuery = query;
-                  });
+                  ref.read(birthdaySearchProvider.notifier).state = query;
                 },
               ),
               const SizedBox(height: 20),
               Expanded(
                 child: _HomeContent(
-                  isLoading: birthdayState.isLoading,
+                  isLoading: isLoading,
                   birthdays: filteredBirthdays,
                 ),
               ),

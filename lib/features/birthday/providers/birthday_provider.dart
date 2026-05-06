@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/data/models/create_birthday_input.dart';
 import 'package:an_ki/data/repositories/birthday_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 class BirthdayState {
   final List<BirthdayModel> birthdays;
@@ -107,3 +109,34 @@ class BirthdayNotifier extends Notifier<BirthdayState> {
 final birthdayProvider = NotifierProvider<BirthdayNotifier, BirthdayState>(
   BirthdayNotifier.new,
 );
+
+/// Provider pour récupérer uniquement la liste des anniversaires
+final birthdaysListProvider = Provider<List<BirthdayModel>>((ref) {
+  return ref.watch(birthdayProvider.select((s) => s.birthdays));
+});
+
+/// Provider pour calculer le prochain anniversaire
+final nextBirthdayProvider = Provider<BirthdayModel?>((ref) {
+  final birthdays = ref.watch(birthdaysListProvider);
+  return birthdays.nextBirthday;
+});
+
+/// Provider pour gérer la chaîne de recherche
+final birthdaySearchProvider = StateProvider<String>((ref) => '');
+
+/// Provider pour filtrer les anniversaires (recherche + exclusion du prochain)
+final filteredBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
+  final allBirthdays = ref.watch(birthdaysListProvider);
+  final nextBirthday = ref.watch(nextBirthdayProvider);
+  final searchQuery = ref.watch(birthdaySearchProvider).toLowerCase();
+
+  return allBirthdays.where((birthday) {
+    // Exclure le prochain anniversaire (déjà affiché en haut)
+    if (birthday.id == nextBirthday?.id) return false;
+
+    // Filtrer par recherche
+    if (searchQuery.isEmpty) return true;
+    return birthday.name.toLowerCase().contains(searchQuery) ||
+        birthday.surname.toLowerCase().contains(searchQuery);
+  }).toList();
+});
