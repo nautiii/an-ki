@@ -72,6 +72,11 @@
   "signInText": "Connectez-vous",
   "name": "Nom",
   "haveAccount": "Vous avez déjà un compte ? ",
-  "dontHaveAccount": "Pas encore de compte ? "
+  "dontHaveAccount": "Pas encore de compte ? ",
+  "settings": "Paramètres",
+  "theme": "Thème",
+  "pseudo": "Pseudo",
+  "pseudoUpdated": "Pseudo mis à jour avec succès !",
+  "updatePseudo": "Mettre à jour le pseudo"
 }
 

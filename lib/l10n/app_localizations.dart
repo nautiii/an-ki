@@ -487,6 +487,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Pas encore de compte ? '**
   String get dontHaveAccount;
+
+  /// No description provided for @settings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paramètres'**
+  String get settings;
+
+  /// No description provided for @theme.
+  ///
+  /// In fr, this message translates to:
+  /// **'Thème'**
+  String get theme;
+
+  /// No description provided for @pseudo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pseudo'**
+  String get pseudo;
+
+  /// No description provided for @pseudoUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pseudo mis à jour avec succès !'**
+  String get pseudoUpdated;
+
+  /// No description provided for @updatePseudo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mettre à jour le pseudo'**
+  String get updatePseudo;
 }
 
 class _AppLocalizationsDelegate

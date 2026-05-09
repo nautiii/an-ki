@@ -3,8 +3,8 @@ param(
     [switch]$Clean = $false
 )
 
-$ProjectPath = "C:\Users\qmaillard\Projets\PERSO\kairos"
-$AdbPath = "C:\Users\qmaillard\AppData\Local\Android\sdk\platform-tools\adb.exe"
+$ProjectPath = "C:\Users\nauti\Projects\kairos"
+$AdbPath = "C:\Users\nauti\AppData\Local\Android\sdk\platform-tools\adb.exe"
 $PackageName = "com.github.nautiii.an_ki"
 $Activity = "$PackageName/$PackageName.MainActivity"
 $ApkPath = "$ProjectPath\build\app\outputs\flutter-apk\app-debug.apk"

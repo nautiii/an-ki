@@ -206,4 +206,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dontHaveAccount => 'Pas encore de compte ? ';
+
+  @override
+  String get settings => 'Paramètres';
+
+  @override
+  String get theme => 'Thème';
+
+  @override
+  String get pseudo => 'Pseudo';
+
+  @override
+  String get pseudoUpdated => 'Pseudo mis à jour avec succès !';
+
+  @override
+  String get updatePseudo => 'Mettre à jour le pseudo';
 }

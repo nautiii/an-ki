@@ -45,6 +45,13 @@ class UserNotifier extends Notifier<UserState> {
     state = state.copyWith(user: newUser);
   }
 
+  Future<void> updatePseudo(String pseudo) async {
+    if (state.user == null) return;
+    final updatedUser = state.user!.copyWith(pseudo: pseudo);
+    await _repository.updateUser(updatedUser);
+    state = state.copyWith(user: updatedUser);
+  }
+
   void clear() {
     state = UserState();
   }

@@ -72,6 +72,11 @@
   "signInText": "Sign in",
   "name": "Name",
   "haveAccount": "Already have an account? ",
-  "dontHaveAccount": "No account yet? "
+  "dontHaveAccount": "No account yet? ",
+  "settings": "Settings",
+  "theme": "Theme",
+  "pseudo": "Nickname",
+  "pseudoUpdated": "Nickname updated successfully!",
+  "updatePseudo": "Update Nickname"
 }
 

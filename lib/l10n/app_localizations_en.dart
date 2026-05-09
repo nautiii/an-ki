@@ -204,4 +204,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dontHaveAccount => 'No account yet? ';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get pseudo => 'Nickname';
+
+  @override
+  String get pseudoUpdated => 'Nickname updated successfully!';
+
+  @override
+  String get updatePseudo => 'Update Nickname';
 }

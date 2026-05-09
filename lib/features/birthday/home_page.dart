@@ -24,7 +24,6 @@ class HomePage extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
         backgroundColor: colorScheme.primary,
-        elevation: 0,
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute<void>(builder: (_) => const CreateBirthdayPage()),
