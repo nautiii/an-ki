@@ -40,9 +40,8 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
                   name:
                       parts.isNotEmpty && parts.first.isNotEmpty
                           ? parts.first
-                          : (authState.isAnonymous ? "Invité" : "Prénom"),
-                  surname:
-                      parts.length > 1 ? parts.sublist(1).join(" ") : "Nom",
+                          : (authState.isAnonymous ? "Invité" : "-"),
+                  surname: parts.length > 1 ? parts.sublist(1).join(" ") : "",
                 );
               }
             }),

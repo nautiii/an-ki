@@ -152,7 +152,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nextBirthday => 'Prochain anniversaire';
 
   @override
-  String get noBirthdayRegistered => 'Aucun anniversaire enregistré';
+  String get noBirthdayRegistered => 'Aucun anniversaire';
 
   @override
   String get today => 'Aujourd\'hui 🎉';

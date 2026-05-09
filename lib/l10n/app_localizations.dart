@@ -383,7 +383,7 @@ abstract class AppLocalizations {
   /// No description provided for @noBirthdayRegistered.
   ///
   /// In fr, this message translates to:
-  /// **'Aucun anniversaire enregistré'**
+  /// **'Aucun anniversaire'**
   String get noBirthdayRegistered;
 
   /// No description provided for @today.

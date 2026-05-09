@@ -150,7 +150,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextBirthday => 'Next birthday';
 
   @override
-  String get noBirthdayRegistered => 'No birthday registered';
+  String get noBirthdayRegistered => 'No birthday';
 
   @override
   String get today => 'Today 🎉';
