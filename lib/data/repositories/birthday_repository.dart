@@ -65,6 +65,10 @@ class BirthdayRepository {
 
     await _birthdays.doc(birthdayId).update(data);
   }
+
+  Future<void> deleteBirthday(String birthdayId) async {
+    await _birthdays.doc(birthdayId).delete();
+  }
 }
 
 final birthdayRepositoryProvider = Provider<BirthdayRepository>(

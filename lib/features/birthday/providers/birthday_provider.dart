@@ -104,6 +104,10 @@ class BirthdayNotifier extends Notifier<BirthdayState> {
       }
     }
   }
+
+  Future<void> deleteBirthday(String birthdayId) async {
+    await _repository.deleteBirthday(birthdayId);
+  }
 }
 
 final birthdayProvider = NotifierProvider<BirthdayNotifier, BirthdayState>(

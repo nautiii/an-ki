@@ -219,4 +219,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updatePseudo => 'Update Nickname';
+
+  @override
+  String get deleteBirthdayTitle => 'Delete Birthday';
+
+  @override
+  String deleteBirthdayConfirmation(String name) {
+    return 'Are you sure you want to delete $name\'s birthday?';
+  }
+
+  @override
+  String birthdayDeleted(String name) {
+    return '$name\'s birthday deleted';
+  }
+
+  @override
+  String get delete => 'Delete';
 }

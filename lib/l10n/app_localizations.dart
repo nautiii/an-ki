@@ -517,6 +517,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Mettre à jour le pseudo'**
   String get updatePseudo;
+
+  /// No description provided for @deleteBirthdayTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer l\'anniversaire'**
+  String get deleteBirthdayTitle;
+
+  /// No description provided for @deleteBirthdayConfirmation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voulez-vous vraiment supprimer l\'anniversaire de {name} ?'**
+  String deleteBirthdayConfirmation(String name);
+
+  /// No description provided for @birthdayDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Anniversaire de {name} supprimé'**
+  String birthdayDeleted(String name);
+
+  /// No description provided for @delete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get delete;
 }
 
 class _AppLocalizationsDelegate

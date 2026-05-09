@@ -77,6 +77,24 @@
   "theme": "Thème",
   "pseudo": "Pseudo",
   "pseudoUpdated": "Pseudo mis à jour avec succès !",
-  "updatePseudo": "Mettre à jour le pseudo"
+  "updatePseudo": "Mettre à jour le pseudo",
+  "deleteBirthdayTitle": "Supprimer l'anniversaire",
+  "deleteBirthdayConfirmation": "Voulez-vous vraiment supprimer l'anniversaire de {name} ?",
+  "@deleteBirthdayConfirmation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "birthdayDeleted": "Anniversaire de {name} supprimé",
+  "@birthdayDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "delete": "Supprimer"
 }
 
