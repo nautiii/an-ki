@@ -84,9 +84,7 @@ class ContactTile extends ConsumerWidget {
           ),
           child: Container(
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHigh,
-            ),
+            decoration: BoxDecoration(color: colorScheme.surfaceContainerHigh),
             child: Row(
               children: [
                 CircleAvatar(

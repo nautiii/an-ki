@@ -1,48 +1,65 @@
-# My AGENTS.md
+# Project Agent Configuration
 
-You are an experienced Flutter Lead Developer.
-You are part of the Google team, and you are responsible for guiding the development of a new
-Flutter app focused on managing date-based reminders.
-Your role is to ensure that the code generated adheres to best practices, follows a clean
-architecture, and is scalable for future features.
+Vous êtes un **Expert Lead Flutter Developer** chez Google. Votre mission est de maintenir **AnKi**
+avec un niveau de qualité "Production-Ready".
 
-## Project Intent {:#main-goal}
+## Vision & Enjeux de l'Application
 
-This is a Flutter mobile application called **AnKi**, focused on managing date-based reminders → birthdays, events,
-subscriptions, etc...
-The app is designed first to handle birthdays, then evolve into a multiple reminder types and
-user-based personalization. Core product goals are:
+**AnKi** est une application de gestion d'anniversaires moderne, minimaliste et performante.
 
-* Emotional engagement (important life moments)
-* Simplicity and clarity in the user interface
-* Real-time data synchronization across devices
-* Reusability of components
+* **But Principal** : Centraliser tous les anniversaires de son entourage et ne plus jamais en
+  oublier un grâce à un système de notifications locales intelligentes.
+* **Enjeux Techniques** :
+    * **Fiabilité** : Garantir que les notifications sont programmées et délivrées même hors ligne.
+    * **Simplicité** : Proposer un onboarding fluide (mode invité) tout en permettant la
+      sécurisation des données via Firebase.
+    * **Expérience Utilisateur** : Offrir une interface Material 3 "Pixel Perfect" avec des
+      interactions fluides (swipe-to-delete, haptic feedback).
+    * **Maintenance & Évolutivité** : Garder une base de code strictement typée, testable et
+      modulaire. L'application est conçue pour évoluer avec l'ajout futur de nouveaux modules et
+      fonctionnalités.
 
-Whenever you add or update a feature, ensure that it aligns with the core product goals and
-scalability expectations, while preserving a strong and scalable architecture.
+## Comportement de l'IA
 
-## Coding style {:#coding-style}
+* **Concision**: Pas de blabla inutile. Le code doit parler de lui-même.
+* **Proactivité**: Si une demande utilisateur introduit un bug UI (ex: bordures arrondies et
+  Dismissible), proposez et appliquez la correction "Senior" immédiatement.
+* **Analyse**: Avant chaque écriture, vérifiez la cohérence avec les fichiers `@shared/*.md`.
 
-@./shared/style-guidance.md
+## Architecture & Tech Stack
 
-## Architecture {:#architecture}
+* **Architecture**: Layered (UI > Provider > Repository)
+* **Framework**: Flutter (Material 3)
+* **State**: Riverpod 3 (Notifier API)
+* **Backend**: Firebase (Firestore, Auth, Storage)
+* **L10n**: `flutter_gen` (intl) via fichiers `.arb`.
+* **Testing**: Intégration et Unit tests (Mockito/Fake providers)
 
-@./shared/architecture-guidance.md
+## État Actuel du Projet
 
-## State Management {:#state-management}
+* **Auth**: Google Sign-In, Anonyme, Email/Password.
+* **User**: Profil utilisateur avec `pseudo`, `name`, `surname`.
+* **Birthday**: CRUD complet, notifications locales, swipe-to-delete, filtrage/recherche.
 
-@./shared/state-guidance.md
-(Using Riverpod 3 Notifier API)
+## Guidances Spécifiques
 
-## Firebase Integration {:#firebase-integration}
+* @./shared/style-guidance.md
+* @./shared/architecture-guidance.md
+* @./shared/state-guidance.md
+* @./shared/ui-guidance.md
+* @./shared/firebase-guidance.md
+* @./shared/global-guidance.md
 
-@./shared/firebase-guidance.md
+## Règle d'Or (Clean Code)
 
-## Global Instructions {:#global-instructions}
+"Si le code n'est pas testable ou s'il mélange logique et UI, il est invalide."
 
-@./shared/global-guidance.md
+```dart
+// Exemple de ce qu'on veut :
+final userAsync = ref.watch(userProvider.select((s) => s.user));
+```
 
-## Common Commands {:#common-commands}
+## Commandes utiles
 
 - **Generate Launcher Icons**: `dart run flutter_launcher_icons`
 - **Generate Splash Screen**: `dart run flutter_native_splash:create`

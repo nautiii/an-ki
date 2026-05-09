@@ -25,9 +25,9 @@ Firebase (Firestore) / Local Plugin
 
 * Models must be immutable
 * Always provide:
-
-    * factory constructor (`fromFirestore`)
-    * serialization if needed
+    * `factory XModel.fromFirestore(DocumentSnapshot doc)`
+    * `Map<String, dynamic> toJson()`
+    * `XModel copyWith(...)`
 
 ## Extensions Usage
 
@@ -42,7 +42,6 @@ Avoid utility classes.
 ## Enums Strategy
 
 Enums are **intelligent objects**, not just values.
-
 Each enum MUST:
 
 * map from Firestore (String → Enum)
@@ -61,12 +60,13 @@ NO switch/case should exist in UI for enums.
 
 Never change the name of collections or fields in Firestore as it may lead to unexpected behavior.
 
-```
+```dart
 CollectionReference<Map<String, dynamic>> get _users =>
-      _firestore.collection('user'); --> DO NOT RENAME TO 'users'
+    _firestore.collection('user'); // DO NOT RENAME TO 'users'
 ```
 
 ## Forbidden
 
 * business logic in widgets
 * data transformation in widgets
+* relative imports (Always use `package:an_ki/...`)

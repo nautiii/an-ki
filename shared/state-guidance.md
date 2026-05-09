@@ -1,42 +1,36 @@
 # State Management (Riverpod 3)
 
-## Usage rules
+## Usage Rules
 
-* Use `Notifier` (or `AsyncNotifier`) for complex state and `Provider` for read-only repositories/services.
-* Use `ref.watch` in `build` methods and `ref.read` in callbacks.
-* Always check `if (ref.mounted)` before updating `state` after an `await` or inside a listener.
-* `StateNotifier` is deprecated; prefer `Notifier`.
+* **Performance**: Toujours utiliser `.select((s) => s.field)` lors du `ref.watch` pour éviter les
+  reconstructions inutiles du widget si d'autres champs de l'état changent.
+* **Notifier**: Préférer `Notifier` (synchrone) ou `AsyncNotifier` (asynchrone). `StateNotifier` est
+  strictement interdit.
+* **Logic Location**: Toute la logique de transformation de données doit résider dans le `Notifier`,
+  pas dans l'UI.
+* **Initialization**: Utiliser `ref.onDispose` pour nettoyer les streams ou les contrôleurs.
 
-## Pattern
+## Patterns
 
-```id="provider_pattern"
-class XState {
-  final List<Data> items;
-  final bool isLoading;
-  // ...
-  XState({this.items = const [], this.isLoading = true});
-  XState copyWith({List<Data>? items, bool? isLoading}) => ...
-}
+### Pattern de sélection (Optimization)
 
-class XNotifier extends Notifier<XState> {
-  StreamSubscription? _subscription;
+```dart
+// Dans le widget : Re-build uniquement si 'items' change
+final items = ref.watch(myProvider.select((s) => s.items));
+```
 
+### AsyncNotifier Pattern
+
+```dart
+class MyNotifier extends AsyncNotifier<List<Data>> {
   @override
-  XState build() {
-    _init();
-    ref.onDispose(() => _subscription?.cancel());
-    return XState();
+  FutureOr<List<Data>> build() async {
+    return _fetchInitialData();
   }
 
-  void _init() {
-    final repository = ref.watch(xRepositoryProvider);
-    _subscription = repository.stream().listen((data) {
-      if (ref.mounted) {
-        state = state.copyWith(items: data, isLoading: false);
-      }
-    });
+  Future<void> addItem(Data item) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => repository.add(item));
   }
 }
-
-final xProvider = NotifierProvider<XNotifier, XState>(XNotifier.new);
 ```
