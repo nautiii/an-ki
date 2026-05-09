@@ -1,34 +1,34 @@
-# Style Guidance
+# Guide de Style
 
-## Expected Code Style
+## Style de Code Attendu
 
-You should generate code that is:
+Vous devez générer un code qui est :
 
-* modular
-* strongly typed
-* null-safe
-* easily testable
+* modulaire
+* fortement typé
+* "null-safe" (sécurité nulle)
+* facilement testable
 
-## UI Rules
+## Règles UI
 
-* Use Material 3 (`useMaterial3: true`)
-* Use `ColorScheme` (no hardcoded colors)
-* UI must be dumb (render-only)
-* Prefer `const` constructors where possible
+* Utiliser Material 3 (`useMaterial3: true`)
+* Utiliser `ColorScheme` (pas de couleurs codées en dur)
+* L'UI doit être "dumb" (chargée uniquement du rendu)
+* Préférer les constructeurs `const` quand c'est possible
 
-## Naming Conventions
+## Conventions de Nommage
 
-* Models: `XModel`
-* Repositories: `XRepository`
-* Providers: `XProvider`
-* Widgets: descriptive and UI-focused
+* Modèles : `XModel`
+* Répertoires (Repositories) : `XRepository`
+* Fournisseurs (Providers) : `XProvider`
+* Widgets : descriptifs et axés sur l'UI
 
-## Import files
+## Importation de fichiers
 
-* Always use absolute imports (`package:an_ki/**.dart`).
-* Never use relative imports for files within the same package.
+* Toujours utiliser des imports absolus (`package:an_ki/**.dart`).
+* Ne jamais utiliser d'imports relatifs pour des fichiers au sein du même package.
 
-## Code Structure Example
+## Exemple de Structure de Code
 
 ```dart
 // lib/features/feature_name/providers/feature_provider.dart
@@ -46,6 +46,6 @@ class FeatureNotifier extends Notifier<FeatureState> {
   @override
   FeatureState build() => FeatureState(items: []);
 
-// Logic here
+// Logique ici
 }
 ```

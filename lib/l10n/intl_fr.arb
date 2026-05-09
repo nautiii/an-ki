@@ -95,6 +95,13 @@
       }
     }
   },
-  "delete": "Supprimer"
+  "delete": "Supprimer",
+  "bookScanner": "Scanner un livre",
+  "bookScannerTitle": "Scanner de livres",
+  "bookTitle": "Titre",
+  "bookPrice": "Prix",
+  "bookNotFound": "Livre non trouvé",
+  "scanning": "Scan en cours...",
+  "noInfoFound": "Aucune information trouvée"
 }
 

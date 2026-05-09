@@ -235,4 +235,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get delete => 'Delete';
+
+  @override
+  String get bookScanner => 'Scan a book';
+
+  @override
+  String get bookScannerTitle => 'Book Scanner';
+
+  @override
+  String get bookTitle => 'Title';
+
+  @override
+  String get bookPrice => 'Price';
+
+  @override
+  String get bookNotFound => 'Book not found';
+
+  @override
+  String get scanning => 'Scanning...';
+
+  @override
+  String get noInfoFound => 'No information found';
 }

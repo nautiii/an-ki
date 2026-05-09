@@ -50,6 +50,8 @@
 		<true/>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
+		<key>NSCameraUsageDescription</key>
+		<string>This app needs camera access to scan book barcodes.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
 	</dict>

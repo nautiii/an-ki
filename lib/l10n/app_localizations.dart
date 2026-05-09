@@ -541,6 +541,48 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Supprimer'**
   String get delete;
+
+  /// No description provided for @bookScanner.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scanner un livre'**
+  String get bookScanner;
+
+  /// No description provided for @bookScannerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scanner de livres'**
+  String get bookScannerTitle;
+
+  /// No description provided for @bookTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre'**
+  String get bookTitle;
+
+  /// No description provided for @bookPrice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix'**
+  String get bookPrice;
+
+  /// No description provided for @bookNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livre non trouvé'**
+  String get bookNotFound;
+
+  /// No description provided for @scanning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scan en cours...'**
+  String get scanning;
+
+  /// No description provided for @noInfoFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune information trouvée'**
+  String get noInfoFound;
 }
 
 class _AppLocalizationsDelegate

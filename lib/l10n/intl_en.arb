@@ -95,6 +95,13 @@
       }
     }
   },
-  "delete": "Delete"
+  "delete": "Delete",
+  "bookScanner": "Scan a book",
+  "bookScannerTitle": "Book Scanner",
+  "bookTitle": "Title",
+  "bookPrice": "Price",
+  "bookNotFound": "Book not found",
+  "scanning": "Scanning...",
+  "noInfoFound": "No information found"
 }
 

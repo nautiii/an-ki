@@ -1,7 +1,7 @@
 # Firebase
 
-## Firestore Rules
+## Règles Firestore
 
-* Always use `.snapshots()` for real-time features
-* Avoid `.get()` unless strictly necessary
-* Always map Firestore data → Model
+* Toujours utiliser `.snapshots()` pour les fonctionnalités en temps réel
+* Éviter `.get()` sauf si c'est strictement nécessaire
+* Toujours mapper les données Firestore → Modèle

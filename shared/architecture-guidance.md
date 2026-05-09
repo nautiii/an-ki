@@ -1,72 +1,72 @@
-# Core Architecture Rules
+# Règles d'Architecture Core
 
-The project follows a strict layered architecture:
+Le projet suit une architecture en couches stricte :
 
 ```
 UI (Widgets)
  ↓
-Provider (State)
+Provider (État)
  ↓
-Repository (Data access) / Services (External features)
+Repository (Accès aux données) / Services (Fonctionnalités externes)
  ↓
-Firebase (Firestore) / Local Plugin
+Firebase (Firestore) / Plugin Local
 ```
 
-## Hard Rules
+## Règles Strictes
 
-* UI must NEVER access Firebase directly
-* UI must NEVER contain business logic
-* Providers are the ONLY source of state
-* Repositories handle ALL external data interactions
-* Models must be pure Dart objects
-* Use `context.l10n` for all UI-visible strings
+* L'UI ne doit JAMAIS accéder directement à Firebase
+* L'UI ne doit JAMAIS contenir de logique métier
+* Les Providers sont l'UNIQUE source de l'état (state)
+* Les Repositories gèrent TOUTES les interactions de données externes
+* Les Modèles doivent être des objets Dart purs
+* Utiliser `context.l10n` pour toutes les chaînes visibles dans l'UI
 
-## Models
+## Modèles
 
-* Models must be immutable
-* Always provide:
+* Les modèles doivent être immuables
+* Toujours fournir :
     * `factory XModel.fromFirestore(DocumentSnapshot doc)`
     * `Map<String, dynamic> toJson()`
     * `XModel copyWith(...)`
 
-## Extensions Usage
+## Utilisation des Extensions
 
-Extensions must be used for:
+Les extensions doivent être utilisées pour :
 
-* mapping (String → Enum)
-* formatting (DateTime → display)
-* UI enrichment (Enum → icon/color)
+* le mapping (String → Enum)
+* le formatage (DateTime → affichage)
+* l'enrichissement UI (Enum → icône/couleur)
 
-Avoid utility classes.
+Éviter les classes utilitaires.
 
-## Enums Strategy
+## Stratégie des Enums
 
-Enums are **intelligent objects**, not just values.
-Each enum MUST:
+Les enums sont des **objets intelligents**, pas seulement des valeurs.
+Chaque enum DOIT :
 
-* map from Firestore (String → Enum)
-* expose UI properties via extensions
+* faire le mapping depuis Firestore (String → Enum)
+* exposer des propriétés UI via des extensions
 
-Example responsibilities:
+Responsabilités d'exemple :
 
-* label
-* icon
-* color
-* priority
+* label (étiquette)
+* icône
+* couleur
+* priorité
 
-NO switch/case should exist in UI for enums.
+AUCUN switch/case ne doit exister dans l'UI pour les enums.
 
-## Naming
+## Nommage
 
-Never change the name of collections or fields in Firestore as it may lead to unexpected behavior.
+Ne jamais changer le nom des collections ou des champs dans Firestore car cela peut entraîner des comportements inattendus.
 
 ```dart
 CollectionReference<Map<String, dynamic>> get _users =>
-    _firestore.collection('user'); // DO NOT RENAME TO 'users'
+    _firestore.collection('user'); // NE PAS RENOMMER EN 'users'
 ```
 
-## Forbidden
+## Interdictions
 
-* business logic in widgets
-* data transformation in widgets
-* relative imports (Always use `package:an_ki/...`)
+* logique métier dans les widgets
+* transformation de données dans les widgets
+* imports relatifs (Toujours utiliser `package:an_ki/...`)

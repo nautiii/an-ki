@@ -1,18 +1,18 @@
-# State Management (Riverpod 3)
+# Gestion de l'État (Riverpod 3)
 
-## Usage Rules
+## Règles d'Utilisation
 
-* **Performance**: Toujours utiliser `.select((s) => s.field)` lors du `ref.watch` pour éviter les
+* **Performance** : Toujours utiliser `.select((s) => s.field)` lors du `ref.watch` pour éviter les
   reconstructions inutiles du widget si d'autres champs de l'état changent.
-* **Notifier**: Préférer `Notifier` (synchrone) ou `AsyncNotifier` (asynchrone). `StateNotifier` est
+* **Notifier** : Préférer `Notifier` (synchrone) ou `AsyncNotifier` (asynchrone). `StateNotifier` est
   strictement interdit.
-* **Logic Location**: Toute la logique de transformation de données doit résider dans le `Notifier`,
+* **Emplacement de la Logique** : Toute la logique de transformation de données doit résider dans le `Notifier`,
   pas dans l'UI.
-* **Initialization**: Utiliser `ref.onDispose` pour nettoyer les streams ou les contrôleurs.
+* **Initialisation** : Utiliser `ref.onDispose` pour nettoyer les streams ou les contrôleurs.
 
 ## Patterns
 
-### Pattern de sélection (Optimization)
+### Pattern de sélection (Optimisation)
 
 ```dart
 // Dans le widget : Re-build uniquement si 'items' change
