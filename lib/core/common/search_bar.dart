@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 
 class SearchBarWidget extends StatefulWidget {
   final ValueChanged<String>? onSearchChanged;
+  final VoidCallback? onAddPressed;
 
-  const SearchBarWidget({super.key, this.onSearchChanged});
+  const SearchBarWidget({super.key, this.onSearchChanged, this.onAddPressed});
 
   @override
   State<SearchBarWidget> createState() => _SearchBarWidgetState();
@@ -77,14 +78,17 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
           ),
         ),
         const SizedBox(width: 10),
-        Container(
-          height: 48,
-          width: 48,
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(14),
+        GestureDetector(
+          onTap: widget.onAddPressed,
+          child: Container(
+            height: 48,
+            width: 48,
+            decoration: BoxDecoration(
+              color: colorScheme.primary,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(Icons.add_rounded, color: colorScheme.onPrimary),
           ),
-          child: Icon(Icons.tune, color: colorScheme.onSurface),
         ),
       ],
     );

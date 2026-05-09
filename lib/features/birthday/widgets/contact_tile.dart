@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
-import 'package:an_ki/features/birthday/create_birthday_page.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -120,14 +120,11 @@ class ContactTile extends ConsumerWidget {
                 ),
                 IconButton(
                   icon: Icon(Icons.edit, color: colorScheme.onSurfaceVariant),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder:
-                            (_) => CreateBirthdayPage(birthdayToEdit: birthday),
+                  onPressed:
+                      () => BirthdayFormSheet.show(
+                        context,
+                        birthdayToEdit: birthday,
                       ),
-                    );
-                  },
                 ),
               ],
             ),

@@ -3,12 +3,12 @@ import 'package:an_ki/core/common/search_bar.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'contact_sections.dart';
-import 'create_birthday_page.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -17,20 +17,8 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final filteredBirthdays = ref.watch(filteredBirthdaysProvider);
     final isLoading = ref.watch(birthdayProvider.select((s) => s.isLoading));
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: FloatingActionButton(
-        shape: const CircleBorder(),
-        backgroundColor: colorScheme.primary,
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(builder: (_) => const CreateBirthdayPage()),
-          );
-        },
-        child: Icon(Icons.add_rounded, color: colorScheme.onPrimary, size: 34),
-      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -46,6 +34,7 @@ class HomePage extends ConsumerWidget {
                 onSearchChanged: (query) {
                   ref.read(birthdaySearchProvider.notifier).state = query;
                 },
+                onAddPressed: () => BirthdayFormSheet.show(context),
               ),
               const SizedBox(height: 20),
               Expanded(
