@@ -87,25 +87,6 @@ extension BirthdaySection on List<BirthdayModel> {
               a.daysUntilNext <= b.daysUntilNext ? a : b,
         );
   }
-
-  Map<String, List<BirthdayModel>> toSections(BuildContext context) {
-    final Map<String, List<BirthdayModel>> sections = {};
-
-    // Grouper par catégorie
-    for (final birthday in this) {
-      final String key = birthday.category.label(context).toUpperCase();
-
-      sections.putIfAbsent(key, () => []);
-      sections[key]!.add(birthday);
-    }
-
-    // Trier chaque section par date (anniversaire le plus proche en premier)
-    sections.forEach((_, birthdays) {
-      birthdays.sort((a, b) => a.daysUntilNext.compareTo(b.daysUntilNext));
-    });
-
-    return sections;
-  }
 }
 
 extension BirthdayCategoryParser on String {

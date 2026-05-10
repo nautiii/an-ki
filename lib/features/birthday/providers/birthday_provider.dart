@@ -128,19 +128,39 @@ final nextBirthdayProvider = Provider<BirthdayModel?>((ref) {
 /// Provider pour gérer la chaîne de recherche
 final birthdaySearchProvider = StateProvider<String>((ref) => '');
 
-/// Provider pour filtrer les anniversaires (recherche + exclusion du prochain)
+/// Provider pour gérer les catégories filtrées
+final birthdayCategoryFilterProvider = StateProvider<List<BirthdayCategory>>(
+  (ref) => [],
+);
+
+/// Provider pour filtrer les anniversaires (recherche + exclusion du prochain + catégories)
 final filteredBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
   final allBirthdays = ref.watch(birthdaysListProvider);
   final nextBirthday = ref.watch(nextBirthdayProvider);
   final searchQuery = ref.watch(birthdaySearchProvider).toLowerCase();
+  final categoryFilters = ref.watch(birthdayCategoryFilterProvider);
 
-  return allBirthdays.where((birthday) {
+  // 1. Filtrer et Trier
+  final filtered = allBirthdays.where((birthday) {
     // Exclure le prochain anniversaire (déjà affiché en haut)
     if (birthday.id == nextBirthday?.id) return false;
+
+    // Filtrer par catégories (doit posséder TOUTES les catégories sélectionnées)
+    if (categoryFilters.isNotEmpty) {
+      final hasAllCategories = categoryFilters.every(
+        (cat) => birthday.categories.contains(cat),
+      );
+      if (!hasAllCategories) return false;
+    }
 
     // Filtrer par recherche
     if (searchQuery.isEmpty) return true;
     return birthday.name.toLowerCase().contains(searchQuery) ||
         birthday.surname.toLowerCase().contains(searchQuery);
   }).toList();
+
+  // 2. Trier par proximité (jours restants)
+  filtered.sort((a, b) => a.daysUntilNext.compareTo(b.daysUntilNext));
+
+  return filtered;
 });

@@ -29,9 +29,9 @@ void main() {
       );
       await tester.pumpAndSettle(); // Wait for localizations and first frame
 
-      expect(find.byType(FloatingActionButton), findsOneWidget);
+      expect(find.byIcon(Icons.add_rounded), findsOneWidget);
 
-      await tester.tap(find.byType(FloatingActionButton));
+      await tester.tap(find.byIcon(Icons.add_rounded));
       await tester.pumpAndSettle();
 
       expect(find.text('Nouvel anniversaire'), findsOneWidget);
@@ -53,21 +53,21 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.byType(FloatingActionButton));
+    await tester.tap(find.byIcon(Icons.add_rounded));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextFormField).first, 'Thomas');
     await tester.enterText(find.byType(TextFormField).last, 'Leroy');
 
-    await tester.tap(find.text('Enregistrer'));
+    await tester.tap(find.text('Valider'));
     await tester.pumpAndSettle();
 
     expect(birthdayNotifierInstance.createdInputs, hasLength(1));
     expect(birthdayNotifierInstance.createdInputs.single.name, 'Thomas');
     expect(birthdayNotifierInstance.createdInputs.single.surname, 'Leroy');
     expect(
-      birthdayNotifierInstance.createdInputs.single.category,
-      BirthdayCategory.friend,
+      birthdayNotifierInstance.createdInputs.single.categories,
+      contains(BirthdayCategory.friend),
     );
     expect(find.text('Nouvel anniversaire'), findsNothing);
   });

@@ -1,5 +1,6 @@
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/search_bar.dart';
+import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
@@ -36,6 +37,8 @@ class HomePage extends ConsumerWidget {
                 },
                 onAddPressed: () => BirthdayFormSheet.show(context),
               ),
+              const SizedBox(height: 12),
+              const _CategoryFilterBar(),
               const SizedBox(height: 20),
               Expanded(
                 child: _HomeContent(
@@ -76,5 +79,64 @@ class _HomeContent extends StatelessWidget {
     }
 
     return ContactSections(birthdays: birthdays);
+  }
+}
+
+class _CategoryFilterBar extends ConsumerWidget {
+  const _CategoryFilterBar();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedCategories = ref.watch(birthdayCategoryFilterProvider);
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children:
+            BirthdayCategory.values.map((cat) {
+              final isSelected = selectedCategories.contains(cat);
+              final colorScheme = Theme.of(context).colorScheme;
+
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text(
+                    cat.label(context),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  avatar: Icon(
+                    cat.icon,
+                    size: 16,
+                    color:
+                        isSelected
+                            ? colorScheme.onPrimary
+                            : colorScheme.primary,
+                  ),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    final current = ref.read(
+                      birthdayCategoryFilterProvider.notifier,
+                    ).state;
+                    if (selected) {
+                      ref.read(birthdayCategoryFilterProvider.notifier).state =
+                          [...current, cat];
+                    } else {
+                      ref.read(birthdayCategoryFilterProvider.notifier).state =
+                          current.where((c) => c != cat).toList();
+                    }
+                  },
+                  showCheckmark: false,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
+            }).toList(),
+      ),
+    );
   }
 }

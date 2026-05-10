@@ -109,6 +109,45 @@ class ContactTile extends ConsumerWidget {
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w600),
                       ),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children:
+                            birthday.categories.map((cat) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primaryContainer
+                                      .withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      cat.icon,
+                                      size: 10,
+                                      color: colorScheme.onPrimaryContainer,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      cat.label(context),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onPrimaryContainer,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                      ),
+                      const SizedBox(height: 4),
                       Text(
                         "${birthday.formattedDate} • ${birthday.age} ${context.l10n.yearsOld}",
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(

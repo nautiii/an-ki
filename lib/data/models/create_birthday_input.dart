@@ -8,7 +8,7 @@ class CreateBirthdayInput {
     required this.name,
     required this.surname,
     required this.date,
-    required this.category,
+    required this.categories,
     this.pictureFile,
   });
 
@@ -16,7 +16,7 @@ class CreateBirthdayInput {
   final String name;
   final String surname;
   final DateTime date;
-  final BirthdayCategory category;
+  final List<BirthdayCategory> categories;
   final XFile? pictureFile;
 
   Map<String, dynamic> toJson() {
@@ -25,7 +25,7 @@ class CreateBirthdayInput {
       'name': name.trim(),
       'surname': surname.trim(),
       'date': Timestamp.fromDate(date),
-      'category': category.name,
+      'categories': categories.map((c) => c.name).toList(),
     };
   }
 }

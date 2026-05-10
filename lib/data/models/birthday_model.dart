@@ -9,7 +9,7 @@ class BirthdayModel {
   final String name;
   final String surname;
   final DateTime date;
-  final BirthdayCategory category;
+  final List<BirthdayCategory> categories;
   final String? picture;
 
   const BirthdayModel({
@@ -18,7 +18,7 @@ class BirthdayModel {
     required this.name,
     required this.surname,
     required this.date,
-    required this.category,
+    required this.categories,
     this.picture,
   });
 
@@ -26,6 +26,7 @@ class BirthdayModel {
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
   ) {
     final Map<String, dynamic> data = doc.data();
+    final categoriesData = data['categories'] as List<dynamic>? ?? [];
 
     return BirthdayModel(
       id: doc.id,
@@ -33,7 +34,9 @@ class BirthdayModel {
       name: data['name'],
       surname: data['surname'],
       date: (data['date'] as Timestamp).toDate(),
-      category: (data['category'] as String).toBirthdayCategory(),
+      categories: categoriesData
+          .map((c) => (c as String).toBirthdayCategory())
+          .toList(),
       picture: data['picture'] as String?,
     );
   }
@@ -44,7 +47,7 @@ class BirthdayModel {
       'name': name,
       'surname': surname,
       'date': Timestamp.fromDate(date),
-      'category': category.name,
+      'categories': categories.map((c) => c.name).toList(),
       if (picture != null) 'picture': picture,
     };
   }

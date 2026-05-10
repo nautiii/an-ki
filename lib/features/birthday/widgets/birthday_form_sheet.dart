@@ -39,7 +39,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _surnameController;
 
-  BirthdayCategory _selectedCategory = BirthdayCategory.friend;
+  List<BirthdayCategory> _selectedCategories = [BirthdayCategory.friend];
   DateTime _selectedDate = DateTime.now().subtract(
     const Duration(days: 365 * 25),
   );
@@ -55,7 +55,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
 
     if (widget.birthdayToEdit != null) {
       _selectedDate = widget.birthdayToEdit!.date;
-      _selectedCategory = widget.birthdayToEdit!.category;
+      _selectedCategories = List.from(widget.birthdayToEdit!.categories);
     }
   }
 
@@ -88,7 +88,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
       name: _nameController.text.trim(),
       surname: _surnameController.text.trim(),
       date: _selectedDate,
-      category: _selectedCategory,
+      categories: _selectedCategories,
       pictureFile: _selectedImage,
     );
 
@@ -206,9 +206,18 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                     ),
                     const SizedBox(height: 12),
                     _CategorySelector(
-                      selected: _selectedCategory,
-                      onChanged:
-                          (val) => setState(() => _selectedCategory = val),
+                      selected: _selectedCategories,
+                      onChanged: (val) {
+                        setState(() {
+                          if (_selectedCategories.contains(val)) {
+                            if (_selectedCategories.length > 1) {
+                              _selectedCategories.remove(val);
+                            }
+                          } else {
+                            _selectedCategories.add(val);
+                          }
+                        });
+                      },
                     ),
                     const SizedBox(height: 24),
 
@@ -417,7 +426,7 @@ class _ModernTextField extends StatelessWidget {
 
 class _CategorySelector extends StatelessWidget {
   const _CategorySelector({required this.selected, required this.onChanged});
-  final BirthdayCategory selected;
+  final List<BirthdayCategory> selected;
   final ValueChanged<BirthdayCategory> onChanged;
 
   @override
@@ -427,7 +436,7 @@ class _CategorySelector extends StatelessWidget {
       child: Row(
         children:
             BirthdayCategory.values.map((cat) {
-              final isSelected = selected == cat;
+              final isSelected = selected.contains(cat);
               final colorScheme = Theme.of(context).colorScheme;
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
