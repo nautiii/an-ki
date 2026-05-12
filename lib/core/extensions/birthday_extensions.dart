@@ -46,12 +46,15 @@ const List<String> months = <String>[
 ];
 
 extension BirthdayUpcoming on BirthdayModel {
-  /// Prochain anniversaire cette année ou l'année suivante si déjà passé.
+  /// Prochain anniversaire (aujourd'hui ou futur).
   DateTime get nextOccurrence {
-    final DateTime today = DateTime.now();
-    DateTime candidate = DateTime(today.year, date.month, date.day);
-    if (!candidate.isAfter(DateTime(today.year, today.month, today.day))) {
-      candidate = DateTime(today.year + 1, date.month, date.day);
+    final DateTime now = DateTime.now();
+    final DateTime todayAtMidnight = DateTime(now.year, now.month, now.day);
+    DateTime candidate = DateTime(now.year, date.month, date.day);
+
+    // Si l'anniversaire est déjà passé strictement avant aujourd'hui cette année.
+    if (candidate.isBefore(todayAtMidnight)) {
+      candidate = DateTime(now.year + 1, date.month, date.day);
     }
     return candidate;
   }

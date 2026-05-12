@@ -43,7 +43,7 @@ class NotificationService {
 
     // 3. Paramètres d'init Android / iOS
     const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      '@mipmap/launcher_icon',
     );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
@@ -117,18 +117,22 @@ class NotificationService {
 
   Future<void> _scheduleOne(BirthdayModel birthday) async {
     try {
-      final DateTime next = birthday.nextOccurrence;
-      final tz.TZDateTime scheduledDate = _tzAt(next, _notificationHour);
+      DateTime next = birthday.nextOccurrence;
+      tz.TZDateTime scheduledDate = _tzAt(next, _notificationHour);
 
-      // Sécurité : ne pas planifier une date déjà passée
-      if (scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) return;
+      // Si l'heure de notification pour aujourd'hui est déjà passée,
+      // on planifie pour l'année prochaine.
+      if (scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
+        next = DateTime(next.year + 1, next.month, next.day);
+        scheduledDate = _tzAt(next, _notificationHour);
+      }
 
       final int ageAtBirthday = next.year - birthday.date.year;
 
       await _plugin.zonedSchedule(
         id: _notificationId(birthday.id),
         title: '🎂 ${birthday.name} ${birthday.surname}',
-        body: '${birthday.name} fête ses $ageAtBirthday ans aujourd\'hui !',
+        body: 'C\'est l\'anniversaire de ${birthday.name} (${ageAtBirthday} ans) !',
         scheduledDate: scheduledDate,
         notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
@@ -137,7 +141,7 @@ class NotificationService {
             channelDescription: _channelDescription,
             importance: Importance.high,
             priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
+            icon: '@mipmap/launcher_icon',
           ),
           iOS: const DarwinNotificationDetails(
             presentAlert: true,
