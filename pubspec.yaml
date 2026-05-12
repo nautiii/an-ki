@@ -35,10 +35,10 @@ dependencies:
   cupertino_icons: ^1.0.9
   riverpod: ^3.2.1
   flutter_riverpod: ^3.3.1
-  firebase_core: ^4.7.0
-  cloud_firestore: ^6.3.0
-  firebase_storage: ^13.3.0
-  firebase_auth: ^6.4.0
+  firebase_core: ^4.8.0
+  cloud_firestore: ^6.4.0
+  firebase_storage: ^13.4.0
+  firebase_auth: ^6.5.0
   google_sign_in: ^7.2.0
   image_picker: ^1.2.2
   flutter_local_notifications: ^21.0.0
@@ -117,14 +117,22 @@ flutter_launcher_icons:
   web:
     generate: true
     image_path: "lib/assets/icon.png"
-    background_color: "#073165ff"
-    theme_color: "#073165ff"
+    background_color: "#121318"
+    theme_color: "#121318"
 
 flutter_native_splash:
   # Docs: https://pub.dev/packages/flutter_native_splash
   # Run: dart run flutter_native_splash:create
-  color: "#073165"
-  image: "lib/assets/splash.png"
+  color: "#121318"
+  # color_dark: "#01295B"
   android: true
   ios: true
   web: false
+  # Configuration spécifique pour Android 12+
+  android_12:
+    color: "#121318"
+    image: "lib/assets/icon.png"
+    branding: "lib/assets/brand.png"
+    # branding_dark: "lib/assets/mythologie.png"
+    # image: "lib/assets/b.png"
+    # image_dark: "lib/assets/splash.png"
