@@ -125,6 +125,8 @@ flutter_native_splash:
   # Run: dart run flutter_native_splash:create
   color: "#121318"
   # color_dark: "#01295B"
+  image: "lib/assets/icon.png"
+  branding: "lib/assets/brand.png"
   android: true
   ios: true
   web: false
