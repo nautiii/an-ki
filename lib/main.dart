@@ -1,4 +1,5 @@
 import 'package:an_ki/core/firebase_options.dart';
+import 'package:an_ki/core/providers/locale_provider.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/core/theme/providers/theme_provider.dart';
 import 'package:an_ki/core/theme/themes.dart';
@@ -37,13 +38,14 @@ class App extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
     final authState = ref.watch(authProvider);
+    final locale = ref.watch(localeProvider);
 
     return MaterialApp(
       title: 'AnKi',
       themeMode: themeMode,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      locale: const Locale('fr'),
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home:

@@ -1,4 +1,5 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/providers/locale_provider.dart';
 import 'package:an_ki/core/theme/providers/theme_provider.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
@@ -91,7 +92,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Listen to auth state to redirect when signed out
     ref.listen(authProvider, (previous, next) {
       if (!next.isAuthenticated && previous?.isAuthenticated == true) {
         if (context.mounted) {
@@ -102,23 +102,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final currentLocale = ref.watch(localeProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settings)),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          // Theme changer
-          SwitchListTile(
-            title: Text(context.l10n.theme),
-            secondary: Icon(
-              isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-            ),
-            value: isDark,
-            onChanged: (_) => ref.read(themeProvider.notifier).toggle(context),
-          ),
-          const Divider(),
-          // Pseudo editor
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: TextField(
@@ -144,7 +134,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Text(context.l10n.updatePseudo),
           ),
           const Divider(),
-          // Logout button
+          ListTile(
+            title: Text(context.l10n.language),
+            leading: const Icon(Icons.language_rounded),
+            trailing: DropdownButton<String>(
+              value: currentLocale.languageCode,
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  ref.read(localeProvider.notifier).setLocale(Locale(newValue));
+                }
+              },
+              items: const [
+                DropdownMenuItem(value: 'fr', child: Text('Français')),
+                DropdownMenuItem(value: 'en', child: Text('English')),
+              ],
+              underline: const SizedBox(),
+            ),
+          ),
+          const Divider(),
+          SwitchListTile(
+            title: Text(context.l10n.theme),
+            secondary: Icon(
+              isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+            ),
+            value: isDark,
+            onChanged: (_) => ref.read(themeProvider.notifier).toggle(context),
+          ),
+          const Divider(),
           ListTile(
             leading: const Icon(Icons.logout_rounded),
             title: Text(context.l10n.signOut),

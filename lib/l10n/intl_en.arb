@@ -74,6 +74,7 @@
   "haveAccount": "Already have an account? ",
   "dontHaveAccount": "No account yet? ",
   "settings": "Settings",
+  "language": "Language",
   "theme": "Theme",
   "pseudo": "Nickname",
   "pseudoUpdated": "Nickname updated successfully!",

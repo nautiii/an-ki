@@ -494,6 +494,12 @@ abstract class AppLocalizations {
   /// **'Paramètres'**
   String get settings;
 
+  /// No description provided for @language.
+  ///
+  /// In fr, this message translates to:
+  /// **'Langue'**
+  String get language;
+
   /// No description provided for @theme.
   ///
   /// In fr, this message translates to:
