@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,35 +17,50 @@ class NextBirthdayCard extends ConsumerWidget {
     final isLoading = ref.watch(birthdayProvider.select((s) => s.isLoading));
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          colors: [colorScheme.primary, colorScheme.tertiary],
+    ImageProvider? backgroundImage;
+    if (nextBirthday?.picture != null) {
+      try {
+        backgroundImage = MemoryImage(base64Decode(nextBirthday!.picture!));
+      } catch (_) {}
+    }
+
+    return GestureDetector(
+      onTap: nextBirthday != null
+          ? () => BirthdayFormSheet.show(context, birthdayToEdit: nextBirthday)
+          : null,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [colorScheme.primary, colorScheme.tertiary],
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.2),
-            child: Icon(
-              Icons.cake_outlined,
-              color: colorScheme.onPrimary,
-              size: 22,
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.2),
+              backgroundImage: backgroundImage,
+              child: backgroundImage == null
+                  ? Icon(
+                      Icons.cake_outlined,
+                      color: colorScheme.onPrimary,
+                      size: 22,
+                    )
+                  : null,
             ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: _BirthdayContent(
-              birthday: nextBirthday,
-              isLoading: isLoading,
+            const SizedBox(width: 14),
+            Expanded(
+              child: _BirthdayContent(
+                birthday: nextBirthday,
+                isLoading: isLoading,
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Icon(Icons.cake, color: colorScheme.onPrimary),
-        ],
+            const SizedBox(width: 12),
+            Icon(Icons.cake, color: colorScheme.onPrimary),
+          ],
+        ),
       ),
     );
   }

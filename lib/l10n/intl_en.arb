@@ -21,7 +21,7 @@
   "other": "Other",
   "save": "Save",
   "cancel": "Cancel",
-  "validate": "Validate",
+  "add": "Add",
   "newBirthday": "New birthday",
   "editBirthday": "Edit",
   "noBirthdaysFound": "No birthdays found.",
@@ -96,6 +96,9 @@
     }
   },
   "delete": "Delete",
+  "newCategory": "New category",
+  "categoryName": "Category's name",
+  "chooseIcon": "Choose an icon",
   "bookScanner": "Scan a book",
   "bookScannerTitle": "Book Scanner",
   "bookTitle": "Title",

@@ -1,7 +1,4 @@
-import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-enum BirthdayCategory { family, friend, colleague, other }
 
 class BirthdayModel {
   final String id;
@@ -9,7 +6,7 @@ class BirthdayModel {
   final String name;
   final String surname;
   final DateTime date;
-  final List<BirthdayCategory> categories;
+  final List<String> categories;
   final String? picture;
 
   const BirthdayModel({
@@ -34,9 +31,7 @@ class BirthdayModel {
       name: data['name'],
       surname: data['surname'],
       date: (data['date'] as Timestamp).toDate(),
-      categories: categoriesData
-          .map((c) => (c as String).toBirthdayCategory())
-          .toList(),
+      categories: categoriesData.map((c) => c as String).toList(),
       picture: data['picture'] as String?,
     );
   }
@@ -47,7 +42,7 @@ class BirthdayModel {
       'name': name,
       'surname': surname,
       'date': Timestamp.fromDate(date),
-      'categories': categories.map((c) => c.name).toList(),
+      'categories': categories,
       if (picture != null) 'picture': picture,
     };
   }

@@ -4,9 +4,11 @@ import 'dart:io';
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
+import 'package:an_ki/data/models/category_model.dart';
 import 'package:an_ki/data/models/create_birthday_input.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,7 +41,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _surnameController;
 
-  List<BirthdayCategory> _selectedCategories = [BirthdayCategory.friend];
+  List<String> _selectedCategories = [];
   DateTime _selectedDate = DateTime.now().subtract(
     const Duration(days: 365 * 25),
   );
@@ -115,6 +117,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isCreating = ref.watch(birthdayProvider.select((s) => s.isCreating));
+    final categories = ref.watch(categoriesProvider);
 
     return Container(
       decoration: BoxDecoration(
@@ -205,19 +208,23 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _CategorySelector(
-                      selected: _selectedCategories,
-                      onChanged: (val) {
-                        setState(() {
-                          if (_selectedCategories.contains(val)) {
-                            if (_selectedCategories.length > 1) {
-                              _selectedCategories.remove(val);
-                            }
-                          } else {
-                            _selectedCategories.add(val);
-                          }
-                        });
-                      },
+                    categories.when(
+                      data:
+                          (categories) => _CategorySelector(
+                            categories: categories,
+                            selectedIds: _selectedCategories,
+                            onChanged: (id) {
+                              setState(() {
+                                if (_selectedCategories.contains(id)) {
+                                  _selectedCategories.remove(id);
+                                } else {
+                                  _selectedCategories.add(id);
+                                }
+                              });
+                            },
+                          ),
+                      loading: () => const LinearProgressIndicator(),
+                      error: (e, s) => const SizedBox(),
                     ),
                     const SizedBox(height: 24),
 
@@ -254,7 +261,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                       label: Text(
                         widget.birthdayToEdit != null
                             ? context.l10n.save
-                            : context.l10n.validate,
+                            : context.l10n.add,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -298,7 +305,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text(context.l10n.validate),
+                      child: Text(context.l10n.add),
                     ),
                   ],
                 ),
@@ -325,6 +332,7 @@ class _ImagePickerButton extends StatelessWidget {
     this.initialImageUrl,
     required this.onTap,
   });
+
   final XFile? imageFile;
   final String? initialImageUrl;
   final VoidCallback onTap;
@@ -387,6 +395,7 @@ class _ModernTextField extends StatelessWidget {
     required this.icon,
     this.validator,
   });
+
   final TextEditingController controller;
   final String label;
   final IconData icon;
@@ -425,9 +434,15 @@ class _ModernTextField extends StatelessWidget {
 }
 
 class _CategorySelector extends StatelessWidget {
-  const _CategorySelector({required this.selected, required this.onChanged});
-  final List<BirthdayCategory> selected;
-  final ValueChanged<BirthdayCategory> onChanged;
+  const _CategorySelector({
+    required this.categories,
+    required this.selectedIds,
+    required this.onChanged,
+  });
+
+  final List<BirthdayCategory> categories;
+  final List<String> selectedIds;
+  final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -435,15 +450,15 @@ class _CategorySelector extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         children:
-            BirthdayCategory.values.map((cat) {
-              final isSelected = selected.contains(cat);
+            categories.map((cat) {
+              final isSelected = selectedIds.contains(cat.id);
               final colorScheme = Theme.of(context).colorScheme;
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: ChoiceChip(
-                  label: Text(cat.label(context)),
+                  label: Text(cat.getLocalizedName(context)),
                   avatar: Icon(
-                    cat.icon,
+                    cat.iconData,
                     size: 18,
                     color:
                         isSelected
@@ -451,7 +466,7 @@ class _CategorySelector extends StatelessWidget {
                             : colorScheme.primary,
                   ),
                   selected: isSelected,
-                  onSelected: (_) => onChanged(cat),
+                  onSelected: (_) => onChanged(cat.id),
                   showCheckmark: false,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -470,6 +485,7 @@ class _DatePickerField extends StatelessWidget {
     required this.date,
     required this.onTap,
   });
+
   final String label;
   final DateTime date;
   final VoidCallback onTap;

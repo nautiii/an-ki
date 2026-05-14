@@ -21,7 +21,7 @@
   "other": "Autre",
   "save": "Enregistrer",
   "cancel": "Annuler",
-  "validate": "Valider",
+  "add": "Ajouter",
   "newBirthday": "Nouvel anniversaire",
   "editBirthday": "Modifier",
   "noBirthdaysFound": "Aucun anniversaire trouvé.",
@@ -96,6 +96,9 @@
     }
   },
   "delete": "Supprimer",
+  "newCategory": "Nouvelle catégorie",
+  "categoryName": "Nom de la catégorie",
+  "chooseIcon": "Choisir une icône",
   "bookScanner": "Scanner un livre",
   "bookScannerTitle": "Scanner de livres",
   "bookTitle": "Titre",

@@ -60,7 +60,7 @@ class BookInfoSheet extends StatelessWidget {
                 Navigator.pop(context);
                 onClosed();
               },
-              child: Text(context.l10n.validate),
+              child: Text(context.l10n.add),
             ),
           ),
         ],

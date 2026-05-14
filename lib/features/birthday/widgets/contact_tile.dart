@@ -4,6 +4,7 @@ import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,7 @@ class ContactTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final categories = ref.watch(categoriesProvider);
 
     ImageProvider? backgroundImage;
 
@@ -110,42 +112,55 @@ class ContactTile extends ConsumerWidget {
                             ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 4),
-                      Wrap(
-                        spacing: 4,
-                        runSpacing: 4,
-                        children:
-                            birthday.categories.map((cat) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.primaryContainer
-                                      .withValues(alpha: 0.5),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      cat.icon,
-                                      size: 10,
-                                      color: colorScheme.onPrimaryContainer,
+                      categories.when(
+                        data: (allCategories) {
+                          final categories =
+                              allCategories
+                                  .where(
+                                    (c) => birthday.categories.contains(c.id),
+                                  )
+                                  .toList();
+                          return Wrap(
+                            spacing: 4,
+                            runSpacing: 4,
+                            children:
+                                categories.map((cat) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
                                     ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      cat.label(context),
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.onPrimaryContainer,
-                                      ),
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.primaryContainer
+                                          .withValues(alpha: 0.5),
+                                      borderRadius: BorderRadius.circular(6),
                                     ),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          cat.iconData,
+                                          size: 10,
+                                          color: colorScheme.onPrimaryContainer,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          cat.getLocalizedName(context),
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color:
+                                                colorScheme.onPrimaryContainer,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                          );
+                        },
+                        loading: () => const SizedBox(),
+                        error: (e, s) => const SizedBox(),
                       ),
                       const SizedBox(height: 4),
                       Text(

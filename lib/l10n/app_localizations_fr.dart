@@ -75,7 +75,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cancel => 'Annuler';
 
   @override
-  String get validate => 'Valider';
+  String get add => 'Ajouter';
 
   @override
   String get newBirthday => 'Nouvel anniversaire';
@@ -237,6 +237,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get delete => 'Supprimer';
+
+  @override
+  String get newCategory => 'Nouvelle catégorie';
+
+  @override
+  String get categoryName => 'Nom de la catégorie';
+
+  @override
+  String get chooseIcon => 'Choisir une icône';
 
   @override
   String get bookScanner => 'Scanner un livre';

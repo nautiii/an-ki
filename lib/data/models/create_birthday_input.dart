@@ -1,4 +1,3 @@
-import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -16,7 +15,7 @@ class CreateBirthdayInput {
   final String name;
   final String surname;
   final DateTime date;
-  final List<BirthdayCategory> categories;
+  final List<String> categories;
   final XFile? pictureFile;
 
   Map<String, dynamic> toJson() {
@@ -25,7 +24,7 @@ class CreateBirthdayInput {
       'name': name.trim(),
       'surname': surname.trim(),
       'date': Timestamp.fromDate(date),
-      'categories': categories.map((c) => c.name).toList(),
+      'categories': categories,
     };
   }
 }

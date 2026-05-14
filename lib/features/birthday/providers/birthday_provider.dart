@@ -6,7 +6,6 @@ import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/data/models/create_birthday_input.dart';
 import 'package:an_ki/data/repositories/birthday_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 
 class BirthdayState {
   final List<BirthdayModel> birthdays;
@@ -125,13 +124,28 @@ final nextBirthdayProvider = Provider<BirthdayModel?>((ref) {
   return birthdays.nextBirthday;
 });
 
-/// Provider pour gérer la chaîne de recherche
-final birthdaySearchProvider = StateProvider<String>((ref) => '');
+/// Notifier pour gérer la chaîne de recherche
+class BirthdaySearchNotifier extends Notifier<String> {
+  @override
+  String build() => '';
+  void update(String value) => state = value;
+}
 
-/// Provider pour gérer les catégories filtrées
-final birthdayCategoryFilterProvider = StateProvider<List<BirthdayCategory>>(
-  (ref) => [],
+final birthdaySearchProvider = NotifierProvider<BirthdaySearchNotifier, String>(
+  BirthdaySearchNotifier.new,
 );
+
+/// Notifier pour gérer les catégories filtrées (par ID)
+class BirthdayCategoryFilterNotifier extends Notifier<List<String>> {
+  @override
+  List<String> build() => [];
+  void update(List<String> value) => state = value;
+}
+
+final birthdayCategoryFilterProvider =
+    NotifierProvider<BirthdayCategoryFilterNotifier, List<String>>(
+      BirthdayCategoryFilterNotifier.new,
+    );
 
 /// Provider pour filtrer les anniversaires (recherche + exclusion du prochain + catégories)
 final filteredBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
@@ -148,7 +162,7 @@ final filteredBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
     // Filtrer par catégories (doit posséder TOUTES les catégories sélectionnées)
     if (categoryFilters.isNotEmpty) {
       final hasAllCategories = categoryFilters.every(
-        (cat) => birthday.categories.contains(cat),
+        (catId) => birthday.categories.contains(catId),
       );
       if (!hasAllCategories) return false;
     }

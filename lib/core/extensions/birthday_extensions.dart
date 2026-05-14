@@ -1,34 +1,7 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
+import 'package:an_ki/data/models/category_model.dart';
 import 'package:flutter/material.dart';
-
-extension BirthdayCategoryX on BirthdayCategory {
-  String label(BuildContext context) {
-    switch (this) {
-      case BirthdayCategory.family:
-        return context.l10n.family;
-      case BirthdayCategory.friend:
-        return context.l10n.friend;
-      case BirthdayCategory.colleague:
-        return context.l10n.colleague;
-      case BirthdayCategory.other:
-        return context.l10n.other;
-    }
-  }
-
-  IconData get icon {
-    switch (this) {
-      case BirthdayCategory.family:
-        return Icons.group_outlined;
-      case BirthdayCategory.friend:
-        return Icons.people_outline_rounded;
-      case BirthdayCategory.colleague:
-        return Icons.work_outline_rounded;
-      case BirthdayCategory.other:
-        return Icons.category_outlined;
-    }
-  }
-}
 
 const List<String> months = <String>[
   'Janvier',
@@ -44,6 +17,17 @@ const List<String> months = <String>[
   'Novembre',
   'Décembre',
 ];
+
+extension BirthdayCategoryX on BirthdayCategory {
+  String getLocalizedName(BuildContext context) {
+    final n = name.toLowerCase();
+    if (n == 'family') return context.l10n.family;
+    if (n == 'friend') return context.l10n.friend;
+    if (n == 'colleague') return context.l10n.colleague;
+    if (n == 'other') return context.l10n.other;
+    return name;
+  }
+}
 
 extension BirthdayUpcoming on BirthdayModel {
   /// Prochain anniversaire (aujourd'hui ou futur).
@@ -89,14 +73,5 @@ extension BirthdaySection on List<BirthdayModel> {
           (BirthdayModel a, BirthdayModel b) =>
               a.daysUntilNext <= b.daysUntilNext ? a : b,
         );
-  }
-}
-
-extension BirthdayCategoryParser on String {
-  BirthdayCategory toBirthdayCategory() {
-    return BirthdayCategory.values.firstWhere(
-      (BirthdayCategory category) => category.name == this,
-      orElse: () => BirthdayCategory.other,
-    );
   }
 }

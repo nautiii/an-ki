@@ -230,11 +230,11 @@ abstract class AppLocalizations {
   /// **'Annuler'**
   String get cancel;
 
-  /// No description provided for @validate.
+  /// No description provided for @add.
   ///
   /// In fr, this message translates to:
-  /// **'Valider'**
-  String get validate;
+  /// **'Ajouter'**
+  String get add;
 
   /// No description provided for @newBirthday.
   ///
@@ -541,6 +541,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Supprimer'**
   String get delete;
+
+  /// No description provided for @newCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle catégorie'**
+  String get newCategory;
+
+  /// No description provided for @categoryName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom de la catégorie'**
+  String get categoryName;
+
+  /// No description provided for @chooseIcon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir une icône'**
+  String get chooseIcon;
 
   /// No description provided for @bookScanner.
   ///
