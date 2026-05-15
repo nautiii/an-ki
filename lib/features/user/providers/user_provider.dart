@@ -3,6 +3,9 @@ import 'package:an_ki/data/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../data/repositories/birthday_repository.dart';
+import '../../birthday/providers/birthday_provider.dart';
+
 class UserState {
   final UserModel? user;
   final bool isLoading;
@@ -50,6 +53,23 @@ class UserNotifier extends Notifier<UserState> {
     final updatedUser = state.user!.copyWith(pseudo: pseudo);
     await _repository.updateUser(updatedUser);
     state = state.copyWith(user: updatedUser);
+  }
+
+  Future<void> deleteAccount(String uid) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      // 1. Supprimer tous les anniversaires
+      await ref.read(birthdayRepositoryProvider).deleteAllUserBirthdays(uid);
+
+      // 2. Supprimer l'utilisateur de Firestore
+      await _repository.deleteUser(uid);
+
+      // 3. Nettoyer les états locaux
+      clear();
+      ref.read(birthdayProvider.notifier).clear();
+    } finally {
+      state = state.copyWith(isLoading: false);
+    }
   }
 
   void clear() {

@@ -90,6 +90,57 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  Future<void> _handleDeleteAccount(BuildContext context) async {
+    final authState = ref.read(authProvider);
+    final uid = authState.user?.uid;
+
+    if (uid == null) return;
+
+    await showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: Text(dialogContext.l10n.deleteAccountTitle),
+            content: Text(dialogContext.l10n.deleteAccountConfirmation),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(dialogContext.l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final authNotifier = ref.read(authProvider.notifier);
+                  final userNotifier = ref.read(userProvider.notifier);
+
+                  Navigator.of(dialogContext).pop();
+
+                  try {
+                    // 1. Supprimer les données Firestore
+                    await userNotifier.deleteAccount(uid);
+                    // 2. Supprimer le compte Auth
+                    await authNotifier.deleteAccount();
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Erreur lors de la suppression du compte: $e",
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: Text(
+                  dialogContext.l10n.delete,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen(authProvider, (previous, next) {
@@ -169,6 +220,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               color: colorScheme.onSurfaceVariant,
             ),
             onTap: () => _handleSignOut(context),
+          ),
+          const Divider(),
+          ListTile(
+            leading: Icon(Icons.delete_forever_rounded, color: colorScheme.error),
+            title: Text(
+              context.l10n.deleteAccount,
+              style: TextStyle(color: colorScheme.error),
+            ),
+            trailing: Icon(
+              Icons.chevron_right_rounded,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            onTap: () => _handleDeleteAccount(context),
           ),
         ],
       ),

@@ -268,4 +268,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noInfoFound => 'No information found';
+
+  @override
+  String get deleteAccount => 'Delete my account';
+
+  @override
+  String get deleteAccountTitle => 'Delete Account';
+
+  @override
+  String get deleteAccountConfirmation =>
+      'Are you sure you want to delete your account? This action is irreversible and will delete all your data.';
 }

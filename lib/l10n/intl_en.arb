@@ -106,6 +106,9 @@
   "bookPrice": "Price",
   "bookNotFound": "Book not found",
   "scanning": "Scanning...",
-  "noInfoFound": "No information found"
+  "noInfoFound": "No information found",
+  "deleteAccount": "Delete my account",
+  "deleteAccountTitle": "Delete Account",
+  "deleteAccountConfirmation": "Are you sure you want to delete your account? This action is irreversible and will delete all your data."
 }
 

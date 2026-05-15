@@ -270,4 +270,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noInfoFound => 'Aucune information trouvée';
+
+  @override
+  String get deleteAccount => 'Supprimer mon compte';
+
+  @override
+  String get deleteAccountTitle => 'Suppression du compte';
+
+  @override
+  String get deleteAccountConfirmation =>
+      'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.';
 }

@@ -69,6 +69,17 @@ class BirthdayRepository {
   Future<void> deleteBirthday(String birthdayId) async {
     await _birthdays.doc(birthdayId).delete();
   }
+
+  Future<void> deleteAllUserBirthdays(String uid) async {
+    final QuerySnapshot<Map<String, dynamic>> snapshot =
+        await _birthdays.where('uid', isEqualTo: uid).get();
+
+    final WriteBatch batch = _firestore.batch();
+    for (final QueryDocumentSnapshot<Map<String, dynamic>> doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
+  }
 }
 
 final birthdayRepositoryProvider = Provider<BirthdayRepository>(

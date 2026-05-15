@@ -28,6 +28,10 @@ class UserRepository {
   Future<void> updateUser(UserModel user) async {
     await _users.doc(user.id).update(user.toJson());
   }
+
+  Future<void> deleteUser(String uid) async {
+    await _users.doc(uid).delete();
+  }
 }
 
 final userRepositoryProvider = Provider<UserRepository>(

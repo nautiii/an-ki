@@ -114,6 +114,30 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  Future<void> deleteAccount() async {
+    try {
+      state = state.copyWith(isLoading: true);
+      final user = _firebaseAuth.currentUser;
+      if (user != null) {
+        await user.delete();
+      }
+      await _googleSignIn.signOut();
+      state = AuthState();
+    } on FirebaseAuthException catch (e) {
+      state = state.copyWith(
+        errorMessage: _getErrorMessage(e.code),
+        isLoading: false,
+      );
+      rethrow;
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: 'Erreur lors de la suppression du compte',
+        isLoading: false,
+      );
+      rethrow;
+    }
+  }
+
   Future<bool> signInAnonymously() async {
     try {
       state = state.copyWith(isLoading: true, errorMessage: null);

@@ -607,6 +607,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Aucune information trouvée'**
   String get noInfoFound;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer mon compte'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression du compte'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountConfirmation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.'**
+  String get deleteAccountConfirmation;
 }
 
 class _AppLocalizationsDelegate
