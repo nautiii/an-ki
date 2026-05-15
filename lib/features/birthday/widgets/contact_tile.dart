@@ -155,13 +155,17 @@ class ContactTile extends ConsumerWidget {
                           const SizedBox(height: 4),
                           categoriesState.when(
                             data: (allCategories) {
-                              final activeCategories =
-                                  allCategories
-                                      .where(
-                                        (c) =>
-                                            birthday.categories.contains(c.id),
-                                      )
-                                      .toList();
+                              final activeCategories = allCategories
+                                  .where(
+                                    (c) => birthday.categories.contains(c.id),
+                                  )
+                                  .toList()
+                                ..sort((a, b) => a
+                                    .getLocalizedName(context)
+                                    .toLowerCase()
+                                    .compareTo(b
+                                        .getLocalizedName(context)
+                                        .toLowerCase()));
                               if (activeCategories.isEmpty) {
                                 return const SizedBox();
                               }

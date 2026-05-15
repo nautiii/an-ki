@@ -112,6 +112,41 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     }
   }
 
+  Future<void> _delete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(context.l10n.deleteBirthdayTitle),
+            content: Text(
+              context.l10n.deleteBirthdayConfirmation(
+                "${widget.birthdayToEdit!.name} ${widget.birthdayToEdit!.surname}",
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(context.l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+                child: Text(context.l10n.delete),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true && mounted) {
+      await ref
+          .read(birthdayProvider.notifier)
+          .deleteBirthday(widget.birthdayToEdit!.id);
+      if (mounted) Navigator.of(context).pop(true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -235,38 +270,60 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                     ),
 
                     const SizedBox(height: 40),
-                    FilledButton.icon(
-                      onPressed: isCreating ? null : _save,
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      icon:
-                          isCreating
-                              ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                              : Icon(
-                                widget.birthdayToEdit != null
-                                    ? Icons.check_rounded
-                                    : Icons.add_rounded,
+                    Row(
+                      children: [
+                        if (widget.birthdayToEdit != null) ...[
+                          IconButton.filledTonal(
+                            onPressed: isCreating ? null : _delete,
+                            style: IconButton.styleFrom(
+                              foregroundColor: colorScheme.error,
+                              backgroundColor: colorScheme.errorContainer
+                                  .withValues(alpha: 0.3),
+                              padding: const EdgeInsets.all(16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                      label: Text(
-                        widget.birthdayToEdit != null
-                            ? context.l10n.save
-                            : context.l10n.add,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                            ),
+                            icon: const Icon(Icons.delete_outline_rounded),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: isCreating ? null : _save,
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            icon:
+                                isCreating
+                                    ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                    : Icon(
+                                      widget.birthdayToEdit != null
+                                          ? Icons.check_rounded
+                                          : Icons.add_rounded,
+                                    ),
+                            label: Text(
+                              widget.birthdayToEdit != null
+                                  ? context.l10n.save
+                                  : context.l10n.add,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                   ],

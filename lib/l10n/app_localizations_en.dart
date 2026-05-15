@@ -278,4 +278,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deleteAccountConfirmation =>
       'Are you sure you want to delete your account? This action is irreversible and will delete all your data.';
+
+  @override
+  String get importContacts => 'Import contacts';
+
+  @override
+  String contactsImported(int count) {
+    return '$count contacts imported successfully!';
+  }
+
+  @override
+  String get noContactsWithBirthday => 'No contacts with a birthday found.';
+
+  @override
+  String get permissionDenied => 'Permission denied.';
 }

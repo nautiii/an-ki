@@ -3,6 +3,7 @@ import 'package:an_ki/core/common/search_bar.dart';
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
+import 'package:an_ki/data/models/category_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
@@ -93,12 +94,20 @@ class _CategoryFilterBar extends ConsumerWidget {
     final categories = ref.watch(categoriesProvider);
 
     return categories.when(
-      data: (categories) {
+      data: (categoriesList) {
+        final sortedCategories = List<BirthdayCategory>.from(categoriesList)
+          ..sort(
+            (a, b) => a
+                .getLocalizedName(context)
+                .toLowerCase()
+                .compareTo(b.getLocalizedName(context).toLowerCase()),
+          );
+
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              ...categories.map((cat) {
+              ...sortedCategories.map((cat) {
                 final isSelected = selectedCategories.contains(cat.id);
                 final colorScheme = Theme.of(context).colorScheme;
 

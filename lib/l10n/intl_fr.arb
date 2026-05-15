@@ -109,6 +109,17 @@
   "noInfoFound": "Aucune information trouvée",
   "deleteAccount": "Supprimer mon compte",
   "deleteAccountTitle": "Suppression du compte",
-  "deleteAccountConfirmation": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données."
+  "deleteAccountConfirmation": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.",
+  "importContacts": "Importer les contacts",
+  "contactsImported": "{count} contacts importés avec succès !",
+  "@contactsImported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noContactsWithBirthday": "Aucun contact avec une date de naissance trouvé.",
+  "permissionDenied": "Permission refusée."
 }
 

@@ -3,7 +3,11 @@ import 'package:an_ki/data/repositories/category_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final categoriesProvider = StreamProvider<List<BirthdayCategory>>((ref) {
-  return ref.watch(categoryRepositoryProvider).watchCategories();
+  return ref.watch(categoryRepositoryProvider).watchCategories().map((categories) {
+    final sorted = List<BirthdayCategory>.from(categories);
+    sorted.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return sorted;
+  });
 });
 
 class CategoryNotifier extends Notifier<void> {

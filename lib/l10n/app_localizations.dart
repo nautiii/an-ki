@@ -625,6 +625,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.'**
   String get deleteAccountConfirmation;
+
+  /// No description provided for @importContacts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Importer les contacts'**
+  String get importContacts;
+
+  /// No description provided for @contactsImported.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} contacts importés avec succès !'**
+  String contactsImported(int count);
+
+  /// No description provided for @noContactsWithBirthday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun contact avec une date de naissance trouvé.'**
+  String get noContactsWithBirthday;
+
+  /// No description provided for @permissionDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Permission refusée.'**
+  String get permissionDenied;
 }
 
 class _AppLocalizationsDelegate

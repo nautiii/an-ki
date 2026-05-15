@@ -5,6 +5,7 @@ import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -186,6 +187,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const Divider(),
           ListTile(
+            leading: const Icon(Icons.contact_page_rounded),
+            title: Text(context.l10n.importContacts),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () async {
+              final uid = ref.read(authProvider).user?.uid;
+              if (uid == null) return;
+
+              HapticFeedback.lightImpact();
+
+              try {
+                final count = await ref
+                    .read(birthdayProvider.notifier)
+                    .importFromContacts(uid);
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        count > 0
+                            ? context.l10n.contactsImported(count)
+                            : context.l10n.noContactsWithBirthday,
+                      ),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(context.l10n.permissionDenied)),
+                  );
+                }
+              }
+            },
+          ),
+          const Divider(),
+          ListTile(
             title: Text(context.l10n.language),
             leading: const Icon(Icons.language_rounded),
             trailing: DropdownButton<String>(
@@ -223,7 +260,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const Divider(),
           ListTile(
-            leading: Icon(Icons.delete_forever_rounded, color: colorScheme.error),
+            leading: Icon(
+              Icons.delete_forever_rounded,
+              color: colorScheme.error,
+            ),
             title: Text(
               context.l10n.deleteAccount,
               style: TextStyle(color: colorScheme.error),

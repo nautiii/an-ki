@@ -109,6 +109,17 @@
   "noInfoFound": "No information found",
   "deleteAccount": "Delete my account",
   "deleteAccountTitle": "Delete Account",
-  "deleteAccountConfirmation": "Are you sure you want to delete your account? This action is irreversible and will delete all your data."
+  "deleteAccountConfirmation": "Are you sure you want to delete your account? This action is irreversible and will delete all your data.",
+  "importContacts": "Import contacts",
+  "contactsImported": "{count} contacts imported successfully!",
+  "@contactsImported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noContactsWithBirthday": "No contacts with a birthday found.",
+  "permissionDenied": "Permission denied."
 }
 
