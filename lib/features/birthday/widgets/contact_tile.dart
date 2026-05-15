@@ -101,7 +101,7 @@ class ContactTile extends ConsumerWidget {
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
+                  horizontal: 12,
                   vertical: 6,
                 ),
                 child: Row(
@@ -244,6 +244,7 @@ class ContactTile extends ConsumerWidget {
                             color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w900,
                             fontSize: 9,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ],

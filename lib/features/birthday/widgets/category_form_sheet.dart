@@ -110,7 +110,6 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                     const SizedBox(height: 32),
                     TextFormField(
                       controller: _controller,
-                      autofocus: true,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
