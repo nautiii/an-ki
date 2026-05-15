@@ -72,8 +72,6 @@ class _BirthdayContent extends StatelessWidget {
   final BirthdayModel? birthday;
   final bool isLoading;
 
-  String _formatDate(DateTime date) => '${date.day} ${months[date.month - 1]}';
-
   String _daysLabel(int days, BuildContext context) {
     if (days == 0) return context.l10n.today;
     if (days == 1) return context.l10n.tomorrow;
@@ -127,7 +125,7 @@ class _BirthdayContent extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           Text(
-            '${_daysLabel(days!, context)} • ${_formatDate(nextDate!)}',
+            '${_daysLabel(days!, context)} • ${birthday!.getFormattedDate(context, includeYear: false)}',
             style: textTheme.bodyMedium?.copyWith(
               color: colorScheme.onPrimary.withValues(alpha: 0.7),
             ),

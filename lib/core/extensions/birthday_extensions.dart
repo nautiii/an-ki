@@ -3,20 +3,6 @@ import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/data/models/category_model.dart';
 import 'package:flutter/material.dart';
 
-const List<String> months = <String>[
-  'Janvier',
-  'Février',
-  'Mars',
-  'Avril',
-  'Mai',
-  'Juin',
-  'Juillet',
-  'Août',
-  'Septembre',
-  'Octobre',
-  'Novembre',
-  'Décembre',
-];
 
 extension BirthdayCategoryX on BirthdayCategory {
   String getLocalizedName(BuildContext context) {
@@ -61,8 +47,24 @@ extension BirthdayUpcoming on BirthdayModel {
     return years;
   }
 
-  String get formattedDate =>
-      '${date.day} ${months[date.month - 1]} ${date.year}';
+  String getFormattedDate(BuildContext context, {bool includeYear = true}) {
+    final monthKeys = [
+      context.l10n.january,
+      context.l10n.february,
+      context.l10n.march,
+      context.l10n.april,
+      context.l10n.may,
+      context.l10n.june,
+      context.l10n.july,
+      context.l10n.august,
+      context.l10n.september,
+      context.l10n.october,
+      context.l10n.november,
+      context.l10n.december,
+    ];
+    final dateString = '${date.day} ${monthKeys[date.month - 1]}';
+    return includeYear ? '$dateString ${date.year}' : dateString;
+  }
 }
 
 extension BirthdaySection on List<BirthdayModel> {

@@ -18,7 +18,8 @@ class ContactTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final categories = ref.watch(categoriesProvider);
+    final textTheme = Theme.of(context).textTheme;
+    final categoriesState = ref.watch(categoriesProvider);
 
     ImageProvider? backgroundImage;
 
@@ -33,7 +34,7 @@ class ContactTile extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Dismissible(
           key: Key(birthday.id),
           direction: DismissDirection.startToEnd,
@@ -75,112 +76,181 @@ class ContactTile extends ConsumerWidget {
                   ),
                 ),
                 behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             );
           },
           background: Container(
             alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.only(left: 20),
+            padding: const EdgeInsets.only(left: 24),
             color: colorScheme.errorContainer,
-            child: Icon(Icons.delete_outline, color: colorScheme.error),
+            child: Icon(
+              Icons.delete_outline_rounded,
+              color: colorScheme.error,
+              size: 28,
+            ),
           ),
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: colorScheme.surfaceContainerHigh),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: colorScheme.primaryContainer,
-                  backgroundImage: backgroundImage,
-                  child:
-                      backgroundImage == null
-                          ? Icon(
-                            Icons.person,
-                            color: colorScheme.onPrimaryContainer,
-                          )
-                          : null,
+          child: Material(
+            color: colorScheme.surfaceContainerHigh,
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                BirthdayFormSheet.show(context, birthdayToEdit: birthday);
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "${birthday.name} ${birthday.surname}",
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 4),
-                      categories.when(
-                        data: (allCategories) {
-                          final categories =
-                              allCategories
-                                  .where(
-                                    (c) => birthday.categories.contains(c.id),
-                                  )
-                                  .toList();
-                          return Wrap(
-                            spacing: 4,
-                            runSpacing: 4,
-                            children:
-                                categories.map((cat) {
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.primaryContainer
-                                          .withValues(alpha: 0.5),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          cat.iconData,
-                                          size: 10,
-                                          color: colorScheme.onPrimaryContainer,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          cat.getLocalizedName(context),
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                            color:
-                                                colorScheme.onPrimaryContainer,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                          );
-                        },
-                        loading: () => const SizedBox(),
-                        error: (e, s) => const SizedBox(),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "${birthday.formattedDate} • ${birthday.age} ${context.l10n.yearsOld}",
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                child: Row(
+                  children: [
+                    // Avatar avec bordure subtile
+                    Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          width: 1,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.edit, color: colorScheme.onSurfaceVariant),
-                  onPressed:
-                      () => BirthdayFormSheet.show(
-                        context,
-                        birthdayToEdit: birthday,
+                      child: CircleAvatar(
+                        radius: 26,
+                        backgroundColor: colorScheme.primaryContainer,
+                        backgroundImage: backgroundImage,
+                        child:
+                            backgroundImage == null
+                                ? Icon(
+                                  Icons.person_outline_rounded,
+                                  color: colorScheme.onPrimaryContainer,
+                                  size: 30,
+                                )
+                                : null,
                       ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Informations
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "${birthday.name} ${birthday.surname}",
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            birthday.getFormattedDate(context),
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          categoriesState.when(
+                            data: (allCategories) {
+                              final activeCategories =
+                                  allCategories
+                                      .where(
+                                        (c) =>
+                                            birthday.categories.contains(c.id),
+                                      )
+                                      .toList();
+                              if (activeCategories.isEmpty) {
+                                return const SizedBox();
+                              }
+                              return SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                physics: const BouncingScrollPhysics(),
+                                child: Row(
+                                  children:
+                                      activeCategories.map((cat) {
+                                        return Container(
+                                          margin: const EdgeInsets.only(
+                                            right: 8,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 5,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: colorScheme.primaryContainer
+                                                .withValues(alpha: 0.7),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            border: Border.all(
+                                              color: colorScheme.primary
+                                                  .withValues(alpha: 0.1),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                cat.iconData,
+                                                size: 13,
+                                                color:
+                                                    colorScheme
+                                                        .onPrimaryContainer,
+                                              ),
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                cat.getLocalizedName(context),
+                                                style: textTheme.labelSmall
+                                                    ?.copyWith(
+                                                      color:
+                                                          colorScheme
+                                                              .onPrimaryContainer,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      fontSize: 11,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                ),
+                              );
+                            },
+                            loading: () => const SizedBox(),
+                            error: (e, s) => const SizedBox(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          birthday.age.toString(),
+                          style: textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: colorScheme.primary,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                        Text(
+                          context.l10n.yearsOld.toUpperCase(),
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 9,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
