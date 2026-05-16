@@ -13,7 +13,8 @@ class CategoryRepository {
     });
   }
 
-  Future<void> createCategory(BirthdayCategory category) async {
-    await _db.collection('category').add(category.toJson());
+  Future<String> createCategory(BirthdayCategory category) async {
+    final docRef = await _db.collection('category').add(category.toJson());
+    return docRef.id;
   }
 }

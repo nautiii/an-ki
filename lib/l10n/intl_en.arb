@@ -120,6 +120,21 @@
     }
   },
   "noContactsWithBirthday": "No contacts with a birthday found.",
-  "permissionDenied": "Permission denied."
+  "permissionDenied": "Permission denied.",
+  "suggestedCategories": "Suggested categories",
+  "createCustomCategory": "Or create a custom category",
+  "noMoreSuggestions": "No more suggested categories",
+  "selectOrCreateCategory": "Please select or create a category",
+  "sport": "Sport",
+  "school": "School",
+  "ogs": "OG's",
+  "gaming": "Gaming",
+  "goat": "GOAT",
+  "doggo": "Doggo",
+  "internet": "Internet",
+  "bff": "BFF",
+  "celebrity": "Celebrity",
+  "favorite": "Favorite",
+  "couple": "Couple"
 }
 

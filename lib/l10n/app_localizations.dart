@@ -649,6 +649,96 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Permission refusée.'**
   String get permissionDenied;
+
+  /// No description provided for @suggestedCategories.
+  ///
+  /// In fr, this message translates to:
+  /// **'Catégories suggérées'**
+  String get suggestedCategories;
+
+  /// No description provided for @createCustomCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ou créer une catégorie personnalisée'**
+  String get createCustomCategory;
+
+  /// No description provided for @noMoreSuggestions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune autre catégorie suggérée'**
+  String get noMoreSuggestions;
+
+  /// No description provided for @selectOrCreateCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Veuillez sélectionner ou créer une catégorie'**
+  String get selectOrCreateCategory;
+
+  /// No description provided for @sport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sport'**
+  String get sport;
+
+  /// No description provided for @school.
+  ///
+  /// In fr, this message translates to:
+  /// **'École'**
+  String get school;
+
+  /// No description provided for @ogs.
+  ///
+  /// In fr, this message translates to:
+  /// **'OG\'s'**
+  String get ogs;
+
+  /// No description provided for @gaming.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gaming'**
+  String get gaming;
+
+  /// No description provided for @goat.
+  ///
+  /// In fr, this message translates to:
+  /// **'GOAT'**
+  String get goat;
+
+  /// No description provided for @doggo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Doggo'**
+  String get doggo;
+
+  /// No description provided for @internet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Internet'**
+  String get internet;
+
+  /// No description provided for @bff.
+  ///
+  /// In fr, this message translates to:
+  /// **'BFF'**
+  String get bff;
+
+  /// No description provided for @celebrity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Célébrité'**
+  String get celebrity;
+
+  /// No description provided for @favorite.
+  ///
+  /// In fr, this message translates to:
+  /// **'Favori'**
+  String get favorite;
+
+  /// No description provided for @couple.
+  ///
+  /// In fr, this message translates to:
+  /// **'Couple'**
+  String get couple;
 }
 
 class _AppLocalizationsDelegate

@@ -295,4 +295,50 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get permissionDenied => 'Permission refusée.';
+
+  @override
+  String get suggestedCategories => 'Catégories suggérées';
+
+  @override
+  String get createCustomCategory => 'Ou créer une catégorie personnalisée';
+
+  @override
+  String get noMoreSuggestions => 'Aucune autre catégorie suggérée';
+
+  @override
+  String get selectOrCreateCategory =>
+      'Veuillez sélectionner ou créer une catégorie';
+
+  @override
+  String get sport => 'Sport';
+
+  @override
+  String get school => 'École';
+
+  @override
+  String get ogs => 'OG\'s';
+
+  @override
+  String get gaming => 'Gaming';
+
+  @override
+  String get goat => 'GOAT';
+
+  @override
+  String get doggo => 'Doggo';
+
+  @override
+  String get internet => 'Internet';
+
+  @override
+  String get bff => 'BFF';
+
+  @override
+  String get celebrity => 'Célébrité';
+
+  @override
+  String get favorite => 'Favori';
+
+  @override
+  String get couple => 'Couple';
 }

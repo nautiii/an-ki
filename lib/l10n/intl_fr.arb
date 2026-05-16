@@ -120,6 +120,21 @@
     }
   },
   "noContactsWithBirthday": "Aucun contact avec une date de naissance trouvé.",
-  "permissionDenied": "Permission refusée."
+  "permissionDenied": "Permission refusée.",
+  "suggestedCategories": "Catégories suggérées",
+  "createCustomCategory": "Ou créer une catégorie personnalisée",
+  "noMoreSuggestions": "Aucune autre catégorie suggérée",
+  "selectOrCreateCategory": "Veuillez sélectionner ou créer une catégorie",
+  "sport": "Sport",
+  "school": "École",
+  "ogs": "OG's",
+  "gaming": "Gaming",
+  "goat": "GOAT",
+  "doggo": "Doggo",
+  "internet": "Internet",
+  "bff": "BFF",
+  "celebrity": "Célébrité",
+  "favorite": "Favori",
+  "couple": "Couple"
 }
 

@@ -1,10 +1,16 @@
+import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ThemeNotifier extends Notifier<ThemeMode> {
   @override
   ThemeMode build() {
-    return ThemeMode.system;
+    final isDark = ref.watch(userProvider.select((s) => s.user?.isDark));
+
+    if (isDark == null) {
+      return ThemeMode.system;
+    }
+    return isDark ? ThemeMode.dark : ThemeMode.light;
   }
 
   bool get isDark =>
@@ -13,13 +19,10 @@ class ThemeNotifier extends Notifier<ThemeMode> {
           WidgetsBinding.instance.platformDispatcher.platformBrightness ==
               Brightness.dark);
 
-  void toggle(BuildContext context) {
-    final bool currentlyDark =
-        state == ThemeMode.dark ||
-        (state == ThemeMode.system &&
-            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
-
-    state = currentlyDark ? ThemeMode.light : ThemeMode.dark;
+  void toggle() {
+    final newIsDark = !isDark;
+    state = newIsDark ? ThemeMode.dark : ThemeMode.light;
+    ref.read(userProvider.notifier).updateTheme(newIsDark);
   }
 }
 

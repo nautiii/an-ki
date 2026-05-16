@@ -3,13 +3,23 @@ import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/data/models/category_model.dart';
 import 'package:flutter/material.dart';
 
-
 extension BirthdayCategoryX on BirthdayCategory {
   String getLocalizedName(BuildContext context) {
     final n = name.toLowerCase();
     if (n == 'family') return context.l10n.family;
     if (n == 'friend') return context.l10n.friend;
     if (n == 'colleague') return context.l10n.colleague;
+    if (n == 'sport') return context.l10n.sport;
+    if (n == 'school') return context.l10n.school;
+    if (n == 'ogs') return context.l10n.ogs;
+    if (n == 'gaming') return context.l10n.gaming;
+    if (n == 'goat') return context.l10n.goat;
+    if (n == 'doggo') return context.l10n.doggo;
+    if (n == 'internet') return context.l10n.internet;
+    if (n == 'bff') return context.l10n.bff;
+    if (n == 'celebrity') return context.l10n.celebrity;
+    if (n == 'favorite') return context.l10n.favorite;
+    if (n == 'couple') return context.l10n.couple;
     if (n == 'other') return context.l10n.other;
     return name;
   }

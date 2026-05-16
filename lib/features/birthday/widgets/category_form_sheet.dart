@@ -1,5 +1,7 @@
+import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,23 +25,18 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
   final _controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   int _selectedIconCode = Icons.category_rounded.codePoint;
+  final Set<String> _selectedDefaultIds = {};
 
   final List<IconData> _availableIcons = [
     Icons.category_rounded,
     Icons.group_rounded,
-    Icons.family_restroom_rounded,
     Icons.work_rounded,
     Icons.favorite_rounded,
-    Icons.contact_support_rounded,
-    Icons.star_rounded,
-    Icons.home_rounded,
     Icons.school_rounded,
     Icons.celebration_rounded,
     Icons.share_rounded,
-    Icons.pets_rounded,
     Icons.sports_martial_arts_rounded,
     Icons.restaurant_rounded,
-    Icons.local_library_rounded,
     Icons.sports_esports_rounded,
   ];
 
@@ -50,12 +47,29 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
   }
 
   Future<void> _save() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final customName = _controller.text.trim();
 
-    final name = _controller.text.trim();
-    await ref
-        .read(categoryNotifierProvider.notifier)
-        .addCategory(name, _selectedIconCode);
+    if (customName.isEmpty && _selectedDefaultIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.selectOrCreateCategory)),
+      );
+      return;
+    }
+
+    // Si on a des catégories par défaut sélectionnées
+    if (_selectedDefaultIds.isNotEmpty) {
+      await ref
+          .read(categoryNotifierProvider.notifier)
+          .addCategoriesToUser(_selectedDefaultIds.toList());
+    }
+
+    // Si on a un nom personnalisé, on crée la catégorie
+    if (customName.isNotEmpty) {
+      await ref
+          .read(categoryNotifierProvider.notifier)
+          .createAndAddCategory(customName, _selectedIconCode);
+    }
+
     if (mounted) Navigator.pop(context);
   }
 
@@ -63,6 +77,9 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final categoriesState = ref.watch(categoriesProvider);
+    final user = ref.watch(userProvider).user;
+    final userCategoryIds = user?.categories ?? [];
 
     return Container(
       decoration: BoxDecoration(
@@ -107,7 +124,91 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
+
+                    // Section Catégories par défaut
+                    Text(
+                      context.l10n.suggestedCategories,
+                      style: textTheme.labelLarge?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    categoriesState.when(
+                      data: (allCategories) {
+                        final availableDefaults =
+                            allCategories
+                                .where(
+                                  (cat) => !userCategoryIds.contains(cat.id),
+                                )
+                                .toList();
+
+                        if (availableDefaults.isEmpty) {
+                          return Text(context.l10n.noMoreSuggestions);
+                        }
+
+                        return SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          child: Row(
+                            children:
+                                availableDefaults.map((cat) {
+                                  final isSelected = _selectedDefaultIds
+                                      .contains(cat.id);
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: FilterChip(
+                                      label: Text(
+                                        cat.getLocalizedName(context),
+                                      ),
+                                      avatar: Icon(
+                                        cat.iconData,
+                                        size: 18,
+                                        color:
+                                            isSelected
+                                                ? colorScheme.onPrimary
+                                                : colorScheme.primary,
+                                      ),
+                                      selected: isSelected,
+                                      onSelected: (selected) {
+                                        setState(() {
+                                          if (selected) {
+                                            _selectedDefaultIds.add(cat.id);
+                                          } else {
+                                            _selectedDefaultIds.remove(cat.id);
+                                          }
+                                        });
+                                      },
+                                      showCheckmark: false,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                          ),
+                        );
+                      },
+                      loading:
+                          () =>
+                              const Center(child: CircularProgressIndicator()),
+                      error: (_, _) => const SizedBox(),
+                    ),
+
+                    const SizedBox(height: 20),
+                    const Divider(),
+                    const SizedBox(height: 20),
+
+                    // Section Catégorie personnalisée
+                    Text(
+                      context.l10n.createCustomCategory,
+                      style: textTheme.labelLarge?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _controller,
                       style: const TextStyle(
@@ -130,11 +231,6 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                           borderSide: BorderSide.none,
                         ),
                       ),
-                      validator:
-                          (v) =>
-                              v?.isEmpty ?? true
-                                  ? context.l10n.requiredField
-                                  : null,
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -150,9 +246,9 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
+                            crossAxisCount: 5,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
                           ),
                       itemCount: _availableIcons.length,
                       itemBuilder: (context, index) {
@@ -171,13 +267,6 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                                       ? colorScheme.primary
                                       : colorScheme.surfaceContainerHigh,
                               borderRadius: BorderRadius.circular(12),
-                              border:
-                                  isSelected
-                                      ? Border.all(
-                                        color: colorScheme.primary,
-                                        width: 2,
-                                      )
-                                      : null,
                             ),
                             child: Icon(
                               icon,
@@ -202,7 +291,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                       icon: const Icon(Icons.add_rounded),
                       label: Text(
                         context.l10n.add,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),

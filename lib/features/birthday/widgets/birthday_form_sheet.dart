@@ -243,23 +243,18 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    categories.when(
-                      data:
-                          (categories) => _CategorySelector(
-                            categories: categories,
-                            selectedIds: _selectedCategories,
-                            onChanged: (id) {
-                              setState(() {
-                                if (_selectedCategories.contains(id)) {
-                                  _selectedCategories.remove(id);
-                                } else {
-                                  _selectedCategories.add(id);
-                                }
-                              });
-                            },
-                          ),
-                      loading: () => const LinearProgressIndicator(),
-                      error: (e, s) => const SizedBox(),
+                    _CategorySelector(
+                      categories: ref.watch(userCategoriesProvider),
+                      selectedIds: _selectedCategories,
+                      onChanged: (id) {
+                        setState(() {
+                          if (_selectedCategories.contains(id)) {
+                            _selectedCategories.remove(id);
+                          } else {
+                            _selectedCategories.add(id);
+                          }
+                        });
+                      },
                     ),
                     const SizedBox(height: 24),
 

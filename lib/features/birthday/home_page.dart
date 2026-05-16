@@ -3,7 +3,6 @@ import 'package:an_ki/core/common/search_bar.dart';
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
-import 'package:an_ki/data/models/category_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
@@ -91,89 +90,91 @@ class _CategoryFilterBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCategories = ref.watch(birthdayCategoryFilterProvider);
-    final categories = ref.watch(categoriesProvider);
+    final userCategories = ref.watch(userCategoriesProvider);
 
-    return categories.when(
-      data: (categoriesList) {
-        final sortedCategories = List<BirthdayCategory>.from(categoriesList)
-          ..sort(
-            (a, b) => a
-                .getLocalizedName(context)
-                .toLowerCase()
-                .compareTo(b.getLocalizedName(context).toLowerCase()),
-          );
-
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
+    if (userCategories.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: ActionChip(
+          label: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              ...sortedCategories.map((cat) {
-                final isSelected = selectedCategories.contains(cat.id);
-                final colorScheme = Theme.of(context).colorScheme;
-
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(
-                      cat.getLocalizedName(context),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                    avatar: Icon(
-                      cat.iconData,
-                      size: 16,
-                      color:
-                          isSelected
-                              ? colorScheme.onPrimary
-                              : colorScheme.primary,
-                    ),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      final currentState = ref.read(
-                        birthdayCategoryFilterProvider,
-                      );
-
-                      if (selected) {
-                        ref
-                            .read(birthdayCategoryFilterProvider.notifier)
-                            .update([...currentState, cat.id]);
-                      } else {
-                        ref
-                            .read(birthdayCategoryFilterProvider.notifier)
-                            .update(
-                              currentState.where((id) => id != cat.id).toList(),
-                            );
-                      }
-                    },
-                    showCheckmark: false,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                );
-              }),
-              // Bouton d'ajout de catégorie
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ActionChip(
-                  label: const Icon(Icons.add, size: 18),
-                  onPressed: () => CategoryFormSheet.show(context),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  backgroundColor:
-                      Theme.of(context).colorScheme.surfaceContainerHigh,
-                ),
-              ),
+              const Icon(Icons.add, size: 18),
+              const SizedBox(width: 8),
+              Text(context.l10n.add),
             ],
           ),
-        );
-      },
-      loading: () => const SizedBox(height: 32),
-      error: (e, s) => const SizedBox(),
+          onPressed: () => CategoryFormSheet.show(context),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          ...userCategories.map((cat) {
+            final isSelected = selectedCategories.contains(cat.id);
+            final colorScheme = Theme.of(context).colorScheme;
+
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text(
+                  cat.getLocalizedName(context),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                avatar: Icon(
+                  cat.iconData,
+                  size: 16,
+                  color:
+                      isSelected ? colorScheme.onPrimary : colorScheme.primary,
+                ),
+                selected: isSelected,
+                onSelected: (selected) {
+                  final currentState = ref.read(birthdayCategoryFilterProvider);
+
+                  if (selected) {
+                    ref.read(birthdayCategoryFilterProvider.notifier).update([
+                      ...currentState,
+                      cat.id,
+                    ]);
+                  } else {
+                    ref
+                        .read(birthdayCategoryFilterProvider.notifier)
+                        .update(
+                          currentState.where((id) => id != cat.id).toList(),
+                        );
+                  }
+                },
+                showCheckmark: false,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            );
+          }),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ActionChip(
+              label: const Icon(Icons.add, size: 18),
+              onPressed: () => CategoryFormSheet.show(context),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerHigh,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

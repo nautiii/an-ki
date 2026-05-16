@@ -5,12 +5,18 @@ class UserModel {
   final String name;
   final String surname;
   final String? pseudo;
+  final List<String> categories;
+  final bool isDark;
+  final String locale;
 
   const UserModel({
     required this.id,
     required this.name,
     required this.surname,
     this.pseudo,
+    this.categories = const [],
+    required this.isDark,
+    required this.locale,
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -21,6 +27,9 @@ class UserModel {
       name: data['name'] ?? '',
       surname: data['surname'] ?? '',
       pseudo: data['pseudo'],
+      categories: List<String>.from(data['categories'] ?? []),
+      isDark: data['isDark'],
+      locale: data['locale'],
     );
   }
 
@@ -29,6 +38,9 @@ class UserModel {
       'name': name,
       'surname': surname,
       if (pseudo != null) 'pseudo': pseudo,
+      'categories': categories,
+      'isDark': isDark,
+      'locale': locale,
     };
   }
 
@@ -37,12 +49,18 @@ class UserModel {
     String? name,
     String? surname,
     String? pseudo,
+    List<String>? categories,
+    bool? isDark,
+    String? locale,
   }) {
     return UserModel(
       id: id ?? this.id,
       name: name ?? this.name,
       surname: surname ?? this.surname,
       pseudo: pseudo ?? this.pseudo,
+      categories: categories ?? this.categories,
+      isDark: isDark ?? this.isDark,
+      locale: locale ?? this.locale,
     );
   }
 }

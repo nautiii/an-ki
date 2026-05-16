@@ -1,3 +1,4 @@
+import 'package:an_ki/core/theme/providers/theme_provider.dart';
 import 'package:an_ki/data/models/user_model.dart';
 import 'package:an_ki/data/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +44,13 @@ class UserNotifier extends Notifier<UserState> {
     required String name,
     required String surname,
   }) async {
-    final newUser = UserModel(id: uid, name: name, surname: surname);
+    final newUser = UserModel(
+      id: uid,
+      name: name,
+      surname: surname,
+      isDark: ref.read(themeProvider.notifier).isDark,
+      locale: 'fr',
+    );
     await _repository.createUser(newUser);
     state = state.copyWith(user: newUser);
   }
@@ -51,6 +58,20 @@ class UserNotifier extends Notifier<UserState> {
   Future<void> updatePseudo(String pseudo) async {
     if (state.user == null) return;
     final updatedUser = state.user!.copyWith(pseudo: pseudo);
+    await _repository.updateUser(updatedUser);
+    state = state.copyWith(user: updatedUser);
+  }
+
+  Future<void> updateTheme(bool isDark) async {
+    if (state.user == null) return;
+    final updatedUser = state.user!.copyWith(isDark: isDark);
+    await _repository.updateUser(updatedUser);
+    state = state.copyWith(user: updatedUser);
+  }
+
+  Future<void> updateLocale(String locale) async {
+    if (state.user == null) return;
+    final updatedUser = state.user!.copyWith(locale: locale);
     await _repository.updateUser(updatedUser);
     state = state.copyWith(user: updatedUser);
   }

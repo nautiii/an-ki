@@ -1,22 +1,17 @@
+import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LocaleNotifier extends Notifier<Locale> {
   @override
   Locale build() {
-    return const Locale('fr');
+    final locale = ref.watch(userProvider.select((s) => s.user?.locale));
+    return locale != null ? Locale(locale) : const Locale('fr');
   }
 
   void setLocale(Locale locale) {
     state = locale;
-  }
-
-  void toggleLocale() {
-    if (state.languageCode == 'fr') {
-      state = const Locale('en');
-    } else {
-      state = const Locale('fr');
-    }
+    ref.read(userProvider.notifier).updateLocale(locale.languageCode);
   }
 }
 

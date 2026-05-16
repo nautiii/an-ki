@@ -246,7 +246,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
             ),
             value: isDark,
-            onChanged: (_) => ref.read(themeProvider.notifier).toggle(context),
+            onChanged: (_) => ref.read(themeProvider.notifier).toggle(),
           ),
           const Divider(),
           ListTile(
