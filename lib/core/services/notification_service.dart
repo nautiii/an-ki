@@ -22,7 +22,7 @@ class NotificationService {
   static const String _channelId = 'birthday_channel';
   static const String _channelName = 'Anniversaires';
   static const String _channelDescription = 'Rappels d\'anniversaire du jour';
-  static const int _notificationHour = 8; // 08:00 chaque matin
+  static const int _notificationHour = 10; // 10:00 chaque matin
 
   // ── Initialisation ────────────────────────────────────────────────────────
 
@@ -107,7 +107,8 @@ class NotificationService {
     await _plugin.cancelAll();
 
     for (final birthday in birthdays) {
-      await _scheduleOne(birthday);
+      await _scheduleBirthdayNotification(birthday);
+      await _scheduleReminderNotification(birthday);
     }
 
     debugPrint(
@@ -115,13 +116,11 @@ class NotificationService {
     );
   }
 
-  Future<void> _scheduleOne(BirthdayModel birthday) async {
+  Future<void> _scheduleBirthdayNotification(BirthdayModel birthday) async {
     try {
       DateTime next = birthday.nextOccurrence;
       tz.TZDateTime scheduledDate = _tzAt(next, _notificationHour);
 
-      // Si l'heure de notification pour aujourd'hui est déjà passée,
-      // on planifie pour l'année prochaine.
       if (scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
         next = DateTime(next.year + 1, next.month, next.day);
         scheduledDate = _tzAt(next, _notificationHour);
@@ -132,28 +131,49 @@ class NotificationService {
       await _plugin.zonedSchedule(
         id: _notificationId(birthday.id),
         title: '🎂 ${birthday.name} ${birthday.surname}',
-        body: 'C\'est l\'anniversaire de ${birthday.name} (${ageAtBirthday} ans) !',
+        body:
+            'C\'est l\'anniversaire de ${birthday.name} (${ageAtBirthday} ans) !',
         scheduledDate: scheduledDate,
-        notificationDetails: NotificationDetails(
-          android: AndroidNotificationDetails(
-            _channelId,
-            _channelName,
-            channelDescription: _channelDescription,
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/launcher_icon',
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
+        notificationDetails: _notificationDetails(),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
     } catch (e) {
       debugPrint(
-        '[NotificationService] Impossible de planifier ${birthday.id}: $e',
+        '[NotificationService] Impossible de planifier anniversaire ${birthday.id}: $e',
+      );
+    }
+  }
+
+  Future<void> _scheduleReminderNotification(BirthdayModel birthday) async {
+    try {
+      DateTime next = birthday.nextOccurrence;
+
+      // J-7
+      DateTime reminderDate = next.subtract(const Duration(days: 7));
+
+      tz.TZDateTime scheduledDate = _tzAt(reminderDate, _notificationHour);
+
+      if (scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
+        next = DateTime(next.year + 1, next.month, next.day);
+        reminderDate = next.subtract(const Duration(days: 7));
+
+        scheduledDate = _tzAt(reminderDate, _notificationHour);
+      }
+
+      final int upcomingAge = next.year - birthday.date.year;
+
+      await _plugin.zonedSchedule(
+        id: _reminderNotificationId(birthday.id),
+        title: '🎉 Anniversaire bientôt',
+        body:
+            '${birthday.name} ${birthday.surname} aura ${upcomingAge} ans dans 7 jours.',
+        scheduledDate: scheduledDate,
+        notificationDetails: _notificationDetails(),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+    } catch (e) {
+      debugPrint(
+        '[NotificationService] Impossible de planifier rappel ${birthday.id}: $e',
       );
     }
   }
@@ -166,6 +186,27 @@ class NotificationService {
 
   /// Identifiant entier stable et unique dérivé de l'ID Firestore.
   int _notificationId(String birthdayId) => birthdayId.hashCode.abs() % 100000;
+
+  NotificationDetails _notificationDetails() {
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        _channelId,
+        _channelName,
+        channelDescription: _channelDescription,
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: '@mipmap/launcher_icon',
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+  }
+
+  int _reminderNotificationId(String birthdayId) =>
+      (_notificationId(birthdayId) + 500000);
 
   // ── Test ──────────────────────────────────────────────────────────────────
 
