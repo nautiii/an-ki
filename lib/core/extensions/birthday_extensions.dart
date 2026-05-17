@@ -23,6 +23,25 @@ extension BirthdayCategoryX on BirthdayCategory {
     if (n == 'other') return context.l10n.other;
     return name;
   }
+
+  Color get color {
+    final n = name.toLowerCase();
+    if (n == 'family') return Colors.blue;
+    if (n == 'friend') return Colors.green;
+    if (n == 'colleague') return Colors.orange;
+    if (n == 'sport') return Colors.red;
+    if (n == 'school') return Colors.purple;
+    if (n == 'ogs') return Colors.cyan;
+    if (n == 'gaming') return Colors.indigo;
+    if (n == 'goat') return Colors.amber;
+    if (n == 'doggo') return Colors.brown;
+    if (n == 'internet') return Colors.teal;
+    if (n == 'bff') return Colors.pink;
+    if (n == 'celebrity') return Colors.deepPurple;
+    if (n == 'favorite') return Colors.yellow;
+    if (n == 'couple') return Colors.deepOrange;
+    return Colors.grey;
+  }
 }
 
 extension BirthdayUpcoming on BirthdayModel {

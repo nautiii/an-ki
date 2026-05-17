@@ -224,3 +224,26 @@ final filteredBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
 
   return filtered;
 });
+
+/// Provider pour filtrer les anniversaires par catégories et recherche (SANS exclusion du prochain)
+/// Utile pour la vue calendrier
+final categoryFilteredBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
+  final allBirthdays = ref.watch(birthdaysListProvider);
+  final searchQuery = ref.watch(birthdaySearchProvider).toLowerCase();
+  final categoryFilters = ref.watch(birthdayCategoryFilterProvider);
+
+  return allBirthdays.where((birthday) {
+    // Filtrer par catégories
+    if (categoryFilters.isNotEmpty) {
+      final hasAllCategories = categoryFilters.every(
+        (catId) => birthday.categories.contains(catId),
+      );
+      if (!hasAllCategories) return false;
+    }
+
+    // Filtrer par recherche
+    if (searchQuery.isEmpty) return true;
+    return birthday.name.toLowerCase().contains(searchQuery) ||
+        birthday.surname.toLowerCase().contains(searchQuery);
+  }).toList();
+});

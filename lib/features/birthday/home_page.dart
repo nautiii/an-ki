@@ -5,13 +5,14 @@ import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/birthday/providers/home_view_provider.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/common/bottom_bar.dart';
 import 'contact_sections.dart';
 
 class HomePage extends ConsumerWidget {
@@ -21,6 +22,7 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final filteredBirthdays = ref.watch(filteredBirthdaysProvider);
     final isLoading = ref.watch(birthdayProvider.select((s) => s.isLoading));
+    final viewType = ref.watch(homeViewProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -42,11 +44,16 @@ class HomePage extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               const _CategoryFilterBar(),
-              const SizedBox(height: 20),
+              SizedBox(height: viewType == HomeViewType.calendar ? 2 : 12),
               Expanded(
-                child: _HomeContent(
-                  isLoading: isLoading,
-                  birthdays: filteredBirthdays,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: _HomeContent(
+                    key: ValueKey(viewType),
+                    isLoading: isLoading,
+                    birthdays: filteredBirthdays,
+                    viewType: viewType,
+                  ),
                 ),
               ),
             ],
@@ -58,10 +65,16 @@ class HomePage extends ConsumerWidget {
 }
 
 class _HomeContent extends StatelessWidget {
-  const _HomeContent({required this.isLoading, required this.birthdays});
+  const _HomeContent({
+    super.key,
+    required this.isLoading,
+    required this.birthdays,
+    required this.viewType,
+  });
 
   final bool isLoading;
   final List<BirthdayModel> birthdays;
+  final HomeViewType viewType;
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +82,16 @@ class _HomeContent extends StatelessWidget {
 
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
+    }
+
+    if (viewType == HomeViewType.calendar) {
+      return Align(
+        alignment: Alignment.topCenter,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 110),
+          child: const BirthdayCalendar(),
+        ),
+      );
     }
 
     if (birthdays.isEmpty) {

@@ -1,7 +1,9 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/features/birthday/providers/home_view_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:an_ki/features/user/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class Header extends ConsumerWidget {
@@ -10,6 +12,7 @@ class Header extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider.select((value) => value.user));
+    final viewType = ref.watch(homeViewProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -35,19 +38,41 @@ class Header extends ConsumerWidget {
             ),
           ],
         ),
-        IconButton(
-          style: IconButton.styleFrom(
-            backgroundColor: colorScheme.surfaceContainerHighest,
-            shape: const CircleBorder(),
-            padding: const EdgeInsets.all(10),
-          ),
-          onPressed:
-              () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
+        Row(
+          children: [
+            IconButton(
+              style: IconButton.styleFrom(
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(10),
               ),
-          icon: Icon(Icons.settings_rounded, color: colorScheme.onSurface),
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                ref.read(homeViewProvider.notifier).toggle();
+              },
+              icon: Icon(
+                viewType == HomeViewType.list
+                    ? Icons.calendar_month_rounded
+                    : Icons.view_list_rounded,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              style: IconButton.styleFrom(
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(10),
+              ),
+              onPressed:
+                  () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  ),
+              icon: Icon(Icons.settings_rounded, color: colorScheme.onSurface),
+            ),
+          ],
         ),
       ],
     );
