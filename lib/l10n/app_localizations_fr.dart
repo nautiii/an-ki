@@ -341,4 +341,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get couple => 'Couple';
+
+  @override
+  String get forgotPassword => 'Mot de passe oublié ?';
 }

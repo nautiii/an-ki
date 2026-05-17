@@ -1,6 +1,7 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AuthChoicePage extends ConsumerWidget {
@@ -9,100 +10,118 @@ class AuthChoicePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                context.l10n.appName,
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
+              const Spacer(),
+              // Logo ou Illustration
+              Container(
+                height: 100,
+                width: 100,
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Icon(
+                  Icons.auto_awesome_rounded,
+                  size: 50,
+                  color: colorScheme.primary,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 32),
+              Text(
+                context.l10n.appName,
+                style: textTheme.headlineLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                  letterSpacing: -1,
+                ),
+              ),
+              const SizedBox(height: 12),
               Text(
                 context.l10n.manageBirthdays,
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 48),
+              const Spacer(),
               Column(
                 children: [
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton.icon(
-                      onPressed:
-                          authState.isLoading
-                              ? null
-                              : () => _handleGoogleSignIn(context, ref),
-                      icon: const Icon(Icons.login),
-                      label: Text(context.l10n.loginWithGoogle),
-                    ),
+                  _AuthButton(
+                    label: context.l10n.loginWithGoogle,
+                    icon: Icons.login_rounded,
+                    onPressed: authState.isLoading
+                        ? null
+                        : () => _handleGoogleSignIn(context, ref),
+                    isPrimary: true,
                   ),
                   const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton.icon(
-                      onPressed:
-                          authState.isLoading
-                              ? null
-                              : () => Navigator.of(context).pushNamed('/login'),
-                      icon: const Icon(Icons.email),
-                      label: Text(context.l10n.loginWithEmail),
-                    ),
+                  _AuthButton(
+                    label: context.l10n.loginWithEmail,
+                    icon: Icons.email_outlined,
+                    onPressed: authState.isLoading
+                        ? null
+                        : () => Navigator.of(context).pushNamed('/login'),
                   ),
                   const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed:
-                          authState.isLoading
-                              ? null
-                              : () => _handleAnonymousSignIn(context, ref),
-                      icon: const Icon(Icons.person_outline),
-                      label: Text(context.l10n.continueWithoutAccount),
-                    ),
+                  _AuthButton(
+                    label: context.l10n.continueWithoutAccount,
+                    icon: Icons.person_outline_rounded,
+                    onPressed: authState.isLoading
+                        ? null
+                        : () => _handleAnonymousSignIn(context, ref),
+                    isOutlined: true,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(context.l10n.noAccountYet),
+                      Text(
+                        context.l10n.noAccountYet,
+                        style: TextStyle(color: colorScheme.onSurfaceVariant),
+                      ),
                       TextButton(
-                        onPressed:
-                            authState.isLoading
-                                ? null
-                                : () =>
-                                    Navigator.of(context).pushNamed('/signup'),
-                        child: Text(context.l10n.signUp),
+                        onPressed: authState.isLoading
+                            ? null
+                            : () => Navigator.of(context).pushNamed('/signup'),
+                        child: Text(
+                          context.l10n.signUp,
+                          style: TextStyle(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  if (authState.isLoading)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 24.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  if (authState.errorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 24.0),
-                      child: Text(
-                        authState.errorMessage!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
                 ],
               ),
+              if (authState.isLoading)
+                const Padding(
+                  padding: EdgeInsets.only(top: 16.0),
+                  child: SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              if (authState.errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Text(
+                    authState.errorMessage!,
+                    style: TextStyle(color: colorScheme.error, fontSize: 13),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
             ],
           ),
         ),
@@ -111,28 +130,109 @@ class AuthChoicePage extends ConsumerWidget {
   }
 
   void _handleGoogleSignIn(BuildContext context, WidgetRef ref) async {
+    HapticFeedback.lightImpact();
     final authNotifier = ref.read(authProvider.notifier);
     final success = await authNotifier.signInWithGoogle();
     if (!context.mounted) return;
 
-    final authState = ref.read(authProvider);
-    if (!success && authState.errorMessage != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(authState.errorMessage!)));
+    if (!success) {
+      final authState = ref.read(authProvider);
+      if (authState.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text(authState.errorMessage!),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } else {
+      HapticFeedback.mediumImpact();
     }
   }
 
   void _handleAnonymousSignIn(BuildContext context, WidgetRef ref) async {
+    HapticFeedback.lightImpact();
     final authNotifier = ref.read(authProvider.notifier);
     final success = await authNotifier.signInAnonymously();
     if (!context.mounted) return;
 
-    final authState = ref.read(authProvider);
-    if (!success && authState.errorMessage != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(authState.errorMessage!)));
+    if (!success) {
+      final authState = ref.read(authProvider);
+      if (authState.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text(authState.errorMessage!),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } else {
+      HapticFeedback.mediumImpact();
     }
+  }
+}
+
+class _AuthButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final bool isPrimary;
+  final bool isOutlined;
+
+  const _AuthButton({
+    required this.label,
+    required this.icon,
+    this.onPressed,
+    this.isPrimary = false,
+    this.isOutlined = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    if (isOutlined) {
+      return SizedBox(
+        width: double.infinity,
+        height: 56,
+        child: OutlinedButton.icon(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: colorScheme.outlineVariant),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            foregroundColor: colorScheme.onSurface,
+          ),
+          icon: Icon(icon, size: 20),
+          label: Text(
+            label,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isPrimary ? colorScheme.primary : colorScheme.surfaceContainerHigh,
+          foregroundColor: isPrimary ? colorScheme.onPrimary : colorScheme.onSurface,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        icon: Icon(icon, size: 20),
+        label: Text(
+          label,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: isPrimary ? FontWeight.bold : FontWeight.w600,
+          ),
+        ),
+      ),
+    );
   }
 }

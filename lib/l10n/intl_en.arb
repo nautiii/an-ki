@@ -136,5 +136,7 @@
   "celebrity": "Celebrity",
   "favorite": "Favorite",
   "couple": "Couple"
+  "permissionDenied": "Permission denied.",
+  "forgotPassword": "Forgot password?"
 }
 

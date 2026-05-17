@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
@@ -212,10 +213,10 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                     ),
                     const SizedBox(height: 32),
 
-                    _ModernTextField(
+                    AnKiTextField(
                       controller: _nameController,
                       label: context.l10n.firstName,
-                      icon: Icons.person_outline_rounded,
+                      prefixIcon: Icons.person_outline_rounded,
                       validator:
                           (v) =>
                               v?.isEmpty ?? true
@@ -223,10 +224,10 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                                   : null,
                     ),
                     const SizedBox(height: 16),
-                    _ModernTextField(
+                    AnKiTextField(
                       controller: _surnameController,
                       label: context.l10n.lastName,
-                      icon: Icons.badge_outlined,
+                      prefixIcon: Icons.badge_outlined,
                       validator:
                           (v) =>
                               v?.isEmpty ?? true
@@ -435,51 +436,6 @@ class _ImagePickerButton extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ModernTextField extends StatelessWidget {
-  const _ModernTextField({
-    required this.controller,
-    required this.label,
-    required this.icon,
-    this.validator,
-  });
-
-  final TextEditingController controller;
-  final String label;
-  final IconData icon;
-  final String? Function(String?)? validator;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return TextFormField(
-      controller: controller,
-      validator: validator,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: colorScheme.primary),
-        filled: true,
-        fillColor: colorScheme.surfaceContainerLow,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
       ),
     );
   }

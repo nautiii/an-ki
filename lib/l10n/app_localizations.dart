@@ -739,6 +739,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Couple'**
   String get couple;
+
+  /// No description provided for @forgotPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe oublié ?'**
+  String get forgotPassword;
 }
 
 class _AppLocalizationsDelegate

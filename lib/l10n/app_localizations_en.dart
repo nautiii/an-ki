@@ -337,4 +337,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get couple => 'Couple';
+
+  @override
+  String get forgotPassword => 'Forgot password?';
 }

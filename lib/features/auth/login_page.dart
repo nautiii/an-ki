@@ -1,6 +1,8 @@
+import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -30,6 +32,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   void _handleSignIn() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      return;
+    }
+
+    HapticFeedback.lightImpact();
     final authNotifier = ref.read(authProvider.notifier);
     final success = await authNotifier.signIn(
       email: _emailController.text.trim(),
@@ -38,99 +45,150 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     if (!mounted) return;
 
-    final authState = ref.read(authProvider);
     if (!success) {
+      final authState = ref.read(authProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           content: Text(authState.errorMessage ?? context.l10n.connectionError),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
+    } else {
+      HapticFeedback.mediumImpact();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.loginTitle)),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              context.l10n.signInText,
-              style: Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                hintText: context.l10n.email,
-                prefixIcon: const Icon(Icons.email),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+              Text(
+                context.l10n.loginTitle,
+                style: textTheme.headlineLarge?.copyWith(
+                  color: colorScheme.primary,
                 ),
               ),
-              keyboardType: TextInputType.emailAddress,
-              enabled: !authState.isLoading,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(
-                hintText: context.l10n.password,
-                prefixIcon: const Icon(Icons.lock),
+              const SizedBox(height: 8),
+              Text(
+                context.l10n.signInText,
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 48),
+              AnKiTextField(
+                controller: _emailController,
+                label: context.l10n.email,
+                prefixIcon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                enabled: !authState.isLoading,
+              ),
+              const SizedBox(height: 16),
+              AnKiTextField(
+                controller: _passwordController,
+                label: context.l10n.password,
+                prefixIcon: Icons.lock_outline_rounded,
+                obscureText: _obscurePassword,
+                enabled: !authState.isLoading,
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 20,
                   ),
                   onPressed: () {
                     setState(() => _obscurePassword = !_obscurePassword);
                   },
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: authState.isLoading ? null : () {},
+                  child: Text(
+                    context.l10n.forgotPassword,
+                    style: TextStyle(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
-              obscureText: _obscurePassword,
-              enabled: !authState.isLoading,
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: authState.isLoading ? null : _handleSignIn,
-                child:
-                    authState.isLoading
-                        ? const SizedBox(
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: authState.isLoading ? null : _handleSignIn,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: authState.isLoading
+                      ? SizedBox(
                           height: 24,
                           width: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.onPrimary,
+                          ),
                         )
-                        : Text(context.l10n.signInButton),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(context.l10n.dontHaveAccount),
-                TextButton(
-                  onPressed:
-                      authState.isLoading
-                          ? null
-                          : () => Navigator.of(
-                            context,
-                          ).pushReplacementNamed('/signup'),
-                  child: Text(context.l10n.signUp),
+                      : Text(
+                          context.l10n.signInButton,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    context.l10n.dontHaveAccount,
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
+                  ),
+                  TextButton(
+                    onPressed: authState.isLoading
+                        ? null
+                        : () => Navigator.of(context).pushReplacementNamed('/signup'),
+                    child: Text(
+                      context.l10n.signUp,
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

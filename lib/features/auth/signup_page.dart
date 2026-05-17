@@ -1,7 +1,9 @@
+import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SignUpPage extends ConsumerStatefulWidget {
@@ -41,13 +43,22 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   }
 
   void _handleSignUp() async {
-    if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(context.l10n.passwordsDoNotMatch)));
+    if (_nameController.text.isEmpty || _surnameController.text.isEmpty || _emailController.text.isEmpty) {
       return;
     }
 
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text(context.l10n.passwordsDoNotMatch),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
+    HapticFeedback.lightImpact();
     final authNotifier = ref.read(authProvider.notifier);
     final userNotifier = ref.read(userProvider.notifier);
 
@@ -62,6 +73,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
 
     final authState = ref.read(authProvider);
     if (success && authState.user != null) {
+      HapticFeedback.mediumImpact();
       await userNotifier.createUser(
         uid: authState.user!.uid,
         name: _nameController.text.trim(),
@@ -70,9 +82,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     } else if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            authState.errorMessage ?? context.l10n.registrationError,
-          ),
+          behavior: SnackBarBehavior.floating,
+          content: Text(authState.errorMessage ?? context.l10n.registrationError),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -81,138 +93,158 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.signUpTitle)),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+        ),
+      ),
+      body: SafeArea(
         child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 20),
+              Text(
+                context.l10n.signUpTitle,
+                style: textTheme.headlineLarge?.copyWith(
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 8),
               Text(
                 context.l10n.createAccount,
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center,
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 32),
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  hintText: context.l10n.firstName,
-                  prefixIcon: const Icon(Icons.person),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+              Row(
+                children: [
+                  Expanded(
+                    child: AnKiTextField(
+                      controller: _nameController,
+                      label: context.l10n.firstName,
+                      prefixIcon: Icons.person_outline_rounded,
+                      enabled: !authState.isLoading,
+                    ),
                   ),
-                ),
-                enabled: !authState.isLoading,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: AnKiTextField(
+                      controller: _surnameController,
+                      label: context.l10n.lastName,
+                      prefixIcon: Icons.person_outline_rounded,
+                      enabled: !authState.isLoading,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: _surnameController,
-                decoration: InputDecoration(
-                  hintText: context.l10n.lastName,
-                  prefixIcon: const Icon(Icons.person_outline),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                enabled: !authState.isLoading,
-              ),
-              const SizedBox(height: 16),
-              TextField(
+              AnKiTextField(
                 controller: _emailController,
-                decoration: InputDecoration(
-                  hintText: context.l10n.email,
-                  prefixIcon: const Icon(Icons.email),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+                label: context.l10n.email,
+                prefixIcon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
                 enabled: !authState.isLoading,
               ),
               const SizedBox(height: 16),
-              TextField(
+              AnKiTextField(
                 controller: _passwordController,
-                decoration: InputDecoration(
-                  hintText: context.l10n.password,
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () {
-                      setState(() => _obscurePassword = !_obscurePassword);
-                    },
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+                label: context.l10n.password,
+                prefixIcon: Icons.lock_outline_rounded,
                 obscureText: _obscurePassword,
                 enabled: !authState.isLoading,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
+                ),
               ),
               const SizedBox(height: 16),
-              TextField(
+              AnKiTextField(
                 controller: _confirmPasswordController,
-                decoration: InputDecoration(
-                  hintText: context.l10n.confirmPassword,
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureConfirmPassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () {
-                      setState(
-                        () =>
-                            _obscureConfirmPassword = !_obscureConfirmPassword,
-                      );
-                    },
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+                label: context.l10n.confirmPassword,
+                prefixIcon: Icons.lock_reset_rounded,
                 obscureText: _obscureConfirmPassword,
                 enabled: !authState.isLoading,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: authState.isLoading ? null : _handleSignUp,
-                  child:
-                      authState.isLoading
-                          ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                          : Text(context.l10n.signUpButton),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                  },
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: authState.isLoading ? null : _handleSignUp,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: authState.isLoading
+                      ? SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.onPrimary,
+                          ),
+                        )
+                      : Text(
+                          context.l10n.signUpButton,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(context.l10n.haveAccount),
+                  Text(
+                    context.l10n.haveAccount,
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
+                  ),
                   TextButton(
-                    onPressed:
-                        authState.isLoading
-                            ? null
-                            : () => Navigator.of(
-                              context,
-                            ).pushReplacementNamed('/login'),
-                    child: Text(context.l10n.signIn),
+                    onPressed: authState.isLoading
+                        ? null
+                        : () => Navigator.of(context).pushReplacementNamed('/login'),
+                    child: Text(
+                      context.l10n.signIn,
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
