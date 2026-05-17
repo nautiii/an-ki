@@ -160,10 +160,10 @@ final birthdaysListProvider = Provider<List<BirthdayModel>>((ref) {
   return ref.watch(birthdayProvider.select((s) => s.birthdays));
 });
 
-/// Provider pour calculer le prochain anniversaire
-final nextBirthdayProvider = Provider<BirthdayModel?>((ref) {
+/// Provider pour calculer le prochain anniversaire (ou les prochains si même jour)
+final nextBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
   final birthdays = ref.watch(birthdaysListProvider);
-  return birthdays.nextBirthday;
+  return birthdays.nextBirthdays;
 });
 
 /// Notifier pour gérer la chaîne de recherche
@@ -191,18 +191,19 @@ final birthdayCategoryFilterProvider =
       BirthdayCategoryFilterNotifier.new,
     );
 
-/// Provider pour filtrer les anniversaires (recherche + exclusion du prochain + catégories)
+/// Provider pour filtrer les anniversaires (recherche + exclusion des prochains + catégories)
 final filteredBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
   final allBirthdays = ref.watch(birthdaysListProvider);
-  final nextBirthday = ref.watch(nextBirthdayProvider);
+  final nextBirthdays = ref.watch(nextBirthdaysProvider);
+  final nextIds = nextBirthdays.map((b) => b.id).toSet();
   final searchQuery = ref.watch(birthdaySearchProvider).toLowerCase();
   final categoryFilters = ref.watch(birthdayCategoryFilterProvider);
 
   // 1. Filtrer et Trier
   final filtered =
       allBirthdays.where((birthday) {
-        // Exclure le prochain anniversaire (déjà affiché en haut)
-        if (birthday.id == nextBirthday?.id) return false;
+        // Exclure le ou les prochains anniversaires (déjà affichés en haut)
+        if (nextIds.contains(birthday.id)) return false;
 
         // Filtrer par catégories (doit posséder TOUTES les catégories sélectionnées)
         if (categoryFilters.isNotEmpty) {

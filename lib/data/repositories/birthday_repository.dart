@@ -75,7 +75,8 @@ class BirthdayRepository {
         await _birthdays.where('uid', isEqualTo: uid).get();
 
     final WriteBatch batch = _firestore.batch();
-    for (final QueryDocumentSnapshot<Map<String, dynamic>> doc in snapshot.docs) {
+    for (final QueryDocumentSnapshot<Map<String, dynamic>> doc
+        in snapshot.docs) {
       batch.delete(doc.reference);
     }
     await batch.commit();

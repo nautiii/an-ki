@@ -6,7 +6,9 @@ import 'package:an_ki/data/repositories/user_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final categoriesProvider = StreamProvider<List<BirthdayCategory>>((ref) {
-  return ref.watch(categoryRepositoryProvider).watchCategories().map((categories) {
+  return ref.watch(categoryRepositoryProvider).watchCategories().map((
+    categories,
+  ) {
     final sorted = List<BirthdayCategory>.from(categories);
     sorted.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     return sorted;
@@ -37,7 +39,7 @@ class CategoryNotifier extends Notifier<void> {
 
     final updatedCategories = {...user.categories, ...categoryIds}.toList();
     final updatedUser = user.copyWith(categories: updatedCategories);
-    
+
     await ref.read(userRepositoryProvider).updateUser(updatedUser);
     await ref.read(userProvider.notifier).loadUser(user.id);
   }
@@ -47,8 +49,10 @@ class CategoryNotifier extends Notifier<void> {
     if (user == null) return;
 
     final category = BirthdayCategory(id: '', name: name, icon: icon);
-    final newCategoryId = await ref.read(categoryRepositoryProvider).createCategory(category);
-    
+    final newCategoryId = await ref
+        .read(categoryRepositoryProvider)
+        .createCategory(category);
+
     await addCategoriesToUser([newCategoryId]);
   }
 }

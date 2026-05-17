@@ -50,7 +50,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           content: Text(authState.errorMessage ?? context.l10n.connectionError),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
@@ -111,7 +113,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 enabled: !authState.isLoading,
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
                     color: colorScheme.onSurfaceVariant,
                     size: 20,
                   ),
@@ -147,22 +151,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: authState.isLoading
-                      ? SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colorScheme.onPrimary,
+                  child:
+                      authState.isLoading
+                          ? SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.onPrimary,
+                            ),
+                          )
+                          : Text(
+                            context.l10n.signInButton,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        )
-                      : Text(
-                          context.l10n.signInButton,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -174,9 +179,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     style: TextStyle(color: colorScheme.onSurfaceVariant),
                   ),
                   TextButton(
-                    onPressed: authState.isLoading
-                        ? null
-                        : () => Navigator.of(context).pushReplacementNamed('/signup'),
+                    onPressed:
+                        authState.isLoading
+                            ? null
+                            : () => Navigator.of(
+                              context,
+                            ).pushReplacementNamed('/signup'),
                     child: Text(
                       context.l10n.signUp,
                       style: TextStyle(

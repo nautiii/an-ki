@@ -43,7 +43,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
   }
 
   void _handleSignUp() async {
-    if (_nameController.text.isEmpty || _surnameController.text.isEmpty || _emailController.text.isEmpty) {
+    if (_nameController.text.isEmpty ||
+        _surnameController.text.isEmpty ||
+        _emailController.text.isEmpty) {
       return;
     }
 
@@ -83,7 +85,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          content: Text(authState.errorMessage ?? context.l10n.registrationError),
+          content: Text(
+            authState.errorMessage ?? context.l10n.registrationError,
+          ),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -163,7 +167,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 enabled: !authState.isLoading,
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
                     color: colorScheme.onSurfaceVariant,
                     size: 20,
                   ),
@@ -181,12 +187,16 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 enabled: !authState.isLoading,
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    _obscureConfirmPassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
                     color: colorScheme.onSurfaceVariant,
                     size: 20,
                   ),
                   onPressed: () {
-                    setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                    setState(
+                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                    );
                   },
                 ),
               ),
@@ -204,22 +214,23 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: authState.isLoading
-                      ? SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colorScheme.onPrimary,
+                  child:
+                      authState.isLoading
+                          ? SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.onPrimary,
+                            ),
+                          )
+                          : Text(
+                            context.l10n.signUpButton,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        )
-                      : Text(
-                          context.l10n.signUpButton,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -231,9 +242,12 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     style: TextStyle(color: colorScheme.onSurfaceVariant),
                   ),
                   TextButton(
-                    onPressed: authState.isLoading
-                        ? null
-                        : () => Navigator.of(context).pushReplacementNamed('/login'),
+                    onPressed:
+                        authState.isLoading
+                            ? null
+                            : () => Navigator.of(
+                              context,
+                            ).pushReplacementNamed('/login'),
                     child: Text(
                       context.l10n.signIn,
                       style: TextStyle(

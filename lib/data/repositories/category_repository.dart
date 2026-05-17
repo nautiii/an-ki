@@ -9,7 +9,9 @@ class CategoryRepository {
 
   Stream<List<BirthdayCategory>> watchCategories() {
     return _db.collection('category').snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => BirthdayCategory.fromFirestore(doc)).toList();
+      return snapshot.docs
+          .map((doc) => BirthdayCategory.fromFirestore(doc))
+          .toList();
     });
   }
 

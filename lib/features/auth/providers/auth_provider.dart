@@ -183,9 +183,12 @@ class AuthNotifier extends Notifier<AuthState> {
         isLoading: false,
       );
       return false;
-    } catch (e) {
+    } on GoogleSignInException catch (e) {
       state = state.copyWith(
-        errorMessage: 'Erreur lors de la connexion Google',
+        errorMessage:
+            e.code == GoogleSignInExceptionCode.canceled
+                ? null
+                : 'Erreur lors de la connexion Google',
         isLoading: false,
       );
       return false;
@@ -220,9 +223,12 @@ class AuthNotifier extends Notifier<AuthState> {
         isLoading: false,
       );
       return false;
-    } catch (e) {
+    } on GoogleSignInException catch (e) {
       state = state.copyWith(
-        errorMessage: 'Erreur lors de la liaison du compte',
+        errorMessage:
+            e.code == GoogleSignInExceptionCode.canceled
+                ? null
+                : 'Erreur lors de la connexion Google',
         isLoading: false,
       );
       return false;

@@ -5,8 +5,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class LocaleNotifier extends Notifier<Locale> {
   @override
   Locale build() {
-    final locale = ref.watch(userProvider.select((s) => s.user?.locale));
-    return locale != null ? Locale(locale) : const Locale('fr');
+    final userLocale = ref.read(userProvider).user?.locale;
+
+    ref.listen<String?>(userProvider.select((s) => s.user?.locale), (
+      previous,
+      next,
+    ) {
+      if (next != null) {
+        state = Locale(next);
+      }
+    });
+
+    if (userLocale != null) {
+      return Locale(userLocale);
+    }
+
+    return const Locale('fr');
   }
 
   void setLocale(Locale locale) {

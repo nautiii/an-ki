@@ -1,4 +1,3 @@
-import 'package:an_ki/core/theme/providers/theme_provider.dart';
 import 'package:an_ki/data/models/user_model.dart';
 import 'package:an_ki/data/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
@@ -44,11 +43,16 @@ class UserNotifier extends Notifier<UserState> {
     required String name,
     required String surname,
   }) async {
+    // On évite de dépendre de themeProvider pour casser la dépendance circulaire
+    final isPlatformDark =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+        Brightness.dark;
+
     final newUser = UserModel(
       id: uid,
       name: name,
       surname: surname,
-      isDark: ref.read(themeProvider.notifier).isDark,
+      isDark: isPlatformDark,
       locale: 'fr',
     );
     await _repository.createUser(newUser);

@@ -9,40 +9,122 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class NextBirthdayCard extends ConsumerWidget {
+class NextBirthdayCard extends ConsumerStatefulWidget {
   const NextBirthdayCard({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final nextBirthday = ref.watch(nextBirthdayProvider);
+  ConsumerState<NextBirthdayCard> createState() => _NextBirthdayCardState();
+}
+
+class _NextBirthdayCardState extends ConsumerState<NextBirthdayCard> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final nextBirthdays = ref.watch(nextBirthdaysProvider);
     final isLoading = ref.watch(birthdayProvider.select((s) => s.isLoading));
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
-    ImageProvider? backgroundImage;
-    if (nextBirthday?.picture != null) {
-      try {
-        backgroundImage = MemoryImage(base64Decode(nextBirthday!.picture!));
-      } catch (_) {}
+    if (isLoading) {
+      return SizedBox(
+        height: 120,
+        child: _BaseCard(
+          child: Center(
+            child: CircularProgressIndicator(
+              color: colorScheme.onPrimary,
+              strokeWidth: 2,
+            ),
+          ),
+        ),
+      );
     }
 
+    if (nextBirthdays.isEmpty) {
+      return SizedBox(
+        height: 120,
+        child: _BaseCard(
+          child: Center(
+            child: _BirthdayContent(birthday: null, isLoading: false),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 120,
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) => setState(() => _currentPage = index),
+            itemCount: nextBirthdays.length,
+            itemBuilder: (context, index) {
+              final birthday = nextBirthdays[index];
+              return _BaseCard(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  BirthdayFormSheet.show(context, birthdayToEdit: birthday);
+                },
+                child: _BirthdayItem(birthday: birthday),
+              );
+            },
+          ),
+        ),
+        if (nextBirthdays.length > 1) ...[
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              nextBirthdays.length,
+              (index) => Container(
+                margin: const EdgeInsets.symmetric(horizontal: 2),
+                width: _currentPage == index ? 12 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(3),
+                  color:
+                      _currentPage == index
+                          ? colorScheme.primary
+                          : colorScheme.primary.withValues(alpha: 0.3),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _BaseCard extends StatelessWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+
+  const _BaseCard({required this.child, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
-      onTap:
-          nextBirthday != null
-              ? () {
-                HapticFeedback.lightImpact();
-                BirthdayFormSheet.show(context, birthdayToEdit: nextBirthday);
-              }
-              : null,
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.primary.withValues(alpha: 0.3),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
+              color: colorScheme.primary.withValues(alpha: 0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
           gradient: LinearGradient(
@@ -51,68 +133,81 @@ class NextBirthdayCard extends ConsumerWidget {
             colors: [colorScheme.primary, colorScheme.tertiary],
           ),
         ),
-        child: Row(
-          children: [
-            // Avatar avec bordure lumineuse
-            Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: colorScheme.onPrimary.withValues(alpha: 0.4),
-                  width: 1.5,
-                ),
-              ),
-              child: CircleAvatar(
-                radius: 28,
-                backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.2),
-                backgroundImage: backgroundImage,
-                child:
-                    backgroundImage == null
-                        ? Icon(
-                          Icons.cake_outlined,
-                          color: colorScheme.onPrimary,
-                          size: 26,
-                        )
-                        : null,
-              ),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _BirthdayItem extends StatelessWidget {
+  final BirthdayModel birthday;
+
+  const _BirthdayItem({required this.birthday});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    ImageProvider? backgroundImage;
+    if (birthday.picture != null) {
+      try {
+        backgroundImage = MemoryImage(base64Decode(birthday.picture!));
+      } catch (_) {}
+    }
+
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: colorScheme.onPrimary.withValues(alpha: 0.4),
+              width: 1.5,
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _BirthdayContent(
-                birthday: nextBirthday,
-                isLoading: isLoading,
-              ),
-            ),
-            if (nextBirthday != null && !isLoading) ...[
-              const SizedBox(width: 12),
-              // Affichage de l'âge (Premium Look)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    nextBirthday.age.toString(),
-                    style: textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
+          ),
+          child: CircleAvatar(
+            radius: 28,
+            backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.2),
+            backgroundImage: backgroundImage,
+            child:
+                backgroundImage == null
+                    ? Icon(
+                      Icons.cake_outlined,
                       color: colorScheme.onPrimary,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  Text(
-                    context.l10n.yearsOld.toUpperCase(),
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onPrimary.withValues(alpha: 0.8),
-                      fontWeight: FontWeight.w900,
-                      fontSize: 9,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
+                      size: 26,
+                    )
+                    : null,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(child: _BirthdayContent(birthday: birthday, isLoading: false)),
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              birthday.age.toString(),
+              style: textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: colorScheme.onPrimary,
+                letterSpacing: -1,
               ),
-            ],
+            ),
+            Text(
+              context.l10n.yearsOld.toUpperCase(),
+              style: textTheme.labelSmall?.copyWith(
+                color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w900,
+                fontSize: 9,
+                letterSpacing: 0.5,
+              ),
+            ),
           ],
         ),
-      ),
+      ],
     );
   }
 }

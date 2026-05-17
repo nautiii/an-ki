@@ -74,6 +74,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   Navigator.of(dialogContext).pop();
 
+                  if (context.mounted) {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder:
+                          (context) =>
+                              const Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
                   userNotifier.clear();
                   birthdayNotifier.clear();
 

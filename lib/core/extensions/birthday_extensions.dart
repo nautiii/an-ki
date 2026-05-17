@@ -78,12 +78,13 @@ extension BirthdayUpcoming on BirthdayModel {
 }
 
 extension BirthdaySection on List<BirthdayModel> {
-  BirthdayModel? get nextBirthday {
-    return isEmpty
-        ? null
-        : reduce(
-          (BirthdayModel a, BirthdayModel b) =>
-              a.daysUntilNext <= b.daysUntilNext ? a : b,
-        );
+  List<BirthdayModel> get nextBirthdays {
+    if (isEmpty) return [];
+
+    final sorted = List<BirthdayModel>.from(this)
+      ..sort((a, b) => a.daysUntilNext.compareTo(b.daysUntilNext));
+
+    final minDays = sorted.first.daysUntilNext;
+    return sorted.where((b) => b.daysUntilNext == minDays).toList();
   }
 }

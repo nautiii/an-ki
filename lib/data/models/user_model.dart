@@ -28,8 +28,8 @@ class UserModel {
       surname: data['surname'] ?? '',
       pseudo: data['pseudo'],
       categories: List<String>.from(data['categories'] ?? []),
-      isDark: data['isDark'],
-      locale: data['locale'],
+      isDark: data['isDark'] ?? false,
+      locale: data['locale'] ?? 'fr',
     );
   }
 

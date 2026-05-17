@@ -58,26 +58,29 @@ class AuthChoicePage extends ConsumerWidget {
                   _AuthButton(
                     label: context.l10n.loginWithGoogle,
                     icon: Icons.login_rounded,
-                    onPressed: authState.isLoading
-                        ? null
-                        : () => _handleGoogleSignIn(context, ref),
+                    onPressed:
+                        authState.isLoading
+                            ? null
+                            : () => _handleGoogleSignIn(context, ref),
                     isPrimary: true,
                   ),
                   const SizedBox(height: 12),
                   _AuthButton(
                     label: context.l10n.loginWithEmail,
                     icon: Icons.email_outlined,
-                    onPressed: authState.isLoading
-                        ? null
-                        : () => Navigator.of(context).pushNamed('/login'),
+                    onPressed:
+                        authState.isLoading
+                            ? null
+                            : () => Navigator.of(context).pushNamed('/login'),
                   ),
                   const SizedBox(height: 12),
                   _AuthButton(
                     label: context.l10n.continueWithoutAccount,
                     icon: Icons.person_outline_rounded,
-                    onPressed: authState.isLoading
-                        ? null
-                        : () => _handleAnonymousSignIn(context, ref),
+                    onPressed:
+                        authState.isLoading
+                            ? null
+                            : () => _handleAnonymousSignIn(context, ref),
                     isOutlined: true,
                   ),
                   const SizedBox(height: 32),
@@ -89,9 +92,11 @@ class AuthChoicePage extends ConsumerWidget {
                         style: TextStyle(color: colorScheme.onSurfaceVariant),
                       ),
                       TextButton(
-                        onPressed: authState.isLoading
-                            ? null
-                            : () => Navigator.of(context).pushNamed('/signup'),
+                        onPressed:
+                            authState.isLoading
+                                ? null
+                                : () =>
+                                    Navigator.of(context).pushNamed('/signup'),
                         child: Text(
                           context.l10n.signUp,
                           style: TextStyle(
@@ -113,15 +118,7 @@ class AuthChoicePage extends ConsumerWidget {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                 ),
-              if (authState.errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: Text(
-                    authState.errorMessage!,
-                    style: TextStyle(color: colorScheme.error, fontSize: 13),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -201,7 +198,9 @@ class _AuthButton extends StatelessWidget {
           onPressed: onPressed,
           style: OutlinedButton.styleFrom(
             side: BorderSide(color: colorScheme.outlineVariant),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             foregroundColor: colorScheme.onSurface,
           ),
           icon: Icon(icon, size: 20),
@@ -219,10 +218,16 @@ class _AuthButton extends StatelessWidget {
       child: ElevatedButton.icon(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: isPrimary ? colorScheme.primary : colorScheme.surfaceContainerHigh,
-          foregroundColor: isPrimary ? colorScheme.onPrimary : colorScheme.onSurface,
+          backgroundColor:
+              isPrimary
+                  ? colorScheme.primary
+                  : colorScheme.surfaceContainerHigh,
+          foregroundColor:
+              isPrimary ? colorScheme.onPrimary : colorScheme.onSurface,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
         icon: Icon(icon, size: 20),
         label: Text(

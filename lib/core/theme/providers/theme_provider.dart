@@ -5,12 +5,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class ThemeNotifier extends Notifier<ThemeMode> {
   @override
   ThemeMode build() {
-    final isDark = ref.watch(userProvider.select((s) => s.user?.isDark));
+    final userIsDark = ref.read(userProvider).user?.isDark;
 
-    if (isDark == null) {
-      return ThemeMode.system;
+    ref.listen<bool?>(userProvider.select((s) => s.user?.isDark), (
+      previous,
+      next,
+    ) {
+      if (next != null) {
+        state = next ? ThemeMode.dark : ThemeMode.light;
+      }
+    });
+
+    if (userIsDark != null) {
+      return userIsDark ? ThemeMode.dark : ThemeMode.light;
     }
-    return isDark ? ThemeMode.dark : ThemeMode.light;
+
+    final systemIsDark =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+        Brightness.dark;
+    return systemIsDark ? ThemeMode.dark : ThemeMode.light;
   }
 
   bool get isDark =>
