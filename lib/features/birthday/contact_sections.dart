@@ -11,7 +11,7 @@ class ContactSections extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.builder(
       itemCount: birthdays.length,
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: 100), // Espace pour la BottomBar flottante
       itemBuilder: (context, index) {
         return ContactTile(birthday: birthdays[index]);
       },

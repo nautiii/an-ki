@@ -11,6 +11,7 @@ import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/common/bottom_bar.dart';
 import 'contact_sections.dart';
 
 class HomePage extends ConsumerWidget {
@@ -52,7 +53,6 @@ class HomePage extends ConsumerWidget {
           ),
         ),
       ),
-      // bottomNavigationBar: const BottomBar(),
     );
   }
 }

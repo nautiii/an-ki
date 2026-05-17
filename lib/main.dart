@@ -15,6 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'features/home/main_screen.dart';
+
 import 'core/app_initializer.dart';
 
 void main() async {
@@ -50,13 +52,13 @@ class App extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       home:
           authState.isAuthenticated
-              ? const AppInitializer(child: HomePage())
+              ? const AppInitializer(child: MainScreen())
               : const AuthChoicePage(),
       routes: {
         '/auth': (context) => const AuthChoicePage(),
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
-        '/home': (context) => const AppInitializer(child: HomePage()),
+        '/home': (context) => const AppInitializer(child: MainScreen()),
       },
     );
   }
