@@ -116,18 +116,21 @@ class ContactTile extends ConsumerWidget {
                           width: 1,
                         ),
                       ),
-                      child: CircleAvatar(
-                        radius: 26,
-                        backgroundColor: colorScheme.primaryContainer,
-                        backgroundImage: backgroundImage,
-                        child:
-                            backgroundImage == null
-                                ? Icon(
-                                  Icons.person_outline_rounded,
-                                  color: colorScheme.onPrimaryContainer,
-                                  size: 30,
-                                )
-                                : null,
+                      child: Hero(
+                        tag: 'avatar_${birthday.id}',
+                        child: CircleAvatar(
+                          radius: 26,
+                          backgroundColor: colorScheme.primaryContainer,
+                          backgroundImage: backgroundImage,
+                          child:
+                              backgroundImage == null
+                                  ? Icon(
+                                    Icons.person_outline_rounded,
+                                    color: colorScheme.onPrimaryContainer,
+                                    size: 30,
+                                  )
+                                  : null,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),

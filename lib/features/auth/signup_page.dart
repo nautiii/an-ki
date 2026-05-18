@@ -1,3 +1,4 @@
+import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
@@ -115,148 +116,173 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              Text(
-                context.l10n.signUpTitle,
-                style: textTheme.headlineLarge?.copyWith(
-                  color: colorScheme.primary,
+              AnKiFadeIn(
+                delay: const Duration(milliseconds: 100),
+                child: Text(
+                  context.l10n.signUpTitle,
+                  style: textTheme.headlineLarge?.copyWith(
+                    color: colorScheme.primary,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                context.l10n.createAccount,
-                style: textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+              AnKiFadeIn(
+                delay: const Duration(milliseconds: 200),
+                child: Text(
+                  context.l10n.createAccount,
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
-              Row(
-                children: [
-                  Expanded(
-                    child: AnKiTextField(
-                      controller: _nameController,
-                      label: context.l10n.firstName,
-                      prefixIcon: Icons.person_outline_rounded,
-                      enabled: !authState.isLoading,
+              AnKiFadeIn(
+                delay: const Duration(milliseconds: 400),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AnKiTextField(
+                        controller: _nameController,
+                        label: context.l10n.firstName,
+                        prefixIcon: Icons.person_outline_rounded,
+                        enabled: !authState.isLoading,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: AnKiTextField(
-                      controller: _surnameController,
-                      label: context.l10n.lastName,
-                      prefixIcon: Icons.person_outline_rounded,
-                      enabled: !authState.isLoading,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: AnKiTextField(
+                        controller: _surnameController,
+                        label: context.l10n.lastName,
+                        prefixIcon: Icons.person_outline_rounded,
+                        enabled: !authState.isLoading,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              AnKiTextField(
-                controller: _emailController,
-                label: context.l10n.email,
-                prefixIcon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-                enabled: !authState.isLoading,
-              ),
-              const SizedBox(height: 16),
-              AnKiTextField(
-                controller: _passwordController,
-                label: context.l10n.password,
-                prefixIcon: Icons.lock_outline_rounded,
-                obscureText: _obscurePassword,
-                enabled: !authState.isLoading,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                    color: colorScheme.onSurfaceVariant,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
-              AnKiTextField(
-                controller: _confirmPasswordController,
-                label: context.l10n.confirmPassword,
-                prefixIcon: Icons.lock_reset_rounded,
-                obscureText: _obscureConfirmPassword,
-                enabled: !authState.isLoading,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscureConfirmPassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                    color: colorScheme.onSurfaceVariant,
-                    size: 20,
+              AnKiFadeIn(
+                delay: const Duration(milliseconds: 500),
+                child: AnKiTextField(
+                  controller: _emailController,
+                  label: context.l10n.email,
+                  prefixIcon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  enabled: !authState.isLoading,
+                ),
+              ),
+              const SizedBox(height: 16),
+              AnKiFadeIn(
+                delay: const Duration(milliseconds: 600),
+                child: AnKiTextField(
+                  controller: _passwordController,
+                  label: context.l10n.password,
+                  prefixIcon: Icons.lock_outline_rounded,
+                  obscureText: _obscurePassword,
+                  enabled: !authState.isLoading,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: colorScheme.onSurfaceVariant,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() => _obscurePassword = !_obscurePassword);
+                    },
                   ),
-                  onPressed: () {
-                    setState(
-                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                    );
-                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              AnKiFadeIn(
+                delay: const Duration(milliseconds: 700),
+                child: AnKiTextField(
+                  controller: _confirmPasswordController,
+                  label: context.l10n.confirmPassword,
+                  prefixIcon: Icons.lock_reset_rounded,
+                  obscureText: _obscureConfirmPassword,
+                  enabled: !authState.isLoading,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: colorScheme.onSurfaceVariant,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(
+                        () =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword,
+                      );
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: authState.isLoading ? null : _handleSignUp,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+              AnKiFadeIn(
+                delay: const Duration(milliseconds: 850),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: authState.isLoading ? null : _handleSignUp,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
+                    child:
+                        authState.isLoading
+                            ? SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.onPrimary,
+                              ),
+                            )
+                            : Text(
+                              context.l10n.signUpButton,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                   ),
-                  child:
-                      authState.isLoading
-                          ? SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: colorScheme.onPrimary,
-                            ),
-                          )
-                          : Text(
-                            context.l10n.signUpButton,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
                 ),
               ),
               const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    context.l10n.haveAccount,
-                    style: TextStyle(color: colorScheme.onSurfaceVariant),
-                  ),
-                  TextButton(
-                    onPressed:
-                        authState.isLoading
-                            ? null
-                            : () => Navigator.of(
-                              context,
-                            ).pushReplacementNamed('/login'),
-                    child: Text(
-                      context.l10n.signIn,
-                      style: TextStyle(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
+              AnKiFadeIn(
+                delay: const Duration(milliseconds: 1000),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      context.l10n.haveAccount,
+                      style: TextStyle(color: colorScheme.onSurfaceVariant),
+                    ),
+                    TextButton(
+                      onPressed:
+                          authState.isLoading
+                              ? null
+                              : () => Navigator.of(
+                                context,
+                              ).pushReplacementNamed('/login'),
+                      child: Text(
+                        context.l10n.signIn,
+                        style: TextStyle(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
             ],

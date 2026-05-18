@@ -7,7 +7,8 @@ class HomeViewNotifier extends Notifier<HomeViewType> {
   HomeViewType build() => HomeViewType.list;
 
   void toggle() {
-    state = state == HomeViewType.list ? HomeViewType.calendar : HomeViewType.list;
+    state =
+        state == HomeViewType.list ? HomeViewType.calendar : HomeViewType.list;
   }
 }
 

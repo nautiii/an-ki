@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class AnKiTextField extends StatelessWidget {
+class AnKiTextField extends StatefulWidget {
   final TextEditingController controller;
   final String label;
   final IconData prefixIcon;
@@ -25,52 +25,136 @@ class AnKiTextField extends StatelessWidget {
   });
 
   @override
+  State<AnKiTextField> createState() => _AnKiTextFieldState();
+}
+
+class _AnKiTextFieldState extends State<AnKiTextField> {
+  final FocusNode _focusNode = FocusNode();
+  bool _isFocused = false;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      setState(() {
+        _isFocused = _focusNode.hasFocus;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final hasError = _errorText != null;
 
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      enabled: enabled,
-      validator: validator,
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(prefixIcon, color: colorScheme.primary),
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: colorScheme.surfaceContainerLow,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextFormField(
+          controller: widget.controller,
+          focusNode: _focusNode,
+          obscureText: widget.obscureText,
+          keyboardType: widget.keyboardType,
+          enabled: widget.enabled,
+          onChanged: (value) {
+            if (widget.validator != null) {
+              setState(() {
+                _errorText = widget.validator!(value);
+              });
+            }
+            widget.onChanged?.call(value);
+          },
+          validator: (value) {
+            final result = widget.validator?.call(value);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && _errorText != result) {
+                setState(() {
+                  _errorText = result;
+                });
+              }
+            });
+            return result;
+          },
+          decoration: InputDecoration(
+            labelText: widget.label,
+            prefixIcon: Icon(
+              widget.prefixIcon,
+              color:
+                  hasError
+                      ? colorScheme.error
+                      : (_isFocused
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant.withOpacity(0.7)),
+              size: 22,
+            ),
+            suffixIcon: widget.suffixIcon,
+            filled: true,
+            fillColor:
+                _isFocused
+                    ? colorScheme.surface
+                    : colorScheme.surfaceContainerLow,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: colorScheme.outlineVariant.withOpacity(0.5),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: colorScheme.outlineVariant.withOpacity(0.5),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: colorScheme.primary, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: colorScheme.error),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: colorScheme.error, width: 2),
+            ),
+            errorStyle: const TextStyle(height: 0, fontSize: 0),
+          ),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          child:
+              hasError
+                  ? Padding(
+                    padding: const EdgeInsets.only(top: 6, left: 16),
+                    child: Text(
+                      _errorText!,
+                      style: TextStyle(
+                        color: colorScheme.error,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  )
+                  : const SizedBox(width: double.infinity),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: colorScheme.error, width: 1),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: colorScheme.error, width: 1.5),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
-      ),
-      style: TextStyle(
-        color: colorScheme.onSurface,
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-      ),
+      ],
     );
   }
 }

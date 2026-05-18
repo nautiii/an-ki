@@ -208,6 +208,10 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                       child: _ImagePickerButton(
                         imageFile: _selectedImage,
                         initialImageUrl: widget.birthdayToEdit?.picture,
+                        heroTag:
+                            widget.birthdayToEdit != null
+                                ? 'avatar_${widget.birthdayToEdit!.id}'
+                                : null,
                         onTap: _pickImage,
                       ),
                     ),
@@ -384,11 +388,13 @@ class _ImagePickerButton extends StatelessWidget {
     this.imageFile,
     this.initialImageUrl,
     required this.onTap,
+    this.heroTag,
   });
 
   final XFile? imageFile;
   final String? initialImageUrl;
   final VoidCallback onTap;
+  final String? heroTag;
 
   @override
   Widget build(BuildContext context) {
@@ -402,23 +408,29 @@ class _ImagePickerButton extends StatelessWidget {
       } catch (_) {}
     }
 
+    Widget avatar = CircleAvatar(
+      radius: 50,
+      backgroundColor: colorScheme.surfaceContainerHigh,
+      backgroundImage: image,
+      child:
+          image == null
+              ? Icon(
+                Icons.person_rounded,
+                size: 40,
+                color: colorScheme.onSurfaceVariant,
+              )
+              : null,
+    );
+
+    if (heroTag != null) {
+      avatar = Hero(tag: heroTag!, child: avatar);
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Stack(
         children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: colorScheme.surfaceContainerHigh,
-            backgroundImage: image,
-            child:
-                image == null
-                    ? Icon(
-                      Icons.person_rounded,
-                      size: 40,
-                      color: colorScheme.onSurfaceVariant,
-                    )
-                    : null,
-          ),
+          avatar,
           Positioned(
             right: 0,
             bottom: 0,
@@ -427,6 +439,7 @@ class _ImagePickerButton extends StatelessWidget {
               decoration: BoxDecoration(
                 color: colorScheme.primary,
                 shape: BoxShape.circle,
+                border: Border.all(color: colorScheme.surface, width: 2),
               ),
               child: Icon(
                 Icons.camera_alt_rounded,

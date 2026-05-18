@@ -1,3 +1,4 @@
+import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
@@ -22,90 +23,112 @@ class AuthChoicePage extends ConsumerWidget {
             children: [
               const Spacer(),
               // Logo ou Illustration
-              Container(
-                height: 100,
-                width: 100,
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Icon(
-                  Icons.auto_awesome_rounded,
-                  size: 50,
-                  color: colorScheme.primary,
+              AnKiFadeIn(
+                delay: const Duration(milliseconds: 100),
+                child: Container(
+                  height: 100,
+                  width: 100,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Icon(
+                    Icons.auto_awesome_rounded,
+                    size: 50,
+                    color: colorScheme.primary,
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
-              Text(
-                context.l10n.appName,
-                style: textTheme.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
-                  letterSpacing: -1,
+              AnKiFadeIn(
+                delay: const Duration(milliseconds: 300),
+                child: Text(
+                  context.l10n.appName,
+                  style: textTheme.headlineLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                    letterSpacing: -1,
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
-              Text(
-                context.l10n.manageBirthdays,
-                style: textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+              AnKiFadeIn(
+                delay: const Duration(milliseconds: 500),
+                child: Text(
+                  context.l10n.manageBirthdays,
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
               const Spacer(),
               Column(
                 children: [
-                  _AuthButton(
-                    label: context.l10n.loginWithGoogle,
-                    icon: Icons.login_rounded,
-                    onPressed:
-                        authState.isLoading
-                            ? null
-                            : () => _handleGoogleSignIn(context, ref),
-                    isPrimary: true,
+                  AnKiFadeIn(
+                    delay: const Duration(milliseconds: 700),
+                    child: _AuthButton(
+                      label: context.l10n.loginWithGoogle,
+                      icon: Icons.login_rounded,
+                      onPressed:
+                          authState.isLoading
+                              ? null
+                              : () => _handleGoogleSignIn(context, ref),
+                      isPrimary: true,
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  _AuthButton(
-                    label: context.l10n.loginWithEmail,
-                    icon: Icons.email_outlined,
-                    onPressed:
-                        authState.isLoading
-                            ? null
-                            : () => Navigator.of(context).pushNamed('/login'),
+                  AnKiFadeIn(
+                    delay: const Duration(milliseconds: 850),
+                    child: _AuthButton(
+                      label: context.l10n.loginWithEmail,
+                      icon: Icons.email_outlined,
+                      onPressed:
+                          authState.isLoading
+                              ? null
+                              : () => Navigator.of(context).pushNamed('/login'),
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  _AuthButton(
-                    label: context.l10n.continueWithoutAccount,
-                    icon: Icons.person_outline_rounded,
-                    onPressed:
-                        authState.isLoading
-                            ? null
-                            : () => _handleAnonymousSignIn(context, ref),
-                    isOutlined: true,
+                  AnKiFadeIn(
+                    delay: const Duration(milliseconds: 1000),
+                    child: _AuthButton(
+                      label: context.l10n.continueWithoutAccount,
+                      icon: Icons.person_outline_rounded,
+                      onPressed:
+                          authState.isLoading
+                              ? null
+                              : () => _handleAnonymousSignIn(context, ref),
+                      isOutlined: true,
+                    ),
                   ),
                   const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        context.l10n.noAccountYet,
-                        style: TextStyle(color: colorScheme.onSurfaceVariant),
-                      ),
-                      TextButton(
-                        onPressed:
-                            authState.isLoading
-                                ? null
-                                : () =>
-                                    Navigator.of(context).pushNamed('/signup'),
-                        child: Text(
-                          context.l10n.signUp,
-                          style: TextStyle(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.bold,
+                  AnKiFadeIn(
+                    delay: const Duration(milliseconds: 1200),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          context.l10n.noAccountYet,
+                          style: TextStyle(color: colorScheme.onSurfaceVariant),
+                        ),
+                        TextButton(
+                          onPressed:
+                              authState.isLoading
+                                  ? null
+                                  : () => Navigator.of(
+                                    context,
+                                  ).pushNamed('/signup'),
+                          child: Text(
+                            context.l10n.signUp,
+                            style: TextStyle(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),

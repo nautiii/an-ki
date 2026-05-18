@@ -1,3 +1,4 @@
+import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
@@ -209,27 +210,12 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
+                    AnKiTextField(
                       controller: _controller,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      decoration: InputDecoration(
-                        labelText: context.l10n.categoryName,
-                        prefixIcon: Icon(
-                          IconData(
-                            _selectedIconCode,
-                            fontFamily: 'MaterialIcons',
-                          ),
-                          color: colorScheme.primary,
-                        ),
-                        filled: true,
-                        fillColor: colorScheme.surfaceContainerLow,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
+                      label: context.l10n.categoryName,
+                      prefixIcon: IconData(
+                        _selectedIconCode,
+                        fontFamily: 'MaterialIcons',
                       ),
                     ),
                     const SizedBox(height: 24),

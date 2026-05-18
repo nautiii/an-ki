@@ -17,18 +17,24 @@ class MainScreen extends ConsumerWidget {
       body: Stack(
         children: [
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
-            switchInCurve: Curves.easeInOutCubic,
-            switchOutCurve: Curves.easeInOutCubic,
+            duration: const Duration(milliseconds: 500),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
             transitionBuilder: (Widget child, Animation<double> animation) {
               return FadeTransition(
                 opacity: animation,
                 child: SlideTransition(
                   position: Tween<Offset>(
-                    begin: const Offset(0.02, 0),
+                    begin: const Offset(0.01, 0),
                     end: Offset.zero,
                   ).animate(animation),
-                  child: child,
+                  child: ScaleTransition(
+                    scale: Tween<double>(
+                      begin: 0.99,
+                      end: 1.0,
+                    ).animate(animation),
+                    child: child,
+                  ),
                 ),
               );
             },
@@ -37,12 +43,7 @@ class MainScreen extends ConsumerWidget {
               child: _getScreen(selectedTab),
             ),
           ),
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: BottomBar(),
-          ),
+          const Positioned(left: 0, right: 0, bottom: 0, child: BottomBar()),
         ],
       ),
     );

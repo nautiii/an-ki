@@ -167,18 +167,21 @@ class _BirthdayItem extends StatelessWidget {
               width: 1.5,
             ),
           ),
-          child: CircleAvatar(
-            radius: 28,
-            backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.2),
-            backgroundImage: backgroundImage,
-            child:
-                backgroundImage == null
-                    ? Icon(
-                      Icons.cake_outlined,
-                      color: colorScheme.onPrimary,
-                      size: 26,
-                    )
-                    : null,
+          child: Hero(
+            tag: 'avatar_${birthday.id}',
+            child: CircleAvatar(
+              radius: 28,
+              backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.2),
+              backgroundImage: backgroundImage,
+              child:
+                  backgroundImage == null
+                      ? Icon(
+                        Icons.cake_outlined,
+                        color: colorScheme.onPrimary,
+                        size: 26,
+                      )
+                      : null,
+            ),
           ),
         ),
         const SizedBox(width: 16),

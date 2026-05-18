@@ -1,3 +1,4 @@
+import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/locale_provider.dart';
 import 'package:an_ki/core/theme/providers/theme_provider.dart';
@@ -72,8 +73,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   final userNotifier = ref.read(userProvider.notifier);
                   final birthdayNotifier = ref.read(birthdayProvider.notifier);
 
+                  // Fermer le dialogue de confirmation
                   Navigator.of(dialogContext).pop();
 
+                  // Afficher l'overlay de chargement
                   if (context.mounted) {
                     showDialog(
                       context: context,
@@ -84,9 +87,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     );
                   }
 
+                  // Délai pour une transition visuelle fluide
+                  await Future.delayed(const Duration(milliseconds: 600));
+
+                  // Nettoyage simultané des états
                   userNotifier.clear();
                   birthdayNotifier.clear();
 
+                  // Déconnexion finale
                   await authNotifier.signOut();
                 },
                 child: Text(
@@ -173,14 +181,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: TextField(
+            child: AnKiTextField(
               controller: _pseudoController,
-              decoration: InputDecoration(
-                labelText: context.l10n.pseudo,
-                border: const OutlineInputBorder(),
-              ),
+              label: context.l10n.pseudo,
+              prefixIcon: Icons.alternate_email_rounded,
             ),
           ),
+          const SizedBox(height: 8),
           ElevatedButton(
             onPressed: () async {
               final newPseudo = _pseudoController.text.trim();
@@ -188,13 +195,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 await ref.read(userProvider.notifier).updatePseudo(newPseudo);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(context.l10n.pseudoUpdated)),
+                    SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      content: Text(context.l10n.pseudoUpdated),
+                    ),
                   );
                 }
               }
             },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
             child: Text(context.l10n.updatePseudo),
           ),
+          const SizedBox(height: 16),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.contact_page_rounded),
@@ -214,6 +231,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
+                      behavior: SnackBarBehavior.floating,
                       content: Text(
                         count > 0
                             ? context.l10n.contactsImported(count)
@@ -225,7 +243,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(context.l10n.permissionDenied)),
+                    SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      content: Text(context.l10n.permissionDenied),
+                    ),
                   );
                 }
               }
