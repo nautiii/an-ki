@@ -158,9 +158,7 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       state = state.copyWith(isLoading: true, errorMessage: null);
 
-      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate(
-        scopeHint: ['email'],
-      );
+      final googleUser = await _googleSignIn.authenticate(scopeHint: ['email']);
 
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
       final GoogleSignInClientAuthorization authorization = await googleUser
@@ -199,9 +197,7 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       state = state.copyWith(isLoading: true, errorMessage: null);
 
-      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate(
-        scopeHint: ['email'],
-      );
+      final googleUser = await _googleSignIn.authenticate(scopeHint: ['email']);
 
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
       final GoogleSignInClientAuthorization authorization = await googleUser

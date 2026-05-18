@@ -154,185 +154,181 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isCreating = ref.watch(birthdayProvider.select((s) => s.isCreating));
-    final categories = ref.watch(categoriesProvider);
 
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Handle
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colorScheme.outlineVariant,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: colorScheme.outlineVariant,
+                borderRadius: BorderRadius.circular(2),
               ),
+            ),
 
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            widget.birthdayToEdit != null
-                                ? context.l10n.editBirthday
-                                : context.l10n.newBirthday,
-                            style: textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          widget.birthdayToEdit != null
+                              ? context.l10n.editBirthday
+                              : context.l10n.newBirthday,
+                          style: textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
-                          const Spacer(),
+                        ),
+                        const Spacer(),
+                        IconButton.filledTonal(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    Center(
+                      child: _ImagePickerButton(
+                        imageFile: _selectedImage,
+                        initialImageUrl: widget.birthdayToEdit?.picture,
+                        onTap: _pickImage,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    AnKiTextField(
+                      controller: _nameController,
+                      label: context.l10n.firstName,
+                      prefixIcon: Icons.person_outline_rounded,
+                      validator:
+                          (v) =>
+                              v?.isEmpty ?? true
+                                  ? context.l10n.requiredField
+                                  : null,
+                    ),
+                    const SizedBox(height: 16),
+                    AnKiTextField(
+                      controller: _surnameController,
+                      label: context.l10n.lastName,
+                      prefixIcon: Icons.badge_outlined,
+                      validator:
+                          (v) =>
+                              v?.isEmpty ?? true
+                                  ? context.l10n.requiredField
+                                  : null,
+                    ),
+                    const SizedBox(height: 24),
+
+                    Text(
+                      context.l10n.category,
+                      style: textTheme.labelLarge?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _CategorySelector(
+                      categories: ref.watch(userCategoriesProvider),
+                      selectedIds: _selectedCategories,
+                      onChanged: (id) {
+                        setState(() {
+                          if (_selectedCategories.contains(id)) {
+                            _selectedCategories.remove(id);
+                          } else {
+                            _selectedCategories.add(id);
+                          }
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    _DatePickerField(
+                      label: context.l10n.birthDate,
+                      date: _selectedDate,
+                      onTap: () => _showDatePicker(context),
+                    ),
+
+                    const SizedBox(height: 40),
+                    Row(
+                      children: [
+                        if (widget.birthdayToEdit != null) ...[
                           IconButton.filledTonal(
-                            onPressed: () => Navigator.pop(context),
-                            icon: const Icon(Icons.close),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      Center(
-                        child: _ImagePickerButton(
-                          imageFile: _selectedImage,
-                          initialImageUrl: widget.birthdayToEdit?.picture,
-                          onTap: _pickImage,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      AnKiTextField(
-                        controller: _nameController,
-                        label: context.l10n.firstName,
-                        prefixIcon: Icons.person_outline_rounded,
-                        validator:
-                            (v) =>
-                                v?.isEmpty ?? true
-                                    ? context.l10n.requiredField
-                                    : null,
-                      ),
-                      const SizedBox(height: 16),
-                      AnKiTextField(
-                        controller: _surnameController,
-                        label: context.l10n.lastName,
-                        prefixIcon: Icons.badge_outlined,
-                        validator:
-                            (v) =>
-                                v?.isEmpty ?? true
-                                    ? context.l10n.requiredField
-                                    : null,
-                      ),
-                      const SizedBox(height: 24),
-
-                      Text(
-                        context.l10n.category,
-                        style: textTheme.labelLarge?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _CategorySelector(
-                        categories: ref.watch(userCategoriesProvider),
-                        selectedIds: _selectedCategories,
-                        onChanged: (id) {
-                          setState(() {
-                            if (_selectedCategories.contains(id)) {
-                              _selectedCategories.remove(id);
-                            } else {
-                              _selectedCategories.add(id);
-                            }
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 24),
-
-                      _DatePickerField(
-                        label: context.l10n.birthDate,
-                        date: _selectedDate,
-                        onTap: () => _showDatePicker(context),
-                      ),
-
-                      const SizedBox(height: 40),
-                      Row(
-                        children: [
-                          if (widget.birthdayToEdit != null) ...[
-                            IconButton.filledTonal(
-                              onPressed: isCreating ? null : _delete,
-                              style: IconButton.styleFrom(
-                                foregroundColor: colorScheme.error,
-                                backgroundColor: colorScheme.errorContainer
-                                    .withValues(alpha: 0.3),
-                                padding: const EdgeInsets.all(16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
+                            onPressed: isCreating ? null : _delete,
+                            style: IconButton.styleFrom(
+                              foregroundColor: colorScheme.error,
+                              backgroundColor: colorScheme.errorContainer
+                                  .withValues(alpha: 0.3),
+                              padding: const EdgeInsets.all(16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              icon: const Icon(Icons.delete_outline_rounded),
                             ),
-                            const SizedBox(width: 12),
-                          ],
-                          Expanded(
-                            child: FilledButton.icon(
-                              onPressed: isCreating ? null : _save,
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
+                            icon: const Icon(Icons.delete_outline_rounded),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: isCreating ? null : _save,
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 16,
                               ),
-                              icon:
-                                  isCreating
-                                      ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                      : Icon(
-                                        widget.birthdayToEdit != null
-                                            ? Icons.check_rounded
-                                            : Icons.add_rounded,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            icon:
+                                isCreating
+                                    ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
                                       ),
-                              label: Text(
-                                widget.birthdayToEdit != null
-                                    ? context.l10n.save
-                                    : context.l10n.add,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                    )
+                                    : Icon(
+                                      widget.birthdayToEdit != null
+                                          ? Icons.check_rounded
+                                          : Icons.add_rounded,
+                                    ),
+                            label: Text(
+                              widget.birthdayToEdit != null
+                                  ? context.l10n.save
+                                  : context.l10n.add,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

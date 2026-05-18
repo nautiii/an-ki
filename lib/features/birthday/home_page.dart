@@ -44,7 +44,7 @@ class HomePage extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               const _CategoryFilterBar(),
-              SizedBox(height: viewType == HomeViewType.calendar ? 2 : 12),
+              SizedBox(height: 4),
               Expanded(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
@@ -87,10 +87,7 @@ class _HomeContent extends StatelessWidget {
     if (viewType == HomeViewType.calendar) {
       return Align(
         alignment: Alignment.topCenter,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 110),
-          child: const BirthdayCalendar(),
-        ),
+        child: SingleChildScrollView(child: const BirthdayCalendar()),
       );
     }
 

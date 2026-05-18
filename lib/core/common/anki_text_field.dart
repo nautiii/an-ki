@@ -63,16 +63,11 @@ class _AnKiTextFieldState extends State<AnKiTextField> {
           obscureText: widget.obscureText,
           keyboardType: widget.keyboardType,
           enabled: widget.enabled,
-          onChanged: (value) {
-            if (widget.validator != null) {
-              setState(() {
-                _errorText = widget.validator!(value);
-              });
-            }
-            widget.onChanged?.call(value);
-          },
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          onChanged: widget.onChanged,
           validator: (value) {
             final result = widget.validator?.call(value);
+            // On utilise WidgetsBinding pour éviter les erreurs de setState pendant le build
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted && _errorText != result) {
                 setState(() {
