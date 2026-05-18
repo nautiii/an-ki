@@ -67,10 +67,14 @@ class _NextBirthdayCardState extends ConsumerState<NextBirthdayCard> {
             itemCount: nextBirthdays.length,
             itemBuilder: (context, index) {
               final birthday = nextBirthdays[index];
+
               return _BaseCard(
                 onTap: () {
                   HapticFeedback.lightImpact();
-                  BirthdayFormSheet.show(context, birthdayToEdit: birthday);
+                  BirthdayFormSheet.show(
+                    context,
+                    birthdayToEdit: birthday,
+                  );
                 },
                 child: _BirthdayItem(birthday: birthday),
               );
@@ -167,21 +171,18 @@ class _BirthdayItem extends StatelessWidget {
               width: 1.5,
             ),
           ),
-          child: Hero(
-            tag: 'avatar_${birthday.id}',
-            child: CircleAvatar(
-              radius: 28,
-              backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.2),
-              backgroundImage: backgroundImage,
-              child:
-                  backgroundImage == null
-                      ? Icon(
-                        Icons.cake_outlined,
-                        color: colorScheme.onPrimary,
-                        size: 26,
-                      )
-                      : null,
-            ),
+          child: CircleAvatar(
+            radius: 28,
+            backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.2),
+            backgroundImage: backgroundImage,
+            child:
+                backgroundImage == null
+                    ? Icon(
+                      Icons.cake_outlined,
+                      color: colorScheme.onPrimary,
+                      size: 26,
+                    )
+                    : null,
           ),
         ),
         const SizedBox(width: 16),

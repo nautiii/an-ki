@@ -97,7 +97,10 @@ class ContactTile extends ConsumerWidget {
             child: InkWell(
               onTap: () {
                 HapticFeedback.lightImpact();
-                BirthdayFormSheet.show(context, birthdayToEdit: birthday);
+                BirthdayFormSheet.show(
+                  context,
+                  birthdayToEdit: birthday,
+                );
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -116,21 +119,18 @@ class ContactTile extends ConsumerWidget {
                           width: 1,
                         ),
                       ),
-                      child: Hero(
-                        tag: 'avatar_${birthday.id}',
-                        child: CircleAvatar(
-                          radius: 26,
-                          backgroundColor: colorScheme.primaryContainer,
-                          backgroundImage: backgroundImage,
-                          child:
-                              backgroundImage == null
-                                  ? Icon(
-                                    Icons.person_outline_rounded,
-                                    color: colorScheme.onPrimaryContainer,
-                                    size: 30,
-                                  )
-                                  : null,
-                        ),
+                      child: CircleAvatar(
+                        radius: 26,
+                        backgroundColor: colorScheme.primaryContainer,
+                        backgroundImage: backgroundImage,
+                        child:
+                            backgroundImage == null
+                                ? Icon(
+                                  Icons.person_outline_rounded,
+                                  color: colorScheme.onPrimaryContainer,
+                                  size: 30,
+                                )
+                                : null,
                       ),
                     ),
                     const SizedBox(width: 16),
