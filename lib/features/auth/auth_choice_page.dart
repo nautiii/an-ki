@@ -5,11 +5,52 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AuthChoicePage extends ConsumerWidget {
+class AuthChoicePage extends ConsumerStatefulWidget {
   const AuthChoicePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AuthChoicePage> createState() => _AuthChoicePageState();
+}
+
+class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Lancement automatique de la biométrie si disponible
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authState = ref.read(authProvider);
+      if (authState.canUseBiometrics) {
+        _handleBiometricSignIn();
+      }
+    });
+  }
+
+  void _handleBiometricSignIn() async {
+    final authNotifier = ref.read(authProvider.notifier);
+    final success = await authNotifier.signInWithBiometrics(context);
+
+    if (!mounted) return;
+
+    if (!success) {
+      final authState = ref.read(authProvider);
+      // On n'affiche l'erreur que s'il y a un vrai message (pas une annulation manuelle)
+      if (authState.errorMessage != null && authState.errorMessage!.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Text(authState.errorMessage!),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } else {
+      HapticFeedback.mediumImpact();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;

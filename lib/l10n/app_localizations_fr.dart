@@ -344,4 +344,42 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get forgotPassword => 'Mot de passe oublié ?';
+
+  @override
+  String get biometricConnexion => 'Connexion biométrique';
+
+  @override
+  String get biometricConnexionDescription =>
+      'Utiliser votre empreinte digitale pour vous connecter';
+
+  @override
+  String get reconnectToEnableBiometrics =>
+      'Veuillez vous reconnecter une fois pour activer la biométrie';
+
+  @override
+  String get biometricReason =>
+      'Veuillez utiliser votre empreinte digitale pour vous authentifier';
+
+  @override
+  String get noBiometricCredentials =>
+      'Aucun identifiant sauvegardé pour la biométrie';
+
+  @override
+  String get biometricError => 'Erreur lors de l\'authentification biométrique';
+
+  @override
+  String get attention => 'Attention';
+
+  @override
+  String get signOutAnonymousWarning =>
+      'En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?';
+
+  @override
+  String get saveMyData => 'Sauvegarder mes données';
+
+  @override
+  String get dataSavedSuccess => 'Compte sauvegardé avec succès !';
+
+  @override
+  String get deleteAndLeave => 'Supprimer et quitter';
 }

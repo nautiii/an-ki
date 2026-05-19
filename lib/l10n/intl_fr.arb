@@ -136,7 +136,16 @@
   "celebrity": "Célébrité",
   "favorite": "Favori",
   "couple": "Couple",
-  "permissionDenied": "Permission refusée.",
-  "forgotPassword": "Mot de passe oublié ?"
+  "forgotPassword": "Mot de passe oublié ?",
+  "biometricConnexion": "Connexion biométrique",
+  "biometricConnexionDescription": "Utiliser votre empreinte digitale pour vous connecter",
+  "reconnectToEnableBiometrics": "Veuillez vous reconnecter une fois pour activer la biométrie",
+  "biometricReason": "Veuillez utiliser votre empreinte digitale pour vous authentifier",
+  "noBiometricCredentials": "Aucun identifiant sauvegardé pour la biométrie",
+  "biometricError": "Erreur lors de l'authentification biométrique",
+  "attention": "Attention",
+  "signOutAnonymousWarning": "En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?",
+  "saveMyData": "Sauvegarder mes données",
+  "dataSavedSuccess": "Compte sauvegardé avec succès !",
+  "deleteAndLeave": "Supprimer et quitter"
 }
-

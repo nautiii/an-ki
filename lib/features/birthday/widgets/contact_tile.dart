@@ -92,15 +92,25 @@ class ContactTile extends ConsumerWidget {
               size: 28,
             ),
           ),
-          child: Material(
-            color: colorScheme.surfaceContainerHigh,
+          child: Container(
+            // color: colorScheme.surfaceContainerHigh,
+            // color: colorScheme.surfaceContainerHigh,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                stops: [0.65, 1.0],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  colorScheme.surfaceContainer,
+                  colorScheme.surfaceContainerHighest,
+                ],
+              ),
+            ),
             child: InkWell(
+              borderRadius: BorderRadius.circular(20),
               onTap: () {
                 HapticFeedback.lightImpact();
-                BirthdayFormSheet.show(
-                  context,
-                  birthdayToEdit: birthday,
-                );
+                BirthdayFormSheet.show(context, birthdayToEdit: birthday);
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(

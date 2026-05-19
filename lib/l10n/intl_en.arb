@@ -136,7 +136,16 @@
   "celebrity": "Celebrity",
   "favorite": "Favorite",
   "couple": "Couple",
-  "permissionDenied": "Permission denied.",
-  "forgotPassword": "Forgot password?"
+  "forgotPassword": "Forgot password?",
+  "biometricConnexion": "Biometric connexion",
+  "biometricConnexionDescription": "Use your fingerprint to sign in",
+  "reconnectToEnableBiometrics": "Please sign in again once to enable biometrics",
+  "biometricReason": "Please use your fingerprint to authenticate",
+  "noBiometricCredentials": "No credentials saved for biometrics",
+  "biometricError": "Error during biometric authentication",
+  "attention": "Attention",
+  "signOutAnonymousWarning": "By signing out, you will lose all your saved birthdays because you are using a guest account. Do you want to continue?",
+  "saveMyData": "Save my data",
+  "dataSavedSuccess": "Account saved successfully!",
+  "deleteAndLeave": "Delete and leave"
 }
-

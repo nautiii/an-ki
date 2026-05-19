@@ -745,6 +745,72 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Mot de passe oublié ?'**
   String get forgotPassword;
+
+  /// No description provided for @biometricConnexion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion biométrique'**
+  String get biometricConnexion;
+
+  /// No description provided for @biometricConnexionDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utiliser votre empreinte digitale pour vous connecter'**
+  String get biometricConnexionDescription;
+
+  /// No description provided for @reconnectToEnableBiometrics.
+  ///
+  /// In fr, this message translates to:
+  /// **'Veuillez vous reconnecter une fois pour activer la biométrie'**
+  String get reconnectToEnableBiometrics;
+
+  /// No description provided for @biometricReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Veuillez utiliser votre empreinte digitale pour vous authentifier'**
+  String get biometricReason;
+
+  /// No description provided for @noBiometricCredentials.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun identifiant sauvegardé pour la biométrie'**
+  String get noBiometricCredentials;
+
+  /// No description provided for @biometricError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors de l\'authentification biométrique'**
+  String get biometricError;
+
+  /// No description provided for @attention.
+  ///
+  /// In fr, this message translates to:
+  /// **'Attention'**
+  String get attention;
+
+  /// No description provided for @signOutAnonymousWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?'**
+  String get signOutAnonymousWarning;
+
+  /// No description provided for @saveMyData.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvegarder mes données'**
+  String get saveMyData;
+
+  /// No description provided for @dataSavedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte sauvegardé avec succès !'**
+  String get dataSavedSuccess;
+
+  /// No description provided for @deleteAndLeave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer et quitter'**
+  String get deleteAndLeave;
 }
 
 class _AppLocalizationsDelegate

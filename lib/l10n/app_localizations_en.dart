@@ -340,4 +340,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get biometricConnexion => 'Biometric connexion';
+
+  @override
+  String get biometricConnexionDescription => 'Use your fingerprint to sign in';
+
+  @override
+  String get reconnectToEnableBiometrics =>
+      'Please sign in again once to enable biometrics';
+
+  @override
+  String get biometricReason => 'Please use your fingerprint to authenticate';
+
+  @override
+  String get noBiometricCredentials => 'No credentials saved for biometrics';
+
+  @override
+  String get biometricError => 'Error during biometric authentication';
+
+  @override
+  String get attention => 'Attention';
+
+  @override
+  String get signOutAnonymousWarning =>
+      'By signing out, you will lose all your saved birthdays because you are using a guest account. Do you want to continue?';
+
+  @override
+  String get saveMyData => 'Save my data';
+
+  @override
+  String get dataSavedSuccess => 'Account saved successfully!';
+
+  @override
+  String get deleteAndLeave => 'Delete and leave';
 }

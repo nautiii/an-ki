@@ -1,6 +1,7 @@
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/locale_provider.dart';
+import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/theme/providers/theme_provider.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
@@ -18,12 +19,23 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _pseudoController;
+  bool _isBiometricAvailable = false;
 
   @override
   void initState() {
     super.initState();
     final user = ref.read(userProvider).user;
     _pseudoController = TextEditingController(text: user?.pseudo);
+    _checkBiometrics();
+  }
+
+  Future<void> _checkBiometrics() async {
+    final available = await BiometricService.instance.canAuthenticate();
+    if (mounted) {
+      setState(() {
+        _isBiometricAvailable = available;
+      });
+    }
   }
 
   @override
@@ -40,10 +52,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder:
           (dialogContext) => AlertDialog(
-            title: Text(isAnonymous ? "Attention" : dialogContext.l10n.signOut),
+            title: Text(isAnonymous ? dialogContext.l10n.attention : dialogContext.l10n.signOut),
             content: Text(
               isAnonymous
-                  ? "En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?"
+                  ? dialogContext.l10n.signOutAnonymousWarning
                   : dialogContext.l10n.signOutConfirmation,
             ),
             actions: [
@@ -59,13 +71,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         await ref.read(authProvider.notifier).linkWithGoogle();
                     if (success && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Compte sauvegardé avec succès !"),
+                        SnackBar(
+                          content: Text(context.l10n.dataSavedSuccess),
                         ),
                       );
                     }
                   },
-                  child: const Text("Sauvegarder mes données"),
+                  child: Text(context.l10n.saveMyData),
                 ),
               TextButton(
                 onPressed: () async {
@@ -81,9 +93,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     showDialog(
                       context: context,
                       barrierDismissible: false,
-                      builder:
-                          (context) =>
-                              const Center(child: CircularProgressIndicator()),
+                      builder: (context) => const Center(
+                        child: CircularProgressIndicator(),
+                      ),
                     );
                   }
 
@@ -99,7 +111,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 },
                 child: Text(
                   isAnonymous
-                      ? "Supprimer et quitter"
+                      ? dialogContext.l10n.deleteAndLeave
                       : dialogContext.l10n.signOut,
                   style: const TextStyle(color: Colors.red),
                 ),
@@ -173,6 +185,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentLocale = ref.watch(localeProvider);
+    final authState = ref.watch(authProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settings)),
@@ -213,6 +226,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: 16),
           const Divider(),
+          if (_isBiometricAvailable) ...[
+            SwitchListTile(
+              title: Text(context.l10n.biometricConnexion),
+              subtitle: Text(context.l10n.biometricConnexionDescription),
+              secondary: const Icon(Icons.fingerprint_rounded),
+              value: authState.canUseBiometrics,
+              onChanged: (bool value) async {
+                if (value) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(context.l10n.reconnectToEnableBiometrics)),
+                  );
+                  await ref.read(authProvider.notifier).enableBiometrics("", "");
+                } else {
+                  await ref.read(authProvider.notifier).disableBiometrics();
+                }
+              },
+            ),
+            const Divider(),
+          ],
           ListTile(
             leading: const Icon(Icons.contact_page_rounded),
             title: Text(context.l10n.importContacts),
