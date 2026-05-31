@@ -49,8 +49,8 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
           ]);
         }
         NotificationService.instance.requestPermissions().then((granted) {
-          if (granted) {
-            NotificationService.instance.showTestNotification();
+          if (!granted) {
+            debugPrint('[AppInitializer] Permission de notifications refusée ou non accordée complètement.');
           }
         });
       }

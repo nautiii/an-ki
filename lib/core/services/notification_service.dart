@@ -1,6 +1,7 @@
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/data/models/birthday_model.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
@@ -37,7 +38,10 @@ class NotificationService {
     try {
       final tzInfo = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(tzInfo.identifier));
-    } catch (_) {
+    } catch (e) {
+      debugPrint(
+        '[NotificationService] Erreur lors du chargement de la timezone : $e',
+      );
       tz.setLocalLocation(tz.UTC);
     }
 
@@ -69,30 +73,36 @@ class NotificationService {
 
     bool granted = false;
 
-    final android =
-        _plugin
-            .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin
-            >();
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final android =
+          _plugin
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
 
-    if (android != null) {
-      final notifGranted =
-          await android.requestNotificationsPermission() ?? false;
-      final exactGranted =
-          await android.requestExactAlarmsPermission() ?? false;
-      granted = notifGranted && exactGranted;
-    }
+      if (android != null) {
+        final notifGranted =
+            await android.requestNotificationsPermission() ?? false;
+        final exactGranted =
+            await android.requestExactAlarmsPermission() ?? false;
+        granted = notifGranted && exactGranted;
+      }
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      final ios =
+          _plugin
+              .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin
+              >();
 
-    final ios =
-        _plugin
-            .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin
-            >();
-
-    if (ios != null) {
-      granted =
-          await ios.requestPermissions(alert: true, badge: true, sound: true) ??
-          false;
+      if (ios != null) {
+        granted =
+            await ios.requestPermissions(
+              alert: true,
+              badge: true,
+              sound: true,
+            ) ??
+            false;
+      }
     }
 
     return granted;
@@ -104,6 +114,7 @@ class NotificationService {
   Future<void> scheduleAll(List<BirthdayModel> birthdays) async {
     if (!_initialized) return;
 
+    // On annule tout pour éviter les doublons ou les notifications orphelines
     await _plugin.cancelAll();
 
     for (final birthday in birthdays) {
@@ -112,15 +123,26 @@ class NotificationService {
     }
 
     debugPrint(
-      '[NotificationService] ${birthdays.length} notification(s) planifiée(s).',
+      '[NotificationService] ${birthdays.length} anniversaire(s) traité(s).',
     );
   }
 
   Future<void> _scheduleBirthdayNotification(BirthdayModel birthday) async {
     try {
       DateTime next = birthday.nextOccurrence;
+
+      // Si l'anniversaire est aujourd'hui
+      final bool isToday = DateUtils.isSameDay(next, DateTime.now());
+
+      if (isToday) {
+        // Envoi immédiat pour le test si c'est aujourd'hui
+        await _showImmediateBirthdayNotification(birthday);
+      }
+
+      // Planification standard
       tz.TZDateTime scheduledDate = _tzAt(next, _notificationHour);
 
+      // Si l'heure prévue pour aujourd'hui est déjà passée, on passe à l'année prochaine
       if (scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
         next = DateTime(next.year + 1, next.month, next.day);
         scheduledDate = _tzAt(next, _notificationHour);
@@ -136,6 +158,7 @@ class NotificationService {
         scheduledDate: scheduledDate,
         notificationDetails: _notificationDetails(),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.dateAndTime,
       );
     } catch (e) {
       debugPrint(
@@ -154,9 +177,9 @@ class NotificationService {
       tz.TZDateTime scheduledDate = _tzAt(reminderDate, _notificationHour);
 
       if (scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
+        // Si le rappel de cette année est passé, on planifie celui de l'année prochaine
         next = DateTime(next.year + 1, next.month, next.day);
         reminderDate = next.subtract(const Duration(days: 7));
-
         scheduledDate = _tzAt(reminderDate, _notificationHour);
       }
 
@@ -170,12 +193,26 @@ class NotificationService {
         scheduledDate: scheduledDate,
         notificationDetails: _notificationDetails(),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.dateAndTime,
       );
     } catch (e) {
       debugPrint(
         '[NotificationService] Impossible de planifier rappel ${birthday.id}: $e',
       );
     }
+  }
+
+  Future<void> _showImmediateBirthdayNotification(
+    BirthdayModel birthday,
+  ) async {
+    final int ageAtBirthday = DateTime.now().year - birthday.date.year;
+
+    await _plugin.show(
+      id: _notificationId(birthday.id) + 1000000,
+      title: '🎂 C\'est aujourd\'hui !',
+      body: 'Joyeux anniversaire à ${birthday.name} (${ageAtBirthday} ans) !',
+      notificationDetails: _notificationDetails(),
+    );
   }
 
   // ── Utilitaires ───────────────────────────────────────────────────────────
@@ -193,9 +230,9 @@ class NotificationService {
         _channelId,
         _channelName,
         channelDescription: _channelDescription,
-        importance: Importance.high,
+        importance: Importance.max,
         priority: Priority.high,
-        icon: '@mipmap/launcher_icon',
+        showWhen: true,
       ),
       iOS: const DarwinNotificationDetails(
         presentAlert: true,
@@ -207,35 +244,4 @@ class NotificationService {
 
   int _reminderNotificationId(String birthdayId) =>
       (_notificationId(birthdayId) + 500000);
-
-  // ── Test ──────────────────────────────────────────────────────────────────
-
-  /// Affiche une notification immédiate pour tester le fonctionnement.
-  Future<void> showTestNotification() async {
-    if (!_initialized) return;
-
-    const androidDetails = AndroidNotificationDetails(
-      _channelId,
-      _channelName,
-      channelDescription: _channelDescription,
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    await _plugin.show(
-      id: 999,
-      title: 'Test AnKi 🎂',
-      body: 'Si vous voyez ceci, les notifications fonctionnent !',
-      notificationDetails: const NotificationDetails(
-        android: androidDetails,
-        iOS: iosDetails,
-      ),
-    );
-  }
 }

@@ -21,6 +21,7 @@ avec un niveau de qualité "Production-Ready".
 
 ## Comportement de l'IA
 
+* **Langue** : Répondre exclusivement en anglais.
 * **Concision** : Pas de blabla inutile. Le code doit parler de lui-même.
 * **Proactivité** : Si une demande utilisateur introduit un bug UI (ex : bordures arrondies et
   Dismissible), proposez et appliquez la correction "Senior" immédiatement.
