@@ -223,8 +223,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
               const SizedBox(height: 32),
               AnKiFadeIn(
                 delay: const Duration(milliseconds: 850),
-                child: SizedBox(
-                  width: double.infinity,
+                child: Center(
+               child: SizedBox(
+                  width: 280,
                   height: 56,
                   child: ElevatedButton(
                     onPressed: authState.isLoading ? null : _handleSignUp,
@@ -233,7 +234,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                       foregroundColor: colorScheme.onPrimary,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(28),
                       ),
                     ),
                     child:
@@ -255,6 +256,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                             ),
                   ),
                 ),
+             ),
               ),
               const SizedBox(height: 24),
               AnKiFadeIn(

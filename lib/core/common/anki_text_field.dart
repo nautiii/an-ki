@@ -100,27 +100,27 @@ class _AnKiTextFieldState extends State<AnKiTextField> {
               vertical: 16,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(28),
               borderSide: BorderSide(
                 color: colorScheme.outlineVariant.withOpacity(0.5),
               ),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(28),
               borderSide: BorderSide(
                 color: colorScheme.outlineVariant.withOpacity(0.5),
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(28),
               borderSide: BorderSide(color: colorScheme.primary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(28),
               borderSide: BorderSide(color: colorScheme.error),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(28),
               borderSide: BorderSide(color: colorScheme.error, width: 2),
             ),
             errorStyle: const TextStyle(height: 0, fontSize: 0),

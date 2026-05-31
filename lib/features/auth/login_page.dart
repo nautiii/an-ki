@@ -52,7 +52,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         SnackBar(
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
           content: Text(authState.errorMessage ?? context.l10n.connectionError),
           backgroundColor: Theme.of(context).colorScheme.error,
@@ -156,8 +156,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               const SizedBox(height: 32),
               AnKiFadeIn(
                 delay: const Duration(milliseconds: 800),
-                child: SizedBox(
-                  width: double.infinity,
+                child: Center(
+               child: SizedBox(
+                  width: 280,
                   height: 56,
                   child: ElevatedButton(
                     onPressed: authState.isLoading ? null : _handleSignIn,
@@ -166,7 +167,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       foregroundColor: colorScheme.onPrimary,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(28),
                       ),
                     ),
                     child:
@@ -188,6 +189,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                   ),
                 ),
+             ),
               ),
               const SizedBox(height: 24),
               AnKiFadeIn(

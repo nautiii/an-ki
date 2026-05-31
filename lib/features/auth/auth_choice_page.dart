@@ -34,11 +34,14 @@ class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
     if (!success) {
       final authState = ref.read(authProvider);
       // On n'affiche l'erreur que s'il y a un vrai message (pas une annulation manuelle)
-      if (authState.errorMessage != null && authState.errorMessage!.isNotEmpty) {
+      if (authState.errorMessage != null &&
+          authState.errorMessage!.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             content: Text(authState.errorMessage!),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
@@ -66,21 +69,12 @@ class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
               // Logo ou Illustration
               AnKiFadeIn(
                 delay: const Duration(milliseconds: 100),
-                child: Container(
-                  height: 100,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Icon(
-                    Icons.auto_awesome_rounded,
-                    size: 50,
-                    color: colorScheme.primary,
-                  ),
+                child: SizedBox(
+                  height: 220,
+                  width: 220,
+                  child: Image.asset('lib/assets/icon.png', fit: BoxFit.fill),
                 ),
               ),
-              const SizedBox(height: 32),
               AnKiFadeIn(
                 delay: const Duration(milliseconds: 300),
                 child: Text(
@@ -254,53 +248,49 @@ class _AuthButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    if (isOutlined) {
-      return SizedBox(
-        width: double.infinity,
+    return Center(
+      child: SizedBox(
+        width: 280,
         height: 56,
-        child: OutlinedButton.icon(
-          onPressed: onPressed,
-          style: OutlinedButton.styleFrom(
-            side: BorderSide(color: colorScheme.outlineVariant),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            foregroundColor: colorScheme.onSurface,
-          ),
-          icon: Icon(icon, size: 20),
-          label: Text(
-            label,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-          ),
-        ),
-      );
-    }
-
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor:
-              isPrimary
-                  ? colorScheme.primary
-                  : colorScheme.surfaceContainerHigh,
-          foregroundColor:
-              isPrimary ? colorScheme.onPrimary : colorScheme.onSurface,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        icon: Icon(icon, size: 20),
-        label: Text(
-          label,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: isPrimary ? FontWeight.bold : FontWeight.w600,
-          ),
-        ),
+        child: isOutlined
+            ? OutlinedButton.icon(
+                onPressed: onPressed,
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: colorScheme.outlineVariant),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                  foregroundColor: colorScheme.onSurface,
+                ),
+                icon: Icon(icon, size: 20),
+                label: Text(
+                  label,
+                  style:
+                      const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
+              )
+            : ElevatedButton.icon(
+                onPressed: onPressed,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isPrimary
+                      ? colorScheme.primary
+                      : colorScheme.surfaceContainerHigh,
+                  foregroundColor:
+                      isPrimary ? colorScheme.onPrimary : colorScheme.onSurface,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                ),
+                icon: Icon(icon, size: 20),
+                label: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: isPrimary ? FontWeight.bold : FontWeight.w600,
+                  ),
+                ),
+              ),
       ),
     );
   }
