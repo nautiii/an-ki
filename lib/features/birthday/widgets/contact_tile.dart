@@ -93,11 +93,9 @@ class ContactTile extends ConsumerWidget {
             ),
           ),
           child: Container(
-            // color: colorScheme.surfaceContainerHigh,
-            // color: colorScheme.surfaceContainerHigh,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                stops: [0.65, 1.0],
+                stops: [0.6, 1.0],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
                 colors: [
@@ -196,7 +194,7 @@ class ContactTile extends ConsumerWidget {
                                             color: colorScheme.primaryContainer
                                                 .withValues(alpha: 0.7),
                                             borderRadius: BorderRadius.circular(
-                                              10,
+                                              28,
                                             ),
                                             border: Border.all(
                                               color: colorScheme.primary

@@ -147,5 +147,15 @@
   "signOutAnonymousWarning": "En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?",
   "saveMyData": "Sauvegarder mes données",
   "dataSavedSuccess": "Compte sauvegardé avec succès !",
-  "deleteAndLeave": "Supprimer et quitter"
+  "deleteAndLeave": "Supprimer et quitter",
+  "biometricEnabled": "Connexion biométrique activée !",
+  "biometricDisabled": "Connexion biométrique désactivée.",
+  "errorWeakPassword": "Le mot de passe est trop faible.",
+  "errorEmailAlreadyInUse": "Cet email est déjà utilisé.",
+  "errorInvalidEmail": "L'email n'est pas valide.",
+  "errorUserNotFound": "Utilisateur non trouvé.",
+  "errorWrongPassword": "Mot de passe incorrect.",
+  "errorUnknown": "Une erreur est survenue.",
+  "errorGoogleLogin": "Erreur lors de la connexion Google",
+  "deleteAccountError": "Erreur lors de la suppression du compte"
 }

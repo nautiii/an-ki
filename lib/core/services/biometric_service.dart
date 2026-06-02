@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:uuid/uuid.dart';
 
 class BiometricService {
   BiometricService._();
@@ -8,84 +9,69 @@ class BiometricService {
   static final BiometricService instance = BiometricService._();
 
   final LocalAuthentication _auth = LocalAuthentication();
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
 
-  static const String _biometricEnabledKey = 'biometric_enabled';
-  static const String _userEmailKey = 'saved_user_email';
-  static const String _userPasswordKey = 'saved_user_password';
-  static const String _authMethodKey = 'auth_method'; // 'email' or 'google'
+  static const String _biometricTokenKey = 'biometric_auth_token';
+  static const String _userIdKey = 'biometric_user_id';
 
-  Future<bool> canAuthenticate() async {
+  /// Vérifie si l'authentification par empreinte digitale est disponible.
+  Future<bool> canUseFingerprint() async {
     try {
       final bool isSupported = await _auth.isDeviceSupported();
       if (!isSupported) return false;
 
       final bool canCheck = await _auth.canCheckBiometrics;
+      if (!canCheck) return false;
+
       final List<BiometricType> availableBiometrics =
           await _auth.getAvailableBiometrics();
 
-      // Sur les versions récentes d'Android, les types précis (fingerprint/face) 
-      // sont souvent masqués derrière les catégories de sécurité 'strong' ou 'weak'.
-      // L'empreinte digitale est quasiment toujours classée en 'strong'.
-      return canCheck && (
-          availableBiometrics.contains(BiometricType.fingerprint) ||
-          availableBiometrics.contains(BiometricType.strong)
-      );
+      // On cible uniquement les empreintes (souvent classées en 'strong' sur Android 12+)
+      return availableBiometrics.contains(BiometricType.fingerprint) ||
+          availableBiometrics.contains(BiometricType.strong);
     } on PlatformException {
       return false;
     }
   }
 
-  Future<bool> authenticate(String localizedReason) async {
+  /// Lance l'authentification biométrique (Empreinte uniquement, pas de PIN).
+  Future<bool> authenticate() async {
     try {
-      final bool authenticated = await _auth.authenticate(
-        localizedReason: localizedReason,
+      return await _auth.authenticate(
+        localizedReason: 'Veuillez scanner votre empreinte pour vous connecter',
+        biometricOnly: true,
       );
-      return authenticated;
     } on PlatformException {
       return false;
-    } catch (e) {
-      return false;
     }
   }
 
-  Future<void> setBiometricEnabled(bool enabled) async {
-    await _storage.write(key: _biometricEnabledKey, value: enabled.toString());
+  /// Génère un nouveau token unique.
+  String generateToken() {
+    return const Uuid().v4();
   }
 
-  Future<bool> isBiometricEnabled() async {
-    final String? value = await _storage.read(key: _biometricEnabledKey);
-    return value == 'true';
+  /// Enregistre le token et l'ID utilisateur dans le stockage sécurisé.
+  Future<void> saveBiometricData(String userId, String token) async {
+    await _storage.write(key: _biometricTokenKey, value: token);
+    await _storage.write(key: _userIdKey, value: userId);
   }
 
-  Future<void> saveCredentials(String email, String password) async {
-    await _storage.write(key: _userEmailKey, value: email);
-    await _storage.write(key: _userPasswordKey, value: password);
-    await _storage.write(key: _authMethodKey, value: 'email');
+  /// Récupère le token stocké localement.
+  Future<String?> getStoredToken() async {
+    return await _storage.read(key: _biometricTokenKey);
   }
 
-  Future<void> saveGoogleAuthMarker() async {
-    await _storage.write(key: _authMethodKey, value: 'google');
+  /// Récupère l'ID utilisateur associé au token.
+  Future<String?> getStoredUserId() async {
+    return await _storage.read(key: _userIdKey);
   }
 
-  Future<String?> getAuthMethod() async {
-    return await _storage.read(key: _authMethodKey);
-  }
-
-  Future<Map<String, String>?> getCredentials() async {
-    final String? email = await _storage.read(key: _userEmailKey);
-    final String? password = await _storage.read(key: _userPasswordKey);
-
-    if (email != null && password != null) {
-      return {'email': email, 'password': password};
-    }
-    return null;
-  }
-
-  Future<void> clearCredentials() async {
-    await _storage.delete(key: _userEmailKey);
-    await _storage.delete(key: _userPasswordKey);
-    await _storage.delete(key: _authMethodKey);
-    await _storage.delete(key: _biometricEnabledKey);
+  /// Supprime les données biométriques locales.
+  Future<void> clearBiometricData() async {
+    await _storage.delete(key: _biometricTokenKey);
+    await _storage.delete(key: _userIdKey);
   }
 }

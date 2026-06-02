@@ -382,4 +382,34 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get deleteAndLeave => 'Supprimer et quitter';
+
+  @override
+  String get biometricEnabled => 'Connexion biométrique activée !';
+
+  @override
+  String get biometricDisabled => 'Connexion biométrique désactivée.';
+
+  @override
+  String get errorWeakPassword => 'Le mot de passe est trop faible.';
+
+  @override
+  String get errorEmailAlreadyInUse => 'Cet email est déjà utilisé.';
+
+  @override
+  String get errorInvalidEmail => 'L\'email n\'est pas valide.';
+
+  @override
+  String get errorUserNotFound => 'Utilisateur non trouvé.';
+
+  @override
+  String get errorWrongPassword => 'Mot de passe incorrect.';
+
+  @override
+  String get errorUnknown => 'Une erreur est survenue.';
+
+  @override
+  String get errorGoogleLogin => 'Erreur lors de la connexion Google';
+
+  @override
+  String get deleteAccountError => 'Erreur lors de la suppression du compte';
 }

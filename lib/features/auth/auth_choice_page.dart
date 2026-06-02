@@ -27,7 +27,7 @@ class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
 
   void _handleBiometricSignIn() async {
     final authNotifier = ref.read(authProvider.notifier);
-    final success = await authNotifier.signInWithBiometrics(context);
+    final success = await authNotifier.signInWithBiometricToken(context.l10n);
 
     if (!mounted) return;
 
@@ -187,7 +187,7 @@ class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
   void _handleGoogleSignIn(BuildContext context, WidgetRef ref) async {
     HapticFeedback.lightImpact();
     final authNotifier = ref.read(authProvider.notifier);
-    final success = await authNotifier.signInWithGoogle();
+    final success = await authNotifier.signInWithGoogle(context.l10n);
     if (!context.mounted) return;
 
     if (!success) {
@@ -209,7 +209,7 @@ class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
   void _handleAnonymousSignIn(BuildContext context, WidgetRef ref) async {
     HapticFeedback.lightImpact();
     final authNotifier = ref.read(authProvider.notifier);
-    final success = await authNotifier.signInAnonymously();
+    final success = await authNotifier.signInAnonymously(context.l10n);
     if (!context.mounted) return;
 
     if (!success) {
@@ -252,45 +252,51 @@ class _AuthButton extends StatelessWidget {
       child: SizedBox(
         width: 280,
         height: 56,
-        child: isOutlined
-            ? OutlinedButton.icon(
-                onPressed: onPressed,
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: colorScheme.outlineVariant),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
+        child:
+            isOutlined
+                ? OutlinedButton.icon(
+                  onPressed: onPressed,
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: colorScheme.outlineVariant),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    foregroundColor: colorScheme.onSurface,
                   ),
-                  foregroundColor: colorScheme.onSurface,
-                ),
-                icon: Icon(icon, size: 20),
-                label: Text(
-                  label,
-                  style:
-                      const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                ),
-              )
-            : ElevatedButton.icon(
-                onPressed: onPressed,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isPrimary
-                      ? colorScheme.primary
-                      : colorScheme.surfaceContainerHigh,
-                  foregroundColor:
-                      isPrimary ? colorScheme.onPrimary : colorScheme.onSurface,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
+                  icon: Icon(icon, size: 20),
+                  label: Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                )
+                : ElevatedButton.icon(
+                  onPressed: onPressed,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        isPrimary
+                            ? colorScheme.primary
+                            : colorScheme.surfaceContainerHigh,
+                    foregroundColor:
+                        isPrimary
+                            ? colorScheme.onPrimary
+                            : colorScheme.onSurface,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                  ),
+                  icon: Icon(icon, size: 20),
+                  label: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: isPrimary ? FontWeight.bold : FontWeight.w600,
+                    ),
                   ),
                 ),
-                icon: Icon(icon, size: 20),
-                label: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: isPrimary ? FontWeight.bold : FontWeight.w600,
-                  ),
-                ),
-              ),
       ),
     );
   }

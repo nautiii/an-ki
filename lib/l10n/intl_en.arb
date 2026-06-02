@@ -147,5 +147,15 @@
   "signOutAnonymousWarning": "By signing out, you will lose all your saved birthdays because you are using a guest account. Do you want to continue?",
   "saveMyData": "Save my data",
   "dataSavedSuccess": "Account saved successfully!",
-  "deleteAndLeave": "Delete and leave"
+  "deleteAndLeave": "Delete and leave",
+  "biometricEnabled": "Biometric login enabled!",
+  "biometricDisabled": "Biometric login disabled.",
+  "errorWeakPassword": "The password is too weak.",
+  "errorEmailAlreadyInUse": "This email is already in use.",
+  "errorInvalidEmail": "The email is not valid.",
+  "errorUserNotFound": "User not found.",
+  "errorWrongPassword": "Incorrect password.",
+  "errorUnknown": "An error occurred.",
+  "errorGoogleLogin": "Google login error",
+  "deleteAccountError": "Error during account deletion"
 }

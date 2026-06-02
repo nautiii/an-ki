@@ -70,6 +70,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
       password: _passwordController.text,
       name: _nameController.text.trim(),
       surname: _surnameController.text.trim(),
+      l10n: context.l10n,
     );
 
     if (!mounted) return;
@@ -224,39 +225,39 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
               AnKiFadeIn(
                 delay: const Duration(milliseconds: 850),
                 child: Center(
-               child: SizedBox(
-                  width: 280,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: authState.isLoading ? null : _handleSignUp,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
+                  child: SizedBox(
+                    width: 280,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: authState.isLoading ? null : _handleSignUp,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
                       ),
+                      child:
+                          authState.isLoading
+                              ? SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.onPrimary,
+                                ),
+                              )
+                              : Text(
+                                context.l10n.signUpButton,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                     ),
-                    child:
-                        authState.isLoading
-                            ? SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: colorScheme.onPrimary,
-                              ),
-                            )
-                            : Text(
-                              context.l10n.signUpButton,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
                   ),
                 ),
-             ),
               ),
               const SizedBox(height: 24),
               AnKiFadeIn(

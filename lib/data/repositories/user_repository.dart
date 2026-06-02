@@ -29,6 +29,21 @@ class UserRepository {
     await _users.doc(user.id).update(user.toJson());
   }
 
+  Future<void> updateBiometricToken(String uid, String? token) async {
+    await _users.doc(uid).update({'biometricToken': token});
+  }
+
+  Future<UserModel?> fetchUserByToken(String uid, String token) async {
+    final doc = await _users.doc(uid).get();
+    if (!doc.exists) return null;
+
+    final user = UserModel.fromFirestore(doc);
+    if (user.biometricToken == token) {
+      return user;
+    }
+    return null;
+  }
+
   Future<void> deleteUser(String uid) async {
     await _users.doc(uid).delete();
   }

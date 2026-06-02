@@ -25,13 +25,13 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
         final userNotifier = ref.read(userProvider.notifier);
         final birthdayNotifier = ref.read(birthdayProvider.notifier);
 
-        if (authState.user != null) {
-          final uid = authState.user!.uid;
+        final uid = authState.uid;
 
+        if (uid != null) {
           Future.wait([
             userNotifier.loadUser(uid).then((_) async {
               final userState = ref.read(userProvider);
-              if (userState.user == null) {
+              if (userState.user == null && authState.user != null) {
                 final displayName = authState.user!.displayName ?? "";
                 final parts = displayName.split(" ");
 
@@ -50,7 +50,9 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
         }
         NotificationService.instance.requestPermissions().then((granted) {
           if (!granted) {
-            debugPrint('[AppInitializer] Permission de notifications refusée ou non accordée complètement.');
+            debugPrint(
+              '[AppInitializer] Permission de notifications refusée ou non accordée complètement.',
+            );
           }
         });
       }

@@ -196,7 +196,7 @@ class _CalendarGrid extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -300,7 +300,7 @@ class _CalendarDayCell extends StatelessWidget {
           border:
               isToday
                   ? Border.all(
-                    color: colorScheme.primary.withOpacity(0.5),
+                    color: colorScheme.primary.withValues(alpha: 0.5),
                     width: 1.5,
                   )
                   : null,
@@ -344,7 +344,7 @@ class _CalendarDayCell extends StatelessWidget {
                             boxShadow: [
                               BoxShadow(
                                 color: (category?.color ?? colorScheme.primary)
-                                    .withOpacity(0.3),
+                                    .withValues(alpha: 0.3),
                                 blurRadius: 2,
                                 spreadRadius: 0.5,
                               ),

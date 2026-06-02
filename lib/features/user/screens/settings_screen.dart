@@ -30,7 +30,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _checkBiometrics() async {
-    final available = await BiometricService.instance.canAuthenticate();
+    final available = await BiometricService.instance.canUseFingerprint();
     if (mounted) {
       setState(() {
         _isBiometricAvailable = available;
@@ -52,7 +52,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder:
           (dialogContext) => AlertDialog(
-            title: Text(isAnonymous ? dialogContext.l10n.attention : dialogContext.l10n.signOut),
+            title: Text(
+              isAnonymous
+                  ? dialogContext.l10n.attention
+                  : dialogContext.l10n.signOut,
+            ),
             content: Text(
               isAnonymous
                   ? dialogContext.l10n.signOutAnonymousWarning
@@ -67,13 +71,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 TextButton(
                   onPressed: () async {
                     Navigator.of(dialogContext).pop();
-                    final success =
-                        await ref.read(authProvider.notifier).linkWithGoogle();
+                    final success = await ref
+                        .read(authProvider.notifier)
+                        .linkWithGoogle(context.l10n);
                     if (success && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(context.l10n.dataSavedSuccess),
-                        ),
+                        SnackBar(content: Text(context.l10n.dataSavedSuccess)),
                       );
                     }
                   },
@@ -93,9 +96,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     showDialog(
                       context: context,
                       barrierDismissible: false,
-                      builder: (context) => const Center(
-                        child: CircularProgressIndicator(),
-                      ),
+                      builder:
+                          (context) =>
+                              const Center(child: CircularProgressIndicator()),
                     );
                   }
 
@@ -149,7 +152,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     // 1. Supprimer les données Firestore
                     await userNotifier.deleteAccount(uid);
                     // 2. Supprimer le compte Auth
-                    await authNotifier.deleteAccount();
+                    await authNotifier.deleteAccount(context.l10n);
                   } catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -234,12 +237,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               value: authState.canUseBiometrics,
               onChanged: (bool value) async {
                 if (value) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(context.l10n.reconnectToEnableBiometrics)),
-                  );
-                  await ref.read(authProvider.notifier).enableBiometrics("", "");
+                  await ref.read(authProvider.notifier).enableBiometrics();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(context.l10n.biometricEnabled)),
+                    );
+                  }
                 } else {
                   await ref.read(authProvider.notifier).disableBiometrics();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(context.l10n.biometricDisabled)),
+                    );
+                  }
                 }
               },
             ),

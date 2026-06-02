@@ -118,3 +118,6 @@ app.*.symbols
 
 # IDE
 .idea
+
+# LLM related
+/.artifacts/

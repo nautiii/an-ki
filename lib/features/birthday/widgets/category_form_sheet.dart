@@ -183,7 +183,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                                       },
                                       showCheckmark: false,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(28),
                                       ),
                                     ),
                                   );
@@ -245,14 +245,14 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                               () => setState(
                                 () => _selectedIconCode = icon.codePoint,
                               ),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(28),
                           child: Container(
                             decoration: BoxDecoration(
                               color:
                                   isSelected
                                       ? colorScheme.primary
                                       : colorScheme.surfaceContainerHigh,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(28),
                             ),
                             child: Icon(
                               icon,

@@ -811,6 +811,66 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Supprimer et quitter'**
   String get deleteAndLeave;
+
+  /// No description provided for @biometricEnabled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion biométrique activée !'**
+  String get biometricEnabled;
+
+  /// No description provided for @biometricDisabled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion biométrique désactivée.'**
+  String get biometricDisabled;
+
+  /// No description provided for @errorWeakPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le mot de passe est trop faible.'**
+  String get errorWeakPassword;
+
+  /// No description provided for @errorEmailAlreadyInUse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet email est déjà utilisé.'**
+  String get errorEmailAlreadyInUse;
+
+  /// No description provided for @errorInvalidEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'email n\'est pas valide.'**
+  String get errorInvalidEmail;
+
+  /// No description provided for @errorUserNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utilisateur non trouvé.'**
+  String get errorUserNotFound;
+
+  /// No description provided for @errorWrongPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe incorrect.'**
+  String get errorWrongPassword;
+
+  /// No description provided for @errorUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une erreur est survenue.'**
+  String get errorUnknown;
+
+  /// No description provided for @errorGoogleLogin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors de la connexion Google'**
+  String get errorGoogleLogin;
+
+  /// No description provided for @deleteAccountError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors de la suppression du compte'**
+  String get deleteAccountError;
 }
 
 class _AppLocalizationsDelegate

@@ -288,9 +288,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                           child: FilledButton.icon(
                             onPressed: isCreating ? null : _save,
                             style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 16,
-                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -480,7 +478,7 @@ class _CategorySelector extends StatelessWidget {
                   onSelected: (_) => onChanged(cat.id),
                   showCheckmark: false,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(28),
                   ),
                 ),
               );

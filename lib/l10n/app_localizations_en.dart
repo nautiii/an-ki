@@ -375,4 +375,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAndLeave => 'Delete and leave';
+
+  @override
+  String get biometricEnabled => 'Biometric login enabled!';
+
+  @override
+  String get biometricDisabled => 'Biometric login disabled.';
+
+  @override
+  String get errorWeakPassword => 'The password is too weak.';
+
+  @override
+  String get errorEmailAlreadyInUse => 'This email is already in use.';
+
+  @override
+  String get errorInvalidEmail => 'The email is not valid.';
+
+  @override
+  String get errorUserNotFound => 'User not found.';
+
+  @override
+  String get errorWrongPassword => 'Incorrect password.';
+
+  @override
+  String get errorUnknown => 'An error occurred.';
+
+  @override
+  String get errorGoogleLogin => 'Google login error';
+
+  @override
+  String get deleteAccountError => 'Error during account deletion';
 }

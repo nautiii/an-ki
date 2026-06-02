@@ -34,7 +34,7 @@ class _NextBirthdayCardState extends ConsumerState<NextBirthdayCard> {
 
     if (isLoading) {
       return SizedBox(
-        height: 120,
+        height: 110,
         child: _BaseCard(
           child: Center(
             child: CircularProgressIndicator(
@@ -48,7 +48,7 @@ class _NextBirthdayCardState extends ConsumerState<NextBirthdayCard> {
 
     if (nextBirthdays.isEmpty) {
       return SizedBox(
-        height: 120,
+        height: 110,
         child: _BaseCard(
           child: Center(
             child: _BirthdayContent(birthday: null, isLoading: false),
@@ -60,9 +60,10 @@ class _NextBirthdayCardState extends ConsumerState<NextBirthdayCard> {
     return Column(
       children: [
         SizedBox(
-          height: 120,
+          height: 110,
           child: PageView.builder(
             controller: _pageController,
+            clipBehavior: Clip.none,
             onPageChanged: (index) => setState(() => _currentPage = index),
             itemCount: nextBirthdays.length,
             itemBuilder: (context, index) {
@@ -71,10 +72,7 @@ class _NextBirthdayCardState extends ConsumerState<NextBirthdayCard> {
               return _BaseCard(
                 onTap: () {
                   HapticFeedback.lightImpact();
-                  BirthdayFormSheet.show(
-                    context,
-                    birthdayToEdit: birthday,
-                  );
+                  BirthdayFormSheet.show(context, birthdayToEdit: birthday);
                 },
                 child: _BirthdayItem(birthday: birthday),
               );
@@ -121,14 +119,14 @@ class _BaseCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.primary.withValues(alpha: 0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: colorScheme.primary.withValues(alpha: 0.25),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
             ),
           ],
           gradient: LinearGradient(
@@ -274,7 +272,7 @@ class _BirthdayContent extends StatelessWidget {
             ),
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Row(
             children: [
               Container(

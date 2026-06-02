@@ -126,7 +126,7 @@ class _CategoryFilterBar extends ConsumerWidget {
           ),
           onPressed: () => CategoryFormSheet.show(context),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(28),
           ),
         ),
       );
@@ -176,7 +176,7 @@ class _CategoryFilterBar extends ConsumerWidget {
                 },
                 showCheckmark: false,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(28),
                 ),
               ),
             );
@@ -187,10 +187,10 @@ class _CategoryFilterBar extends ConsumerWidget {
               label: const Icon(Icons.add, size: 18),
               onPressed: () => CategoryFormSheet.show(context),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(28),
               ),
               backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerHigh,
+                  Theme.of(context).colorScheme.surfaceContainerLow,
             ),
           ),
         ],

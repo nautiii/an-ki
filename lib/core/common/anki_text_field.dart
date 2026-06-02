@@ -86,7 +86,9 @@ class _AnKiTextFieldState extends State<AnKiTextField> {
                       ? colorScheme.error
                       : (_isFocused
                           ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant.withOpacity(0.7)),
+                          : colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.7,
+                          )),
               size: 22,
             ),
             suffixIcon: widget.suffixIcon,
@@ -102,13 +104,13 @@ class _AnKiTextFieldState extends State<AnKiTextField> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(28),
               borderSide: BorderSide(
-                color: colorScheme.outlineVariant.withOpacity(0.5),
+                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(28),
               borderSide: BorderSide(
-                color: colorScheme.outlineVariant.withOpacity(0.5),
+                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
               ),
             ),
             focusedBorder: OutlineInputBorder(

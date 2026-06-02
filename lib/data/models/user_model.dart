@@ -8,6 +8,7 @@ class UserModel {
   final List<String> categories;
   final bool isDark;
   final String locale;
+  final String? biometricToken;
 
   const UserModel({
     required this.id,
@@ -17,6 +18,7 @@ class UserModel {
     this.categories = const [],
     required this.isDark,
     required this.locale,
+    this.biometricToken,
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -30,6 +32,7 @@ class UserModel {
       categories: List<String>.from(data['categories'] ?? []),
       isDark: data['isDark'] ?? false,
       locale: data['locale'] ?? 'fr',
+      biometricToken: data['biometricToken'] as String?,
     );
   }
 
@@ -41,6 +44,7 @@ class UserModel {
       'categories': categories,
       'isDark': isDark,
       'locale': locale,
+      if (biometricToken != null) 'biometricToken': biometricToken,
     };
   }
 
@@ -52,6 +56,7 @@ class UserModel {
     List<String>? categories,
     bool? isDark,
     String? locale,
+    String? biometricToken,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -61,6 +66,7 @@ class UserModel {
       categories: categories ?? this.categories,
       isDark: isDark ?? this.isDark,
       locale: locale ?? this.locale,
+      biometricToken: biometricToken ?? this.biometricToken,
     );
   }
 }

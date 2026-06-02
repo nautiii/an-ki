@@ -24,7 +24,7 @@ if ($Clean) {
 
 # Generate launcher icons
 Write-Host "`n[2/5] Generating launcher icons..." -ForegroundColor Yellow
-flutter pub run flutter_launcher_icons:main
+dart run flutter_launcher_icons:main
 
 # Get dependencies
 Write-Host "`n[3/5] Getting dependencies..." -ForegroundColor Yellow
