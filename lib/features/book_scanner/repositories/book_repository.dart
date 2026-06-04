@@ -8,10 +8,17 @@ final bookRepositoryProvider = Provider<BookRepository>((ref) {
   return BookRepository();
 });
 
+class GoogleBooksQuotaExceededException implements Exception {
+  @override
+  String toString() => 'Google Books API quota exceeded.';
+}
+
 class BookRepository {
+  static const _apiKey = String.fromEnvironment('GOOGLE_BOOKS_API_KEY');
+
   Future<BookModel?> fetchBookByIsbn(String isbn) async {
     final url = Uri.parse(
-      'https://www.googleapis.com/books/v1/volumes?q=isbn:$isbn',
+      'https://www.googleapis.com/books/v1/volumes?q=isbn:$isbn&key=$_apiKey',
     );
     try {
       final response = await http.get(url);
@@ -23,8 +30,10 @@ class BookRepository {
           return BookModel.fromJson(item, isbn);
         }
       } else if (response.statusCode == 429) {
-        print('Google Books API: Quota exceeded (429)');
+        throw GoogleBooksQuotaExceededException();
       }
+    } on GoogleBooksQuotaExceededException {
+      rethrow;
     } catch (e) {
       print('Google Books Error: $e');
     }

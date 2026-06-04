@@ -405,4 +405,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountError => 'Error during account deletion';
+
+  @override
+  String get errorQuotaExceeded =>
+      'Search limit reached. Please try again later.';
 }

@@ -871,6 +871,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Erreur lors de la suppression du compte'**
   String get deleteAccountError;
+
+  /// No description provided for @errorQuotaExceeded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Limite de recherche atteinte. Veuillez réessayer plus tard.'**
+  String get errorQuotaExceeded;
 }
 
 class _AppLocalizationsDelegate

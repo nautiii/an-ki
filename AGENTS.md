@@ -67,3 +67,5 @@ final userAsync = ref.watch(userProvider.select((s) => s.user));
 - **Générer l'écran de démarrage** : `dart run flutter_native_splash:create`
 - **Supprimer l'écran de démarrage** : `dart run flutter_native_splash:remove`
 - **Génération L10n** : `flutter gen-l10n`
+- **Build & Déploiement (Debug)** : `.\scripts\build_and_deploy.ps1`
+- **Build Production (APK)** : `.\scripts\build_prod.ps1`

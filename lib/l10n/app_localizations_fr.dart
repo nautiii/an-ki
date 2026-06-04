@@ -412,4 +412,8 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get deleteAccountError => 'Erreur lors de la suppression du compte';
+
+  @override
+  String get errorQuotaExceeded =>
+      'Limite de recherche atteinte. Veuillez réessayer plus tard.';
 }

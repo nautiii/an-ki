@@ -157,5 +157,6 @@
   "errorWrongPassword": "Incorrect password.",
   "errorUnknown": "An error occurred.",
   "errorGoogleLogin": "Google login error",
-  "deleteAccountError": "Error during account deletion"
+  "deleteAccountError": "Error during account deletion",
+  "errorQuotaExceeded": "Search limit reached. Please try again later."
 }

@@ -157,5 +157,6 @@
   "errorWrongPassword": "Mot de passe incorrect.",
   "errorUnknown": "Une erreur est survenue.",
   "errorGoogleLogin": "Erreur lors de la connexion Google",
-  "deleteAccountError": "Erreur lors de la suppression du compte"
+  "deleteAccountError": "Erreur lors de la suppression du compte",
+  "errorQuotaExceeded": "Limite de recherche atteinte. Veuillez réessayer plus tard."
 }

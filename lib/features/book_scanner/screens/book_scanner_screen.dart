@@ -1,6 +1,7 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/book_scanner/models/book_model.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
+import 'package:an_ki/features/book_scanner/repositories/book_repository.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_info_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,37 +24,58 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
     super.dispose();
   }
 
-  void _onDetect(BarcodeCapture capture) async {
+  void _onDetect(BarcodeCapture capture) {
     if (_isProcessing) return;
 
-    final List<Barcode> barcodes = capture.barcodes;
-    for (final barcode in barcodes) {
-      if (barcode.rawValue != null) {
-        setState(() {
-          _isProcessing = true;
-        });
+    final barcode = capture.barcodes.firstOrNull;
+    if (barcode == null || barcode.rawValue == null) return;
 
-        // On arrête immédiatement le scanner pour éviter les appels multiples
-        await controller.stop();
+    setState(() {
+      _isProcessing = true;
+    });
 
-        final isbn = barcode.rawValue!;
-        await ref.read(bookScannerProvider.notifier).scanIsbn(isbn);
+    _processIsbn(barcode.rawValue!);
+  }
 
-        if (mounted) {
-          final bookState = ref.read(bookScannerProvider);
-          if (bookState.hasValue && bookState.value != null) {
-            _showBookInfo(bookState.value!);
+  Future<void> _processIsbn(String isbn) async {
+    // On arrête immédiatement le scanner pour éviter les appels multiples au niveau natif
+    await controller.stop();
+
+    if (!mounted) return;
+
+    await ref.read(bookScannerProvider.notifier).scanIsbn(isbn);
+
+    if (mounted) {
+      final bookState = ref.read(bookScannerProvider);
+
+      bookState.when(
+        data: (book) {
+          if (book != null) {
+            _showBookInfo(book);
           } else {
             _showErrorSnippet(context.l10n.bookNotFound);
-            // Si non trouvé, on redémarre le scanner pour permettre un autre essai
-            await controller.start();
-            setState(() {
-              _isProcessing = false;
-            });
+            _resetScanning();
           }
-        }
-        break;
-      }
+        },
+        loading: () {},
+        error: (error, stack) {
+          if (error is GoogleBooksQuotaExceededException) {
+            _showErrorSnippet(context.l10n.errorQuotaExceeded);
+          } else {
+            _showErrorSnippet(context.l10n.bookNotFound);
+          }
+          _resetScanning();
+        },
+      );
+    }
+  }
+
+  Future<void> _resetScanning() async {
+    await controller.start();
+    if (mounted) {
+      setState(() {
+        _isProcessing = false;
+      });
     }
   }
 
