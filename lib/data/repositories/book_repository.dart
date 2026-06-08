@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:an_ki/features/book_scanner/models/book_model.dart';
+import 'package:an_ki/data/models/book_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
@@ -15,6 +16,11 @@ class GoogleBooksQuotaExceededException implements Exception {
 
 class BookRepository {
   static const _apiKey = String.fromEnvironment('GOOGLE_BOOKS_API_KEY');
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  CollectionReference<Map<String, dynamic>> get _books =>
+      _firestore.collection('books');
 
   Future<BookModel?> fetchBookByIsbn(String isbn) async {
     final url = Uri.parse(
@@ -32,11 +38,25 @@ class BookRepository {
       } else if (response.statusCode == 429) {
         throw GoogleBooksQuotaExceededException();
       }
-    } on GoogleBooksQuotaExceededException {
-      rethrow;
     } catch (e) {
       print('Google Books Error: $e');
     }
     return null;
+  }
+
+  Stream<List<BookModel>> watchBooks(String uid) {
+    return _books
+        .where('uid', isEqualTo: uid)
+        .orderBy('scannedAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map(BookModel.fromFirestore).toList());
+  }
+
+  Future<void> saveBook(String uid, BookModel book) async {
+    await _books.add(book.copyWith(uid: uid).toJson());
+  }
+
+  Future<void> deleteBook(String bookId) async {
+    await _books.doc(bookId).delete();
   }
 }

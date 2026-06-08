@@ -1,6 +1,7 @@
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,9 +47,13 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
 
     final userNotifier = ref.read(userProvider.notifier);
     final birthdayNotifier = ref.read(birthdayProvider.notifier);
+    final bookScannerNotifier = ref.read(bookScannerProvider.notifier);
 
-    // On lance l'écoute des anniversaires en tâche de fond pour ne pas bloquer l'UI
-    Future.microtask(() => birthdayNotifier.startListening(uid));
+    // On lance l'écoute des anniversaires et des livres en tâche de fond pour ne pas bloquer l'UI
+    Future.microtask(() {
+      birthdayNotifier.startListening(uid);
+      bookScannerNotifier.startListening(uid);
+    });
 
     // Chargement de l'utilisateur Firestore
     await userNotifier.loadUser(uid);
@@ -77,14 +82,11 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
   @override
   Widget build(BuildContext context) {
     // Utilisation de ref.listen pour réagir aux changements d'état d'authentification.
-    ref.listen<String?>(
-      authProvider.select((s) => s.uid),
-      (previous, nextUid) {
-        if (nextUid != null && nextUid != previous) {
-          _initializeUser(nextUid);
-        }
-      },
-    );
+    ref.listen<String?>(authProvider.select((s) => s.uid), (previous, nextUid) {
+      if (nextUid != null && nextUid != previous) {
+        _initializeUser(nextUid);
+      }
+    });
 
     final userState = ref.watch(userProvider);
 

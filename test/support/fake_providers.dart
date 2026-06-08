@@ -1,18 +1,18 @@
 import 'dart:async';
 
 import 'package:an_ki/data/models/birthday_model.dart';
+import 'package:an_ki/data/models/book_model.dart';
 import 'package:an_ki/data/models/category_model.dart';
 import 'package:an_ki/data/models/create_birthday_input.dart';
 import 'package:an_ki/data/models/user_model.dart';
 import 'package:an_ki/data/repositories/birthday_repository.dart';
+import 'package:an_ki/data/repositories/book_repository.dart';
 import 'package:an_ki/data/repositories/category_repository.dart';
 import 'package:an_ki/data/repositories/user_repository.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
-import 'package:an_ki/features/book_scanner/models/book_model.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
-import 'package:an_ki/features/book_scanner/repositories/book_repository.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -77,6 +77,15 @@ class FakeCategoryRepository extends Fake implements CategoryRepository {
 class FakeBookRepository extends Fake implements BookRepository {
   @override
   Future<BookModel?> fetchBookByIsbn(String isbn) async => null;
+
+  @override
+  Stream<List<BookModel>> watchBooks(String uid) => Stream.value([]);
+
+  @override
+  Future<void> saveBook(String uid, BookModel book) async {}
+
+  @override
+  Future<void> deleteBook(String bookId) async {}
 }
 
 // --- Notifiers ---
@@ -283,11 +292,26 @@ class FakeCategoryNotifier extends CategoryNotifier {
 
 class FakeBookScannerNotifier extends BookScannerNotifier {
   @override
-  FutureOr<BookModel?> build() => null;
+  BookScannerState build() => BookScannerState();
 
   @override
-  Future<void> scanIsbn(String isbn) async {
-    state = const AsyncValue.loading();
+  void startListening(String uid) {
+    state = state.copyWith(isLoading: false);
+  }
+
+  @override
+  Future<BookModel?> scanIsbn(String isbn) async {
+    state = state.copyWith(isScanning: true);
+    await Future.value();
+    state = state.copyWith(isScanning: false);
+    return null;
+  }
+
+  @override
+  Future<void> saveBook(BookModel book) async {
+    state = state.copyWith(isSaving: true);
+    await Future.value();
+    state = state.copyWith(isSaving: false);
   }
 }
 

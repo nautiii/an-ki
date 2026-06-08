@@ -1,12 +1,3 @@
-import 'package:an_ki/data/repositories/birthday_repository.dart';
-import 'package:an_ki/data/repositories/category_repository.dart';
-import 'package:an_ki/data/repositories/user_repository.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
-import 'package:an_ki/features/birthday/providers/category_provider.dart';
-import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
-import 'package:an_ki/features/book_scanner/repositories/book_repository.dart';
-import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,7 +26,8 @@ class TestHarness extends StatelessWidget {
   Widget build(BuildContext context) {
     // If overrides are provided, we assume the test knows what it's doing.
     // Otherwise, we use the defaults.
-    final List<dynamic> finalOverrides = overrides.isEmpty ? defaultTestOverrides : overrides;
+    final List<dynamic> finalOverrides =
+        overrides.isEmpty ? defaultTestOverrides : overrides;
 
     return ProviderScope(
       overrides: finalOverrides.map((e) => e as dynamic).toList().cast(),

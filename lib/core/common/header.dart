@@ -3,11 +3,12 @@ import 'package:an_ki/features/birthday/providers/home_view_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:an_ki/features/user/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class Header extends ConsumerWidget {
-  const Header({super.key});
+  final bool showViewToggle;
+
+  const Header({super.key, this.showViewToggle = true});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,24 +41,25 @@ class Header extends ConsumerWidget {
         ),
         Row(
           children: [
-            IconButton(
-              style: IconButton.styleFrom(
-                backgroundColor: colorScheme.surfaceContainerHighest,
-                shape: const CircleBorder(),
-                padding: const EdgeInsets.all(10),
+            if (showViewToggle) ...[
+              IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: colorScheme.surfaceContainerHighest,
+                  shape: const CircleBorder(),
+                  padding: const EdgeInsets.all(10),
+                ),
+                onPressed: () {
+                  ref.read(homeViewProvider.notifier).toggle();
+                },
+                icon: Icon(
+                  viewType == HomeViewType.list
+                      ? Icons.calendar_month_rounded
+                      : Icons.view_list_rounded,
+                  color: colorScheme.onSurface,
+                ),
               ),
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                ref.read(homeViewProvider.notifier).toggle();
-              },
-              icon: Icon(
-                viewType == HomeViewType.list
-                    ? Icons.calendar_month_rounded
-                    : Icons.view_list_rounded,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(width: 8),
+              const SizedBox(width: 8),
+            ],
             IconButton(
               style: IconButton.styleFrom(
                 backgroundColor: colorScheme.surfaceContainerHighest,
