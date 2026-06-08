@@ -34,7 +34,7 @@ avec un niveau de qualité "Production-Ready".
 * **État (State)** : Riverpod 3 (API Notifier)
 * **Backend** : Firebase (Firestore, Auth, Storage)
 * **L10n** : `flutter_gen` (intl) via fichiers `.arb`.
-* **Tests** : Tests d'intégration et unitaires (Mockito/Fake providers)
+* **Tests** : Tests d'intégration et unitaires (Fake providers)
 
 ## État Actuel du Projet
 

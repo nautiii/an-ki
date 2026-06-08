@@ -121,3 +121,5 @@ app.*.symbols
 
 # LLM related
 /.artifacts/
+
+secrets.json

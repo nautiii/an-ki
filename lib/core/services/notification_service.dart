@@ -9,12 +9,14 @@ import 'package:timezone/timezone.dart' as tz;
 
 /// Service singleton gérant les notifications locales d'anniversaire.
 class NotificationService {
+  @visibleForTesting
+  NotificationService(this._plugin);
+
   NotificationService._();
 
   static final NotificationService instance = NotificationService._();
 
-  final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
 
@@ -110,12 +112,24 @@ class NotificationService {
 
   // ── Planification ─────────────────────────────────────────────────────────
 
-  /// Annule tout puis replanifie une notification pour chaque anniversaire.
+  /// Met à jour les notifications planifiées pour les anniversaires donnés.
+  /// Supprime les notifications obsolètes et planifie les nouvelles ou mises à jour.
   Future<void> scheduleAll(List<BirthdayModel> birthdays) async {
     if (!_initialized) return;
 
-    // On annule tout pour éviter les doublons ou les notifications orphelines
-    await _plugin.cancelAll();
+    final pending = await _plugin.pendingNotificationRequests();
+    final currentIds = <int>{};
+    for (final b in birthdays) {
+      currentIds.add(_notificationId(b.id));
+      currentIds.add(_reminderNotificationId(b.id));
+    }
+
+    // On n'annule que ce qui n'est plus dans la liste actuelle
+    for (final p in pending) {
+      if (!currentIds.contains(p.id)) {
+        await _plugin.cancel(id: p.id);
+      }
+    }
 
     for (final birthday in birthdays) {
       await _scheduleBirthdayNotification(birthday);
@@ -130,14 +144,6 @@ class NotificationService {
   Future<void> _scheduleBirthdayNotification(BirthdayModel birthday) async {
     try {
       DateTime next = birthday.nextOccurrence;
-
-      // Si l'anniversaire est aujourd'hui
-      final bool isToday = DateUtils.isSameDay(next, DateTime.now());
-
-      if (isToday) {
-        // Envoi immédiat pour le test si c'est aujourd'hui
-        await _showImmediateBirthdayNotification(birthday);
-      }
 
       // Planification standard
       tz.TZDateTime scheduledDate = _tzAt(next, _notificationHour);
@@ -200,19 +206,6 @@ class NotificationService {
         '[NotificationService] Impossible de planifier rappel ${birthday.id}: $e',
       );
     }
-  }
-
-  Future<void> _showImmediateBirthdayNotification(
-    BirthdayModel birthday,
-  ) async {
-    final int ageAtBirthday = DateTime.now().year - birthday.date.year;
-
-    await _plugin.show(
-      id: _notificationId(birthday.id) + 1000000,
-      title: '🎂 C\'est aujourd\'hui !',
-      body: 'Joyeux anniversaire à ${birthday.name} (${ageAtBirthday} ans) !',
-      notificationDetails: _notificationDetails(),
-    );
   }
 
   // ── Utilitaires ───────────────────────────────────────────────────────────
