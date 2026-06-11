@@ -1,19 +1,18 @@
-# Firebase (Firestore, Auth, Storage)
+# Firebase & Persistence
 
-## Firestore : Structure & Accès
-* **Mapping Typé** : Toujours utiliser `.withConverter<T>` pour transformer les documents Firestore en objets de domaine.
-* **Streams vs Futures** : Privilégier `.snapshots()` pour une synchronisation automatique de l'UI. Utiliser `.get()` uniquement pour les opérations ponctuelles ou de migration.
-* **Sécurité** : Ne jamais inclure de logique de filtrage basée sur l'UID dans le Repository si elle peut être gérée par les `Firestore Rules`. Cependant, passer systématiquement l'UID dans les requêtes pour l'isolation.
-* **Performance** : Utiliser des index composites pour les requêtes complexes (ex: filtrage + tri).
+## Firestore
+* **Mapping**: Use `factory Model.fromFirestore` and `toJson()`. Manual mapping in repositories.
+* **Queries**: Always filter by `uid` for data isolation.
+* **Offline**: Firestore persistence is enabled by default.
 
-## Authentification
-* **Anonyme vers Permanent** : Gérer le "linking" de compte pour permettre aux utilisateurs invités de sauvegarder leurs données sans perte.
-* **État d'Auth** : Utiliser un `StreamProvider` pour écouter `authStateChanges()` et réagir immédiatement aux déconnexions.
+## Auth
+* **Methods**: Support for Email, Google, and Anonymous.
+* **Link Account**: Support for migrating anonymous users to permanent accounts.
+* **Biometrics**: Local biometric lock (`local_auth`) coupled with secure token storage.
 
 ## Storage
-* **Optimisation** : Toujours compresser les images avant l'upload via `image_picker` ou un plugin de compression.
-* **Structure** : Organiser les fichiers par UID (ex: `users/{uid}/avatars/{filename}`).
+* **Optimization**: Compress images/convert to base64 before upload (current implementation uses base64 in Firestore for small images).
+* **Structure**: `/users/{uid}/{category}/{filename}`.
 
-## Bonnes Pratiques
-* **Offline Persistence** : Activer la persistance hors ligne de Firestore pour une meilleure expérience utilisateur.
-* **Transactions** : Utiliser des `runTransaction` ou `WriteBatch` pour les opérations atomiques impliquant plusieurs documents.
+## Atomicity
+* Use `WriteBatch` for multi-document operations (e.g., deleting all user data).
