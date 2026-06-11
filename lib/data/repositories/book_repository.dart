@@ -28,6 +28,8 @@ class BookRepository {
     );
     try {
       final response = await http.get(url);
+      print('Google Books Response: ${response.body}');
+      print('Google Books Response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

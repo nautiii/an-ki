@@ -36,9 +36,10 @@ if ($Clean) {
     }
 }
 
-# 2. Icônes de lancement
-Write-Host "`n[2/5] Génération des icônes de lancement..." -ForegroundColor Yellow
+# 2. Icônes de lancement & Splash Screen
+Write-Host "`n[2/5] Génération des icônes et de l'écran de démarrage..." -ForegroundColor Yellow
 dart run flutter_launcher_icons
+dart run flutter_native_splash:create
 
 # 3. Dépendances
 Write-Host "`n[3/5] Récupération des dépendances..." -ForegroundColor Yellow

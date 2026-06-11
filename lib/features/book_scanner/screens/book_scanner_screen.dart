@@ -105,7 +105,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -183,7 +183,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                             ),
                             const SizedBox(height: 16),
                             SizedBox(
-                              height: 120,
+                              height: 180,
                               child: PageView.builder(
                                 itemCount: books.length,
                                 controller: PageController(
@@ -198,8 +198,6 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                           ],
                         ),
               ),
-
-              const SizedBox(height: 100),
             ],
           ),
         ),
