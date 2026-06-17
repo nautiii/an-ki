@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/data/models/birthday_model.dart';
-import 'package:an_ki/data/models/category_model.dart';
+import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/data/models/category_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +25,6 @@ class _BirthdayCalendarState extends ConsumerState<BirthdayCalendar> {
   Widget build(BuildContext context) {
     final birthdays = ref.watch(categoryFilteredBirthdaysProvider);
     final categories = ref.watch(categoriesProvider).value ?? [];
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       children: [

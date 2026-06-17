@@ -1,6 +1,6 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/data/models/birthday_model.dart';
-import 'package:an_ki/data/models/category_model.dart';
+import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/data/models/category_model.dart';
 import 'package:flutter/material.dart';
 
 extension BirthdayCategoryX on BirthdayCategory {

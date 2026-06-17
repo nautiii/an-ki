@@ -27,4 +27,22 @@ class CreateBirthdayInput {
       'categories': categories,
     };
   }
+
+  CreateBirthdayInput copyWith({
+    String? uid,
+    String? name,
+    String? surname,
+    DateTime? date,
+    List<String>? categories,
+    XFile? pictureFile,
+  }) {
+    return CreateBirthdayInput(
+      uid: uid ?? this.uid,
+      name: name ?? this.name,
+      surname: surname ?? this.surname,
+      date: date ?? this.date,
+      categories: categories ?? this.categories,
+      pictureFile: pictureFile ?? this.pictureFile,
+    );
+  }
 }

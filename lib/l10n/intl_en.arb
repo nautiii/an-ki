@@ -105,6 +105,7 @@
   "bookTitle": "Title",
   "bookPrice": "Price",
   "bookNotFound": "Book not found",
+  "noBooksFound": "No books found.",
   "scanning": "Scanning...",
   "noInfoFound": "No information found",
   "deleteAccount": "Delete my account",
@@ -144,6 +145,7 @@
   "noBiometricCredentials": "No credentials saved for biometrics",
   "biometricError": "Error during biometric authentication",
   "attention": "Attention",
+  "guest": "Guest",
   "signOutAnonymousWarning": "By signing out, you will lose all your saved birthdays because you are using a guest account. Do you want to continue?",
   "saveMyData": "Save my data",
   "dataSavedSuccess": "Account saved successfully!",
@@ -157,6 +159,7 @@
   "errorWrongPassword": "Incorrect password.",
   "errorUnknown": "An error occurred.",
   "errorGoogleLogin": "Google login error",
+  "errorSignOut": "Sign out error",
   "deleteAccountError": "Error during account deletion",
   "errorQuotaExceeded": "Search limit reached. Please try again later."
 }

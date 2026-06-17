@@ -1,10 +1,9 @@
-import 'package:an_ki/data/models/user_model.dart';
-import 'package:an_ki/data/repositories/user_repository.dart';
+import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
+import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/user/data/models/user_model.dart';
+import 'package:an_ki/features/user/data/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../data/repositories/birthday_repository.dart';
-import '../../birthday/providers/birthday_provider.dart';
 
 class UserState {
   final UserModel? user;
@@ -55,8 +54,11 @@ class UserNotifier extends Notifier<UserState> {
       isDark: isPlatformDark,
       locale: 'fr',
     );
-    await _repository.createUser(newUser);
-    state = state.copyWith(user: newUser);
+    // createUser is create-if-absent: if the document already exists (e.g. the
+    // initial load failed transiently), the existing profile is returned
+    // untouched instead of being overwritten.
+    final effectiveUser = await _repository.createUser(newUser);
+    state = state.copyWith(user: effectiveUser);
   }
 
   Future<void> updatePseudo(String pseudo) async {

@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/data/models/birthday_model.dart';
-import 'package:an_ki/data/models/category_model.dart';
-import 'package:an_ki/data/models/create_birthday_input.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/data/models/category_model.dart';
+import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:flutter/cupertino.dart';
@@ -142,10 +142,13 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     );
 
     if (confirmed == true && mounted) {
-      await ref
-          .read(birthdayProvider.notifier)
-          .deleteBirthday(widget.birthdayToEdit!.id);
-      if (mounted) Navigator.of(context).pop(true);
+      final uid = ref.read(authProvider).uid;
+      if (uid != null) {
+        await ref
+            .read(birthdayProvider.notifier)
+            .deleteBirthday(uid, widget.birthdayToEdit!.id);
+        if (mounted) Navigator.of(context).pop(true);
+      }
     }
   }
 

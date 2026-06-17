@@ -23,6 +23,14 @@ class BirthdayCategory {
     return {'name': name, 'icon': icon};
   }
 
+  BirthdayCategory copyWith({String? id, String? name, int? icon}) {
+    return BirthdayCategory(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      icon: icon ?? this.icon,
+    );
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

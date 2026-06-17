@@ -66,7 +66,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    final isLoading = ref.watch(authProvider.select((s) => s.isLoading));
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -112,7 +112,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   label: context.l10n.email,
                   prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
-                  enabled: !authState.isLoading,
+                  enabled: !isLoading,
                 ),
               ),
               const SizedBox(height: 16),
@@ -123,7 +123,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   label: context.l10n.password,
                   prefixIcon: Icons.lock_outline_rounded,
                   obscureText: _obscurePassword,
-                  enabled: !authState.isLoading,
+                  enabled: !isLoading,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
@@ -143,7 +143,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: authState.isLoading ? null : () {},
+                    onPressed: isLoading ? null : () {},
                     child: Text(
                       context.l10n.forgotPassword,
                       style: TextStyle(
@@ -162,7 +162,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     width: 280,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: authState.isLoading ? null : _handleSignIn,
+                      onPressed: isLoading ? null : _handleSignIn,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary,
                         foregroundColor: colorScheme.onPrimary,
@@ -172,7 +172,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                       ),
                       child:
-                          authState.isLoading
+                          isLoading
                               ? SizedBox(
                                 height: 24,
                                 width: 24,
@@ -204,7 +204,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     TextButton(
                       onPressed:
-                          authState.isLoading
+                          isLoading
                               ? null
                               : () => Navigator.of(
                                 context,

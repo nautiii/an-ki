@@ -105,6 +105,7 @@
   "bookTitle": "Titre",
   "bookPrice": "Prix",
   "bookNotFound": "Livre non trouvé",
+  "noBooksFound": "Aucun livre trouvé.",
   "scanning": "Scan en cours...",
   "noInfoFound": "Aucune information trouvée",
   "deleteAccount": "Supprimer mon compte",
@@ -144,6 +145,7 @@
   "noBiometricCredentials": "Aucun identifiant sauvegardé pour la biométrie",
   "biometricError": "Erreur lors de l'authentification biométrique",
   "attention": "Attention",
+  "guest": "Invité",
   "signOutAnonymousWarning": "En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?",
   "saveMyData": "Sauvegarder mes données",
   "dataSavedSuccess": "Compte sauvegardé avec succès !",
@@ -157,6 +159,7 @@
   "errorWrongPassword": "Mot de passe incorrect.",
   "errorUnknown": "Une erreur est survenue.",
   "errorGoogleLogin": "Erreur lors de la connexion Google",
+  "errorSignOut": "Erreur lors de la déconnexion",
   "deleteAccountError": "Erreur lors de la suppression du compte",
   "errorQuotaExceeded": "Limite de recherche atteinte. Veuillez réessayer plus tard."
 }

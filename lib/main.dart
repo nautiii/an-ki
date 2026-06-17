@@ -7,7 +7,6 @@ import 'package:an_ki/features/auth/auth_choice_page.dart';
 import 'package:an_ki/features/auth/login_page.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/auth/signup_page.dart';
-import 'package:an_ki/features/birthday/home_page.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';

@@ -2,7 +2,7 @@ import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/search_bar.dart';
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/providers/home_view_provider.dart';

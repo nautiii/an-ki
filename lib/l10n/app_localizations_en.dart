@@ -264,6 +264,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookNotFound => 'Book not found';
 
   @override
+  String get noBooksFound => 'No books found.';
+
+  @override
   String get scanning => 'Scanning...';
 
   @override
@@ -364,6 +367,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attention => 'Attention';
 
   @override
+  String get guest => 'Guest';
+
+  @override
   String get signOutAnonymousWarning =>
       'By signing out, you will lose all your saved birthdays because you are using a guest account. Do you want to continue?';
 
@@ -402,6 +408,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorGoogleLogin => 'Google login error';
+
+  @override
+  String get errorSignOut => 'Sign out error';
 
   @override
   String get deleteAccountError => 'Error during account deletion';

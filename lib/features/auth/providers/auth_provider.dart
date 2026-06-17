@@ -1,5 +1,5 @@
 import 'package:an_ki/core/services/biometric_service.dart';
-import 'package:an_ki/data/repositories/user_repository.dart';
+import 'package:an_ki/features/user/data/repositories/user_repository.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -94,6 +94,9 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> _checkBiometricAvailability() async {
     final canUse = await _biometricService.canUseFingerprint();
     final hasToken = await _biometricService.getStoredToken() != null;
+
+    if (!ref.mounted) return;
+
     state = state.copyWith(
       canUseBiometrics: canUse && hasToken,
       // Si on a déjà un utilisateur Firebase au démarrage, on considère
@@ -298,7 +301,7 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(canUseBiometrics: false);
   }
 
-  Future<void> signOut() async {
+  Future<void> signOut(AppLocalizations l10n) async {
     try {
       state = state.copyWith(isLoading: true);
 
@@ -321,10 +324,7 @@ class AuthNotifier extends Notifier<AuthState> {
         state = AuthState();
       }
     } catch (e) {
-      state = state.copyWith(
-        errorMessage: 'Erreur lors de la déconnexion',
-        isLoading: false,
-      );
+      state = state.copyWith(errorMessage: l10n.errorSignOut, isLoading: false);
     }
   }
 

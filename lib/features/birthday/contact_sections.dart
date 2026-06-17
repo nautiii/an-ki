@@ -1,4 +1,4 @@
-import 'package:an_ki/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/widgets/contact_tile.dart';
 import 'package:flutter/material.dart';
 

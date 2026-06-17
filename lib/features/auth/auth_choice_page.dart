@@ -54,7 +54,7 @@ class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    final isLoading = ref.watch(authProvider.select((s) => s.isLoading));
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -107,7 +107,7 @@ class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
                       label: context.l10n.loginWithGoogle,
                       icon: Icons.login_rounded,
                       onPressed:
-                          authState.isLoading
+                          isLoading
                               ? null
                               : () => _handleGoogleSignIn(context, ref),
                       isPrimary: true,
@@ -120,7 +120,7 @@ class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
                       label: context.l10n.loginWithEmail,
                       icon: Icons.email_outlined,
                       onPressed:
-                          authState.isLoading
+                          isLoading
                               ? null
                               : () => Navigator.of(context).pushNamed('/login'),
                     ),
@@ -132,7 +132,7 @@ class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
                       label: context.l10n.continueWithoutAccount,
                       icon: Icons.person_outline_rounded,
                       onPressed:
-                          authState.isLoading
+                          isLoading
                               ? null
                               : () => _handleAnonymousSignIn(context, ref),
                       isOutlined: true,
@@ -150,7 +150,7 @@ class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
                         ),
                         TextButton(
                           onPressed:
-                              authState.isLoading
+                              isLoading
                                   ? null
                                   : () => Navigator.of(
                                     context,
@@ -168,7 +168,7 @@ class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
                   ),
                 ],
               ),
-              if (authState.isLoading)
+              if (isLoading)
                 const Padding(
                   padding: EdgeInsets.only(top: 16.0),
                   child: SizedBox(

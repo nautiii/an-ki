@@ -1,3 +1,4 @@
+import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
@@ -73,7 +74,7 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
         name:
             parts.isNotEmpty && parts.first.isNotEmpty
                 ? parts.first
-                : (authState.isAnonymous ? "Invité" : "-"),
+                : (authState.isAnonymous ? context.l10n.guest : "-"),
         surname: parts.length > 1 ? parts.sublist(1).join(" ") : "",
       );
     }
@@ -88,9 +89,9 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
       }
     });
 
-    final userState = ref.watch(userProvider);
+    final isLoading = ref.watch(userProvider.select((s) => s.isLoading));
 
-    if (userState.isLoading) {
+    if (isLoading) {
       return const Material(child: Center(child: CircularProgressIndicator()));
     }
 

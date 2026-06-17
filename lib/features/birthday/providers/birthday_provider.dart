@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/services/notification_service.dart';
-import 'package:an_ki/data/models/birthday_model.dart';
-import 'package:an_ki/data/models/create_birthday_input.dart';
-import 'package:an_ki/data/repositories/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
+import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -105,8 +105,8 @@ class BirthdayNotifier extends Notifier<BirthdayState> {
     }
   }
 
-  Future<void> deleteBirthday(String birthdayId) async {
-    await _repository.deleteBirthday(birthdayId);
+  Future<void> deleteBirthday(String uid, String birthdayId) async {
+    await _repository.deleteBirthday(uid, birthdayId);
   }
 
   Future<int> importFromContacts(String uid) async {

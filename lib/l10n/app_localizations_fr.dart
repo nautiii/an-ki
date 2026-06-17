@@ -266,6 +266,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get bookNotFound => 'Livre non trouvé';
 
   @override
+  String get noBooksFound => 'Aucun livre trouvé.';
+
+  @override
   String get scanning => 'Scan en cours...';
 
   @override
@@ -371,6 +374,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attention => 'Attention';
 
   @override
+  String get guest => 'Invité';
+
+  @override
   String get signOutAnonymousWarning =>
       'En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?';
 
@@ -409,6 +415,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get errorGoogleLogin => 'Erreur lors de la connexion Google';
+
+  @override
+  String get errorSignOut => 'Erreur lors de la déconnexion';
 
   @override
   String get deleteAccountError => 'Erreur lors de la suppression du compte';

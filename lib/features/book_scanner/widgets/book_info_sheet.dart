@@ -1,5 +1,5 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/data/models/book_model.dart';
+import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -93,6 +93,15 @@ class BookInfoSheet extends ConsumerWidget {
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (book.authors.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        book.authors.join(', '),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 8),
                     if (book.publishedDate != null)
                       Text(

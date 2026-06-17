@@ -596,6 +596,12 @@ abstract class AppLocalizations {
   /// **'Livre non trouvé'**
   String get bookNotFound;
 
+  /// No description provided for @noBooksFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun livre trouvé.'**
+  String get noBooksFound;
+
   /// No description provided for @scanning.
   ///
   /// In fr, this message translates to:
@@ -788,6 +794,12 @@ abstract class AppLocalizations {
   /// **'Attention'**
   String get attention;
 
+  /// No description provided for @guest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invité'**
+  String get guest;
+
   /// No description provided for @signOutAnonymousWarning.
   ///
   /// In fr, this message translates to:
@@ -865,6 +877,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Erreur lors de la connexion Google'**
   String get errorGoogleLogin;
+
+  /// No description provided for @errorSignOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors de la déconnexion'**
+  String get errorSignOut;
 
   /// No description provided for @deleteAccountError.
   ///

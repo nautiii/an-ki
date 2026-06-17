@@ -1,7 +1,8 @@
 import 'dart:convert';
 
-import 'package:an_ki/data/models/book_model.dart';
+import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
@@ -15,9 +16,14 @@ class GoogleBooksQuotaExceededException implements Exception {
 }
 
 class BookRepository {
+  BookRepository({FirebaseFirestore? firestore, http.Client? httpClient})
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _httpClient = httpClient ?? http.Client();
+
   static const _apiKey = String.fromEnvironment('GOOGLE_BOOKS_API_KEY');
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
+  final http.Client _httpClient;
 
   CollectionReference<Map<String, dynamic>> get _books =>
       _firestore.collection('books');
@@ -27,9 +33,9 @@ class BookRepository {
       'https://www.googleapis.com/books/v1/volumes?q=isbn:$isbn&key=$_apiKey',
     );
     try {
-      final response = await http.get(url);
-      print('Google Books Response: ${response.body}');
-      print('Google Books Response: ${response.statusCode}');
+      final response = await _httpClient.get(url);
+      debugPrint('Google Books Response: ${response.body}');
+      debugPrint('Google Books Response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -40,8 +46,11 @@ class BookRepository {
       } else if (response.statusCode == 429) {
         throw GoogleBooksQuotaExceededException();
       }
+    } on GoogleBooksQuotaExceededException {
+      // Propagate so the UI can show the dedicated "quota exceeded" message.
+      rethrow;
     } catch (e) {
-      print('Google Books Error: $e');
+      debugPrint('Google Books Error: $e');
     }
     return null;
   }

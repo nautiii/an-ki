@@ -1,11 +1,14 @@
-import 'package:an_ki/data/models/category_model.dart';
+import 'package:an_ki/features/birthday/data/models/category_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final categoryRepositoryProvider = Provider((ref) => CategoryRepository());
 
 class CategoryRepository {
-  final _db = FirebaseFirestore.instance;
+  CategoryRepository({FirebaseFirestore? firestore})
+    : _db = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _db;
 
   Stream<List<BirthdayCategory>> watchCategories() {
     return _db.collection('category').snapshots().map((snapshot) {

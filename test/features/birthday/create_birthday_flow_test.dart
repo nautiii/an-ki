@@ -1,4 +1,4 @@
-import 'package:an_ki/data/models/user_model.dart';
+import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/home_page.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';

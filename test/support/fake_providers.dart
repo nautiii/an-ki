@@ -1,29 +1,30 @@
 import 'dart:async';
 
-import 'package:an_ki/data/models/birthday_model.dart';
-import 'package:an_ki/data/models/book_model.dart';
-import 'package:an_ki/data/models/category_model.dart';
-import 'package:an_ki/data/models/create_birthday_input.dart';
-import 'package:an_ki/data/models/user_model.dart';
-import 'package:an_ki/data/repositories/birthday_repository.dart';
-import 'package:an_ki/data/repositories/book_repository.dart';
-import 'package:an_ki/data/repositories/category_repository.dart';
-import 'package:an_ki/data/repositories/user_repository.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/data/models/category_model.dart';
+import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
+import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
+import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
+import 'package:an_ki/features/user/data/models/user_model.dart';
+import 'package:an_ki/features/user/data/repositories/user_repository.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class MockUser extends Fake implements firebase_auth.User {
   @override
   String get uid => 'fake-uid';
+
   @override
   String? get displayName => 'Fake User';
+
   @override
   bool get isAnonymous => false;
 }
@@ -33,14 +34,19 @@ class MockUser extends Fake implements firebase_auth.User {
 class FakeUserRepository extends Fake implements UserRepository {
   @override
   Future<UserModel?> fetchUser(String uid) async => null;
+
   @override
-  Future<void> createUser(UserModel user) async {}
+  Future<UserModel> createUser(UserModel user) async => user;
+
   @override
   Future<void> updateUser(UserModel user) async {}
+
   @override
   Future<void> updateBiometricToken(String uid, String? token) async {}
+
   @override
   Future<UserModel?> fetchUserByToken(String uid, String token) async => null;
+
   @override
   Future<void> deleteUser(String uid) async {}
 }
@@ -48,30 +54,38 @@ class FakeUserRepository extends Fake implements UserRepository {
 class FakeBirthdayRepository extends Fake implements BirthdayRepository {
   @override
   Stream<List<BirthdayModel>> watchBirthdays(String uid) => Stream.value([]);
+
   @override
   Future<void> createBirthday(String uid, CreateBirthdayInput input) async {}
+
   @override
   Future<void> updateBirthday(
     String uid,
     String birthdayId,
     CreateBirthdayInput input,
   ) async {}
+
   @override
-  Future<void> deleteBirthday(String birthdayId) async {}
+  Future<void> deleteBirthday(String uid, String birthdayId) async {}
+
   @override
   Future<void> deleteAllUserBirthdays(String uid) async {}
 }
 
 class FakeCategoryRepository extends Fake implements CategoryRepository {
-  final _categoriesController = StreamController<List<BirthdayCategory>>.broadcast();
+  final _categoriesController =
+      StreamController<List<BirthdayCategory>>.broadcast();
 
-  void emit(List<BirthdayCategory> categories) => _categoriesController.add(categories);
+  void emit(List<BirthdayCategory> categories) =>
+      _categoriesController.add(categories);
 
   @override
-  Stream<List<BirthdayCategory>> watchCategories() => _categoriesController.stream;
+  Stream<List<BirthdayCategory>> watchCategories() =>
+      _categoriesController.stream;
 
   @override
-  Future<String> createCategory(BirthdayCategory category) async => 'new-cat-id';
+  Future<String> createCategory(BirthdayCategory category) async =>
+      'new-cat-id';
 }
 
 class FakeBookRepository extends Fake implements BookRepository {
@@ -92,6 +106,7 @@ class FakeBookRepository extends Fake implements BookRepository {
 
 class FakeAuthNotifier extends AuthNotifier {
   final AuthState? _initialState;
+
   FakeAuthNotifier({AuthState? initialState}) : _initialState = initialState;
 
   @override
@@ -142,7 +157,7 @@ class FakeAuthNotifier extends AuthNotifier {
   }
 
   @override
-  Future<void> signOut() async {
+  Future<void> signOut(AppLocalizations l10n) async {
     state = AuthState();
   }
 }
@@ -218,13 +233,14 @@ class FakeUserNotifier extends UserNotifier {
   @override
   Future<void> updatePseudo(String pseudo) async {
     if (state.user != null) {
-       state = state.copyWith(user: state.user!.copyWith(pseudo: pseudo));
+      state = state.copyWith(user: state.user!.copyWith(pseudo: pseudo));
     }
   }
 }
 
 class FakeBirthdayNotifier extends BirthdayNotifier {
   final BirthdayState? _initialState;
+
   FakeBirthdayNotifier({BirthdayState? initialState})
     : _initialState = initialState;
 
@@ -262,7 +278,7 @@ class FakeBirthdayNotifier extends BirthdayNotifier {
   }
 
   @override
-  Future<void> deleteBirthday(String birthdayId) async {
+  Future<void> deleteBirthday(String uid, String birthdayId) async {
     deletedIds.add(birthdayId);
   }
 
@@ -291,8 +307,16 @@ class FakeCategoryNotifier extends CategoryNotifier {
 }
 
 class FakeBookScannerNotifier extends BookScannerNotifier {
+  final BookScannerState? _initialState;
+
+  FakeBookScannerNotifier({BookScannerState? initialState})
+    : _initialState = initialState;
+
   @override
-  BookScannerState build() => BookScannerState();
+  BookScannerState build() => _initialState ?? BookScannerState();
+
+  final List<BookModel> savedBooks = [];
+  BookModel? bookToReturnOnScan;
 
   @override
   void startListening(String uid) {
@@ -302,16 +326,34 @@ class FakeBookScannerNotifier extends BookScannerNotifier {
   @override
   Future<BookModel?> scanIsbn(String isbn) async {
     state = state.copyWith(isScanning: true);
-    await Future.value();
-    state = state.copyWith(isScanning: false);
-    return null;
+    await Future.delayed(const Duration(milliseconds: 50));
+    if (ref.mounted) {
+      state = state.copyWith(
+        isScanning: false,
+        scannedBook: bookToReturnOnScan,
+      );
+    }
+    return bookToReturnOnScan;
   }
 
   @override
   Future<void> saveBook(BookModel book) async {
     state = state.copyWith(isSaving: true);
-    await Future.value();
-    state = state.copyWith(isSaving: false);
+    await Future.delayed(const Duration(milliseconds: 50));
+    savedBooks.add(book);
+    if (ref.mounted) {
+      state = state.copyWith(isSaving: false);
+    }
+  }
+
+  @override
+  Future<void> deleteBook(String bookId) async {
+    savedBooks.removeWhere((b) => b.id == bookId);
+  }
+
+  @override
+  void reset() {
+    state = state.copyWith(clearScannedBook: true, clearError: true);
   }
 }
 

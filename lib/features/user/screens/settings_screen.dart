@@ -110,7 +110,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   birthdayNotifier.clear();
 
                   // Déconnexion finale
-                  await authNotifier.signOut();
+                  await authNotifier.signOut(context.l10n);
                 },
                 child: Text(
                   isAnonymous
@@ -157,9 +157,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(
-                            "Erreur lors de la suppression du compte: $e",
-                          ),
+                          content: Text(context.l10n.deleteAccountError),
                         ),
                       );
                     }
@@ -188,7 +186,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentLocale = ref.watch(localeProvider);
-    final authState = ref.watch(authProvider);
+    final canUseBiometrics = ref.watch(
+      authProvider.select((s) => s.canUseBiometrics),
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settings)),
@@ -234,7 +234,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               title: Text(context.l10n.biometricConnexion),
               subtitle: Text(context.l10n.biometricConnexionDescription),
               secondary: const Icon(Icons.fingerprint_rounded),
-              value: authState.canUseBiometrics,
+              value: canUseBiometrics,
               onChanged: (bool value) async {
                 if (value) {
                   await ref.read(authProvider.notifier).enableBiometrics();

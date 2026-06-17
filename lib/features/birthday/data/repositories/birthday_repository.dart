@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:an_ki/data/models/birthday_model.dart';
-import 'package:an_ki/data/models/create_birthday_input.dart';
+import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -56,8 +56,11 @@ class BirthdayRepository {
     await _birthdays.doc(birthdayId).update(data);
   }
 
-  Future<void> deleteBirthday(String birthdayId) async {
-    await _birthdays.doc(birthdayId).delete();
+  Future<void> deleteBirthday(String uid, String birthdayId) async {
+    final doc = await _birthdays.doc(birthdayId).get();
+    if (doc.exists && doc.data()?['uid'] == uid) {
+      await _birthdays.doc(birthdayId).delete();
+    }
   }
 
   Future<void> deleteAllUserBirthdays(String uid) async {

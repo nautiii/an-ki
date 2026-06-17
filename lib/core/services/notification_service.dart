@@ -1,5 +1,5 @@
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
-import 'package:an_ki/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -160,7 +160,7 @@ class NotificationService {
         id: _notificationId(birthday.id),
         title: '🎂 ${birthday.name} ${birthday.surname}',
         body:
-            'C\'est l\'anniversaire de ${birthday.name} (${ageAtBirthday} ans) !',
+            'C\'est l\'anniversaire de ${birthday.name} ($ageAtBirthday ans) !',
         scheduledDate: scheduledDate,
         notificationDetails: _notificationDetails(),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -195,7 +195,7 @@ class NotificationService {
         id: _reminderNotificationId(birthday.id),
         title: '🎉 Anniversaire bientôt',
         body:
-            '${birthday.name} ${birthday.surname} aura ${upcomingAge} ans dans 7 jours.',
+            '${birthday.name} ${birthday.surname} aura $upcomingAge ans dans 7 jours.',
         scheduledDate: scheduledDate,
         notificationDetails: _notificationDetails(),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,

@@ -1,7 +1,7 @@
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/data/models/book_model.dart';
-import 'package:an_ki/data/repositories/book_repository.dart';
+import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
+import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_card.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_info_sheet.dart';
@@ -99,8 +99,11 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final bookState = ref.watch(bookScannerProvider);
-    final books = bookState.savedBooks;
+    final isLoading = ref.watch(bookScannerProvider.select((s) => s.isLoading));
+    final isScanning = ref.watch(
+      bookScannerProvider.select((s) => s.isScanning),
+    );
+    final books = ref.watch(bookScannerProvider.select((s) => s.savedBooks));
 
     return Scaffold(
       body: SafeArea(
@@ -142,7 +145,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                           ),
                         ),
                       ),
-                      if (_isProcessing || bookState.isScanning)
+                      if (_isProcessing || isScanning)
                         Container(
                           color: Colors.black45,
                           child: const Center(
@@ -161,42 +164,45 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
               const SizedBox(height: 24),
 
               Expanded(
-                child:
-                    bookState.isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : books.isEmpty
-                        ? Center(
-                          child: Text(
-                            context.l10n.noBirthdaysFound,
-                            style: TextStyle(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        )
-                        : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Mes Livres',
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              height: 180,
-                              child: PageView.builder(
-                                itemCount: books.length,
-                                controller: PageController(
-                                  viewportFraction: 0.85,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.l10n.bookScannerTitle,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child:
+                          isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : books.isEmpty
+                              ? Center(
+                                child: Text(
+                                  context.l10n.noBooksFound,
+                                  style: TextStyle(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
-                                padEnds: false,
-                                itemBuilder: (context, index) {
-                                  return BookCard(book: books[index]);
-                                },
+                              )
+                              : SizedBox(
+                                height: 180,
+                                child: PageView.builder(
+                                  itemCount: books.length,
+                                  controller: PageController(
+                                    viewportFraction: 0.85,
+                                  ),
+                                  padEnds: false,
+                                  itemBuilder: (context, index) {
+                                    return BookCard(book: books[index]);
+                                  },
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -211,8 +217,6 @@ class _CategoryPlaceholders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(

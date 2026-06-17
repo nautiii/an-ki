@@ -4,6 +4,7 @@ class BookModel {
   final String id;
   final String uid;
   final String title;
+  final List<String> authors;
   final String isbn;
   final String? imageUrl;
   final String? publishedDate;
@@ -15,6 +16,7 @@ class BookModel {
     required this.id,
     required this.uid,
     required this.title,
+    required this.authors,
     required this.isbn,
     this.imageUrl,
     this.publishedDate,
@@ -33,6 +35,7 @@ class BookModel {
       uid: '',
       // Set by repository
       title: volumeInfo?['title'] ?? 'Unknown Title',
+      authors: List<String>.from(volumeInfo?['authors'] ?? []),
       isbn: isbn,
       imageUrl: imageLinks?['thumbnail']?.replaceFirst('http:', 'https:'),
       publishedDate: volumeInfo?['publishedDate'],
@@ -50,6 +53,7 @@ class BookModel {
       id: doc.id,
       uid: data['uid'] ?? '',
       title: data['title'] ?? '',
+      authors: List<String>.from(data['authors'] ?? []),
       isbn: data['isbn'] ?? '',
       imageUrl: data['imageUrl'],
       publishedDate: data['publishedDate'],
@@ -63,6 +67,7 @@ class BookModel {
     return {
       'uid': uid,
       'title': title,
+      'authors': authors,
       'isbn': isbn,
       'imageUrl': imageUrl,
       'publishedDate': publishedDate,
@@ -79,6 +84,7 @@ class BookModel {
     String? id,
     String? uid,
     String? title,
+    List<String>? authors,
     String? isbn,
     String? imageUrl,
     String? publishedDate,
@@ -90,6 +96,7 @@ class BookModel {
       id: id ?? this.id,
       uid: uid ?? this.uid,
       title: title ?? this.title,
+      authors: authors ?? this.authors,
       isbn: isbn ?? this.isbn,
       imageUrl: imageUrl ?? this.imageUrl,
       publishedDate: publishedDate ?? this.publishedDate,

@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:an_ki/core/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/data/models/birthday_model.dart';
+import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
@@ -67,20 +68,25 @@ class ContactTile extends ConsumerWidget {
             );
           },
           onDismissed: (direction) {
-            ref.read(birthdayProvider.notifier).deleteBirthday(birthday.id);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  context.l10n.birthdayDeleted(
-                    "${birthday.name} ${birthday.surname}",
+            final uid = ref.read(authProvider).uid;
+            if (uid != null) {
+              ref
+                  .read(birthdayProvider.notifier)
+                  .deleteBirthday(uid, birthday.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    context.l10n.birthdayDeleted(
+                      "${birthday.name} ${birthday.surname}",
+                    ),
+                  ),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            );
+              );
+            }
           },
           background: Container(
             alignment: Alignment.centerLeft,

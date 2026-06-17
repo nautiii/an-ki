@@ -1,4 +1,4 @@
-import 'package:an_ki/data/models/book_model.dart';
+import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
 import 'package:flutter/material.dart';
 
 class BookCard extends StatelessWidget {
@@ -55,6 +55,15 @@ class BookCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (book.authors.isNotEmpty)
+                    Text(
+                      book.authors.join(', '),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   const SizedBox(height: 4),
                   Text(
                     'ISBN: ${book.isbn}',

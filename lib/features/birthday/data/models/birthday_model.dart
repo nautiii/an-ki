@@ -46,4 +46,24 @@ class BirthdayModel {
       if (picture != null) 'picture': picture,
     };
   }
+
+  BirthdayModel copyWith({
+    String? id,
+    String? uid,
+    String? name,
+    String? surname,
+    DateTime? date,
+    List<String>? categories,
+    String? picture,
+  }) {
+    return BirthdayModel(
+      id: id ?? this.id,
+      uid: uid ?? this.uid,
+      name: name ?? this.name,
+      surname: surname ?? this.surname,
+      date: date ?? this.date,
+      categories: categories ?? this.categories,
+      picture: picture ?? this.picture,
+    );
+  }
 }

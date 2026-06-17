@@ -98,7 +98,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    final isLoading = ref.watch(authProvider.select((s) => s.isLoading));
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -146,7 +146,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                         controller: _nameController,
                         label: context.l10n.firstName,
                         prefixIcon: Icons.person_outline_rounded,
-                        enabled: !authState.isLoading,
+                        enabled: !isLoading,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -155,7 +155,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                         controller: _surnameController,
                         label: context.l10n.lastName,
                         prefixIcon: Icons.person_outline_rounded,
-                        enabled: !authState.isLoading,
+                        enabled: !isLoading,
                       ),
                     ),
                   ],
@@ -169,7 +169,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                   label: context.l10n.email,
                   prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
-                  enabled: !authState.isLoading,
+                  enabled: !isLoading,
                 ),
               ),
               const SizedBox(height: 16),
@@ -180,7 +180,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                   label: context.l10n.password,
                   prefixIcon: Icons.lock_outline_rounded,
                   obscureText: _obscurePassword,
-                  enabled: !authState.isLoading,
+                  enabled: !isLoading,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
@@ -203,7 +203,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                   label: context.l10n.confirmPassword,
                   prefixIcon: Icons.lock_reset_rounded,
                   obscureText: _obscureConfirmPassword,
-                  enabled: !authState.isLoading,
+                  enabled: !isLoading,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureConfirmPassword
@@ -229,7 +229,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     width: 280,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: authState.isLoading ? null : _handleSignUp,
+                      onPressed: isLoading ? null : _handleSignUp,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary,
                         foregroundColor: colorScheme.onPrimary,
@@ -239,7 +239,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                         ),
                       ),
                       child:
-                          authState.isLoading
+                          isLoading
                               ? SizedBox(
                                 height: 24,
                                 width: 24,
@@ -271,7 +271,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                     ),
                     TextButton(
                       onPressed:
-                          authState.isLoading
+                          isLoading
                               ? null
                               : () => Navigator.of(
                                 context,
