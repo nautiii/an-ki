@@ -261,7 +261,7 @@ class FakeBirthdayNotifier extends BirthdayNotifier {
   Future<void> createBirthday(String uid, CreateBirthdayInput input) async {
     state = state.copyWith(isCreating: true);
     createdInputs.add(input);
-    await Future.value();
+    await Future<void>.value();
     state = state.copyWith(isCreating: false);
   }
 
@@ -273,7 +273,7 @@ class FakeBirthdayNotifier extends BirthdayNotifier {
   ) async {
     state = state.copyWith(isCreating: true);
     createdInputs.add(input);
-    await Future.value();
+    await Future<void>.value();
     state = state.copyWith(isCreating: false);
   }
 
@@ -326,7 +326,7 @@ class FakeBookScannerNotifier extends BookScannerNotifier {
   @override
   Future<BookModel?> scanIsbn(String isbn) async {
     state = state.copyWith(isScanning: true);
-    await Future.delayed(const Duration(milliseconds: 50));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
     if (ref.mounted) {
       state = state.copyWith(
         isScanning: false,
@@ -339,7 +339,7 @@ class FakeBookScannerNotifier extends BookScannerNotifier {
   @override
   Future<void> saveBook(BookModel book) async {
     state = state.copyWith(isSaving: true);
-    await Future.delayed(const Duration(milliseconds: 50));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
     savedBooks.add(book);
     if (ref.mounted) {
       state = state.copyWith(isSaving: false);

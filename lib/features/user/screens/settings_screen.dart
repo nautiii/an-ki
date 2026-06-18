@@ -48,7 +48,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final authState = ref.read(authProvider);
     final isAnonymous = authState.isAnonymous;
 
-    await showDialog(
+    await showDialog<void>(
       context: context,
       builder:
           (dialogContext) => AlertDialog(
@@ -87,30 +87,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   final authNotifier = ref.read(authProvider.notifier);
                   final userNotifier = ref.read(userProvider.notifier);
                   final birthdayNotifier = ref.read(birthdayProvider.notifier);
+                  final l10n = context.l10n;
 
                   // Fermer le dialogue de confirmation
                   Navigator.of(dialogContext).pop();
 
                   // Afficher l'overlay de chargement
                   if (context.mounted) {
-                    showDialog(
+                    showDialog<void>(
                       context: context,
                       barrierDismissible: false,
-                      builder:
-                          (context) =>
-                              const Center(child: CircularProgressIndicator()),
+                      builder: (context) =>
+                          const Center(child: CircularProgressIndicator()),
                     );
                   }
 
                   // Délai pour une transition visuelle fluide
-                  await Future.delayed(const Duration(milliseconds: 600));
+                  await Future<void>.delayed(const Duration(milliseconds: 600));
 
                   // Nettoyage simultané des états
                   userNotifier.clear();
                   birthdayNotifier.clear();
 
                   // Déconnexion finale
-                  await authNotifier.signOut(context.l10n);
+                  await authNotifier.signOut(l10n);
                 },
                 child: Text(
                   isAnonymous
@@ -130,7 +130,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     if (uid == null) return;
 
-    await showDialog(
+    await showDialog<void>(
       context: context,
       builder:
           (dialogContext) => AlertDialog(
@@ -145,6 +145,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onPressed: () async {
                   final authNotifier = ref.read(authProvider.notifier);
                   final userNotifier = ref.read(userProvider.notifier);
+                  final l10n = context.l10n;
 
                   Navigator.of(dialogContext).pop();
 
@@ -152,13 +153,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     // 1. Supprimer les données Firestore
                     await userNotifier.deleteAccount(uid);
                     // 2. Supprimer le compte Auth
-                    await authNotifier.deleteAccount(context.l10n);
+                    await authNotifier.deleteAccount(l10n);
                   } catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(context.l10n.deleteAccountError),
-                        ),
+                        SnackBar(content: Text(l10n.deleteAccountError)),
                       );
                     }
                   }

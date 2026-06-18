@@ -9,9 +9,7 @@ class BiometricService {
   static final BiometricService instance = BiometricService._();
 
   final LocalAuthentication _auth = LocalAuthentication();
-  final FlutterSecureStorage _storage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(),
-  );
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   static const String _biometricTokenKey = 'biometric_auth_token';
   static const String _userIdKey = 'biometric_user_id';

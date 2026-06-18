@@ -56,7 +56,7 @@ void main() {
         'publishedDate': '1965',
         'description': 'Spice',
         'pageCount': 412,
-        'scannedAt': Timestamp.fromDate(DateTime(2024, 1, 1)),
+        'scannedAt': Timestamp.fromDate(DateTime(2024)),
       });
       final doc = (await firestore.collection('books').get()).docs.first;
 
@@ -66,7 +66,7 @@ void main() {
       expect(book.uid, 'user-1');
       expect(book.title, 'Dune');
       expect(book.authors, ['Frank Herbert']);
-      expect(book.scannedAt, DateTime(2024, 1, 1));
+      expect(book.scannedAt, DateTime(2024));
     });
 
     test('handles missing optional fields', () async {
@@ -90,13 +90,10 @@ void main() {
         title: 'T',
         authors: const ['A'],
         isbn: '1',
-        scannedAt: DateTime(2024, 1, 1),
+        scannedAt: DateTime(2024),
       );
 
-      expect(
-        book.toJson()['scannedAt'],
-        Timestamp.fromDate(DateTime(2024, 1, 1)),
-      );
+      expect(book.toJson()['scannedAt'], Timestamp.fromDate(DateTime(2024)));
     });
 
     test('uses a server timestamp when scannedAt is null', () {

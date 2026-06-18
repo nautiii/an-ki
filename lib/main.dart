@@ -14,9 +14,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import 'features/home/main_screen.dart';
+import 'package:an_ki/features/home/main_screen.dart';
 
-import 'core/app_initializer.dart';
+import 'package:an_ki/core/app_initializer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

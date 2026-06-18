@@ -337,7 +337,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
 
   void _showDatePicker(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: colorScheme.surface,
       shape: const RoundedRectangleBorder(

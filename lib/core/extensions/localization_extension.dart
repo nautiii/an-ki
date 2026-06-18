@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../l10n/app_localizations.dart';
+import 'package:an_ki/l10n/app_localizations.dart';
 
 /// Extension pour accéder facilement aux localizations
 extension AppLocalizationsX on BuildContext {

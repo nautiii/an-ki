@@ -213,7 +213,9 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                     AnKiTextField(
                       controller: _controller,
                       label: context.l10n.categoryName,
+                      // Dynamic icon: code is user-selected at runtime, not const.
                       prefixIcon: IconData(
+                        // ignore: non_const_argument_for_const_parameter
                         _selectedIconCode,
                         fontFamily: 'MaterialIcons',
                       ),

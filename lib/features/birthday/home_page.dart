@@ -13,7 +13,7 @@ import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'contact_sections.dart';
+import 'package:an_ki/features/birthday/contact_sections.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -44,7 +44,7 @@ class HomePage extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               const _CategoryFilterBar(),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Expanded(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
@@ -85,9 +85,9 @@ class _HomeContent extends StatelessWidget {
     }
 
     if (viewType == HomeViewType.calendar) {
-      return Align(
+      return const Align(
         alignment: Alignment.topCenter,
-        child: SingleChildScrollView(child: const BirthdayCalendar()),
+        child: SingleChildScrollView(child: BirthdayCalendar()),
       );
     }
 

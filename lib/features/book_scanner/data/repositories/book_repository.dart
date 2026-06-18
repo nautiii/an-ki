@@ -38,9 +38,11 @@ class BookRepository {
       debugPrint('Google Books Response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['totalItems'] != null && data['totalItems'] > 0) {
-          final item = data['items'][0];
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final totalItems = data['totalItems'] as int?;
+        if (totalItems != null && totalItems > 0) {
+          final items = data['items'] as List<dynamic>;
+          final item = items.first as Map<String, dynamic>;
           return BookModel.fromJson(item, isbn);
         }
       } else if (response.statusCode == 429) {

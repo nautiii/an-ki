@@ -101,9 +101,7 @@ class ContactTile extends ConsumerWidget {
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                stops: [0.6, 1.0],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
+                stops: const [0.6, 1.0],
                 colors: [
                   colorScheme.surfaceContainer,
                   colorScheme.surfaceContainerHighest,
@@ -130,7 +128,6 @@ class ContactTile extends ConsumerWidget {
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: colorScheme.primary.withValues(alpha: 0.1),
-                          width: 1,
                         ),
                       ),
                       child: CircleAvatar(

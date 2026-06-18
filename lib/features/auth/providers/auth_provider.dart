@@ -114,7 +114,7 @@ class AuthNotifier extends Notifier<AuthState> {
     required AppLocalizations l10n,
   }) async {
     try {
-      state = state.copyWith(isLoading: true, errorMessage: null);
+      state = state.copyWith(isLoading: true);
 
       final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
@@ -150,7 +150,7 @@ class AuthNotifier extends Notifier<AuthState> {
     required AppLocalizations l10n,
   }) async {
     try {
-      state = state.copyWith(isLoading: true, errorMessage: null);
+      state = state.copyWith(isLoading: true);
 
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
@@ -180,7 +180,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<bool> signInWithGoogle(AppLocalizations l10n) async {
     try {
-      state = state.copyWith(isLoading: true, errorMessage: null);
+      state = state.copyWith(isLoading: true);
 
       final GoogleSignInAccount googleUser = await _googleSignIn.authenticate(
         scopeHint: ['email'],
@@ -223,7 +223,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<bool> signInWithBiometricToken(AppLocalizations l10n) async {
     try {
-      state = state.copyWith(isLoading: true, errorMessage: null);
+      state = state.copyWith(isLoading: true);
 
       // 1. Authentification physique
       final authenticated = await _biometricService.authenticate();
@@ -330,7 +330,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<bool> signInAnonymously(AppLocalizations l10n) async {
     try {
-      state = state.copyWith(isLoading: true, errorMessage: null);
+      state = state.copyWith(isLoading: true);
       final userCredential = await _firebaseAuth.signInAnonymously();
       state = state.copyWith(
         user: userCredential.user,
@@ -349,7 +349,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<bool> linkWithGoogle(AppLocalizations l10n) async {
     try {
-      state = state.copyWith(isLoading: true, errorMessage: null);
+      state = state.copyWith(isLoading: true);
       final googleUser = await _googleSignIn.authenticate(scopeHint: ['email']);
 
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;

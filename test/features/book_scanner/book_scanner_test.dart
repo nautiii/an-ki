@@ -149,7 +149,7 @@ void main() {
     testWidgets('an unknown ISBN shows the "not found" message', (
       tester,
     ) async {
-      final repo = ConfigurableBookRepository(bookByIsbn: null);
+      final repo = ConfigurableBookRepository();
 
       await tester.pumpHarness(
         const BookScannerScreen(),

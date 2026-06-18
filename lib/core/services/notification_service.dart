@@ -218,16 +218,15 @@ class NotificationService {
   int _notificationId(String birthdayId) => birthdayId.hashCode.abs() % 100000;
 
   NotificationDetails _notificationDetails() {
-    return NotificationDetails(
+    return const NotificationDetails(
       android: AndroidNotificationDetails(
         _channelId,
         _channelName,
         channelDescription: _channelDescription,
         importance: Importance.max,
         priority: Priority.high,
-        showWhen: true,
       ),
-      iOS: const DarwinNotificationDetails(
+      iOS: DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,

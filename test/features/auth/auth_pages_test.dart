@@ -280,7 +280,9 @@ void main() {
                   child: ElevatedButton(
                     onPressed:
                         () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const LoginPage()),
+                          MaterialPageRoute<void>(
+                            builder: (_) => const LoginPage(),
+                          ),
                         ),
                     child: const Text('open'),
                   ),
@@ -413,7 +415,9 @@ void main() {
                   child: ElevatedButton(
                     onPressed:
                         () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const SignUpPage()),
+                          MaterialPageRoute<void>(
+                            builder: (_) => const SignUpPage(),
+                          ),
                         ),
                     child: const Text('open'),
                   ),

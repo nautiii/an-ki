@@ -8,14 +8,15 @@ class BirthdayCategory {
 
   BirthdayCategory({required this.id, required this.name, required this.icon});
 
+  // ignore: non_const_argument_for_const_parameter
   IconData get iconData => IconData(icon, fontFamily: 'MaterialIcons');
 
   factory BirthdayCategory.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return BirthdayCategory(
       id: doc.id,
-      name: data['name'] ?? '',
-      icon: data['icon'] ?? Icons.category.codePoint,
+      name: data['name'] as String? ?? '',
+      icon: data['icon'] as int? ?? Icons.category.codePoint,
     );
   }
 

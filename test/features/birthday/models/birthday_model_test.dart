@@ -45,7 +45,7 @@ void main() {
           'uid': 'user-1',
           'name': 'Bob',
           'surname': 'Builder',
-          'date': Timestamp.fromDate(DateTime(1985, 1, 1)),
+          'date': Timestamp.fromDate(DateTime(1985)),
         });
 
         final model = BirthdayModel.fromFirestore(doc);

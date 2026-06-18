@@ -75,7 +75,7 @@ class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
                   child: Image.asset('lib/assets/lune.png', fit: BoxFit.fill),
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               AnKiFadeIn(
                 delay: const Duration(milliseconds: 300),
                 child: Text(

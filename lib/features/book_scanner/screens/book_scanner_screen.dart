@@ -76,7 +76,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
   }
 
   void _showBookInfo(BookModel book) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

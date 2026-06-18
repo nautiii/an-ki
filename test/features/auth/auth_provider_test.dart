@@ -91,11 +91,7 @@ void main() {
 
   group('AuthState', () {
     test('isAuthenticated relies on biometrics when configured', () {
-      final state = AuthState(
-        user: null,
-        canUseBiometrics: true,
-        isBiometricallyAuthenticated: false,
-      );
+      final state = AuthState(canUseBiometrics: true);
       expect(state.isAuthenticated, isFalse);
       expect(
         state.copyWith(isBiometricallyAuthenticated: true).isAuthenticated,

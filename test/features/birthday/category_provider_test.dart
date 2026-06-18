@@ -103,11 +103,11 @@ void main() {
     });
 
     test('keeps only the categories selected by the user', () async {
-      final user = UserModel(
+      const user = UserModel(
         id: 'u',
         name: 'A',
         surname: 'B',
-        categories: const ['fam'],
+        categories: ['fam'],
         isDark: false,
         locale: 'fr',
       );
@@ -145,11 +145,11 @@ void main() {
     });
 
     test('addCategoriesToUser merges and persists the ids', () async {
-      final user = UserModel(
+      const user = UserModel(
         id: 'u',
         name: 'A',
         surname: 'B',
-        categories: const ['fam'],
+        categories: ['fam'],
         isDark: false,
         locale: 'fr',
       );
@@ -173,7 +173,7 @@ void main() {
     });
 
     test('createAndAddCategory creates the category then links it', () async {
-      final user = UserModel(
+      const user = UserModel(
         id: 'u',
         name: 'A',
         surname: 'B',

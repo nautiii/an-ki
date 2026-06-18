@@ -76,7 +76,7 @@ class FakeGoogleSignInPlatform extends GoogleSignInPlatform
   @override
   Future<AuthenticationResults?>? attemptLightweightAuthentication(
     AttemptLightweightAuthenticationParameters params,
-  ) => Future<AuthenticationResults?>.value(null);
+  ) => Future<AuthenticationResults?>.value();
 
   @override
   bool supportsAuthenticate() => true;

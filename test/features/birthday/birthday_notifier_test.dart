@@ -70,7 +70,7 @@ CreateBirthdayInput _input() => CreateBirthdayInput(
   uid: 'u',
   name: 'New',
   surname: 'Person',
-  date: DateTime(2000, 1, 1),
+  date: DateTime(2000),
   categories: const [],
 );
 

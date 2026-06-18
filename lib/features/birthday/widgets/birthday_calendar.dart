@@ -175,7 +175,7 @@ class _CalendarGrid extends StatelessWidget {
       Localizations.localeOf(context).languageCode,
     );
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,

@@ -34,13 +34,18 @@ class BookModel {
       // Set by repository or Firestore
       uid: '',
       // Set by repository
-      title: volumeInfo?['title'] ?? 'Unknown Title',
-      authors: List<String>.from(volumeInfo?['authors'] ?? []),
+      title: volumeInfo?['title'] as String? ?? 'Unknown Title',
+      authors: List<String>.from(
+        volumeInfo?['authors'] as List<dynamic>? ?? const [],
+      ),
       isbn: isbn,
-      imageUrl: imageLinks?['thumbnail']?.replaceFirst('http:', 'https:'),
-      publishedDate: volumeInfo?['publishedDate'],
-      description: volumeInfo?['description'],
-      pageCount: volumeInfo?['pageCount'],
+      imageUrl: (imageLinks?['thumbnail'] as String?)?.replaceFirst(
+        'http:',
+        'https:',
+      ),
+      publishedDate: volumeInfo?['publishedDate'] as String?,
+      description: volumeInfo?['description'] as String?,
+      pageCount: volumeInfo?['pageCount'] as int?,
       scannedAt: DateTime.now(),
     );
   }
@@ -51,14 +56,14 @@ class BookModel {
     final data = doc.data();
     return BookModel(
       id: doc.id,
-      uid: data['uid'] ?? '',
-      title: data['title'] ?? '',
-      authors: List<String>.from(data['authors'] ?? []),
-      isbn: data['isbn'] ?? '',
-      imageUrl: data['imageUrl'],
-      publishedDate: data['publishedDate'],
-      description: data['description'],
-      pageCount: data['pageCount'],
+      uid: data['uid'] as String? ?? '',
+      title: data['title'] as String? ?? '',
+      authors: List<String>.from(data['authors'] as List<dynamic>? ?? const []),
+      isbn: data['isbn'] as String? ?? '',
+      imageUrl: data['imageUrl'] as String?,
+      publishedDate: data['publishedDate'] as String?,
+      description: data['description'] as String?,
+      pageCount: data['pageCount'] as int?,
       scannedAt: (data['scannedAt'] as Timestamp?)?.toDate(),
     );
   }

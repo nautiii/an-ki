@@ -27,9 +27,9 @@ class BirthdayModel {
 
     return BirthdayModel(
       id: doc.id,
-      uid: data['uid'],
-      name: data['name'],
-      surname: data['surname'],
+      uid: data['uid'] as String,
+      name: data['name'] as String,
+      surname: data['surname'] as String,
       date: (data['date'] as Timestamp).toDate(),
       categories: categoriesData.map((c) => c as String).toList(),
       picture: data['picture'] as String?,

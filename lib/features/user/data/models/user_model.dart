@@ -26,12 +26,14 @@ class UserModel {
 
     return UserModel(
       id: doc.id,
-      name: data['name'] ?? '',
-      surname: data['surname'] ?? '',
-      pseudo: data['pseudo'],
-      categories: List<String>.from(data['categories'] ?? []),
-      isDark: data['isDark'] ?? false,
-      locale: data['locale'] ?? 'fr',
+      name: data['name'] as String? ?? '',
+      surname: data['surname'] as String? ?? '',
+      pseudo: data['pseudo'] as String?,
+      categories: List<String>.from(
+        data['categories'] as List<dynamic>? ?? const [],
+      ),
+      isDark: data['isDark'] as bool? ?? false,
+      locale: data['locale'] as String? ?? 'fr',
       biometricToken: data['biometricToken'] as String?,
     );
   }

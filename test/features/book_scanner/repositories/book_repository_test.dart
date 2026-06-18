@@ -87,16 +87,16 @@ void main() {
         await firestore.collection('books').add({
           'uid': 'user-1',
           'title': 'Older',
-          'authors': [],
+          'authors': <String>[],
           'isbn': '1',
-          'scannedAt': Timestamp.fromDate(DateTime(2023, 1, 1)),
+          'scannedAt': Timestamp.fromDate(DateTime(2023)),
         });
         await firestore.collection('books').add({
           'uid': 'user-1',
           'title': 'Newer',
-          'authors': [],
+          'authors': <String>[],
           'isbn': '2',
-          'scannedAt': Timestamp.fromDate(DateTime(2024, 1, 1)),
+          'scannedAt': Timestamp.fromDate(DateTime(2024)),
         });
 
         final books = await repository.watchBooks('user-1').first;
@@ -112,7 +112,7 @@ void main() {
         title: 'Dune',
         authors: const ['Frank Herbert'],
         isbn: '123',
-        scannedAt: DateTime(2024, 1, 1),
+        scannedAt: DateTime(2024),
       );
 
       await repository.saveBook('user-1', book);

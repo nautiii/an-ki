@@ -36,15 +36,15 @@ void main() {
         'uid': 'user-1',
         'name': 'Mine',
         'surname': 'X',
-        'date': Timestamp.fromDate(DateTime(1990, 1, 1)),
-        'categories': [],
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'categories': <String>[],
       });
       await firestore.collection('birthday').add({
         'uid': 'user-2',
         'name': 'Other',
         'surname': 'Y',
-        'date': Timestamp.fromDate(DateTime(1990, 1, 1)),
-        'categories': [],
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'categories': <String>[],
       });
 
       final birthdays = await repository.watchBirthdays('user-1').first;
@@ -83,8 +83,8 @@ void main() {
         'uid': 'user-1',
         'name': 'Old',
         'surname': 'X',
-        'date': Timestamp.fromDate(DateTime(1990, 1, 1)),
-        'categories': [],
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'categories': <String>[],
       });
 
       await repository.updateBirthday('user-1', ref.id, input(name: 'Updated'));
@@ -98,8 +98,8 @@ void main() {
         'uid': 'user-1',
         'name': 'Old',
         'surname': 'X',
-        'date': Timestamp.fromDate(DateTime(1990, 1, 1)),
-        'categories': [],
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'categories': <String>[],
       });
       final bytes = Uint8List.fromList([9, 9, 9]);
 
@@ -120,8 +120,8 @@ void main() {
         'uid': 'user-1',
         'name': 'X',
         'surname': 'Y',
-        'date': Timestamp.fromDate(DateTime(1990, 1, 1)),
-        'categories': [],
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'categories': <String>[],
       });
 
       await repository.deleteBirthday('user-1', ref.id);
@@ -135,8 +135,8 @@ void main() {
         'uid': 'user-2',
         'name': 'X',
         'surname': 'Y',
-        'date': Timestamp.fromDate(DateTime(1990, 1, 1)),
-        'categories': [],
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'categories': <String>[],
       });
 
       await repository.deleteBirthday('user-1', ref.id);
@@ -153,16 +153,16 @@ void main() {
           'uid': 'user-1',
           'name': 'N$i',
           'surname': 'X',
-          'date': Timestamp.fromDate(DateTime(1990, 1, 1)),
-          'categories': [],
+          'date': Timestamp.fromDate(DateTime(1990)),
+          'categories': <String>[],
         });
       }
       await firestore.collection('birthday').add({
         'uid': 'user-2',
         'name': 'Keep',
         'surname': 'X',
-        'date': Timestamp.fromDate(DateTime(1990, 1, 1)),
-        'categories': [],
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'categories': <String>[],
       });
 
       await repository.deleteAllUserBirthdays('user-1');

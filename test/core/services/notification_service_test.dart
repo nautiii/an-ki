@@ -58,7 +58,7 @@ class MockNotificationsPlugin extends Fake
       return Future.value(true);
     }
     if (invocation.memberName == #getNotificationAppLaunchDetails) {
-      return Future.value(null);
+      return Future<NotificationAppLaunchDetails?>.value();
     }
     return super.noSuchMethod(invocation);
   }
@@ -114,7 +114,7 @@ void main() {
             uid: 'user-1',
             name: 'John',
             surname: 'Doe',
-            date: DateTime(1990, 1, 1),
+            date: DateTime(1990),
             categories: [],
           ),
         ];
@@ -207,7 +207,7 @@ void main() {
         uid: 'u1',
         name: 'A',
         surname: 'B',
-        date: DateTime(1990, 6, 1),
+        date: DateTime(1990, 6),
         categories: [],
       );
 

@@ -64,7 +64,7 @@ class BookScannerNotifier extends Notifier<BookScannerState> {
               state = state.copyWith(savedBooks: books, isLoading: false);
             }
           },
-          onError: (err) {
+          onError: (Object err) {
             if (ref.mounted) {
               state = state.copyWith(isLoading: false, error: err);
             }

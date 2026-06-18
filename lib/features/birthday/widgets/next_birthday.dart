@@ -47,7 +47,7 @@ class _NextBirthdayCardState extends ConsumerState<NextBirthdayCard> {
     }
 
     if (nextBirthdays.isEmpty) {
-      return SizedBox(
+      return const SizedBox(
         height: 110,
         child: _BaseCard(
           child: Center(

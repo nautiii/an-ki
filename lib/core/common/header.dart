@@ -68,7 +68,7 @@ class Header extends ConsumerWidget {
               ),
               onPressed:
                   () => Navigator.of(context).push(
-                    MaterialPageRoute(
+                    MaterialPageRoute<void>(
                       builder: (context) => const SettingsScreen(),
                     ),
                   ),
