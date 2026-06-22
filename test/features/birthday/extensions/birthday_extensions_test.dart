@@ -1,4 +1,4 @@
-import 'package:an_ki/core/extensions/birthday_extensions.dart';
+import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/data/models/category_model.dart';

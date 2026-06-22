@@ -1,3 +1,4 @@
+import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
 import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
@@ -6,6 +7,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/fake_providers.dart';
+
+class _FakeContactsService extends ContactsService {
+  const _FakeContactsService({this.granted = true, this.contacts = const []});
+
+  final bool granted;
+  final List<ImportedBirthday> contacts;
+
+  @override
+  Future<bool> requestReadPermission() async => granted;
+
+  @override
+  Future<List<ImportedBirthday>> fetchBirthdays() async => contacts;
+}
 
 /// Builds a birthday whose anniversary falls [daysAhead] days from today,
 /// keeping it independent from the current date.
@@ -190,6 +204,62 @@ void main() {
       expect(container.read(birthdayProvider).birthdays, isEmpty);
       expect(container.read(birthdayProvider).isLoading, true);
     });
+
+    test('importFromContacts throws when permission is denied', () async {
+      final repo = RecordingBirthdayRepository();
+      final container = ProviderContainer(
+        overrides: [
+          birthdayRepositoryProvider.overrideWithValue(repo),
+          contactsServiceProvider.overrideWithValue(
+            const _FakeContactsService(granted: false),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await expectLater(
+        container.read(birthdayProvider.notifier).importFromContacts('u'),
+        throwsException,
+      );
+      expect(repo.created, isEmpty);
+    });
+
+    test(
+      'importFromContacts creates one birthday per contact and returns the count',
+      () async {
+        final repo = RecordingBirthdayRepository();
+        final container = ProviderContainer(
+          overrides: [
+            birthdayRepositoryProvider.overrideWithValue(repo),
+            contactsServiceProvider.overrideWithValue(
+              _FakeContactsService(
+                contacts: [
+                  ImportedBirthday(
+                    name: 'A',
+                    surname: 'B',
+                    date: DateTime(1990, 1, 1),
+                  ),
+                  ImportedBirthday(
+                    name: 'C',
+                    surname: 'D',
+                    date: DateTime(1992, 2, 2),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final count = await container
+            .read(birthdayProvider.notifier)
+            .importFromContacts('u');
+
+        expect(count, 2);
+        expect(repo.created, hasLength(2));
+        expect(repo.created.first.name, 'A');
+      },
+    );
   });
 
   group('Derived providers', () {

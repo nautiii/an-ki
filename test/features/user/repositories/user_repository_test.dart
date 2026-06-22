@@ -89,37 +89,6 @@ void main() {
     expect(doc.data()!['pseudo'], 'Q');
   });
 
-  test('updateBiometricToken updates only the token field', () async {
-    await repository.createUser(user);
-
-    await repository.updateBiometricToken('user-1', null);
-
-    final doc = await firestore.collection('user').doc('user-1').get();
-    expect(doc.data()!['biometricToken'], isNull);
-    expect(doc.data()!['name'], 'Quentin');
-  });
-
-  group('fetchUserByToken', () {
-    test('returns null when the document is missing', () async {
-      expect(await repository.fetchUserByToken('user-1', 'token-abc'), isNull);
-    });
-
-    test('returns the user when the token matches', () async {
-      await repository.createUser(user);
-
-      final fetched = await repository.fetchUserByToken('user-1', 'token-abc');
-
-      expect(fetched, isNotNull);
-      expect(fetched!.id, 'user-1');
-    });
-
-    test('returns null when the token does not match', () async {
-      await repository.createUser(user);
-
-      expect(await repository.fetchUserByToken('user-1', 'wrong'), isNull);
-    });
-  });
-
   test('deleteUser removes the document', () async {
     await repository.createUser(user);
 

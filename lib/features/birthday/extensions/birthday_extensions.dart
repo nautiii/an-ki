@@ -45,13 +45,13 @@ extension BirthdayCategoryX on BirthdayCategory {
 }
 
 extension BirthdayUpcoming on BirthdayModel {
-  /// Prochain anniversaire (aujourd'hui ou futur).
+  /// Next birthday occurrence (today or in the future).
   DateTime get nextOccurrence {
     final DateTime now = DateTime.now();
     final DateTime todayAtMidnight = DateTime(now.year, now.month, now.day);
     DateTime candidate = DateTime(now.year, date.month, date.day);
 
-    // Si l'anniversaire est déjà passé strictement avant aujourd'hui cette année.
+    // If the birthday already fell strictly before today this year.
     if (candidate.isBefore(todayAtMidnight)) {
       candidate = DateTime(now.year + 1, date.month, date.day);
     }
@@ -65,7 +65,7 @@ extension BirthdayUpcoming on BirthdayModel {
         .inDays;
   }
 
-  /// Âge actuel du contact (ajusté si l'anniversaire n'est pas encore passé).
+  /// Current age of the contact (adjusted if the birthday has not happened yet).
   int get age {
     final DateTime now = DateTime.now();
     int years = now.year - date.year;

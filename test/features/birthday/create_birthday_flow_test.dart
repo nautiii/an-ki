@@ -1,6 +1,6 @@
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/birthday/home_page.dart';
+import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
@@ -15,12 +15,12 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'HomePage opens the create birthday page from the search bar add button',
+    'HomeScreen opens the create birthday page from the search bar add button',
     (WidgetTester tester) async {
       final birthdayNotifierInstance = FakeBirthdayNotifier();
 
       await tester.pumpHarness(
-        const HomePage(),
+        const HomeScreen(),
         overrides: [
           authProvider.overrideWith(
             () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
@@ -48,7 +48,7 @@ void main() {
     final birthdayNotifierInstance = FakeBirthdayNotifier();
 
     await tester.pumpHarness(
-      const HomePage(),
+      const HomeScreen(),
       overrides: [
         authProvider.overrideWith(
           () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),

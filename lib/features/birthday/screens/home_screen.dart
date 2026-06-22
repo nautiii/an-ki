@@ -1,6 +1,6 @@
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/search_bar.dart';
-import 'package:an_ki/core/extensions/birthday_extensions.dart';
+import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
@@ -10,13 +10,15 @@ import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
+import 'package:an_ki/features/user/providers/user_provider.dart';
+import 'package:an_ki/features/user/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:an_ki/features/birthday/contact_sections.dart';
+import 'package:an_ki/features/birthday/widgets/contact_sections.dart';
 
-class HomePage extends ConsumerWidget {
-  const HomePage({super.key});
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,7 +34,20 @@ class HomePage extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              const Header(),
+              Header(
+                userName: ref.watch(
+                  userProvider.select((s) => s.user?.displayName),
+                ),
+                isListView: viewType == HomeViewType.list,
+                onToggleView:
+                    () => ref.read(homeViewProvider.notifier).toggle(),
+                onOpenSettings:
+                    () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const SettingsScreen(),
+                      ),
+                    ),
+              ),
               const SizedBox(height: 24),
               const NextBirthdayCard(),
               const SizedBox(height: 20),

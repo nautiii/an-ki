@@ -80,7 +80,21 @@ void main() {
   ];
 
   testWidgets('Header opens the settings screen', (tester) async {
-    await tester.pumpHarness(const Header(), overrides: overridesWith());
+    await tester.pumpHarness(
+      Builder(
+        builder:
+            (context) => Header(
+              userName: 'Quentin',
+              onOpenSettings:
+                  () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const SettingsScreen(),
+                    ),
+                  ),
+            ),
+      ),
+      overrides: overridesWith(),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.byIcon(Icons.settings_rounded));

@@ -34,8 +34,6 @@ class BookRepository {
     );
     try {
       final response = await _httpClient.get(url);
-      debugPrint('Google Books Response: ${response.body}');
-      debugPrint('Google Books Response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;

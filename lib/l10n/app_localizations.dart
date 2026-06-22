@@ -895,6 +895,60 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Limite de recherche atteinte. Veuillez réessayer plus tard.'**
   String get errorQuotaExceeded;
+
+  /// No description provided for @bookCategoryNovel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Roman'**
+  String get bookCategoryNovel;
+
+  /// No description provided for @bookCategoryComics.
+  ///
+  /// In fr, this message translates to:
+  /// **'BD'**
+  String get bookCategoryComics;
+
+  /// No description provided for @bookCategoryCooking.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cuisine'**
+  String get bookCategoryCooking;
+
+  /// No description provided for @bookCategoryTech.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tech'**
+  String get bookCategoryTech;
+
+  /// No description provided for @notificationChannelName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Anniversaires'**
+  String get notificationChannelName;
+
+  /// No description provided for @notificationChannelDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels d\'anniversaire du jour'**
+  String get notificationChannelDescription;
+
+  /// No description provided for @notificationReminderTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'🎉 Anniversaire bientôt'**
+  String get notificationReminderTitle;
+
+  /// No description provided for @notificationBirthdayBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'C\'est l\'anniversaire de {name} ({age} ans) !'**
+  String notificationBirthdayBody(String name, int age);
+
+  /// No description provided for @notificationReminderBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} {surname} aura {age} ans dans 7 jours.'**
+  String notificationReminderBody(String name, String surname, int age);
 }
 
 class _AppLocalizationsDelegate

@@ -1,6 +1,6 @@
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/providers/navigation_provider.dart';
-import 'package:an_ki/features/birthday/home_page.dart';
+import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,7 +52,7 @@ class MainScreen extends ConsumerWidget {
   Widget _getScreen(MainTab tab) {
     switch (tab) {
       case MainTab.birthdays:
-        return const HomePage();
+        return const HomeScreen();
       case MainTab.scanner:
         return const BookScannerScreen();
     }

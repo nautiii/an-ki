@@ -1,7 +1,7 @@
-import 'package:an_ki/features/auth/auth_choice_page.dart';
-import 'package:an_ki/features/auth/login_page.dart';
+import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
+import 'package:an_ki/features/auth/screens/login_screen.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/auth/signup_page.dart';
+import 'package:an_ki/features/auth/screens/signup_screen.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -59,9 +59,9 @@ void main() {
     '/signup': (BuildContext _) => const Scaffold(body: Text('SignUp Route')),
   };
 
-  group('AuthChoicePage', () {
+  group('AuthChoiceScreen', () {
     testWidgets('renders every option', (tester) async {
-      await tester.pumpHarness(const AuthChoicePage());
+      await tester.pumpHarness(const AuthChoiceScreen());
       await tester.pumpAndSettle();
 
       expect(find.text('Connexion Google'), findsOneWidget);
@@ -70,7 +70,7 @@ void main() {
     });
 
     testWidgets('navigates to the signup route', (tester) async {
-      await tester.pumpHarness(const AuthChoicePage(), routes: signupRoute);
+      await tester.pumpHarness(const AuthChoiceScreen(), routes: signupRoute);
       await tester.pumpAndSettle();
 
       await tester.tap(find.text("S'inscrire"));
@@ -83,7 +83,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpHarness(
-        const AuthChoicePage(),
+        const AuthChoiceScreen(),
         overrides: [authProvider.overrideWith(FailingAuthNotifier.new)],
       );
       await tester.pumpAndSettle();
@@ -97,7 +97,7 @@ void main() {
     testWidgets('anonymous sign-in success path', (tester) async {
       final notifier = FakeAuthNotifier();
       await tester.pumpHarness(
-        const AuthChoicePage(),
+        const AuthChoiceScreen(),
         overrides: [authProvider.overrideWith(() => notifier)],
       );
       await tester.pumpAndSettle();
@@ -111,7 +111,7 @@ void main() {
     testWidgets('Google sign-in success path', (tester) async {
       final notifier = FakeAuthNotifier();
       await tester.pumpHarness(
-        const AuthChoicePage(),
+        const AuthChoiceScreen(),
         overrides: [authProvider.overrideWith(() => notifier)],
       );
       await tester.pumpAndSettle();
@@ -126,7 +126,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpHarness(
-        const AuthChoicePage(),
+        const AuthChoiceScreen(),
         overrides: [authProvider.overrideWith(FailingAuthNotifier.new)],
       );
       await tester.pumpAndSettle();
@@ -140,7 +140,7 @@ void main() {
     testWidgets('runs biometric sign-in on startup (success)', (tester) async {
       final notifier = BiometricStartAuthNotifier(true);
       await tester.pumpHarness(
-        const AuthChoicePage(),
+        const AuthChoiceScreen(),
         overrides: [authProvider.overrideWith(() => notifier)],
       );
       await tester.pumpAndSettle();
@@ -150,7 +150,7 @@ void main() {
 
     testWidgets('shows the biometric error on startup failure', (tester) async {
       await tester.pumpHarness(
-        const AuthChoicePage(),
+        const AuthChoiceScreen(),
         overrides: [
           authProvider.overrideWith(() => BiometricStartAuthNotifier(false)),
         ],
@@ -162,7 +162,7 @@ void main() {
 
     testWidgets('disables the buttons while loading', (tester) async {
       await tester.pumpHarness(
-        const AuthChoicePage(),
+        const AuthChoiceScreen(),
         overrides: [
           authProvider.overrideWith(
             () => FakeAuthNotifier(initialState: AuthState(isLoading: true)),
@@ -177,11 +177,11 @@ void main() {
     });
   });
 
-  group('LoginPage', () {
+  group('LoginScreen', () {
     testWidgets('signs in successfully', (tester) async {
       final notifier = FakeAuthNotifier();
       await tester.pumpHarness(
-        const LoginPage(),
+        const LoginScreen(),
         overrides: [authProvider.overrideWith(() => notifier)],
       );
       await tester.pumpAndSettle();
@@ -197,7 +197,7 @@ void main() {
     testWidgets('does nothing when fields are empty', (tester) async {
       final notifier = FakeAuthNotifier();
       await tester.pumpHarness(
-        const LoginPage(),
+        const LoginScreen(),
         overrides: [authProvider.overrideWith(() => notifier)],
       );
       await tester.pumpAndSettle();
@@ -210,7 +210,7 @@ void main() {
 
     testWidgets('shows an error SnackBar on failure', (tester) async {
       await tester.pumpHarness(
-        const LoginPage(),
+        const LoginScreen(),
         overrides: [authProvider.overrideWith(FailingAuthNotifier.new)],
       );
       await tester.pumpAndSettle();
@@ -224,7 +224,7 @@ void main() {
     });
 
     testWidgets('toggles password visibility', (tester) async {
-      await tester.pumpHarness(const LoginPage());
+      await tester.pumpHarness(const LoginScreen());
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
@@ -234,7 +234,7 @@ void main() {
     });
 
     testWidgets('forgot-password button is tappable', (tester) async {
-      await tester.pumpHarness(const LoginPage());
+      await tester.pumpHarness(const LoginScreen());
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Mot de passe oublié ?'));
@@ -243,7 +243,7 @@ void main() {
 
     testWidgets('navigates to the signup route', (tester) async {
       await tester.pumpHarness(
-        const LoginPage(),
+        const LoginScreen(),
         routes: {'/signup': (_) => const Scaffold(body: Text('SignUp Route'))},
       );
       await tester.pumpAndSettle();
@@ -258,7 +258,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpHarness(
-        const LoginPage(),
+        const LoginScreen(),
         overrides: [
           authProvider.overrideWith(
             () => FakeAuthNotifier(initialState: AuthState(isLoading: true)),
@@ -281,7 +281,7 @@ void main() {
                     onPressed:
                         () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
-                            builder: (_) => const LoginPage(),
+                            builder: (_) => const LoginScreen(),
                           ),
                         ),
                     child: const Text('open'),
@@ -301,9 +301,9 @@ void main() {
     });
   });
 
-  group('SignUpPage', () {
+  group('SignUpScreen', () {
     testWidgets('shows an error when passwords do not match', (tester) async {
-      await tester.pumpHarness(const SignUpPage());
+      await tester.pumpHarness(const SignUpScreen());
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField).at(0), 'John');
@@ -324,7 +324,7 @@ void main() {
     testWidgets('creates the account on success', (tester) async {
       final userNotifier = FakeUserNotifier(initialState: UserState());
       await tester.pumpHarness(
-        const SignUpPage(),
+        const SignUpScreen(),
         overrides: [
           authProvider.overrideWith(FakeAuthNotifier.new),
           userProvider.overrideWith(() => userNotifier),
@@ -346,7 +346,7 @@ void main() {
 
     testWidgets('shows an error SnackBar on failure', (tester) async {
       await tester.pumpHarness(
-        const SignUpPage(),
+        const SignUpScreen(),
         overrides: [authProvider.overrideWith(FailingAuthNotifier.new)],
       );
       await tester.pumpAndSettle();
@@ -364,7 +364,7 @@ void main() {
     });
 
     testWidgets('toggles both password fields visibility', (tester) async {
-      await tester.pumpHarness(const SignUpPage());
+      await tester.pumpHarness(const SignUpScreen());
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.visibility_off_outlined), findsNWidgets(2));
@@ -381,7 +381,7 @@ void main() {
     testWidgets('does nothing when mandatory fields are empty', (tester) async {
       final notifier = FakeAuthNotifier();
       await tester.pumpHarness(
-        const SignUpPage(),
+        const SignUpScreen(),
         overrides: [authProvider.overrideWith(() => notifier)],
       );
       await tester.pumpAndSettle();
@@ -394,7 +394,7 @@ void main() {
 
     testWidgets('navigates to the login route', (tester) async {
       await tester.pumpHarness(
-        const SignUpPage(),
+        const SignUpScreen(),
         routes: {'/login': (_) => const Scaffold(body: Text('Login Route'))},
       );
       await tester.pumpAndSettle();
@@ -407,7 +407,7 @@ void main() {
 
     testWidgets('back button pops the page', (tester) async {
       await tester.pumpHarness(
-        const SignUpPage(),
+        const SignUpScreen(),
         home: Builder(
           builder:
               (context) => Scaffold(
@@ -416,7 +416,7 @@ void main() {
                     onPressed:
                         () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
-                            builder: (_) => const SignUpPage(),
+                            builder: (_) => const SignUpScreen(),
                           ),
                         ),
                     child: const Text('open'),
@@ -437,7 +437,7 @@ void main() {
 
     testWidgets('disables inputs while loading', (tester) async {
       await tester.pumpHarness(
-        const SignUpPage(),
+        const SignUpScreen(),
         overrides: [
           authProvider.overrideWith(
             () => FakeAuthNotifier(initialState: AuthState(isLoading: true)),

@@ -1,19 +1,38 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/features/birthday/providers/home_view_provider.dart';
-import 'package:an_ki/features/user/providers/user_provider.dart';
-import 'package:an_ki/features/user/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class Header extends ConsumerWidget {
+/// Greeting header shared across feature screens.
+///
+/// Deliberately dumb: it owns no state and imports no feature. Screens resolve
+/// the user name / view state from their providers and pass them in, which is
+/// why this widget can legitimately live in `core/common`.
+class Header extends StatelessWidget {
+  /// Resolved display name, or null to show a placeholder.
+  final String? userName;
+
+  /// Whether to show the list/calendar view toggle.
   final bool showViewToggle;
 
-  const Header({super.key, this.showViewToggle = true});
+  /// Current view is the list (controls the toggle icon).
+  final bool isListView;
+
+  /// Called when the view toggle is pressed (ignored when [showViewToggle] is false).
+  final VoidCallback? onToggleView;
+
+  /// Called when the settings button is pressed.
+  final VoidCallback onOpenSettings;
+
+  const Header({
+    super.key,
+    required this.userName,
+    required this.onOpenSettings,
+    this.showViewToggle = true,
+    this.isListView = true,
+    this.onToggleView,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userProvider.select((value) => value.user));
-    final viewType = ref.watch(homeViewProvider);
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -30,11 +49,7 @@ class Header extends ConsumerWidget {
               ),
             ),
             Text(
-              user != null
-                  ? (user.pseudo != null && user.pseudo!.isNotEmpty
-                      ? user.pseudo!
-                      : "${user.surname} ${user.name}")
-                  : "...",
+              userName ?? "...",
               style: textTheme.headlineMedium?.copyWith(fontSize: 26),
             ),
           ],
@@ -48,11 +63,9 @@ class Header extends ConsumerWidget {
                   shape: const CircleBorder(),
                   padding: const EdgeInsets.all(10),
                 ),
-                onPressed: () {
-                  ref.read(homeViewProvider.notifier).toggle();
-                },
+                onPressed: onToggleView,
                 icon: Icon(
-                  viewType == HomeViewType.list
+                  isListView
                       ? Icons.calendar_month_rounded
                       : Icons.view_list_rounded,
                   color: colorScheme.onSurface,
@@ -66,12 +79,7 @@ class Header extends ConsumerWidget {
                 shape: const CircleBorder(),
                 padding: const EdgeInsets.all(10),
               ),
-              onPressed:
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (context) => const SettingsScreen(),
-                    ),
-                  ),
+              onPressed: onOpenSettings,
               icon: Icon(Icons.settings_rounded, color: colorScheme.onSurface),
             ),
           ],

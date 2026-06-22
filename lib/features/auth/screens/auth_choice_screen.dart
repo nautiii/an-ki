@@ -1,18 +1,19 @@
 import 'package:an_ki/core/animations/anki_fade_in.dart';
+import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AuthChoicePage extends ConsumerStatefulWidget {
-  const AuthChoicePage({super.key});
+class AuthChoiceScreen extends ConsumerStatefulWidget {
+  const AuthChoiceScreen({super.key});
 
   @override
-  ConsumerState<AuthChoicePage> createState() => _AuthChoicePageState();
+  ConsumerState<AuthChoiceScreen> createState() => _AuthChoiceScreenState();
 }
 
-class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
+class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
   @override
   void initState() {
     super.initState();
@@ -72,7 +73,7 @@ class _AuthChoicePageState extends ConsumerState<AuthChoicePage> {
                 child: SizedBox(
                   height: 220,
                   width: 220,
-                  child: Image.asset('lib/assets/lune.png', fit: BoxFit.fill),
+                  child: Image.asset(AppAssets.moon, fit: BoxFit.fill),
                 ),
               ),
               const SizedBox(height: 8),

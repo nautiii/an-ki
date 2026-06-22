@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:an_ki/core/extensions/birthday_extensions.dart';
+import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
 import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class BirthdayState {
@@ -39,7 +39,7 @@ class BirthdayNotifier extends Notifier<BirthdayState> {
     return BirthdayState();
   }
 
-  BirthdayRepository get _repository => ref.watch(birthdayRepositoryProvider);
+  BirthdayRepository get _repository => ref.read(birthdayRepositoryProvider);
   StreamSubscription<List<BirthdayModel>>? _subscription;
 
   void startListening(String uid) {
@@ -52,7 +52,18 @@ class BirthdayNotifier extends Notifier<BirthdayState> {
           (List<BirthdayModel> data) {
             if (ref.mounted) {
               state = state.copyWith(birthdays: data, isLoading: false);
-              NotificationService.instance.scheduleAll(data);
+              NotificationService.instance.scheduleAll(
+                data
+                    .map(
+                      (b) => BirthdayReminder(
+                        id: b.id,
+                        name: b.name,
+                        surname: b.surname,
+                        birthDate: b.date,
+                      ),
+                    )
+                    .toList(),
+              );
             }
           },
           onError: (e) {
@@ -110,44 +121,27 @@ class BirthdayNotifier extends Notifier<BirthdayState> {
   }
 
   Future<int> importFromContacts(String uid) async {
-    final status = await FlutterContacts.permissions.request(
-      PermissionType.read,
-    );
-    if (status != PermissionStatus.granted) {
-      throw Exception('Permission refusée');
+    final contacts = ref.read(contactsServiceProvider);
+
+    final granted = await contacts.requestReadPermission();
+    if (!granted) {
+      throw Exception('Contacts permission denied');
     }
 
-    final contacts = await FlutterContacts.getAll(
-      properties: {ContactProperty.event, ContactProperty.name},
-    );
-    int importedCount = 0;
-
-    for (final contact in contacts) {
-      final birthdayEvent = contact.events.cast<Event?>().firstWhere(
-        (e) => e?.label.label == EventLabel.birthday,
-        orElse: () => null,
-      );
-
-      if (birthdayEvent != null) {
-        final birthDate = DateTime(
-          birthdayEvent.year ?? 2000,
-          birthdayEvent.month,
-          birthdayEvent.day,
-        );
-
-        final input = CreateBirthdayInput(
+    final imported = await contacts.fetchBirthdays();
+    for (final contact in imported) {
+      await _repository.createBirthday(
+        uid,
+        CreateBirthdayInput(
           uid: uid,
-          name: contact.name?.first ?? "",
-          surname: contact.name?.last ?? "",
-          date: birthDate,
-          categories: [],
-        );
-
-        await _repository.createBirthday(uid, input);
-        importedCount++;
-      }
+          name: contact.name,
+          surname: contact.surname,
+          date: contact.date,
+          categories: const [],
+        ),
+      );
     }
-    return importedCount;
+    return imported.length;
   }
 }
 

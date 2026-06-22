@@ -161,5 +161,27 @@
   "errorGoogleLogin": "Google login error",
   "errorSignOut": "Sign out error",
   "deleteAccountError": "Error during account deletion",
-  "errorQuotaExceeded": "Search limit reached. Please try again later."
+  "errorQuotaExceeded": "Search limit reached. Please try again later.",
+  "bookCategoryNovel": "Novel",
+  "bookCategoryComics": "Comics",
+  "bookCategoryCooking": "Cooking",
+  "bookCategoryTech": "Tech",
+  "notificationChannelName": "Birthdays",
+  "notificationChannelDescription": "Daily birthday reminders",
+  "notificationReminderTitle": "🎉 Birthday soon",
+  "notificationBirthdayBody": "It's {name}'s birthday ({age})!",
+  "@notificationBirthdayBody": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "age": { "type": "int" }
+    }
+  },
+  "notificationReminderBody": "{name} {surname} turns {age} in 7 days.",
+  "@notificationReminderBody": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "surname": { "type": "String" },
+      "age": { "type": "int" }
+    }
+  }
 }

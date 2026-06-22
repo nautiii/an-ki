@@ -5,6 +5,8 @@ import 'package:an_ki/features/book_scanner/data/repositories/book_repository.da
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_card.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_info_sheet.dart';
+import 'package:an_ki/features/user/providers/user_provider.dart';
+import 'package:an_ki/features/user/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -113,7 +115,18 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              const Header(showViewToggle: false),
+              Header(
+                showViewToggle: false,
+                userName: ref.watch(
+                  userProvider.select((s) => s.user?.displayName),
+                ),
+                onOpenSettings:
+                    () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const SettingsScreen(),
+                      ),
+                    ),
+              ),
               const SizedBox(height: 24),
 
               ClipRRect(
@@ -221,10 +234,26 @@ class _CategoryPlaceholders extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _buildChip(context, 'Roman', Icons.menu_book_rounded),
-          _buildChip(context, 'BD', Icons.palette_rounded),
-          _buildChip(context, 'Cuisine', Icons.restaurant_rounded),
-          _buildChip(context, 'Tech', Icons.computer_rounded),
+          _buildChip(
+            context,
+            context.l10n.bookCategoryNovel,
+            Icons.menu_book_rounded,
+          ),
+          _buildChip(
+            context,
+            context.l10n.bookCategoryComics,
+            Icons.palette_rounded,
+          ),
+          _buildChip(
+            context,
+            context.l10n.bookCategoryCooking,
+            Icons.restaurant_rounded,
+          ),
+          _buildChip(
+            context,
+            context.l10n.bookCategoryTech,
+            Icons.computer_rounded,
+          ),
         ],
       ),
     );

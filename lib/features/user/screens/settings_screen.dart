@@ -1,8 +1,8 @@
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/core/providers/locale_provider.dart';
+import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
-import 'package:an_ki/core/theme/providers/theme_provider.dart';
+import 'package:an_ki/features/user/providers/theme_provider.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -97,8 +97,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     showDialog<void>(
                       context: context,
                       barrierDismissible: false,
-                      builder: (context) =>
-                          const Center(child: CircularProgressIndicator()),
+                      builder:
+                          (context) =>
+                              const Center(child: CircularProgressIndicator()),
                     );
                   }
 

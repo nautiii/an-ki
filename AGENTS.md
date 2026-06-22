@@ -19,9 +19,19 @@ Product vision, roadmap, and domain context live in `@./PROJECT_CONTEXT.md`.
 
 ## Architecture
 
+**Layered feature-first (pragmatic).** Deliberately **not** Clean Architecture: no
+`domain/` layer, no use-cases, no repository interfaces. Logic lives in Notifiers.
+
 `UI (dumb)` → `Provider (logic)` → `Repository (data)` → `Service (plugins/APIs)`
 
-* **Feature-first**: `lib/features/<x>/{data/models,data/repositories,providers,widgets|screens}`; shared code in `lib/core/`.
+* **Composition root**: `lib/app/` owns wiring — `app/app.dart` (`MaterialApp`),
+  `app/router/` (route table + `AppRoutes` names), `app/bootstrap/` (cross-feature startup).
+  `app/` may depend on features; nothing depends on `app/`.
+* **Feature-first**: `lib/features/<x>/{data/models,data/repositories,providers,widgets|screens}`.
+* **`core/` is feature-agnostic**: cross-feature infra only. **`core/` must never import a feature.**
+  Cross-cutting state derived from a feature (theme, locale) lives in that feature; shared
+  `core/common` widgets stay **dumb** (params + callbacks, no feature imports); a `core` service
+  that needs feature data takes a `core`-owned value object the feature maps onto.
 * **No UI logic**: widgets render state; Notifiers own logic. No `domain/` use-case layer.
 * **Repositories**: data fetch/push only, no `BuildContext`, no business logic; optional `firestore` override constructor for tests.
 * **Real-time**: prefer Streams (`.snapshots()`) surfaced via a Notifier subscription.

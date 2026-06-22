@@ -161,5 +161,27 @@
   "errorGoogleLogin": "Erreur lors de la connexion Google",
   "errorSignOut": "Erreur lors de la déconnexion",
   "deleteAccountError": "Erreur lors de la suppression du compte",
-  "errorQuotaExceeded": "Limite de recherche atteinte. Veuillez réessayer plus tard."
+  "errorQuotaExceeded": "Limite de recherche atteinte. Veuillez réessayer plus tard.",
+  "bookCategoryNovel": "Roman",
+  "bookCategoryComics": "BD",
+  "bookCategoryCooking": "Cuisine",
+  "bookCategoryTech": "Tech",
+  "notificationChannelName": "Anniversaires",
+  "notificationChannelDescription": "Rappels d'anniversaire du jour",
+  "notificationReminderTitle": "🎉 Anniversaire bientôt",
+  "notificationBirthdayBody": "C'est l'anniversaire de {name} ({age} ans) !",
+  "@notificationBirthdayBody": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "age": { "type": "int" }
+    }
+  },
+  "notificationReminderBody": "{name} {surname} aura {age} ans dans 7 jours.",
+  "@notificationReminderBody": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "surname": { "type": "String" },
+      "age": { "type": "int" }
+    }
+  }
 }

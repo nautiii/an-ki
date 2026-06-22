@@ -1,16 +1,9 @@
 import 'package:an_ki/core/services/biometric_service.dart';
-import 'package:an_ki/features/user/data/repositories/user_repository.dart';
+import 'package:an_ki/features/auth/data/repositories/auth_repository.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-
-final firebaseAuthProvider = Provider<FirebaseAuth>(
-  (ref) => FirebaseAuth.instance,
-);
-final googleSignInProvider = Provider<GoogleSignIn>(
-  (ref) => GoogleSignIn.instance,
-);
 
 class AuthState {
   final User? user;
@@ -49,11 +42,11 @@ class AuthState {
   }
 
   bool get isAuthenticated {
-    // Si la biométrie est configurée, on exige la validation biométrique
+    // When biometrics are configured, biometric validation is required.
     if (canUseBiometrics) {
       return isBiometricallyAuthenticated;
     }
-    // Sinon simple vérification de session Firebase
+    // Otherwise a plain Firebase session is enough.
     return user != null;
   }
 
@@ -70,20 +63,16 @@ class AuthNotifier extends Notifier<AuthState> {
     return AuthState();
   }
 
-  FirebaseAuth get _firebaseAuth => ref.watch(firebaseAuthProvider);
-
-  GoogleSignIn get _googleSignIn => ref.watch(googleSignInProvider);
-
-  UserRepository get _userRepository => ref.watch(userRepositoryProvider);
+  AuthRepository get _repository => ref.read(authRepositoryProvider);
 
   BiometricService get _biometricService => BiometricService.instance;
 
   void initializeAuth() {
-    _firebaseAuth.authStateChanges().listen((User? user) {
+    _repository.authStateChanges().listen((User? user) {
       if (ref.mounted) {
         state = state.copyWith(
           user: user,
-          // Si on se connecte via Google/Email, on valide automatiquement la biométrie
+          // A Google/Email sign-in validates biometrics automatically.
           isBiometricallyAuthenticated:
               user != null ? true : state.isBiometricallyAuthenticated,
         );
@@ -99,10 +88,10 @@ class AuthNotifier extends Notifier<AuthState> {
 
     state = state.copyWith(
       canUseBiometrics: canUse && hasToken,
-      // Si on a déjà un utilisateur Firebase au démarrage, on considère
-      // qu'on doit quand même valider la biométrie si elle est configurée.
+      // If a Firebase user is already present at startup, biometrics must still
+      // be validated when they are configured.
       isBiometricallyAuthenticated:
-          (canUse && hasToken) ? false : _firebaseAuth.currentUser != null,
+          (canUse && hasToken) ? false : _repository.currentUser != null,
     );
   }
 
@@ -116,18 +105,13 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       state = state.copyWith(isLoading: true);
 
-      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+      final user = await _repository.signUp(
         email: email,
         password: password,
+        displayName: "$name $surname",
       );
 
-      final user = userCredential.user;
-      if (user != null) {
-        await user.updateDisplayName("$name $surname");
-        await user.reload();
-      }
-
-      state = state.copyWith(user: _firebaseAuth.currentUser, isLoading: false);
+      state = state.copyWith(user: user, isLoading: false);
       return true;
     } on FirebaseAuthException catch (e) {
       state = state.copyWith(
@@ -152,13 +136,13 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       state = state.copyWith(isLoading: true);
 
-      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+      final user = await _repository.signInWithEmail(
         email: email,
         password: password,
       );
 
       state = state.copyWith(
-        user: userCredential.user,
+        user: user,
         isLoading: false,
         isBiometricallyAuthenticated: true,
       );
@@ -182,26 +166,10 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       state = state.copyWith(isLoading: true);
 
-      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate(
-        scopeHint: ['email'],
-      );
-
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-      final GoogleSignInClientAuthorization authorization = await googleUser
-          .authorizationClient
-          .authorizeScopes(['email']);
-
-      final credential = GoogleAuthProvider.credential(
-        accessToken: authorization.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final userCredential = await _firebaseAuth.signInWithCredential(
-        credential,
-      );
+      final user = await _repository.signInWithGoogle();
 
       state = state.copyWith(
-        user: userCredential.user,
+        user: user,
         isLoading: false,
         isBiometricallyAuthenticated: true,
       );
@@ -225,14 +193,14 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       state = state.copyWith(isLoading: true);
 
-      // 1. Authentification physique
+      // 1. Physical authentication.
       final authenticated = await _biometricService.authenticate();
       if (!authenticated) {
         state = state.copyWith(isLoading: false);
         return false;
       }
 
-      // 2. Récupération des tokens locaux
+      // 2. Read the local tokens.
       final token = await _biometricService.getStoredToken();
       final uid = await _biometricService.getStoredUserId();
 
@@ -241,16 +209,16 @@ class AuthNotifier extends Notifier<AuthState> {
         return false;
       }
 
-      // 3. Vérification Firestore
-      final user = await _userRepository.fetchUserByToken(uid, token);
-      if (user == null) {
-        // Token expiré ou invalide en base
+      // 3. Verify against Firestore.
+      final isValid = await _repository.isBiometricTokenValid(uid, token);
+      if (!isValid) {
+        // Token expired or invalid in the database.
         await _biometricService.clearBiometricData();
         state = state.copyWith(isLoading: false, canUseBiometrics: false);
         return false;
       }
 
-      // 4. Succès local - On met à jour l'état pour déclencher la navigation/initialisation
+      // 4. Local success — update the state to trigger navigation/init.
       state = state.copyWith(
         isLoading: false,
         isBiometricallyAuthenticated: true,
@@ -267,19 +235,19 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> enableBiometrics() async {
-    final user = _firebaseAuth.currentUser;
+    final user = _repository.currentUser;
     if (user == null) return;
 
     final canUse = await _biometricService.canUseFingerprint();
     if (!canUse) return;
 
-    // 1. Générer le token
+    // 1. Generate the token.
     final token = _biometricService.generateToken();
 
-    // 2. Sauvegarder en base
-    await _userRepository.updateBiometricToken(user.uid, token);
+    // 2. Persist it in the database.
+    await _repository.setBiometricToken(user.uid, token);
 
-    // 3. Sauvegarder en cache sécurisé
+    // 3. Persist it in secure storage.
     await _biometricService.saveBiometricData(user.uid, token);
 
     state = state.copyWith(
@@ -290,11 +258,11 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<void> disableBiometrics() async {
     final uid =
-        _firebaseAuth.currentUser?.uid ??
+        _repository.currentUser?.uid ??
         await _biometricService.getStoredUserId();
 
     if (uid != null) {
-      await _userRepository.updateBiometricToken(uid, null);
+      await _repository.setBiometricToken(uid, null);
     }
 
     await _biometricService.clearBiometricData();
@@ -308,19 +276,19 @@ class AuthNotifier extends Notifier<AuthState> {
       final hasToken = await _biometricService.getStoredToken() != null;
 
       if (hasToken) {
-        // LOCK LOCAL UNIQUEMENT
-        // On ne déconnecte pas Firebase pour garder les droits Firestore
-        await _googleSignIn
-            .signOut(); // Optionnel, pour forcer le choix de compte si on repasse par Google
+        // LOCAL LOCK ONLY.
+        // We keep the Firebase session to preserve Firestore permissions.
+        // (Optional: force account choice if we go through Google again.)
+        await _repository.signOutGoogle();
 
         state = state.copyWith(
           isLoading: false,
           isBiometricallyAuthenticated: false,
         );
       } else {
-        // DÉCONNEXION TOTALE
-        await _firebaseAuth.signOut();
-        await _googleSignIn.signOut();
+        // FULL SIGN-OUT.
+        await _repository.signOutFirebase();
+        await _repository.signOutGoogle();
         state = AuthState();
       }
     } catch (e) {
@@ -331,9 +299,9 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<bool> signInAnonymously(AppLocalizations l10n) async {
     try {
       state = state.copyWith(isLoading: true);
-      final userCredential = await _firebaseAuth.signInAnonymously();
+      final user = await _repository.signInAnonymously();
       state = state.copyWith(
-        user: userCredential.user,
+        user: user,
         isLoading: false,
         isBiometricallyAuthenticated: true,
       );
@@ -350,20 +318,8 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<bool> linkWithGoogle(AppLocalizations l10n) async {
     try {
       state = state.copyWith(isLoading: true);
-      final googleUser = await _googleSignIn.authenticate(scopeHint: ['email']);
-
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-      final GoogleSignInClientAuthorization authorization = await googleUser
-          .authorizationClient
-          .authorizeScopes(['email']);
-
-      final credential = GoogleAuthProvider.credential(
-        accessToken: authorization.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final userCredential = await state.user?.linkWithCredential(credential);
-      state = state.copyWith(user: userCredential?.user, isLoading: false);
+      final user = await _repository.linkCurrentUserWithGoogle();
+      state = state.copyWith(user: user, isLoading: false);
       return true;
     } on FirebaseAuthException catch (e) {
       state = state.copyWith(
@@ -386,11 +342,8 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> deleteAccount(AppLocalizations l10n) async {
     try {
       state = state.copyWith(isLoading: true);
-      final user = _firebaseAuth.currentUser;
-      if (user != null) {
-        await user.delete();
-      }
-      await _googleSignIn.signOut();
+      await _repository.deleteCurrentUser();
+      await _repository.signOutGoogle();
       await disableBiometrics();
       state = AuthState();
     } on FirebaseAuthException catch (e) {

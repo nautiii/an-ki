@@ -50,6 +50,12 @@ class UserModel {
     };
   }
 
+  /// Name shown in the UI: the pseudo when set, otherwise "surname name".
+  String get displayName {
+    if (pseudo != null && pseudo!.isNotEmpty) return pseudo!;
+    return '$surname $name';
+  }
+
   UserModel copyWith({
     String? id,
     String? name,

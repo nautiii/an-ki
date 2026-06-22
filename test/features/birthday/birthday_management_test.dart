@@ -1,7 +1,7 @@
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
-import 'package:an_ki/features/birthday/home_page.dart';
+import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
@@ -51,9 +51,9 @@ void main() {
     bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
   ];
 
-  testWidgets('HomePage lists non-next birthdays', (tester) async {
+  testWidgets('HomeScreen lists non-next birthdays', (tester) async {
     await tester.pumpHarness(
-      const HomePage(),
+      const HomeScreen(),
       overrides: overridesWith(
         FakeBirthdayNotifier(
           initialState: BirthdayState(
@@ -78,7 +78,7 @@ void main() {
     );
 
     await tester.pumpHarness(
-      const HomePage(),
+      const HomeScreen(),
       overrides: overridesWith(birthdayNotifier),
     );
     await tester.pumpAndSettle();
@@ -103,7 +103,7 @@ void main() {
     );
 
     await tester.pumpHarness(
-      const HomePage(),
+      const HomeScreen(),
       overrides: overridesWith(birthdayNotifier),
     );
     await tester.pumpAndSettle();

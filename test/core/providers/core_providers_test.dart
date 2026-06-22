@@ -1,6 +1,6 @@
-import 'package:an_ki/core/providers/locale_provider.dart';
+import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/core/providers/navigation_provider.dart';
-import 'package:an_ki/core/theme/providers/theme_provider.dart';
+import 'package:an_ki/features/user/providers/theme_provider.dart';
 import 'package:an_ki/features/birthday/providers/home_view_provider.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/user/data/repositories/user_repository.dart';

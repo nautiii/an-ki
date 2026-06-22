@@ -425,4 +425,36 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get errorQuotaExceeded =>
       'Limite de recherche atteinte. Veuillez réessayer plus tard.';
+
+  @override
+  String get bookCategoryNovel => 'Roman';
+
+  @override
+  String get bookCategoryComics => 'BD';
+
+  @override
+  String get bookCategoryCooking => 'Cuisine';
+
+  @override
+  String get bookCategoryTech => 'Tech';
+
+  @override
+  String get notificationChannelName => 'Anniversaires';
+
+  @override
+  String get notificationChannelDescription =>
+      'Rappels d\'anniversaire du jour';
+
+  @override
+  String get notificationReminderTitle => '🎉 Anniversaire bientôt';
+
+  @override
+  String notificationBirthdayBody(String name, int age) {
+    return 'C\'est l\'anniversaire de $name ($age ans) !';
+  }
+
+  @override
+  String notificationReminderBody(String name, String surname, int age) {
+    return '$name $surname aura $age ans dans 7 jours.';
+  }
 }

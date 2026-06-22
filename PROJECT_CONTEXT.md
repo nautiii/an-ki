@@ -49,13 +49,15 @@ data consistent across a user's devices.
 * **Local-first notifications**: reliability independent of network; timezone-aware to avoid drift.
 * **Security**: biometric lock (`local_auth`) + secure token storage; all data isolated per `uid`.
 * **L10n by `flutter_gen` / `.arb`**: 100% translatable UI, no hardcoded strings.
-* **Feature-first structure**: each feature owns its `data/`, `providers/`, and UI; shared infra in `core/`.
-  Logic lives in Notifiers — no separate `domain/` use-case layer, kept intentionally lean.
+* **Feature-first structure**: each feature owns its `data/`, `providers/`, and UI; shared infra in `core/`;
+  app wiring (router, `MaterialApp`, cross-feature bootstrap) in `lib/app/`. `core/` is feature-agnostic and
+  never imports a feature. Logic lives in Notifiers — no separate `domain/` use-case layer, kept intentionally lean.
 * **Manual state & mapping (no codegen)**: `XState` + `copyWith` and `fromFirestore`/`toJson` are hand-written
   rather than generated (`freezed`/`json_serializable`). Trade-off: more boilerplate, zero build-runner friction
   and full control over Firestore mapping.
-* **Imperative routing**: `MaterialApp` `home` + named `routes` driven by auth state; tab state via a
-  `navigationProvider`. No `go_router` — kept simple while the surface is small (revisit if deep links/web grow).
+* **Imperative routing**: centralized in `lib/app/router/` (`AppRoutes` names + `AppRouter` table),
+  wired by `lib/app/app.dart`; `home` driven by auth state; tab state via a `navigationProvider`.
+  No `go_router` — kept simple while the surface is small (revisit if deep links/web grow).
 
 ## Domain Model
 

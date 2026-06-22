@@ -42,12 +42,6 @@ class StubUserRepository implements UserRepository {
   Future<UserModel> createUser(UserModel user) async => user;
 
   @override
-  Future<void> updateBiometricToken(String uid, String? token) async {}
-
-  @override
-  Future<UserModel?> fetchUserByToken(String uid, String token) async => null;
-
-  @override
   Future<void> deleteUser(String uid) async {}
 }
 

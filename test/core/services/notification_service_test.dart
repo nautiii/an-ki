@@ -1,5 +1,4 @@
 import 'package:an_ki/core/services/notification_service.dart';
-import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -109,13 +108,11 @@ void main() {
       'scheduleAll cancels obsolete notifications and schedules new ones',
       () async {
         final birthdays = [
-          BirthdayModel(
+          BirthdayReminder(
             id: 'birthday-1',
-            uid: 'user-1',
             name: 'John',
             surname: 'Doe',
-            date: DateTime(1990),
-            categories: [],
+            birthDate: DateTime(1990),
           ),
         ];
 
@@ -155,13 +152,11 @@ void main() {
         final now = DateTime.now();
         final yesterday = now.subtract(const Duration(days: 1));
 
-        final birthday = BirthdayModel(
+        final birthday = BirthdayReminder(
           id: 'b1',
-          uid: 'u1',
           name: 'Past',
           surname: 'Person',
-          date: DateTime(1990, yesterday.month, yesterday.day),
-          categories: [],
+          birthDate: DateTime(1990, yesterday.month, yesterday.day),
         );
 
         await service.scheduleAll([birthday]);
@@ -179,13 +174,11 @@ void main() {
       () async {
         // Birthday in 2 days -> the J-7 reminder is in the past -> rolled.
         final soon = DateTime.now().add(const Duration(days: 2));
-        final birthday = BirthdayModel(
+        final birthday = BirthdayReminder(
           id: 'soon',
-          uid: 'u1',
           name: 'Soon',
           surname: 'Person',
-          date: DateTime(1990, soon.month, soon.day),
-          categories: [],
+          birthDate: DateTime(1990, soon.month, soon.day),
         );
 
         await service.scheduleAll([birthday]);
@@ -202,13 +195,11 @@ void main() {
 
     test('swallows scheduling failures without throwing', () async {
       mockPlugin.throwOnSchedule = true;
-      final birthday = BirthdayModel(
+      final birthday = BirthdayReminder(
         id: 'b1',
-        uid: 'u1',
         name: 'A',
         surname: 'B',
-        date: DateTime(1990, 6),
-        categories: [],
+        birthDate: DateTime(1990, 6),
       );
 
       await service.scheduleAll([birthday]);

@@ -1,7 +1,7 @@
+import 'package:an_ki/features/auth/data/repositories/auth_repository.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/user/data/models/user_model.dart';
-import 'package:an_ki/features/user/data/repositories/user_repository.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter/widgets.dart';
@@ -13,35 +13,14 @@ import 'package:mock_exceptions/mock_exceptions.dart';
 
 import '../../support/platform_mocks.dart';
 
-class AuthUserRepository extends FakeUserRepositoryBase {
-  UserModel? byToken;
-  bool throwOnFetchByToken = false;
-  final List<String?> tokenUpdates = [];
+/// AuthRepository whose biometric lookup always throws, to drive the error path.
+class _ThrowingAuthRepository extends AuthRepository {
+  _ThrowingAuthRepository(MockFirebaseAuth auth)
+    : super(auth: auth, firestore: FakeFirebaseFirestore());
 
   @override
-  Future<UserModel?> fetchUserByToken(String uid, String token) async {
-    if (throwOnFetchByToken) throw Exception('lookup failed');
-    return byToken;
-  }
-
-  @override
-  Future<void> updateBiometricToken(String uid, String? token) async =>
-      tokenUpdates.add(token);
-}
-
-class FakeUserRepositoryBase implements UserRepository {
-  @override
-  Future<UserModel?> fetchUser(String uid) async => null;
-  @override
-  Future<UserModel> createUser(UserModel user) async => user;
-  @override
-  Future<void> updateUser(UserModel user) async {}
-  @override
-  Future<void> updateBiometricToken(String uid, String? token) async {}
-  @override
-  Future<UserModel?> fetchUserByToken(String uid, String token) async => null;
-  @override
-  Future<void> deleteUser(String uid) async {}
+  Future<bool> isBiometricTokenValid(String uid, String token) async =>
+      throw Exception('lookup failed');
 }
 
 const _tokenKey = 'biometric_auth_token';
@@ -75,13 +54,17 @@ void main() {
 
   ProviderContainer makeContainer(
     MockFirebaseAuth auth, {
-    AuthUserRepository? userRepo,
+    FakeFirebaseFirestore? firestore,
+    AuthRepository? repository,
   }) {
     final container = ProviderContainer(
       overrides: [
-        firebaseAuthProvider.overrideWithValue(auth),
-        userRepositoryProvider.overrideWithValue(
-          userRepo ?? AuthUserRepository(),
+        authRepositoryProvider.overrideWithValue(
+          repository ??
+              AuthRepository(
+                auth: auth,
+                firestore: firestore ?? FakeFirebaseFirestore(),
+              ),
         ),
       ],
     );
@@ -303,20 +286,20 @@ void main() {
   group('biometrics', () {
     test('enableBiometrics stores a token and flips the flag', () async {
       final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
-      final userRepo = AuthUserRepository();
-      final container = makeContainer(auth, userRepo: userRepo);
+      final firestore = FakeFirebaseFirestore();
+      final container = makeContainer(auth, firestore: firestore);
 
       await container.read(authProvider.notifier).enableBiometrics();
 
       expect(container.read(authProvider).canUseBiometrics, isTrue);
       expect(channels.storage[_tokenKey], isNotNull);
-      expect(userRepo.tokenUpdates, isNotEmpty);
+      final doc = await firestore.collection('user').doc('uid-1').get();
+      expect(doc.data()?['biometricToken'], isNotNull);
     });
 
     test('enableBiometrics is a no-op without a signed-in user', () async {
       final auth = MockFirebaseAuth();
-      final userRepo = AuthUserRepository();
-      final container = makeContainer(auth, userRepo: userRepo);
+      final container = makeContainer(auth);
 
       await container.read(authProvider.notifier).enableBiometrics();
 
@@ -336,19 +319,13 @@ void main() {
 
     group('signInWithBiometricToken', () {
       test('succeeds when the stored token matches', () async {
+        final firestore = FakeFirebaseFirestore();
+        await firestore.collection('user').doc('uid-1').set({
+          'biometricToken': 'tok',
+        });
         channels.storage[_tokenKey] = 'tok';
         channels.storage[_uidKey] = 'uid-1';
-        final auth = MockFirebaseAuth();
-        final userRepo =
-            AuthUserRepository()
-              ..byToken = const UserModel(
-                id: 'uid-1',
-                name: 'A',
-                surname: 'B',
-                isDark: false,
-                locale: 'fr',
-              );
-        final container = makeContainer(auth, userRepo: userRepo);
+        final container = makeContainer(MockFirebaseAuth(), firestore: firestore);
 
         final ok = await container
             .read(authProvider.notifier)
@@ -384,10 +361,8 @@ void main() {
       test('clears data when the token is no longer valid', () async {
         channels.storage[_tokenKey] = 'tok';
         channels.storage[_uidKey] = 'uid-1';
-        final container = makeContainer(
-          MockFirebaseAuth(),
-          userRepo: AuthUserRepository(),
-        );
+        // Firestore has no matching document → token invalid.
+        final container = makeContainer(MockFirebaseAuth());
 
         final ok = await container
             .read(authProvider.notifier)
@@ -402,7 +377,7 @@ void main() {
         channels.storage[_uidKey] = 'uid-1';
         final container = makeContainer(
           MockFirebaseAuth(),
-          userRepo: AuthUserRepository()..throwOnFetchByToken = true,
+          repository: _ThrowingAuthRepository(MockFirebaseAuth()),
         );
 
         final ok = await container
@@ -416,12 +391,13 @@ void main() {
 
     test('disableBiometrics falls back to the stored uid', () async {
       channels.storage[_uidKey] = 'uid-1';
-      final userRepo = AuthUserRepository();
-      final container = makeContainer(MockFirebaseAuth(), userRepo: userRepo);
+      final firestore = FakeFirebaseFirestore();
+      final container = makeContainer(MockFirebaseAuth(), firestore: firestore);
 
       await container.read(authProvider.notifier).disableBiometrics();
 
-      expect(userRepo.tokenUpdates, contains(null));
+      final doc = await firestore.collection('user').doc('uid-1').get();
+      expect(doc.data()?['biometricToken'], isNull);
     });
   });
 

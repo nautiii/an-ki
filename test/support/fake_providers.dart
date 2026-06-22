@@ -42,12 +42,6 @@ class FakeUserRepository extends Fake implements UserRepository {
   Future<void> updateUser(UserModel user) async {}
 
   @override
-  Future<void> updateBiometricToken(String uid, String? token) async {}
-
-  @override
-  Future<UserModel?> fetchUserByToken(String uid, String token) async => null;
-
-  @override
   Future<void> deleteUser(String uid) async {}
 }
 
