@@ -54,9 +54,9 @@ class UserNotifier extends Notifier<UserState> {
       isDark: isPlatformDark,
       locale: 'fr',
     );
-    // createUser is create-if-absent: if the document already exists (e.g. the
-    // initial load failed transiently), the existing profile is returned
-    // untouched instead of being overwritten.
+    // createUser est « créer si absent » : si le document existe déjà (ex. le
+    // chargement initial a échoué temporairement), le profil existant est renvoyé
+    // tel quel au lieu d'être écrasé.
     final effectiveUser = await _repository.createUser(newUser);
     state = state.copyWith(user: effectiveUser);
   }

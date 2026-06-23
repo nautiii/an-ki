@@ -3,12 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-/// Data layer for authentication.
+/// Couche data de l'authentification.
 ///
-/// Wraps the Firebase Auth + Google Sign-In SDKs and persists the biometric
-/// token on the user document. Owns no business logic and maps no errors —
-/// exceptions bubble up to the Notifier. Keeps the `auth` feature decoupled
-/// from the `user` feature.
+/// Encapsule les SDK Firebase Auth + Google Sign-In et persiste le token
+/// biométrique sur le document utilisateur. N'embarque aucune logique métier et
+/// ne mappe aucune erreur — les exceptions remontent au Notifier. Garde la
+/// feature `auth` découplée de la feature `user`.
 class AuthRepository {
   AuthRepository({
     FirebaseAuth? auth,
@@ -25,13 +25,9 @@ class AuthRepository {
   CollectionReference<Map<String, dynamic>> get _users =>
       _firestore.collection('user');
 
-  // ── Session ───────────────────────────────────────────────────────────────
-
   Stream<User?> authStateChanges() => _auth.authStateChanges();
 
   User? get currentUser => _auth.currentUser;
-
-  // ── Sign-in / sign-up ───────────────────────────────────────────────────
 
   Future<User?> signUp({
     required String email,
@@ -90,8 +86,6 @@ class AuthRepository {
     );
   }
 
-  // ── Sign-out / delete ─────────────────────────────────────────────────────
-
   Future<void> signOutFirebase() => _auth.signOut();
 
   Future<void> signOutGoogle() => _googleSignIn.signOut();
@@ -100,13 +94,11 @@ class AuthRepository {
     await _auth.currentUser?.delete();
   }
 
-  // ── Biometric token (persisted on the user document) ──────────────────────
-
-  /// Writes (or clears with null) the biometric token on the user document.
+  /// Écrit (ou efface avec null) le token biométrique sur le document utilisateur.
   Future<void> setBiometricToken(String uid, String? token) =>
       _users.doc(uid).set({'biometricToken': token}, SetOptions(merge: true));
 
-  /// Whether [token] matches the one stored on the user document.
+  /// Indique si [token] correspond à celui stocké sur le document utilisateur.
   Future<bool> isBiometricTokenValid(String uid, String token) async {
     final doc = await _users.doc(uid).get();
     if (!doc.exists) return false;

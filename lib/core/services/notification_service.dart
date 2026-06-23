@@ -5,11 +5,11 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
-/// Localized strings used to render scheduled notifications.
+/// Textes localisés utilisés pour afficher les notifications planifiées.
 ///
-/// The service is context-less (a singleton), so the localized text is injected
-/// from the `app/` layer via [NotificationService.configure]; the French set is
-/// the fallback used before configuration runs.
+/// Le service est sans contexte (singleton) : le texte localisé est injecté
+/// depuis la couche `app/` via [NotificationService.configure] ; le jeu français
+/// sert de repli avant que la configuration ne soit appliquée.
 class NotificationStrings {
   final String channelName;
   final String channelDescription;
@@ -44,10 +44,10 @@ class NotificationStrings {
       );
 }
 
-/// Plain value object consumed by [NotificationService.scheduleAll].
+/// Objet de valeur simple consommé par [NotificationService.scheduleAll].
 ///
-/// Lives in `core` so the service stays decoupled from any feature model.
-/// Features map their own domain object (e.g. `BirthdayModel`) onto this type.
+/// Vit dans `core` pour que le service reste découplé de tout modèle de feature.
+/// Les features mappent leur propre objet métier (ex. `BirthdayModel`) vers ce type.
 class BirthdayReminder {
   final String id;
   final String name;
@@ -62,7 +62,7 @@ class BirthdayReminder {
   });
 }
 
-/// Singleton service handling local birthday notifications.
+/// Service singleton gérant les notifications locales d'anniversaire.
 class NotificationService {
   @visibleForTesting
   NotificationService(this._plugin);
@@ -75,26 +75,22 @@ class NotificationService {
 
   bool _initialized = false;
 
-  // ── Constants ───────────────────────────────────────────────────────────
-
   static const String _channelId = 'birthday_channel';
-  static const int _notificationHour = 10; // 10:00 every morning
+  static const int _notificationHour = 10; // 10:00 chaque matin
 
   NotificationStrings _strings = NotificationStrings.french;
 
-  /// Injects the localized strings used for scheduled notifications.
+  /// Injecte les textes localisés utilisés pour les notifications planifiées.
   void configure(NotificationStrings strings) => _strings = strings;
 
-  // ── Initialization ────────────────────────────────────────────────────────
-
-  /// Must be called exactly once before [runApp].
+  /// À appeler une seule fois avant [runApp].
   Future<void> initialize() async {
     if (_initialized) return;
 
-    // 1. Load every time zone.
+    // 1. Charger toutes les zones horaires.
     tz_data.initializeTimeZones();
 
-    // 2. Set the device's local zone.
+    // 2. Positionner la zone locale du device.
     try {
       final tzInfo = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(tzInfo.identifier));
@@ -103,7 +99,7 @@ class NotificationService {
       tz.setLocalLocation(tz.UTC);
     }
 
-    // 3. Android / iOS init settings.
+    // 3. Paramètres d'init Android / iOS.
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/launcher_icon',
     );
@@ -123,9 +119,7 @@ class NotificationService {
     _initialized = true;
   }
 
-  // ── Permissions ───────────────────────────────────────────────────────────
-
-  /// Requests the permissions required for the current platform.
+  /// Demande les permissions nécessaires selon la plateforme courante.
   Future<bool> requestPermissions() async {
     if (!_initialized) return false;
 
@@ -166,10 +160,8 @@ class NotificationService {
     return granted;
   }
 
-  // ── Scheduling ──────────────────────────────────────────────────────────
-
-  /// Refreshes the scheduled notifications for the given reminders.
-  /// Cancels obsolete notifications and schedules the new or updated ones.
+  /// Met à jour les notifications planifiées pour les rappels donnés.
+  /// Annule les notifications obsolètes et planifie les nouvelles ou mises à jour.
   Future<void> scheduleAll(List<BirthdayReminder> birthdays) async {
     if (!_initialized) return;
 
@@ -180,7 +172,7 @@ class NotificationService {
       currentIds.add(_reminderNotificationId(b.id));
     }
 
-    // Only cancel what is no longer part of the current list.
+    // On n'annule que ce qui n'est plus dans la liste actuelle.
     for (final p in pending) {
       if (!currentIds.contains(p.id)) {
         await _plugin.cancel(id: p.id);
@@ -201,10 +193,10 @@ class NotificationService {
     try {
       DateTime next = _nextOccurrence(birthday.birthDate);
 
-      // Standard scheduling.
+      // Planification standard.
       tz.TZDateTime scheduledDate = _tzAt(next, _notificationHour);
 
-      // If today's slot is already past, roll to next year.
+      // Si le créneau d'aujourd'hui est déjà passé, on bascule à l'année prochaine.
       if (scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
         next = DateTime(next.year + 1, next.month, next.day);
         scheduledDate = _tzAt(next, _notificationHour);
@@ -238,7 +230,7 @@ class NotificationService {
       tz.TZDateTime scheduledDate = _tzAt(reminderDate, _notificationHour);
 
       if (scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
-        // If this year's reminder is past, schedule next year's.
+        // Si le rappel de cette année est passé, on planifie celui de l'an prochain.
         next = DateTime(next.year + 1, next.month, next.day);
         reminderDate = next.subtract(const Duration(days: 7));
         scheduledDate = _tzAt(reminderDate, _notificationHour);
@@ -266,9 +258,7 @@ class NotificationService {
     }
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
-
-  /// Next birthday occurrence (today or in the future) for [birthDate].
+  /// Prochaine occurrence d'anniversaire (aujourd'hui ou dans le futur) pour [birthDate].
   DateTime _nextOccurrence(DateTime birthDate) {
     final DateTime now = DateTime.now();
     final DateTime todayAtMidnight = DateTime(now.year, now.month, now.day);
@@ -280,11 +270,11 @@ class NotificationService {
     return candidate;
   }
 
-  /// Builds a [TZDateTime] at the wanted hour for the given date.
+  /// Construit un [TZDateTime] à l'heure voulue pour la date donnée.
   tz.TZDateTime _tzAt(DateTime date, int hour) =>
       tz.TZDateTime(tz.local, date.year, date.month, date.day, hour);
 
-  /// Stable, unique integer id derived from the Firestore document id.
+  /// Identifiant entier stable et unique dérivé de l'ID du document Firestore.
   int _notificationId(String birthdayId) => birthdayId.hashCode.abs() % 100000;
 
   NotificationDetails _notificationDetails() {

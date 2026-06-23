@@ -47,7 +47,7 @@ class BookRepository {
         throw GoogleBooksQuotaExceededException();
       }
     } on GoogleBooksQuotaExceededException {
-      // Propagate so the UI can show the dedicated "quota exceeded" message.
+      // On propage pour que l'UI puisse afficher le message dédié « quota dépassé ».
       rethrow;
     } catch (e) {
       debugPrint('Google Books Error: $e');

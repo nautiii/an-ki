@@ -50,7 +50,7 @@ class UserModel {
     };
   }
 
-  /// Name shown in the UI: the pseudo when set, otherwise "surname name".
+  /// Nom affiché dans l'UI : le pseudo s'il est défini, sinon « nom prénom ».
   String get displayName {
     if (pseudo != null && pseudo!.isNotEmpty) return pseudo!;
     return '$surname $name';

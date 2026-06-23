@@ -2,10 +2,10 @@ import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// App theme mode, driven by the persisted user preference.
+/// Mode de thème de l'app, piloté par la préférence utilisateur persistée.
 ///
-/// Lives in the `user` feature because its source of truth is the user
-/// document; the `app/` layer watches it to configure [MaterialApp].
+/// Vit dans la feature `user` car sa source de vérité est le document
+/// utilisateur ; la couche `app/` l'observe pour configurer [MaterialApp].
 class ThemeNotifier extends Notifier<ThemeMode> {
   @override
   ThemeMode build() {

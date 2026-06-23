@@ -1,25 +1,26 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:flutter/material.dart';
 
-/// Greeting header shared across feature screens.
+/// En-tête de salutation partagé entre les écrans des features.
 ///
-/// Deliberately dumb: it owns no state and imports no feature. Screens resolve
-/// the user name / view state from their providers and pass them in, which is
-/// why this widget can legitimately live in `core/common`.
+/// Volontairement « dumb » : il ne porte aucun état et n'importe aucune feature.
+/// Les écrans résolvent le nom de l'utilisateur / l'état de vue depuis leurs
+/// providers et les passent en paramètres — c'est ce qui permet à ce widget de
+/// résider légitimement dans `core/common`.
 class Header extends StatelessWidget {
-  /// Resolved display name, or null to show a placeholder.
+  /// Nom à afficher déjà résolu, ou null pour afficher un placeholder.
   final String? userName;
 
-  /// Whether to show the list/calendar view toggle.
+  /// Indique s'il faut afficher le bouton de bascule liste/calendrier.
   final bool showViewToggle;
 
-  /// Current view is the list (controls the toggle icon).
+  /// La vue courante est la liste (contrôle l'icône de bascule).
   final bool isListView;
 
-  /// Called when the view toggle is pressed (ignored when [showViewToggle] is false).
+  /// Appelé lors d'un appui sur la bascule de vue (ignoré si [showViewToggle] est false).
   final VoidCallback? onToggleView;
 
-  /// Called when the settings button is pressed.
+  /// Appelé lors d'un appui sur le bouton réglages.
   final VoidCallback onOpenSettings;
 
   const Header({

@@ -7,12 +7,12 @@ import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// App-level bootstrap widget.
+/// Widget de bootstrap au niveau application.
 ///
-/// Orchestrates the cross-feature startup once the user is authenticated:
-/// requests notification permissions, starts the feature streams and loads
-/// the Firestore user profile. It lives in the `app/` composition root because
-/// it depends on multiple features — `core/` must never do that.
+/// Orchestre le démarrage transverse une fois l'utilisateur authentifié :
+/// demande les permissions de notification, lance les streams des features et
+/// charge le profil utilisateur Firestore. Il vit dans le composition root
+/// `app/` car il dépend de plusieurs features — ce que `core/` ne doit jamais faire.
 class AppInitializer extends ConsumerStatefulWidget {
   final Widget child;
 
@@ -26,7 +26,7 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Keep on-device notification strings in sync with the active locale.
+    // Garde les textes des notifications locales synchronisés avec la locale active.
     NotificationService.instance.configure(
       NotificationStrings.fromL10n(context.l10n),
     );
@@ -37,7 +37,7 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
     super.initState();
     _requestNotificationPermissions();
 
-    // Initialize on startup if the user is already signed in.
+    // Initialisation au démarrage si l'utilisateur est déjà connecté.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final uid = ref.read(authProvider).uid;
@@ -58,24 +58,24 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
   }
 
   Future<void> _initializeUser(String uid) async {
-    // Safety check before touching `ref`.
+    // Vérification de sécurité avant tout accès à `ref`.
     if (!mounted) return;
 
     final userNotifier = ref.read(userProvider.notifier);
     final birthdayNotifier = ref.read(birthdayProvider.notifier);
     final bookScannerNotifier = ref.read(bookScannerProvider.notifier);
 
-    // Start the birthday and book streams off the critical path so the UI is
-    // not blocked while they spin up.
+    // Lance les streams anniversaires et livres hors du chemin critique pour ne
+    // pas bloquer l'UI pendant leur démarrage.
     Future.microtask(() {
       birthdayNotifier.startListening(uid);
       bookScannerNotifier.startListening(uid);
     });
 
-    // Load the Firestore user.
+    // Chargement de l'utilisateur Firestore.
     await userNotifier.loadUser(uid);
 
-    // Safety: ensure the widget is still mounted after the await.
+    // Sécurité : vérifier que le widget est toujours monté après l'await.
     if (!mounted) return;
 
     final userState = ref.read(userProvider);
@@ -98,7 +98,7 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
 
   @override
   Widget build(BuildContext context) {
-    // React to authentication state changes (e.g. biometric unlock).
+    // Réagit aux changements d'état d'authentification (ex. déverrouillage biométrique).
     ref.listen<String?>(authProvider.select((s) => s.uid), (previous, nextUid) {
       if (nextUid != null && nextUid != previous) {
         _initializeUser(nextUid);

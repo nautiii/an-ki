@@ -5,7 +5,8 @@ Product vision, roadmap, and domain context live in `@./PROJECT_CONTEXT.md`.
 
 ## Behavior
 
-* **Language**: English only.
+* **Language**: English for identifiers, types, and commit messages; **French** for explanatory
+  comments (`//` and `///` that describe what the code does).
 * **Style**: Rules over prose. Code speaks for itself.
 * **Proactivity**: Fix UI bugs and architectural leaks (e.g. missing `copyWith`) on sight.
 * **Verification**: Read the relevant `@shared/*.md` before writing.

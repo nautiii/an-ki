@@ -1,4 +1,4 @@
-/// Centralized asset paths so screens never hardcode raw strings.
+/// Chemins d'assets centralisés pour que les écrans ne codent jamais de chaînes brutes.
 abstract final class AppAssets {
   const AppAssets._();
 

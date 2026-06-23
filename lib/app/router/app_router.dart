@@ -5,10 +5,10 @@ import 'package:an_ki/features/auth/screens/signup_screen.dart';
 import 'package:an_ki/features/home/main_screen.dart';
 import 'package:flutter/material.dart';
 
-/// Centralized route names for imperative navigation.
+/// Noms de routes centralisés pour la navigation impérative.
 ///
-/// Use these constants instead of raw string literals so the route table and
-/// every `Navigator.pushNamed` call stay in sync.
+/// On utilise ces constantes plutôt que des chaînes brutes, pour que la table
+/// de routes et chaque appel `Navigator.pushNamed` restent synchronisés.
 abstract final class AppRoutes {
   const AppRoutes._();
 
@@ -18,10 +18,10 @@ abstract final class AppRoutes {
   static const String home = '/home';
 }
 
-/// The application route table, consumed by [MaterialApp.routes].
+/// Table de routes de l'application, consommée par [MaterialApp.routes].
 ///
-/// Lives in the `app/` layer (composition root): it is allowed to depend on
-/// features, whereas `core/` must not.
+/// Vit dans la couche `app/` (composition root) : elle a le droit de dépendre
+/// des features, contrairement à `core/`.
 abstract final class AppRouter {
   const AppRouter._();
 

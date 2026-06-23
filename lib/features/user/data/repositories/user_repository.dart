@@ -21,14 +21,14 @@ class UserRepository {
     return doc.exists ? UserModel.fromFirestore(doc) : null;
   }
 
-  /// Creates the user document **only if it does not already exist**.
+  /// Crée le document utilisateur **uniquement s'il n'existe pas déjà**.
   ///
-  /// Runs inside a transaction so that a failed/stale read upstream can never
-  /// overwrite an existing profile (pseudo, biometric token, categories...).
-  /// A crash during login must never destroy data.
+  /// S'exécute dans une transaction afin qu'une lecture amont échouée/obsolète
+  /// ne puisse jamais écraser un profil existant (pseudo, token biométrique,
+  /// catégories...). Un crash pendant la connexion ne doit jamais détruire de données.
   ///
-  /// Returns the effective user: the already-stored document when present,
-  /// otherwise the freshly created [user].
+  /// Renvoie l'utilisateur effectif : le document déjà stocké s'il est présent,
+  /// sinon le [user] fraîchement créé.
   Future<UserModel> createUser(UserModel user) async {
     final DocumentReference<Map<String, dynamic>> docRef = _users.doc(user.id);
 

@@ -17,7 +17,7 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
   @override
   void initState() {
     super.initState();
-    // Auto-trigger biometrics on launch when available.
+    // Lancement automatique de la biométrie au démarrage si disponible.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final authState = ref.read(authProvider);
