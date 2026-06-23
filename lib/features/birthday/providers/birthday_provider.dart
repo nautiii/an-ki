@@ -6,6 +6,7 @@ import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
 import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
 import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class BirthdayState {
@@ -66,7 +67,8 @@ class BirthdayNotifier extends Notifier<BirthdayState> {
               );
             }
           },
-          onError: (e) {
+          onError: (Object e) {
+            debugPrint('[BirthdayNotifier] watchBirthdays failed: $e');
             if (ref.mounted) {
               state = state.copyWith(isLoading: false);
             }

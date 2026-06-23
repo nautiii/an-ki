@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
 import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class BookScannerState {
@@ -65,6 +66,7 @@ class BookScannerNotifier extends Notifier<BookScannerState> {
             }
           },
           onError: (Object err) {
+            debugPrint('[BookScannerNotifier] watchBooks failed: $err');
             if (ref.mounted) {
               state = state.copyWith(isLoading: false, error: err);
             }
