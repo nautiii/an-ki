@@ -93,6 +93,28 @@ void main() {
     });
   });
 
+  group('UserModel.displayName', () {
+    const base = UserModel(
+      id: '1',
+      name: 'Quentin',
+      surname: 'Maillard',
+      isDark: false,
+      locale: 'fr',
+    );
+
+    test('uses the pseudo when set', () {
+      expect(base.copyWith(pseudo: 'Q').displayName, 'Q');
+    });
+
+    test('falls back to surname and name without a pseudo', () {
+      expect(base.displayName, 'Maillard Quentin');
+    });
+
+    test('falls back to surname and name when the pseudo is empty', () {
+      expect(base.copyWith(pseudo: '').displayName, 'Maillard Quentin');
+    });
+  });
+
   test('copyWith overrides selected fields and keeps the rest', () {
     const base = UserModel(
       id: '1',

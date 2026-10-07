@@ -101,7 +101,7 @@ class FakeBookRepository extends Fake implements BookRepository {
 class FakeAuthNotifier extends AuthNotifier {
   final AuthState? _initialState;
 
-  FakeAuthNotifier({AuthState? initialState}) : _initialState = initialState;
+  FakeAuthNotifier({this._initialState});
 
   @override
   AuthState build() {
@@ -161,7 +161,7 @@ class FakeUserNotifier extends UserNotifier {
   final UserModel? defaultLoadedUser;
 
   FakeUserNotifier({
-    UserState? initialState,
+    this._initialState,
     this.defaultLoadedUser = const UserModel(
       id: 'default-user',
       name: 'Quentin',
@@ -169,7 +169,7 @@ class FakeUserNotifier extends UserNotifier {
       isDark: false,
       locale: 'fr',
     ),
-  }) : _initialState = initialState;
+  });
 
   @override
   UserState build() {
@@ -235,8 +235,7 @@ class FakeUserNotifier extends UserNotifier {
 class FakeBirthdayNotifier extends BirthdayNotifier {
   final BirthdayState? _initialState;
 
-  FakeBirthdayNotifier({BirthdayState? initialState})
-    : _initialState = initialState;
+  FakeBirthdayNotifier({this._initialState});
 
   @override
   BirthdayState build() {
@@ -303,8 +302,7 @@ class FakeCategoryNotifier extends CategoryNotifier {
 class FakeBookScannerNotifier extends BookScannerNotifier {
   final BookScannerState? _initialState;
 
-  FakeBookScannerNotifier({BookScannerState? initialState})
-    : _initialState = initialState;
+  FakeBookScannerNotifier({this._initialState});
 
   @override
   BookScannerState build() => _initialState ?? BookScannerState();

@@ -30,8 +30,8 @@ class NotificationStrings {
     channelDescription: 'Rappels d\'anniversaire du jour',
     reminderTitle: '🎉 Anniversaire bientôt',
     birthdayBody: (name, age) => 'C\'est l\'anniversaire de $name ($age ans) !',
-    reminderBody:
-        (name, surname, age) => '$name $surname aura $age ans dans 7 jours.',
+    reminderBody: (name, surname, age) =>
+        '$name $surname aura $age ans dans 7 jours.',
   );
 
   factory NotificationStrings.fromL10n(AppLocalizations l10n) =>
@@ -126,11 +126,10 @@ class NotificationService {
     bool granted = false;
 
     if (defaultTargetPlatform == TargetPlatform.android) {
-      final android =
-          _plugin
-              .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin
-              >();
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
 
       if (android != null) {
         final notifGranted =
@@ -140,11 +139,10 @@ class NotificationService {
         granted = notifGranted && exactGranted;
       }
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      final ios =
-          _plugin
-              .resolvePlatformSpecificImplementation<
-                IOSFlutterLocalNotificationsPlugin
-              >();
+      final ios = _plugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
 
       if (ios != null) {
         granted =

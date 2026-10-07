@@ -1,0 +1,104 @@
+import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/data/models/category_model.dart';
+import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
+import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/birthday/widgets/contact_tile.dart';
+import 'package:an_ki/features/user/data/models/user_model.dart';
+import 'package:an_ki/features/user/providers/user_provider.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import '../../support/fake_providers.dart';
+import '../../support/network_image_mock.dart';
+import '../../support/test_harness.dart';
+
+const _pngBase64 =
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+class StubCategoryRepository implements CategoryRepository {
+  StubCategoryRepository(this.categories, {this.fail = false});
+  final List<BirthdayCategory> categories;
+  final bool fail;
+
+  @override
+  Stream<List<BirthdayCategory>> watchCategories() => fail
+      ? Stream.fromFuture(
+          Future<List<BirthdayCategory>>.error(Exception('boom')),
+        )
+      : Stream.value(categories);
+
+  @override
+  Future<String> createCategory(BirthdayCategory category) async => 'x';
+}
+
+void main() {
+  final family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
+
+  BirthdayModel birthday({String? picture}) => BirthdayModel(
+    id: '1',
+    uid: 'fake-uid',
+    name: 'Alice',
+    surname: 'Wonderland',
+    date: DateTime(1990, 5, 10),
+    categories: const ['fam'],
+    picture: picture,
+  );
+
+  List<dynamic> overrides({bool failCategories = false}) => [
+    authProvider.overrideWith(
+      () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
+    ),
+    userProvider.overrideWith(
+      () => FakeUserNotifier(
+        initialState: UserState(
+          user: const UserModel(
+            id: 'fake-uid',
+            name: 'A',
+            surname: 'B',
+            categories: ['fam'],
+            isDark: false,
+            locale: 'fr',
+          ),
+        ),
+      ),
+    ),
+    birthdayProvider.overrideWith(FakeBirthdayNotifier.new),
+    categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
+    categoryRepositoryProvider.overrideWithValue(
+      StubCategoryRepository([family], fail: failCategories),
+    ),
+  ];
+
+  testWidgets('shows the picture, category chip and opens the edit sheet', (
+    tester,
+  ) async {
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        ContactTile(birthday: birthday(picture: _pngBase64)),
+        overrides: overrides(),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alice Wonderland'), findsOneWidget);
+      expect(find.text('Famille'), findsOneWidget);
+
+      await tester.tap(find.text('Alice Wonderland'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Modifier'), findsOneWidget);
+    });
+  });
+
+  testWidgets('tolerates a category stream error', (tester) async {
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        ContactTile(birthday: birthday()),
+        overrides: overrides(failCategories: true),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alice Wonderland'), findsOneWidget);
+    });
+  });
+}

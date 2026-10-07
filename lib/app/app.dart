@@ -29,10 +29,9 @@ class App extends ConsumerWidget {
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home:
-          isAuthenticated
-              ? const AppInitializer(child: MainScreen())
-              : const AuthChoiceScreen(),
+      home: isAuthenticated
+          ? const AppInitializer(child: MainScreen())
+          : const AuthChoiceScreen(),
       routes: AppRouter.routes,
     );
   }

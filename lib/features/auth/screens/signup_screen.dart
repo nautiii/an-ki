@@ -238,23 +238,22 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           borderRadius: BorderRadius.circular(28),
                         ),
                       ),
-                      child:
-                          isLoading
-                              ? SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: colorScheme.onPrimary,
-                                ),
-                              )
-                              : Text(
-                                context.l10n.signUpButton,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                      child: isLoading
+                          ? SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.onPrimary,
                               ),
+                            )
+                          : Text(
+                              context.l10n.signUpButton,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ),
                 ),
@@ -270,12 +269,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       style: TextStyle(color: colorScheme.onSurfaceVariant),
                     ),
                     TextButton(
-                      onPressed:
-                          isLoading
-                              ? null
-                              : () => Navigator.of(
-                                context,
-                              ).pushReplacementNamed('/login'),
+                      onPressed: isLoading
+                          ? null
+                          : () =>
+                                Navigator.of(context)
+                                    .pushReplacementNamed('/login'),
                       child: Text(
                         context.l10n.signIn,
                         style: TextStyle(

@@ -23,7 +23,8 @@ class _FakeContactsService extends ContactsService {
 
 /// Builds a birthday whose anniversary falls [daysAhead] days from today,
 /// keeping it independent from the current date.
-BirthdayModel _relative(int daysAhead, {
+BirthdayModel _relative(
+  int daysAhead, {
   required String id,
   required String name,
   required String surname,
@@ -62,9 +63,11 @@ class RecordingBirthdayRepository extends FakeBirthdayRepository {
       created.add(input);
 
   @override
-  Future<void> updateBirthday(String uid,
-      String birthdayId,
-      CreateBirthdayInput input,) async => updated.add(birthdayId);
+  Future<void> updateBirthday(
+    String uid,
+    String birthdayId,
+    CreateBirthdayInput input,
+  ) async => updated.add(birthdayId);
 
   @override
   Future<void> deleteBirthday(String uid, String birthdayId) async =>
@@ -77,14 +80,13 @@ class _ErroringBirthdayRepository extends FakeBirthdayRepository {
       Stream.error(Exception('stream failed'));
 }
 
-CreateBirthdayInput _input() =>
-    CreateBirthdayInput(
-      uid: 'u',
-      name: 'New',
-      surname: 'Person',
-      date: DateTime(2000),
-      categories: const [],
-    );
+CreateBirthdayInput _input() => CreateBirthdayInput(
+  uid: 'u',
+  name: 'New',
+  surname: 'Person',
+  date: DateTime(2000),
+  categories: const [],
+);
 
 void main() {
   group('BirthdayNotifier (real)', () {
@@ -98,9 +100,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      expect(container
-          .read(birthdayProvider)
-          .isLoading, true);
+      expect(container.read(birthdayProvider).isLoading, true);
     });
 
     test('startListening publishes data and clears the loading flag', () async {
@@ -133,14 +133,12 @@ void main() {
       container.read(birthdayProvider.notifier).startListening('u');
       await Future<void>.delayed(Duration.zero);
 
-      expect(container
-          .read(birthdayProvider)
-          .isLoading, false);
+      expect(container.read(birthdayProvider).isLoading, false);
     });
 
     test(
       'createBirthday forwards to the repository and toggles isCreating',
-          () async {
+      () async {
         final repo = RecordingBirthdayRepository();
         final container = ProviderContainer(
           overrides: [birthdayRepositoryProvider.overrideWithValue(repo)],
@@ -151,9 +149,7 @@ void main() {
         await notifier.createBirthday('u', _input());
 
         expect(repo.created, hasLength(1));
-        expect(container
-            .read(birthdayProvider)
-            .isCreating, false);
+        expect(container.read(birthdayProvider).isCreating, false);
       },
     );
 
@@ -175,7 +171,7 @@ void main() {
 
     test(
       'updateBirthday and deleteBirthday forward to the repository',
-          () async {
+      () async {
         final repo = RecordingBirthdayRepository();
         final container = ProviderContainer(
           overrides: [birthdayRepositoryProvider.overrideWithValue(repo)],
@@ -205,12 +201,8 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       notifier.clear();
 
-      expect(container
-          .read(birthdayProvider)
-          .birthdays, isEmpty);
-      expect(container
-          .read(birthdayProvider)
-          .isLoading, true);
+      expect(container.read(birthdayProvider).birthdays, isEmpty);
+      expect(container.read(birthdayProvider).isLoading, true);
     });
 
     test('importFromContacts throws when permission is denied', () async {
@@ -232,42 +224,35 @@ void main() {
       expect(repo.created, isEmpty);
     });
 
-    test(
-      'importFromContacts creates one birthday per contact and returns the count',
-          () async {
-        final repo = RecordingBirthdayRepository();
-        final container = ProviderContainer(
-          overrides: [
-            birthdayRepositoryProvider.overrideWithValue(repo),
-            contactsServiceProvider.overrideWithValue(
-              _FakeContactsService(
-                contacts: [
-                  ImportedBirthday(
-                    name: 'A',
-                    surname: 'B',
-                    date: DateTime(1990),
-                  ),
-                  ImportedBirthday(
-                    name: 'C',
-                    surname: 'D',
-                    date: DateTime(1992, 2, 2),
-                  ),
-                ],
-              ),
+    test('importFromContacts creates one birthday per contact and returns the count', () async {
+      final repo = RecordingBirthdayRepository();
+      final container = ProviderContainer(
+        overrides: [
+          birthdayRepositoryProvider.overrideWithValue(repo),
+          contactsServiceProvider.overrideWithValue(
+            _FakeContactsService(
+              contacts: [
+                ImportedBirthday(name: 'A', surname: 'B', date: DateTime(1990)),
+                ImportedBirthday(
+                  name: 'C',
+                  surname: 'D',
+                  date: DateTime(1992, 2, 2),
+                ),
+              ],
             ),
-          ],
-        );
-        addTearDown(container.dispose);
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-        final count = await container
-            .read(birthdayProvider.notifier)
-            .importFromContacts('u');
+      final count = await container
+          .read(birthdayProvider.notifier)
+          .importFromContacts('u');
 
-        expect(count, 2);
-        expect(repo.created, hasLength(2));
-        expect(repo.created.first.name, 'A');
-      },
-    );
+      expect(count, 2);
+      expect(repo.created, hasLength(2));
+      expect(repo.created.first.name, 'A');
+    });
   });
 
   group('Derived providers', () {
@@ -279,13 +264,12 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           birthdayProvider.overrideWith(
-                () =>
-                FakeBirthdayNotifier(
-                  initialState: BirthdayState(
-                    birthdays: birthdays,
-                    isLoading: false,
-                  ),
-                ),
+            () => FakeBirthdayNotifier(
+              initialState: BirthdayState(
+                birthdays: birthdays,
+                isLoading: false,
+              ),
+            ),
           ),
         ],
       );
@@ -327,7 +311,7 @@ void main() {
 
     test(
       'filteredBirthdaysProvider excludes the next and sorts by proximity',
-          () {
+      () {
         final container = containerWith([far, near, mid]);
 
         final filtered = container.read(filteredBirthdaysProvider);

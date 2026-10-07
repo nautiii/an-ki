@@ -91,10 +91,9 @@ class _NextBirthdayCardState extends ConsumerState<NextBirthdayCard> {
                 height: 6,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(3),
-                  color:
-                      _currentPage == index
-                          ? colorScheme.primary
-                          : colorScheme.primary.withValues(alpha: 0.3),
+                  color: _currentPage == index
+                      ? colorScheme.primary
+                      : colorScheme.primary.withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -173,14 +172,13 @@ class _BirthdayItem extends StatelessWidget {
             radius: 28,
             backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.2),
             backgroundImage: backgroundImage,
-            child:
-                backgroundImage == null
-                    ? Icon(
-                      Icons.cake_outlined,
-                      color: colorScheme.onPrimary,
-                      size: 26,
-                    )
-                    : null,
+            child: backgroundImage == null
+                ? Icon(
+                    Icons.cake_outlined,
+                    color: colorScheme.onPrimary,
+                    size: 26,
+                  )
+                : null,
           ),
         ),
         const SizedBox(width: 16),

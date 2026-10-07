@@ -20,8 +20,9 @@ final userCategoriesProvider = Provider<List<BirthdayCategory>>((ref) {
   final user = ref.watch(userProvider).user;
   if (user == null) return [];
 
-  final filtered =
-      allCategories.where((cat) => user.categories.contains(cat.id)).toList();
+  final filtered = allCategories
+      .where((cat) => user.categories.contains(cat.id))
+      .toList();
 
   // On trie par nom technique (puisque le context n'est pas disponible ici pour le localisé)
   return filtered

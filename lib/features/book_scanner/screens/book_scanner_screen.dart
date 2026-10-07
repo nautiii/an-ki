@@ -82,13 +82,12 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder:
-          (context) => BookInfoSheet(
-            book: book,
-            onClosed: () async {
-              await _resetScanning();
-            },
-          ),
+      builder: (context) => BookInfoSheet(
+        book: book,
+        onClosed: () async {
+          await _resetScanning();
+        },
+      ),
     );
   }
 
@@ -120,12 +119,11 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                 userName: ref.watch(
                   userProvider.select((s) => s.user?.displayName),
                 ),
-                onOpenSettings:
-                    () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const SettingsScreen(),
-                      ),
-                    ),
+                onOpenSettings: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const SettingsScreen(),
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
 
@@ -182,37 +180,35 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                   children: [
                     Text(
                       context.l10n.bookScannerTitle,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
                     Expanded(
-                      child:
-                          isLoading
-                              ? const Center(child: CircularProgressIndicator())
-                              : books.isEmpty
-                              ? Center(
-                                child: Text(
-                                  context.l10n.noBooksFound,
-                                  style: TextStyle(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              )
-                              : SizedBox(
-                                height: 180,
-                                child: PageView.builder(
-                                  itemCount: books.length,
-                                  controller: PageController(
-                                    viewportFraction: 0.85,
-                                  ),
-                                  padEnds: false,
-                                  itemBuilder: (context, index) {
-                                    return BookCard(book: books[index]);
-                                  },
+                      child: isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : books.isEmpty
+                          ? Center(
+                              child: Text(
+                                context.l10n.noBooksFound,
+                                style: TextStyle(
+                                  color: colorScheme.onSurfaceVariant,
                                 ),
                               ),
+                            )
+                          : SizedBox(
+                              height: 180,
+                              child: PageView.builder(
+                                itemCount: books.length,
+                                controller: PageController(
+                                  viewportFraction: 0.85,
+                                ),
+                                padEnds: false,
+                                itemBuilder: (context, index) {
+                                  return BookCard(book: books[index]);
+                                },
+                              ),
+                            ),
                     ),
                   ],
                 ),

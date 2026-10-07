@@ -27,17 +27,16 @@ class BookCard extends StatelessWidget {
             // Couverture du livre
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child:
-                  book.imageUrl != null
-                      ? Image.network(
-                        book.imageUrl!,
-                        width: 60,
-                        height: 90,
-                        fit: BoxFit.cover,
-                        errorBuilder:
-                            (context, error, stackTrace) => _PlaceholderCover(),
-                      )
-                      : _PlaceholderCover(),
+              child: book.imageUrl != null
+                  ? Image.network(
+                      book.imageUrl!,
+                      width: 60,
+                      height: 90,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          _PlaceholderCover(),
+                    )
+                  : _PlaceholderCover(),
             ),
             const SizedBox(width: 16),
             // Infos

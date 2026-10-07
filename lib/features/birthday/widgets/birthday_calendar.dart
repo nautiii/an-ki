@@ -140,25 +140,23 @@ class _CalendarGrid extends StatelessWidget {
         final day = index + 1;
 
         final date = DateTime(focusedDate.year, focusedDate.month, day);
-        final dayBirthdays =
-            birthdays
-                .where(
-                  (b) => b.date.day == day && b.date.month == focusedDate.month,
-                )
-                .toList();
+        final dayBirthdays = birthdays
+            .where(
+              (b) => b.date.day == day && b.date.month == focusedDate.month,
+            )
+            .toList();
 
         return _CalendarDayCell(
           day: day,
           isToday: DateUtils.isSameDay(date, DateTime.now()),
           birthdays: dayBirthdays,
           categories: categories,
-          onTap:
-              dayBirthdays.isEmpty
-                  ? null
-                  : () {
-                    HapticFeedback.lightImpact();
-                    _showDayBirthdays(context, date, dayBirthdays);
-                  },
+          onTap: dayBirthdays.isEmpty
+              ? null
+              : () {
+                  HapticFeedback.lightImpact();
+                  _showDayBirthdays(context, date, dayBirthdays);
+                },
         );
       },
     );
@@ -179,90 +177,82 @@ class _CalendarGrid extends StatelessWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder:
-          (context) => Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  dateFormat.format(date),
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: birthdays.length,
-                    separatorBuilder:
-                        (context, index) => const Divider(height: 24),
-                    itemBuilder: (context, index) {
-                      final birthday = birthdays[index];
-                      return Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 24,
-                            backgroundColor: colorScheme.primaryContainer,
-                            backgroundImage:
-                                birthday.picture != null
-                                    ? MemoryImage(
-                                      base64Decode(birthday.picture!),
-                                    )
-                                    : null,
-                            child:
-                                birthday.picture == null
-                                    ? Icon(
-                                      Icons.cake_rounded,
-                                      color: colorScheme.primary,
-                                    )
-                                    : null,
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "${birthday.name} ${birthday.surname}",
-                                  style: textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  "${birthday.age} ${context.l10n.yearsOld}",
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ],
+            const SizedBox(height: 24),
+            Text(
+              dateFormat.format(date),
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+              ),
             ),
-          ),
+            const SizedBox(height: 20),
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: birthdays.length,
+                separatorBuilder: (context, index) => const Divider(height: 24),
+                itemBuilder: (context, index) {
+                  final birthday = birthdays[index];
+                  return Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: colorScheme.primaryContainer,
+                        backgroundImage: birthday.picture != null
+                            ? MemoryImage(base64Decode(birthday.picture!))
+                            : null,
+                        child: birthday.picture == null
+                            ? Icon(
+                                Icons.cake_rounded,
+                                color: colorScheme.primary,
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "${birthday.name} ${birthday.surname}",
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              "${birthday.age} ${context.l10n.yearsOld}",
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -291,18 +281,16 @@ class _CalendarDayCell extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: Container(
         decoration: BoxDecoration(
-          color:
-              isToday
-                  ? colorScheme.primaryContainer
-                  : colorScheme.surfaceContainerLow,
+          color: isToday
+              ? colorScheme.primaryContainer
+              : colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(12),
-          border:
-              isToday
-                  ? Border.all(
-                    color: colorScheme.primary.withValues(alpha: 0.5),
-                    width: 1.5,
-                  )
-                  : null,
+          border: isToday
+              ? Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.5),
+                  width: 1.5,
+                )
+              : null,
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -323,34 +311,34 @@ class _CalendarDayCell extends StatelessWidget {
                 bottom: 8,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children:
-                      birthdays.take(4).map((b) {
-                        final categoryId =
-                            b.categories.isNotEmpty ? b.categories.first : null;
-                        final category = categories
-                            .cast<BirthdayCategory?>()
-                            .firstWhere(
-                              (c) => c?.id == categoryId,
-                              orElse: () => null,
-                            );
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 1),
-                          width: 5,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: category?.color ?? colorScheme.primary,
-                            boxShadow: [
-                              BoxShadow(
-                                color: (category?.color ?? colorScheme.primary)
-                                    .withValues(alpha: 0.3),
-                                blurRadius: 2,
-                                spreadRadius: 0.5,
-                              ),
-                            ],
-                          ),
+                  children: birthdays.take(4).map((b) {
+                    final categoryId = b.categories.isNotEmpty
+                        ? b.categories.first
+                        : null;
+                    final category = categories
+                        .cast<BirthdayCategory?>()
+                        .firstWhere(
+                          (c) => c?.id == categoryId,
+                          orElse: () => null,
                         );
-                      }).toList(),
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 1),
+                      width: 5,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: category?.color ?? colorScheme.primary,
+                        boxShadow: [
+                          BoxShadow(
+                            color: (category?.color ?? colorScheme.primary)
+                                .withValues(alpha: 0.3),
+                            blurRadius: 2,
+                            spreadRadius: 0.5,
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
           ],

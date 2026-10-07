@@ -64,8 +64,9 @@ class BirthdayRepository {
   }
 
   Future<void> deleteAllUserBirthdays(String uid) async {
-    final QuerySnapshot<Map<String, dynamic>> snapshot =
-        await _birthdays.where('uid', isEqualTo: uid).get();
+    final QuerySnapshot<Map<String, dynamic>> snapshot = await _birthdays
+        .where('uid', isEqualTo: uid)
+        .get();
 
     final WriteBatch batch = _firestore.batch();
     for (final QueryDocumentSnapshot<Map<String, dynamic>> doc

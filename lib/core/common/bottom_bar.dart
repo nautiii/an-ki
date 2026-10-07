@@ -36,16 +36,14 @@ class BottomBar extends ConsumerWidget {
               child: Container(
                 height: 68,
                 decoration: BoxDecoration(
-                  color:
-                      isDark
-                          ? colorScheme.surface.withValues(alpha: 0.6)
-                          : Colors.white.withValues(alpha: 0.7),
+                  color: isDark
+                      ? colorScheme.surface.withValues(alpha: 0.6)
+                      : Colors.white.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(32),
                   border: Border.all(
-                    color:
-                        isDark
-                            ? Colors.white.withValues(alpha: 0.1)
-                            : colorScheme.primary.withValues(alpha: 0.1),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : colorScheme.primary.withValues(alpha: 0.1),
                     width: 1.5,
                   ),
                 ),
@@ -160,10 +158,9 @@ class _BottomBarItemState extends State<_BottomBarItem>
             vertical: 10,
           ),
           decoration: BoxDecoration(
-            color:
-                widget.isSelected
-                    ? colorScheme.primary.withValues(alpha: 0.12)
-                    : Colors.transparent,
+            color: widget.isSelected
+                ? colorScheme.primary.withValues(alpha: 0.12)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
@@ -174,10 +171,9 @@ class _BottomBarItemState extends State<_BottomBarItem>
                 child: Icon(
                   widget.isSelected ? widget.activeIcon : widget.icon,
                   key: ValueKey(widget.isSelected),
-                  color:
-                      widget.isSelected
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  color: widget.isSelected
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                   size: 24,
                 ),
               ),
@@ -185,21 +181,20 @@ class _BottomBarItemState extends State<_BottomBarItem>
                 child: AnimatedSize(
                   duration: const Duration(milliseconds: 400),
                   curve: Curves.fastOutSlowIn,
-                  child:
-                      widget.isSelected
-                          ? Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Text(
-                              widget.label,
-                              style: TextStyle(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                letterSpacing: -0.2,
-                              ),
+                  child: widget.isSelected
+                      ? Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Text(
+                            widget.label,
+                            style: TextStyle(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              letterSpacing: -0.2,
                             ),
-                          )
-                          : const SizedBox.shrink(),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
               ),
             ],

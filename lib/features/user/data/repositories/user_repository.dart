@@ -15,8 +15,9 @@ class UserRepository {
       _firestore.collection('user');
 
   Future<UserModel?> fetchUser(String uid) async {
-    final DocumentSnapshot<Map<String, dynamic>> doc =
-        await _users.doc(uid).get();
+    final DocumentSnapshot<Map<String, dynamic>> doc = await _users
+        .doc(uid)
+        .get();
 
     return doc.exists ? UserModel.fromFirestore(doc) : null;
   }

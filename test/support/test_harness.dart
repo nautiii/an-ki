@@ -26,8 +26,9 @@ class TestHarness extends StatelessWidget {
   Widget build(BuildContext context) {
     // If overrides are provided, we assume the test knows what it's doing.
     // Otherwise, we use the defaults.
-    final List<dynamic> finalOverrides =
-        overrides.isEmpty ? defaultTestOverrides : overrides;
+    final List<dynamic> finalOverrides = overrides.isEmpty
+        ? defaultTestOverrides
+        : overrides;
 
     return ProviderScope(
       overrides: finalOverrides.map((e) => e as dynamic).toList().cast(),

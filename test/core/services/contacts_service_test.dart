@@ -17,13 +17,16 @@ void main() {
   }
 
   group('ContactsService', () {
-    test('fetchBirthdays returns an empty list when there are no contacts', () async {
-      mockChannel((call) async => <dynamic>[]);
+    test(
+      'fetchBirthdays returns an empty list when there are no contacts',
+      () async {
+        mockChannel((call) async => <dynamic>[]);
 
-      final result = await const ContactsService().fetchBirthdays();
+        final result = await const ContactsService().fetchBirthdays();
 
-      expect(result, isEmpty);
-    });
+        expect(result, isEmpty);
+      },
+    );
 
     test('fetchBirthdays propagates plugin errors', () async {
       mockChannel((call) async => throw PlatformException(code: 'failed'));

@@ -196,24 +196,23 @@ final filteredBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
   final categoryFilters = ref.watch(birthdayCategoryFilterProvider);
 
   // 1. Filtrer et Trier
-  final filtered =
-      allBirthdays.where((birthday) {
-        // Exclure le ou les prochains anniversaires (déjà affichés en haut)
-        if (nextIds.contains(birthday.id)) return false;
+  final filtered = allBirthdays.where((birthday) {
+    // Exclure le ou les prochains anniversaires (déjà affichés en haut)
+    if (nextIds.contains(birthday.id)) return false;
 
-        // Filtrer par catégories (doit posséder TOUTES les catégories sélectionnées)
-        if (categoryFilters.isNotEmpty) {
-          final hasAllCategories = categoryFilters.every(
-            (catId) => birthday.categories.contains(catId),
-          );
-          if (!hasAllCategories) return false;
-        }
+    // Filtrer par catégories (doit posséder TOUTES les catégories sélectionnées)
+    if (categoryFilters.isNotEmpty) {
+      final hasAllCategories = categoryFilters.every(
+        (catId) => birthday.categories.contains(catId),
+      );
+      if (!hasAllCategories) return false;
+    }
 
-        // Filtrer par recherche
-        if (searchQuery.isEmpty) return true;
-        return birthday.name.toLowerCase().contains(searchQuery) ||
-            birthday.surname.toLowerCase().contains(searchQuery);
-      }).toList();
+    // Filtrer par recherche
+    if (searchQuery.isEmpty) return true;
+    return birthday.name.toLowerCase().contains(searchQuery) ||
+        birthday.surname.toLowerCase().contains(searchQuery);
+  }).toList();
 
   // 2. Trier par proximité (jours restants)
   filtered.sort((a, b) => a.daysUntilNext.compareTo(b.daysUntilNext));

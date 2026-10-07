@@ -117,28 +117,27 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
   Future<void> _delete() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(context.l10n.deleteBirthdayTitle),
-            content: Text(
-              context.l10n.deleteBirthdayConfirmation(
-                "${widget.birthdayToEdit!.name} ${widget.birthdayToEdit!.surname}",
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(context.l10n.cancel),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: TextButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.error,
-                ),
-                child: Text(context.l10n.delete),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.deleteBirthdayTitle),
+        content: Text(
+          context.l10n.deleteBirthdayConfirmation(
+            "${widget.birthdayToEdit!.name} ${widget.birthdayToEdit!.surname}",
           ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: Text(context.l10n.delete),
+          ),
+        ],
+      ),
     );
 
     if (confirmed == true && mounted) {
@@ -220,22 +219,18 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                       controller: _nameController,
                       label: context.l10n.firstName,
                       prefixIcon: Icons.person_outline_rounded,
-                      validator:
-                          (v) =>
-                              v?.isEmpty ?? true
-                                  ? context.l10n.requiredField
-                                  : null,
+                      validator: (v) => v?.isEmpty ?? true
+                          ? context.l10n.requiredField
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     AnKiTextField(
                       controller: _surnameController,
                       label: context.l10n.lastName,
                       prefixIcon: Icons.badge_outlined,
-                      validator:
-                          (v) =>
-                              v?.isEmpty ?? true
-                                  ? context.l10n.requiredField
-                                  : null,
+                      validator: (v) => v?.isEmpty ?? true
+                          ? context.l10n.requiredField
+                          : null,
                     ),
                     const SizedBox(height: 24),
 
@@ -296,21 +291,20 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            icon:
-                                isCreating
-                                    ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                    : Icon(
-                                      widget.birthdayToEdit != null
-                                          ? Icons.check_rounded
-                                          : Icons.add_rounded,
+                            icon: isCreating
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
                                     ),
+                                  )
+                                : Icon(
+                                    widget.birthdayToEdit != null
+                                        ? Icons.check_rounded
+                                        : Icons.add_rounded,
+                                  ),
                             label: Text(
                               widget.birthdayToEdit != null
                                   ? context.l10n.save
@@ -343,41 +337,40 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder:
-          (_) => Container(
-            height: 350,
-            padding: const EdgeInsets.all(24),
-            child: Column(
+      builder: (_) => Container(
+        height: 350,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      context.l10n.birthDate,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(context.l10n.add),
-                    ),
-                  ],
-                ),
-                const Divider(),
-                Expanded(
-                  child: CupertinoDatePicker(
-                    mode: CupertinoDatePickerMode.date,
-                    initialDateTime: _selectedDate,
-                    maximumDate: DateTime.now(),
-                    onDateTimeChanged:
-                        (date) => setState(() => _selectedDate = date),
+                Text(
+                  context.l10n.birthDate,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(context.l10n.add),
                 ),
               ],
             ),
-          ),
+            const Divider(),
+            Expanded(
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.date,
+                initialDateTime: _selectedDate,
+                maximumDate: DateTime.now(),
+                onDateTimeChanged: (date) =>
+                    setState(() => _selectedDate = date),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -413,14 +406,13 @@ class _ImagePickerButton extends StatelessWidget {
             radius: 50,
             backgroundColor: colorScheme.surfaceContainerHigh,
             backgroundImage: image,
-            child:
-                image == null
-                    ? Icon(
-                      Icons.person_rounded,
-                      size: 40,
-                      color: colorScheme.onSurfaceVariant,
-                    )
-                    : null,
+            child: image == null
+                ? Icon(
+                    Icons.person_rounded,
+                    size: 40,
+                    color: colorScheme.onSurfaceVariant,
+                  )
+                : null,
           ),
           Positioned(
             right: 0,
@@ -461,31 +453,27 @@ class _CategorySelector extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children:
-            categories.map((cat) {
-              final isSelected = selectedIds.contains(cat.id);
-              final colorScheme = Theme.of(context).colorScheme;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ChoiceChip(
-                  label: Text(cat.getLocalizedName(context)),
-                  avatar: Icon(
-                    cat.iconData,
-                    size: 18,
-                    color:
-                        isSelected
-                            ? colorScheme.onPrimary
-                            : colorScheme.primary,
-                  ),
-                  selected: isSelected,
-                  onSelected: (_) => onChanged(cat.id),
-                  showCheckmark: false,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                ),
-              );
-            }).toList(),
+        children: categories.map((cat) {
+          final isSelected = selectedIds.contains(cat.id);
+          final colorScheme = Theme.of(context).colorScheme;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(cat.getLocalizedName(context)),
+              avatar: Icon(
+                cat.iconData,
+                size: 18,
+                color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
+              ),
+              selected: isSelected,
+              onSelected: (_) => onChanged(cat.id),
+              showCheckmark: false,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

@@ -274,20 +274,16 @@ void main() {
       await tester.pumpHarness(
         const SizedBox(),
         home: Builder(
-          builder:
-              (context) => Scaffold(
-                body: Center(
-                  child: ElevatedButton(
-                    onPressed:
-                        () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const LoginScreen(),
-                          ),
-                        ),
-                    child: const Text('open'),
-                  ),
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
                 ),
+                child: const Text('open'),
               ),
+            ),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -409,20 +405,16 @@ void main() {
       await tester.pumpHarness(
         const SignUpScreen(),
         home: Builder(
-          builder:
-              (context) => Scaffold(
-                body: Center(
-                  child: ElevatedButton(
-                    onPressed:
-                        () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const SignUpScreen(),
-                          ),
-                        ),
-                    child: const Text('open'),
-                  ),
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const SignUpScreen()),
                 ),
+                child: const Text('open'),
               ),
+            ),
+          ),
         ),
       );
       await tester.pumpAndSettle();

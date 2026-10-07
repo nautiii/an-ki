@@ -78,10 +78,9 @@ class BookModel {
       'publishedDate': publishedDate,
       'description': description,
       'pageCount': pageCount,
-      'scannedAt':
-          scannedAt != null
-              ? Timestamp.fromDate(scannedAt!)
-              : FieldValue.serverTimestamp(),
+      'scannedAt': scannedAt != null
+          ? Timestamp.fromDate(scannedAt!)
+          : FieldValue.serverTimestamp(),
     };
   }
 

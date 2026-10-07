@@ -59,9 +59,9 @@ class FakeMobileScannerPlatform extends MobileScannerPlatform {
   }
 
   @override
-  Future<Set<CameraLensType>> getSupportedLenses() async => <CameraLensType>{
-    CameraLensType.any,
-  };
+  Future<Set<CameraLensType>> getSupportedLenses({
+    CameraFacing? facing,
+  }) async => <CameraLensType>{CameraLensType.any};
 
   @override
   Future<void> updateScanWindow(Rect? window) async {}

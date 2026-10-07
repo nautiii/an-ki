@@ -23,8 +23,8 @@ class BiometricService {
       final bool canCheck = await _auth.canCheckBiometrics;
       if (!canCheck) return false;
 
-      final List<BiometricType> availableBiometrics =
-          await _auth.getAvailableBiometrics();
+      final List<BiometricType> availableBiometrics = await _auth
+          .getAvailableBiometrics();
 
       // On cible uniquement les empreintes (souvent classées en 'strong' sur Android 12+)
       return availableBiometrics.contains(BiometricType.fingerprint) ||

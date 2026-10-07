@@ -22,14 +22,6 @@
           }
         },
         {
-          "client_id": "431108629745-ld39m64af938pcaihdqu42v4ree5utqc.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.github.nautiii.an_ki",
-            "certificate_hash": "c7ccc1c68467f28e940de5e16bad0887417556f2"
-          }
-        },
-        {
           "client_id": "431108629745-dn8tsmqkm0i616gpc61u7kmhipb5033j.apps.googleusercontent.com",
           "client_type": 3
         }

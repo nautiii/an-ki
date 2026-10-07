@@ -39,14 +39,13 @@ class HomeScreen extends ConsumerWidget {
                   userProvider.select((s) => s.user?.displayName),
                 ),
                 isListView: viewType == HomeViewType.list,
-                onToggleView:
-                    () => ref.read(homeViewProvider.notifier).toggle(),
-                onOpenSettings:
-                    () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const SettingsScreen(),
-                      ),
-                    ),
+                onToggleView: () =>
+                    ref.read(homeViewProvider.notifier).toggle(),
+                onOpenSettings: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const SettingsScreen(),
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
               const NextBirthdayCard(),
@@ -162,15 +161,17 @@ class _CategoryFilterBar extends ConsumerWidget {
                   cat.getLocalizedName(context),
                   style: TextStyle(
                     fontSize: 13,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
                 ),
                 avatar: Icon(
                   cat.iconData,
                   size: 16,
-                  color:
-                      isSelected ? colorScheme.onPrimary : colorScheme.primary,
+                  color: isSelected
+                      ? colorScheme.onPrimary
+                      : colorScheme.primary,
                 ),
                 selected: isSelected,
                 onSelected: (selected) {
@@ -204,8 +205,9 @@ class _CategoryFilterBar extends ConsumerWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(28),
               ),
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerLow,
+              backgroundColor: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerLow,
             ),
           ),
         ],

@@ -109,9 +109,9 @@ void main() {
 
     test('signIn maps FirebaseAuthException codes to messages', () async {
       final auth = MockFirebaseAuth(mockUser: buildUser());
-      whenCalling(
-        Invocation.method(#signInWithEmailAndPassword, []),
-      ).on(auth).thenThrow(FirebaseAuthException(code: 'wrong-password'));
+      whenCalling(Invocation.method(#signInWithEmailAndPassword, []))
+          .on(auth)
+          .thenThrow(FirebaseAuthException(code: 'wrong-password'));
       final container = makeContainer(auth);
 
       final ok = await container
@@ -127,9 +127,9 @@ void main() {
 
     test('signIn maps unexpected errors to a generic message', () async {
       final auth = MockFirebaseAuth(mockUser: buildUser());
-      whenCalling(
-        Invocation.method(#signInWithEmailAndPassword, []),
-      ).on(auth).thenThrow(Exception('network'));
+      whenCalling(Invocation.method(#signInWithEmailAndPassword, []))
+          .on(auth)
+          .thenThrow(Exception('network'));
       final container = makeContainer(auth);
 
       final ok = await container
@@ -160,9 +160,9 @@ void main() {
 
     test('signUp maps the weak-password code', () async {
       final auth = MockFirebaseAuth();
-      whenCalling(
-        Invocation.method(#createUserWithEmailAndPassword, []),
-      ).on(auth).thenThrow(FirebaseAuthException(code: 'weak-password'));
+      whenCalling(Invocation.method(#createUserWithEmailAndPassword, []))
+          .on(auth)
+          .thenThrow(FirebaseAuthException(code: 'weak-password'));
       final container = makeContainer(auth);
 
       final ok = await container
@@ -181,9 +181,9 @@ void main() {
 
     test('signUp maps unexpected errors to the registration message', () async {
       final auth = MockFirebaseAuth();
-      whenCalling(
-        Invocation.method(#createUserWithEmailAndPassword, []),
-      ).on(auth).thenThrow(Exception('boom'));
+      whenCalling(Invocation.method(#createUserWithEmailAndPassword, []))
+          .on(auth)
+          .thenThrow(Exception('boom'));
       final container = makeContainer(auth);
 
       final ok = await container
@@ -203,9 +203,9 @@ void main() {
     test('error code mapping covers the documented codes', () async {
       Future<String?> messageFor(String code) async {
         final auth = MockFirebaseAuth(mockUser: buildUser());
-        whenCalling(
-          Invocation.method(#signInWithEmailAndPassword, []),
-        ).on(auth).thenThrow(FirebaseAuthException(code: code));
+        whenCalling(Invocation.method(#signInWithEmailAndPassword, []))
+            .on(auth)
+            .thenThrow(FirebaseAuthException(code: code));
         final container = makeContainer(auth);
         await container
             .read(authProvider.notifier)
@@ -325,7 +325,10 @@ void main() {
         });
         channels.storage[_tokenKey] = 'tok';
         channels.storage[_uidKey] = 'uid-1';
-        final container = makeContainer(MockFirebaseAuth(), firestore: firestore);
+        final container = makeContainer(
+          MockFirebaseAuth(),
+          firestore: firestore,
+        );
 
         final ok = await container
             .read(authProvider.notifier)
@@ -403,9 +406,9 @@ void main() {
 
   test('signOut records an error when it throws', () async {
     final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
-    whenCalling(
-      Invocation.method(#signOut, [null]),
-    ).on(auth).thenThrow(FirebaseAuthException(code: 'fail'));
+    whenCalling(Invocation.method(#signOut, [null]))
+        .on(auth)
+        .thenThrow(FirebaseAuthException(code: 'fail'));
     final container = makeContainer(auth);
 
     await container.read(authProvider.notifier).signOut(l10n);
@@ -447,9 +450,9 @@ void main() {
     test('maps unexpected errors to the generic delete message', () async {
       final user = buildUser(uid: 'del-generic');
       final auth = MockFirebaseAuth(signedIn: true, mockUser: user);
-      whenCalling(
-        Invocation.method(#delete, []),
-      ).on(user).thenThrow(Exception('boom'));
+      whenCalling(Invocation.method(#delete, []))
+          .on(user)
+          .thenThrow(Exception('boom'));
       final container = makeContainer(auth);
       await container
           .read(authProvider.notifier)

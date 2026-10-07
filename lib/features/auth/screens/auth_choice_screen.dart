@@ -108,10 +108,9 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
                     child: _AuthButton(
                       label: context.l10n.loginWithGoogle,
                       icon: Icons.login_rounded,
-                      onPressed:
-                          isLoading
-                              ? null
-                              : () => _handleGoogleSignIn(context, ref),
+                      onPressed: isLoading
+                          ? null
+                          : () => _handleGoogleSignIn(context, ref),
                       isPrimary: true,
                     ),
                   ),
@@ -121,10 +120,9 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
                     child: _AuthButton(
                       label: context.l10n.loginWithEmail,
                       icon: Icons.email_outlined,
-                      onPressed:
-                          isLoading
-                              ? null
-                              : () => Navigator.of(context).pushNamed('/login'),
+                      onPressed: isLoading
+                          ? null
+                          : () => Navigator.of(context).pushNamed('/login'),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -133,10 +131,9 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
                     child: _AuthButton(
                       label: context.l10n.continueWithoutAccount,
                       icon: Icons.person_outline_rounded,
-                      onPressed:
-                          isLoading
-                              ? null
-                              : () => _handleAnonymousSignIn(context, ref),
+                      onPressed: isLoading
+                          ? null
+                          : () => _handleAnonymousSignIn(context, ref),
                       isOutlined: true,
                     ),
                   ),
@@ -151,12 +148,10 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
                           style: TextStyle(color: colorScheme.onSurfaceVariant),
                         ),
                         TextButton(
-                          onPressed:
-                              isLoading
-                                  ? null
-                                  : () => Navigator.of(
-                                    context,
-                                  ).pushNamed('/signup'),
+                          onPressed: isLoading
+                              ? null
+                              : () =>
+                                    Navigator.of(context).pushNamed('/signup'),
                           child: Text(
                             context.l10n.signUp,
                             style: TextStyle(
@@ -255,51 +250,48 @@ class _AuthButton extends StatelessWidget {
       child: SizedBox(
         width: 280,
         height: 56,
-        child:
-            isOutlined
-                ? OutlinedButton.icon(
-                  onPressed: onPressed,
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: colorScheme.outlineVariant),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                    foregroundColor: colorScheme.onSurface,
+        child: isOutlined
+            ? OutlinedButton.icon(
+                onPressed: onPressed,
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: colorScheme.outlineVariant),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
                   ),
-                  icon: Icon(icon, size: 20),
-                  label: Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                )
-                : ElevatedButton.icon(
-                  onPressed: onPressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        isPrimary
-                            ? colorScheme.primary
-                            : colorScheme.surfaceContainerHigh,
-                    foregroundColor:
-                        isPrimary
-                            ? colorScheme.onPrimary
-                            : colorScheme.onSurface,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                  ),
-                  icon: Icon(icon, size: 20),
-                  label: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: isPrimary ? FontWeight.bold : FontWeight.w600,
-                    ),
+                  foregroundColor: colorScheme.onSurface,
+                ),
+                icon: Icon(icon, size: 20),
+                label: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
+              )
+            : ElevatedButton.icon(
+                onPressed: onPressed,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isPrimary
+                      ? colorScheme.primary
+                      : colorScheme.surfaceContainerHigh,
+                  foregroundColor: isPrimary
+                      ? colorScheme.onPrimary
+                      : colorScheme.onSurface,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                ),
+                icon: Icon(icon, size: 20),
+                label: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: isPrimary ? FontWeight.bold : FontWeight.w600,
+                  ),
+                ),
+              ),
       ),
     );
   }

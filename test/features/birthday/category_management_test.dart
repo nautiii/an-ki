@@ -131,15 +131,14 @@ void main() {
     await tester.pumpHarness(
       const SizedBox(),
       home: Builder(
-        builder:
-            (context) => Scaffold(
-              body: Center(
-                child: ElevatedButton(
-                  onPressed: () => CategoryFormSheet.show(context),
-                  child: const Text('open'),
-                ),
-              ),
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () => CategoryFormSheet.show(context),
+              child: const Text('open'),
             ),
+          ),
+        ),
       ),
       overrides: overrides(categoryNotifier, all: [family]),
     );

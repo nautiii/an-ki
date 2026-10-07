@@ -38,15 +38,13 @@ class _AnKiFadeInState extends State<AnKiFadeIn>
       ),
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: widget.offset,
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Interval(0.0, 1.0, curve: widget.curve),
-      ),
-    );
+    _slideAnimation = Tween<Offset>(begin: widget.offset, end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: Interval(0.0, 1.0, curve: widget.curve),
+          ),
+        );
 
     if (widget.delay == Duration.zero) {
       _controller.forward();

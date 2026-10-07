@@ -87,10 +87,9 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
 
       await userNotifier.createUser(
         uid: uid,
-        name:
-            parts.isNotEmpty && parts.first.isNotEmpty
-                ? parts.first
-                : (authState.isAnonymous ? context.l10n.guest : "-"),
+        name: parts.isNotEmpty && parts.first.isNotEmpty
+            ? parts.first
+            : (authState.isAnonymous ? context.l10n.guest : "-"),
         surname: parts.length > 1 ? parts.sublist(1).join(" ") : "",
       );
     }

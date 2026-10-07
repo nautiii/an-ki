@@ -4,17 +4,25 @@ import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  AuthRepository build(MockFirebaseAuth auth, FakeFirebaseFirestore firestore) =>
-      AuthRepository(auth: auth, firestore: firestore);
+  AuthRepository build(
+    MockFirebaseAuth auth,
+    FakeFirebaseFirestore firestore,
+  ) => AuthRepository(auth: auth, firestore: firestore);
 
   group('session', () {
-    test('currentUser and authStateChanges reflect the signed-in user', () async {
-      final auth = MockFirebaseAuth(signedIn: true, mockUser: MockUser(uid: 'u1'));
-      final repo = build(auth, FakeFirebaseFirestore());
+    test(
+      'currentUser and authStateChanges reflect the signed-in user',
+      () async {
+        final auth = MockFirebaseAuth(
+          signedIn: true,
+          mockUser: MockUser(uid: 'u1'),
+        );
+        final repo = build(auth, FakeFirebaseFirestore());
 
-      expect(repo.currentUser?.uid, 'u1');
-      expect(await repo.authStateChanges().first, isNotNull);
-    });
+        expect(repo.currentUser?.uid, 'u1');
+        expect(await repo.authStateChanges().first, isNotNull);
+      },
+    );
   });
 
   group('sign-in / sign-up', () {
@@ -52,7 +60,10 @@ void main() {
 
   group('sign-out / delete', () {
     test('signOutFirebase clears the current user', () async {
-      final auth = MockFirebaseAuth(signedIn: true, mockUser: MockUser(uid: 'u1'));
+      final auth = MockFirebaseAuth(
+        signedIn: true,
+        mockUser: MockUser(uid: 'u1'),
+      );
       final repo = build(auth, FakeFirebaseFirestore());
 
       await repo.signOutFirebase();
@@ -61,7 +72,10 @@ void main() {
     });
 
     test('deleteCurrentUser completes', () async {
-      final auth = MockFirebaseAuth(signedIn: true, mockUser: MockUser(uid: 'u1'));
+      final auth = MockFirebaseAuth(
+        signedIn: true,
+        mockUser: MockUser(uid: 'u1'),
+      );
       final repo = build(auth, FakeFirebaseFirestore());
 
       await expectLater(repo.deleteCurrentUser(), completes);
@@ -81,7 +95,9 @@ void main() {
 
     test('setBiometricToken(null) clears the field', () async {
       final firestore = FakeFirebaseFirestore();
-      await firestore.collection('user').doc('u1').set({'biometricToken': 'tok'});
+      await firestore.collection('user').doc('u1').set({
+        'biometricToken': 'tok',
+      });
       final repo = build(MockFirebaseAuth(), firestore);
 
       await repo.setBiometricToken('u1', null);
@@ -92,17 +108,22 @@ void main() {
 
     test('isBiometricTokenValid matches the stored token', () async {
       final firestore = FakeFirebaseFirestore();
-      await firestore.collection('user').doc('u1').set({'biometricToken': 'tok'});
+      await firestore.collection('user').doc('u1').set({
+        'biometricToken': 'tok',
+      });
       final repo = build(MockFirebaseAuth(), firestore);
 
       expect(await repo.isBiometricTokenValid('u1', 'tok'), isTrue);
       expect(await repo.isBiometricTokenValid('u1', 'wrong'), isFalse);
     });
 
-    test('isBiometricTokenValid is false when the document is missing', () async {
-      final repo = build(MockFirebaseAuth(), FakeFirebaseFirestore());
+    test(
+      'isBiometricTokenValid is false when the document is missing',
+      () async {
+        final repo = build(MockFirebaseAuth(), FakeFirebaseFirestore());
 
-      expect(await repo.isBiometricTokenValid('absent', 'tok'), isFalse);
-    });
+        expect(await repo.isBiometricTokenValid('absent', 'tok'), isFalse);
+      },
+    );
   });
 }

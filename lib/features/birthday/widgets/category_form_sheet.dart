@@ -138,12 +138,9 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                     const SizedBox(height: 12),
                     categoriesState.when(
                       data: (allCategories) {
-                        final availableDefaults =
-                            allCategories
-                                .where(
-                                  (cat) => !userCategoryIds.contains(cat.id),
-                                )
-                                .toList();
+                        final availableDefaults = allCategories
+                            .where((cat) => !userCategoryIds.contains(cat.id))
+                            .toList();
 
                         if (availableDefaults.isEmpty) {
                           return Text(context.l10n.noMoreSuggestions);
@@ -153,47 +150,43 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                           scrollDirection: Axis.horizontal,
                           physics: const BouncingScrollPhysics(),
                           child: Row(
-                            children:
-                                availableDefaults.map((cat) {
-                                  final isSelected = _selectedDefaultIds
-                                      .contains(cat.id);
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8),
-                                    child: FilterChip(
-                                      label: Text(
-                                        cat.getLocalizedName(context),
-                                      ),
-                                      avatar: Icon(
-                                        cat.iconData,
-                                        size: 18,
-                                        color:
-                                            isSelected
-                                                ? colorScheme.onPrimary
-                                                : colorScheme.primary,
-                                      ),
-                                      selected: isSelected,
-                                      onSelected: (selected) {
-                                        setState(() {
-                                          if (selected) {
-                                            _selectedDefaultIds.add(cat.id);
-                                          } else {
-                                            _selectedDefaultIds.remove(cat.id);
-                                          }
-                                        });
-                                      },
-                                      showCheckmark: false,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(28),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
+                            children: availableDefaults.map((cat) {
+                              final isSelected = _selectedDefaultIds.contains(
+                                cat.id,
+                              );
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: FilterChip(
+                                  label: Text(cat.getLocalizedName(context)),
+                                  avatar: Icon(
+                                    cat.iconData,
+                                    size: 18,
+                                    color: isSelected
+                                        ? colorScheme.onPrimary
+                                        : colorScheme.primary,
+                                  ),
+                                  selected: isSelected,
+                                  onSelected: (selected) {
+                                    setState(() {
+                                      if (selected) {
+                                        _selectedDefaultIds.add(cat.id);
+                                      } else {
+                                        _selectedDefaultIds.remove(cat.id);
+                                      }
+                                    });
+                                  },
+                                  showCheckmark: false,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(28),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
                         );
                       },
-                      loading:
-                          () =>
-                              const Center(child: CircularProgressIndicator()),
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
                       error: (_, _) => const SizedBox(),
                     ),
 
@@ -243,25 +236,22 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                         final icon = _availableIcons[index];
                         final isSelected = _selectedIconCode == icon.codePoint;
                         return InkWell(
-                          onTap:
-                              () => setState(
-                                () => _selectedIconCode = icon.codePoint,
-                              ),
+                          onTap: () => setState(
+                            () => _selectedIconCode = icon.codePoint,
+                          ),
                           borderRadius: BorderRadius.circular(28),
                           child: Container(
                             decoration: BoxDecoration(
-                              color:
-                                  isSelected
-                                      ? colorScheme.primary
-                                      : colorScheme.surfaceContainerHigh,
+                              color: isSelected
+                                  ? colorScheme.primary
+                                  : colorScheme.surfaceContainerHigh,
                               borderRadius: BorderRadius.circular(28),
                             ),
                             child: Icon(
                               icon,
-                              color:
-                                  isSelected
-                                      ? colorScheme.onPrimary
-                                      : colorScheme.onSurfaceVariant,
+                              color: isSelected
+                                  ? colorScheme.onPrimary
+                                  : colorScheme.onSurfaceVariant,
                             ),
                           ),
                         );

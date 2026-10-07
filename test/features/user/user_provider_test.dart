@@ -98,9 +98,8 @@ void main() {
   test(
     'createUser adopts the existing profile instead of the default',
     () async {
-      final repo =
-          RecordingUserRepository()
-            ..existingOnCreate = _user.copyWith(pseudo: 'Quentinou');
+      final repo = RecordingUserRepository()
+        ..existingOnCreate = _user.copyWith(pseudo: 'Quentinou');
       final container = makeContainer(repo);
 
       await container

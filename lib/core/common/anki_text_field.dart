@@ -81,22 +81,18 @@ class _AnKiTextFieldState extends State<AnKiTextField> {
             labelText: widget.label,
             prefixIcon: Icon(
               widget.prefixIcon,
-              color:
-                  hasError
-                      ? colorScheme.error
-                      : (_isFocused
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant.withValues(
-                            alpha: 0.7,
-                          )),
+              color: hasError
+                  ? colorScheme.error
+                  : (_isFocused
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
               size: 22,
             ),
             suffixIcon: widget.suffixIcon,
             filled: true,
-            fillColor:
-                _isFocused
-                    ? colorScheme.surface
-                    : colorScheme.surfaceContainerLow,
+            fillColor: _isFocused
+                ? colorScheme.surface
+                : colorScheme.surfaceContainerLow,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 16,
@@ -136,20 +132,19 @@ class _AnKiTextFieldState extends State<AnKiTextField> {
         AnimatedSize(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutCubic,
-          child:
-              hasError
-                  ? Padding(
-                    padding: const EdgeInsets.only(top: 6, left: 16),
-                    child: Text(
-                      _errorText!,
-                      style: TextStyle(
-                        color: colorScheme.error,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
+          child: hasError
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 6, left: 16),
+                  child: Text(
+                    _errorText!,
+                    style: TextStyle(
+                      color: colorScheme.error,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                     ),
-                  )
-                  : const SizedBox(width: double.infinity),
+                  ),
+                )
+              : const SizedBox(width: double.infinity),
         ),
       ],
     );

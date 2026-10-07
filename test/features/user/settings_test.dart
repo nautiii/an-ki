@@ -82,16 +82,12 @@ void main() {
   testWidgets('Header opens the settings screen', (tester) async {
     await tester.pumpHarness(
       Builder(
-        builder:
-            (context) => Header(
-              userName: 'Quentin',
-              onOpenSettings:
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const SettingsScreen(),
-                    ),
-                  ),
-            ),
+        builder: (context) => Header(
+          userName: 'Quentin',
+          onOpenSettings: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+          ),
+        ),
       ),
       overrides: overridesWith(),
     );

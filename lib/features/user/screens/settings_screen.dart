@@ -50,78 +50,76 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     await showDialog<void>(
       context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: Text(
-              isAnonymous
-                  ? dialogContext.l10n.attention
-                  : dialogContext.l10n.signOut,
-            ),
-            content: Text(
-              isAnonymous
-                  ? dialogContext.l10n.signOutAnonymousWarning
-                  : dialogContext.l10n.signOutConfirmation,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(dialogContext.l10n.cancel),
-              ),
-              if (isAnonymous)
-                TextButton(
-                  onPressed: () async {
-                    Navigator.of(dialogContext).pop();
-                    final success = await ref
-                        .read(authProvider.notifier)
-                        .linkWithGoogle(context.l10n);
-                    if (success && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(context.l10n.dataSavedSuccess)),
-                      );
-                    }
-                  },
-                  child: Text(context.l10n.saveMyData),
-                ),
-              TextButton(
-                onPressed: () async {
-                  final authNotifier = ref.read(authProvider.notifier);
-                  final userNotifier = ref.read(userProvider.notifier);
-                  final birthdayNotifier = ref.read(birthdayProvider.notifier);
-                  final l10n = context.l10n;
-
-                  // Fermer le dialogue de confirmation
-                  Navigator.of(dialogContext).pop();
-
-                  // Afficher l'overlay de chargement
-                  if (context.mounted) {
-                    showDialog<void>(
-                      context: context,
-                      barrierDismissible: false,
-                      builder:
-                          (context) =>
-                              const Center(child: CircularProgressIndicator()),
-                    );
-                  }
-
-                  // Délai pour une transition visuelle fluide
-                  await Future<void>.delayed(const Duration(milliseconds: 600));
-
-                  // Nettoyage simultané des états
-                  userNotifier.clear();
-                  birthdayNotifier.clear();
-
-                  // Déconnexion finale
-                  await authNotifier.signOut(l10n);
-                },
-                child: Text(
-                  isAnonymous
-                      ? dialogContext.l10n.deleteAndLeave
-                      : dialogContext.l10n.signOut,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          isAnonymous
+              ? dialogContext.l10n.attention
+              : dialogContext.l10n.signOut,
+        ),
+        content: Text(
+          isAnonymous
+              ? dialogContext.l10n.signOutAnonymousWarning
+              : dialogContext.l10n.signOutConfirmation,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(dialogContext.l10n.cancel),
           ),
+          if (isAnonymous)
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                final success = await ref
+                    .read(authProvider.notifier)
+                    .linkWithGoogle(context.l10n);
+                if (success && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(context.l10n.dataSavedSuccess)),
+                  );
+                }
+              },
+              child: Text(context.l10n.saveMyData),
+            ),
+          TextButton(
+            onPressed: () async {
+              final authNotifier = ref.read(authProvider.notifier);
+              final userNotifier = ref.read(userProvider.notifier);
+              final birthdayNotifier = ref.read(birthdayProvider.notifier);
+              final l10n = context.l10n;
+
+              // Fermer le dialogue de confirmation
+              Navigator.of(dialogContext).pop();
+
+              // Afficher l'overlay de chargement
+              if (context.mounted) {
+                showDialog<void>(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) =>
+                      const Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              // Délai pour une transition visuelle fluide
+              await Future<void>.delayed(const Duration(milliseconds: 600));
+
+              // Nettoyage simultané des états
+              userNotifier.clear();
+              birthdayNotifier.clear();
+
+              // Déconnexion finale
+              await authNotifier.signOut(l10n);
+            },
+            child: Text(
+              isAnonymous
+                  ? dialogContext.l10n.deleteAndLeave
+                  : dialogContext.l10n.signOut,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -133,43 +131,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     await showDialog<void>(
       context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: Text(dialogContext.l10n.deleteAccountTitle),
-            content: Text(dialogContext.l10n.deleteAccountConfirmation),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(dialogContext.l10n.cancel),
-              ),
-              TextButton(
-                onPressed: () async {
-                  final authNotifier = ref.read(authProvider.notifier);
-                  final userNotifier = ref.read(userProvider.notifier);
-                  final l10n = context.l10n;
-
-                  Navigator.of(dialogContext).pop();
-
-                  try {
-                    // 1. Supprimer les données Firestore
-                    await userNotifier.deleteAccount(uid);
-                    // 2. Supprimer le compte Auth
-                    await authNotifier.deleteAccount(l10n);
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.deleteAccountError)),
-                      );
-                    }
-                  }
-                },
-                child: Text(
-                  dialogContext.l10n.delete,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
+      builder: (dialogContext) => AlertDialog(
+        title: Text(dialogContext.l10n.deleteAccountTitle),
+        content: Text(dialogContext.l10n.deleteAccountConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(dialogContext.l10n.cancel),
           ),
+          TextButton(
+            onPressed: () async {
+              final authNotifier = ref.read(authProvider.notifier);
+              final userNotifier = ref.read(userProvider.notifier);
+              final l10n = context.l10n;
+
+              Navigator.of(dialogContext).pop();
+
+              try {
+                // 1. Supprimer les données Firestore
+                await userNotifier.deleteAccount(uid);
+                // 2. Supprimer le compte Auth
+                await authNotifier.deleteAccount(l10n);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.deleteAccountError)),
+                  );
+                }
+              }
+            },
+            child: Text(
+              dialogContext.l10n.delete,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

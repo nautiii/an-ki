@@ -146,28 +146,25 @@ void main() {
       },
     );
 
-    test(
-      'scheduled date is advanced to next year if occurrence for this year passed',
-      () async {
-        final now = DateTime.now();
-        final yesterday = now.subtract(const Duration(days: 1));
+    test('scheduled date is advanced to next year if occurrence for this year passed', () async {
+      final now = DateTime.now();
+      final yesterday = now.subtract(const Duration(days: 1));
 
-        final birthday = BirthdayReminder(
-          id: 'b1',
-          name: 'Past',
-          surname: 'Person',
-          birthDate: DateTime(1990, yesterday.month, yesterday.day),
-        );
+      final birthday = BirthdayReminder(
+        id: 'b1',
+        name: 'Past',
+        surname: 'Person',
+        birthDate: DateTime(1990, yesterday.month, yesterday.day),
+      );
 
-        await service.scheduleAll([birthday]);
+      await service.scheduleAll([birthday]);
 
-        final call = mockPlugin.zonedScheduleCalls.firstWhere(
-          (c) => c.id < 500000,
-        );
+      final call = mockPlugin.zonedScheduleCalls.firstWhere(
+        (c) => c.id < 500000,
+      );
 
-        expect(call.scheduledDate.year, equals(now.year + 1));
-      },
-    );
+      expect(call.scheduledDate.year, equals(now.year + 1));
+    });
 
     test(
       'reminder is rolled to next year when the J-7 date has passed',

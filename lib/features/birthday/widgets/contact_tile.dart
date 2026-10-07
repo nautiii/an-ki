@@ -43,28 +43,27 @@ class ContactTile extends ConsumerWidget {
             HapticFeedback.mediumImpact();
             return await showDialog<bool>(
               context: context,
-              builder:
-                  (context) => AlertDialog(
-                    title: Text(context.l10n.deleteBirthdayTitle),
-                    content: Text(
-                      context.l10n.deleteBirthdayConfirmation(
-                        "${birthday.name} ${birthday.surname}",
-                      ),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: Text(context.l10n.cancel),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        style: TextButton.styleFrom(
-                          foregroundColor: colorScheme.error,
-                        ),
-                        child: Text(context.l10n.delete),
-                      ),
-                    ],
+              builder: (context) => AlertDialog(
+                title: Text(context.l10n.deleteBirthdayTitle),
+                content: Text(
+                  context.l10n.deleteBirthdayConfirmation(
+                    "${birthday.name} ${birthday.surname}",
                   ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text(context.l10n.cancel),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: TextButton.styleFrom(
+                      foregroundColor: colorScheme.error,
+                    ),
+                    child: Text(context.l10n.delete),
+                  ),
+                ],
+              ),
             );
           },
           onDismissed: (direction) {
@@ -134,14 +133,13 @@ class ContactTile extends ConsumerWidget {
                         radius: 26,
                         backgroundColor: colorScheme.primaryContainer,
                         backgroundImage: backgroundImage,
-                        child:
-                            backgroundImage == null
-                                ? Icon(
-                                  Icons.person_outline_rounded,
-                                  color: colorScheme.onPrimaryContainer,
-                                  size: 30,
-                                )
-                                : null,
+                        child: backgroundImage == null
+                            ? Icon(
+                                Icons.person_outline_rounded,
+                                color: colorScheme.onPrimaryContainer,
+                                size: 30,
+                              )
+                            : null,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -169,13 +167,11 @@ class ContactTile extends ConsumerWidget {
                           const SizedBox(height: 4),
                           categoriesState.when(
                             data: (allCategories) {
-                              final activeCategories =
-                                  allCategories
-                                      .where(
-                                        (c) =>
-                                            birthday.categories.contains(c.id),
-                                      )
-                                      .toList();
+                              final activeCategories = allCategories
+                                  .where(
+                                    (c) => birthday.categories.contains(c.id),
+                                  )
+                                  .toList();
                               if (activeCategories.isEmpty) {
                                 return const SizedBox();
                               }
@@ -183,54 +179,47 @@ class ContactTile extends ConsumerWidget {
                                 scrollDirection: Axis.horizontal,
                                 physics: const BouncingScrollPhysics(),
                                 child: Row(
-                                  children:
-                                      activeCategories.map((cat) {
-                                        return Container(
-                                          margin: const EdgeInsets.only(
-                                            right: 8,
+                                  children: activeCategories.map((cat) {
+                                    return Container(
+                                      margin: const EdgeInsets.only(right: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: colorScheme.primaryContainer
+                                            .withValues(alpha: 0.7),
+                                        borderRadius: BorderRadius.circular(28),
+                                        border: Border.all(
+                                          color: colorScheme.primary.withValues(
+                                            alpha: 0.1,
                                           ),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 5,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            cat.iconData,
+                                            size: 13,
+                                            color:
+                                                colorScheme.onPrimaryContainer,
                                           ),
-                                          decoration: BoxDecoration(
-                                            color: colorScheme.primaryContainer
-                                                .withValues(alpha: 0.7),
-                                            borderRadius: BorderRadius.circular(
-                                              28,
-                                            ),
-                                            border: Border.all(
-                                              color: colorScheme.primary
-                                                  .withValues(alpha: 0.1),
-                                            ),
+                                          const SizedBox(width: 5),
+                                          Text(
+                                            cat.getLocalizedName(context),
+                                            style: textTheme.labelSmall
+                                                ?.copyWith(
+                                                  color: colorScheme
+                                                      .onPrimaryContainer,
+                                                  fontWeight: FontWeight.w800,
+                                                  fontSize: 11,
+                                                ),
                                           ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                cat.iconData,
-                                                size: 13,
-                                                color:
-                                                    colorScheme
-                                                        .onPrimaryContainer,
-                                              ),
-                                              const SizedBox(width: 5),
-                                              Text(
-                                                cat.getLocalizedName(context),
-                                                style: textTheme.labelSmall
-                                                    ?.copyWith(
-                                                      color:
-                                                          colorScheme
-                                                              .onPrimaryContainer,
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                      fontSize: 11,
-                                                    ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }).toList(),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
                                 ),
                               );
                             },

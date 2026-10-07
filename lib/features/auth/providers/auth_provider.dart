@@ -73,8 +73,9 @@ class AuthNotifier extends Notifier<AuthState> {
         state = state.copyWith(
           user: user,
           // Une connexion Google/Email valide automatiquement la biométrie.
-          isBiometricallyAuthenticated:
-              user != null ? true : state.isBiometricallyAuthenticated,
+          isBiometricallyAuthenticated: user != null
+              ? true
+              : state.isBiometricallyAuthenticated,
         );
       }
     });
@@ -90,8 +91,9 @@ class AuthNotifier extends Notifier<AuthState> {
       canUseBiometrics: canUse && hasToken,
       // Si un utilisateur Firebase est déjà présent au démarrage, la biométrie
       // doit quand même être validée lorsqu'elle est configurée.
-      isBiometricallyAuthenticated:
-          (canUse && hasToken) ? false : _repository.currentUser != null,
+      isBiometricallyAuthenticated: (canUse && hasToken)
+          ? false
+          : _repository.currentUser != null,
     );
   }
 
@@ -329,10 +331,9 @@ class AuthNotifier extends Notifier<AuthState> {
       return false;
     } on GoogleSignInException catch (e) {
       state = state.copyWith(
-        errorMessage:
-            e.code == GoogleSignInExceptionCode.canceled
-                ? null
-                : l10n.errorGoogleLogin,
+        errorMessage: e.code == GoogleSignInExceptionCode.canceled
+            ? null
+            : l10n.errorGoogleLogin,
         isLoading: false,
       );
       return false;
