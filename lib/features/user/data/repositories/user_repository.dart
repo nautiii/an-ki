@@ -1,15 +1,12 @@
+import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class UserRepository {
-  final FirebaseFirestore? _firestoreOverride;
+  UserRepository({required this._firestore});
 
-  UserRepository({FirebaseFirestore? firestore})
-    : _firestoreOverride = firestore;
-
-  FirebaseFirestore get _firestore =>
-      _firestoreOverride ?? FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
 
   CollectionReference<Map<String, dynamic>> get _users =>
       _firestore.collection('user');
@@ -56,5 +53,5 @@ class UserRepository {
 }
 
 final userRepositoryProvider = Provider<UserRepository>(
-  (ref) => UserRepository(),
+  (ref) => UserRepository(firestore: ref.watch(firestoreProvider)),
 );

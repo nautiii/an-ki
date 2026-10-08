@@ -1,19 +1,16 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class BirthdayRepository {
-  final FirebaseFirestore? _firestoreOverride;
+  BirthdayRepository({required this._firestore});
 
-  BirthdayRepository({FirebaseFirestore? firestore})
-    : _firestoreOverride = firestore;
-
-  FirebaseFirestore get _firestore =>
-      _firestoreOverride ?? FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
 
   CollectionReference<Map<String, dynamic>> get _birthdays =>
       _firestore.collection('birthday');
@@ -78,5 +75,5 @@ class BirthdayRepository {
 }
 
 final birthdayRepositoryProvider = Provider<BirthdayRepository>(
-  (ref) => BirthdayRepository(),
+  (ref) => BirthdayRepository(firestore: ref.watch(firestoreProvider)),
 );

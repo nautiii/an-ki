@@ -1,12 +1,14 @@
+import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/features/birthday/data/models/category_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final categoryRepositoryProvider = Provider((ref) => CategoryRepository());
+final categoryRepositoryProvider = Provider<CategoryRepository>(
+  (ref) => CategoryRepository(firestore: ref.watch(firestoreProvider)),
+);
 
 class CategoryRepository {
-  CategoryRepository({FirebaseFirestore? firestore})
-    : _db = firestore ?? FirebaseFirestore.instance;
+  CategoryRepository({required FirebaseFirestore firestore}) : _db = firestore;
 
   final FirebaseFirestore _db;
 

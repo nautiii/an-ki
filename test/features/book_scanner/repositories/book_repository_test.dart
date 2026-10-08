@@ -15,6 +15,7 @@ BookRepository repositoryReturning(
   return BookRepository(
     firestore: firestore ?? FakeFirebaseFirestore(),
     httpClient: MockClient((request) async => handler(request)),
+    apiKey: 'test-key',
   );
 }
 

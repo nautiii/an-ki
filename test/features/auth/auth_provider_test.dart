@@ -16,7 +16,11 @@ import '../../support/platform_mocks.dart';
 /// AuthRepository whose biometric lookup always throws, to drive the error path.
 class _ThrowingAuthRepository extends AuthRepository {
   _ThrowingAuthRepository(MockFirebaseAuth auth)
-    : super(auth: auth, firestore: FakeFirebaseFirestore());
+    : super(
+        auth: auth,
+        googleSignIn: GoogleSignIn.instance,
+        firestore: FakeFirebaseFirestore(),
+      );
 
   @override
   Future<bool> isBiometricTokenValid(String uid, String token) async =>
@@ -63,6 +67,7 @@ void main() {
           repository ??
               AuthRepository(
                 auth: auth,
+                googleSignIn: GoogleSignIn.instance,
                 firestore: firestore ?? FakeFirebaseFirestore(),
               ),
         ),

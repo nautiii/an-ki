@@ -1,14 +1,21 @@
 import 'dart:convert';
 
+import 'package:an_ki/core/config/app_config.dart';
+import 'package:an_ki/core/providers/firebase_providers.dart';
+import 'package:an_ki/core/providers/http_client_provider.dart';
 import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
-final bookRepositoryProvider = Provider<BookRepository>((ref) {
-  return BookRepository();
-});
+final bookRepositoryProvider = Provider<BookRepository>(
+  (ref) => BookRepository(
+    firestore: ref.watch(firestoreProvider),
+    httpClient: ref.watch(httpClientProvider),
+    apiKey: ref.watch(appConfigProvider).googleBooksApiKey,
+  ),
+);
 
 class GoogleBooksQuotaExceededException implements Exception {
   @override
@@ -16,14 +23,17 @@ class GoogleBooksQuotaExceededException implements Exception {
 }
 
 class BookRepository {
-  BookRepository({FirebaseFirestore? firestore, http.Client? httpClient})
-    : _firestore = firestore ?? FirebaseFirestore.instance,
-      _httpClient = httpClient ?? http.Client();
-
-  static const _apiKey = String.fromEnvironment('GOOGLE_BOOKS_API_KEY');
+  BookRepository({
+    required this._firestore,
+    required this._httpClient,
+    required this._apiKey,
+  });
 
   final FirebaseFirestore _firestore;
   final http.Client _httpClient;
+
+  /// Clé Google Books, lue depuis `--dart-define` par [AppConfig].
+  final String _apiKey;
 
   CollectionReference<Map<String, dynamic>> get _books =>
       _firestore.collection('books');

@@ -1,3 +1,4 @@
+import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,12 +12,10 @@ import 'package:google_sign_in/google_sign_in.dart';
 /// feature `auth` découplée de la feature `user`.
 class AuthRepository {
   AuthRepository({
-    FirebaseAuth? auth,
-    GoogleSignIn? googleSignIn,
-    FirebaseFirestore? firestore,
-  }) : _auth = auth ?? FirebaseAuth.instance,
-       _googleSignIn = googleSignIn ?? GoogleSignIn.instance,
-       _firestore = firestore ?? FirebaseFirestore.instance;
+    required this._auth,
+    required this._googleSignIn,
+    required this._firestore,
+  });
 
   final FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;
@@ -106,6 +105,15 @@ class AuthRepository {
   }
 }
 
+/// SDK Google Sign-In, initialisé une fois dans `main()`. Propre à `auth`.
+final googleSignInProvider = Provider<GoogleSignIn>(
+  (ref) => GoogleSignIn.instance,
+);
+
 final authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => AuthRepository(),
+  (ref) => AuthRepository(
+    auth: ref.watch(firebaseAuthProvider),
+    googleSignIn: ref.watch(googleSignInProvider),
+    firestore: ref.watch(firestoreProvider),
+  ),
 );

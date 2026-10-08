@@ -2,12 +2,17 @@ import 'package:an_ki/features/auth/data/repositories/auth_repository.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 void main() {
   AuthRepository build(
     MockFirebaseAuth auth,
     FakeFirebaseFirestore firestore,
-  ) => AuthRepository(auth: auth, firestore: firestore);
+  ) => AuthRepository(
+    auth: auth,
+    googleSignIn: GoogleSignIn.instance,
+    firestore: firestore,
+  );
 
   group('session', () {
     test(
