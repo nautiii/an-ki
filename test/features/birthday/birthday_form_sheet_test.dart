@@ -5,7 +5,7 @@ import 'package:an_ki/features/birthday/data/repositories/birthday_repository.da
 import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
-import 'package:an_ki/features/user/data/models/user_model.dart';
+import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

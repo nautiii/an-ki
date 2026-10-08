@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:an_ki/features/user/data/repositories/user_repository.dart';
+import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

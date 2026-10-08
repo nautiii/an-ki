@@ -1,6 +1,6 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/user/data/models/user_model.dart';
-import 'package:an_ki/features/user/data/repositories/user_repository.dart';
+import 'package:an_ki/features/user/data/user_repository.dart';
+import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/features/user/providers/theme_provider.dart';
 import 'package:an_ki/features/user/providers/user_profile_editor.dart';

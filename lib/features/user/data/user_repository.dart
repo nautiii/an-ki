@@ -1,8 +1,11 @@
 import 'package:an_ki/core/providers/firebase_providers.dart';
-import 'package:an_ki/features/user/data/models/user_model.dart';
+import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// Source de vérité du profil : `user/{uid}` dans Firestore.
+///
+/// Convertit document ↔ [UserModel]. Ni logique métier, ni texte d'UI, ni état.
 class UserRepository {
   UserRepository({required this._firestore});
 
@@ -16,7 +19,7 @@ class UserRepository {
   Stream<UserModel?> watchUser(String uid) => _users
       .doc(uid)
       .snapshots()
-      .map((doc) => doc.exists ? UserModel.fromFirestore(doc) : null);
+      .map((doc) => doc.exists ? _userFromDoc(doc) : null);
 
   /// Crée le document utilisateur **uniquement s'il n'existe pas déjà**.
   ///
@@ -34,10 +37,10 @@ class UserRepository {
           .get(docRef);
 
       if (snapshot.exists) {
-        return UserModel.fromFirestore(snapshot);
+        return _userFromDoc(snapshot);
       }
 
-      transaction.set(docRef, user.toJson());
+      transaction.set(docRef, _userToMap(user));
       return user;
     });
   }
@@ -69,3 +72,31 @@ class UserRepository {
 final userRepositoryProvider = Provider<UserRepository>(
   (ref) => UserRepository(firestore: ref.watch(firestoreProvider)),
 );
+
+// Conversion Firestore ↔ domaine : privée au data layer. Lecture tolérante
+// (champ absent → valeur par défaut) pour survivre aux anciens documents.
+UserModel _userFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
+  final data = doc.data() ?? const <String, dynamic>{};
+  return UserModel(
+    id: doc.id,
+    name: data['name'] as String? ?? '',
+    surname: data['surname'] as String? ?? '',
+    pseudo: data['pseudo'] as String?,
+    categories: List<String>.from(
+      data['categories'] as List<dynamic>? ?? const [],
+    ),
+    isDark: data['isDark'] as bool? ?? false,
+    locale: data['locale'] as String? ?? 'fr',
+    biometricToken: data['biometricToken'] as String?,
+  );
+}
+
+Map<String, Object> _userToMap(UserModel user) => {
+  'name': user.name,
+  'surname': user.surname,
+  'pseudo': ?user.pseudo,
+  'categories': user.categories,
+  'isDark': user.isDark,
+  'locale': user.locale,
+  'biometricToken': ?user.biometricToken,
+};

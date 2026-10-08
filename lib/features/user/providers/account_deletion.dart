@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
-import 'package:an_ki/features/user/data/repositories/user_repository.dart';
+import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Effacement des données Firestore du compte (anniversaires, puis profil),

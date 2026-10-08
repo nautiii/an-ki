@@ -9,8 +9,8 @@ import 'package:an_ki/features/birthday/data/repositories/category_repository.da
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
 import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
-import 'package:an_ki/features/user/data/models/user_model.dart';
-import 'package:an_ki/features/user/data/repositories/user_repository.dart';
+import 'package:an_ki/features/user/data/user_repository.dart';
+import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_test/flutter_test.dart';

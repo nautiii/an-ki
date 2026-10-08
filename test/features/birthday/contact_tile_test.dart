@@ -5,7 +5,7 @@ import 'package:an_ki/features/birthday/data/repositories/birthday_repository.da
 import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/contact_tile.dart';
-import 'package:an_ki/features/user/data/models/user_model.dart';
+import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

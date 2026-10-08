@@ -1,5 +1,5 @@
-import 'package:an_ki/features/user/data/models/user_model.dart';
-import 'package:an_ki/features/user/data/repositories/user_repository.dart';
+import 'package:an_ki/features/user/data/user_repository.dart';
+import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -34,18 +34,78 @@ void main() {
           .watchUser('user-1')
           .firstWhere((user) => user != null);
 
-      expect(watched, isNotNull);
-      expect(watched!.name, 'Quentin');
-      expect(watched.biometricToken, 'token-abc');
+      expect(watched, user);
+    });
+
+    test('maps every field of a complete document', () async {
+      await firestore.collection('user').doc('user-2').set({
+        'name': 'Quentin',
+        'surname': 'Maillard',
+        'pseudo': 'Q',
+        'categories': ['family', 'friend'],
+        'isDark': true,
+        'locale': 'en',
+        'biometricToken': 'token-123',
+      });
+
+      final watched = await repository.watchUser('user-2').first;
+
+      expect(
+        watched,
+        const UserModel(
+          id: 'user-2',
+          name: 'Quentin',
+          surname: 'Maillard',
+          pseudo: 'Q',
+          categories: ['family', 'friend'],
+          isDark: true,
+          locale: 'en',
+          biometricToken: 'token-123',
+        ),
+      );
+    });
+
+    test('applies defaults to an old document missing fields', () async {
+      await firestore.collection('user').doc('user-3').set({});
+
+      final watched = await repository.watchUser('user-3').first;
+
+      expect(
+        watched,
+        const UserModel(
+          id: 'user-3',
+          name: '',
+          surname: '',
+          isDark: false,
+          locale: 'fr',
+        ),
+      );
     });
   });
 
-  test('createUser writes the document under its id', () async {
-    await repository.createUser(user);
+  group('createUser', () {
+    test('writes the document under its id', () async {
+      await repository.createUser(user);
 
-    final doc = await firestore.collection('user').doc('user-1').get();
-    expect(doc.exists, isTrue);
-    expect(doc.data()!['name'], 'Quentin');
+      final doc = await firestore.collection('user').doc('user-1').get();
+      expect(doc.data(), {
+        'name': 'Quentin',
+        'surname': 'Maillard',
+        'categories': <String>[],
+        'isDark': false,
+        'locale': 'fr',
+        'biometricToken': 'token-abc',
+      });
+    });
+
+    test('omits the absent pseudo and biometric token', () async {
+      await repository.createUser(user.copyWith(clearBiometricToken: true));
+
+      final data = (await firestore.collection('user').doc('user-1').get())
+          .data()!;
+      expect(data.containsKey('pseudo'), isFalse);
+      expect(data.containsKey('biometricToken'), isFalse);
+    });
   });
 
   group('createUser is non-destructive (crash safety)', () {
