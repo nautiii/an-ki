@@ -23,7 +23,7 @@ class UserNotifier extends Notifier<UserState> {
   @override
   UserState build() => UserState();
 
-  UserRepository get _repository => ref.watch(userRepositoryProvider);
+  UserRepository get _repository => ref.read(userRepositoryProvider);
 
   Future<void> loadUser(String uid) async {
     try {

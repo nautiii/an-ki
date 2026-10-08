@@ -51,7 +51,7 @@ class BookScannerNotifier extends Notifier<BookScannerState> {
     return BookScannerState();
   }
 
-  BookRepository get _repository => ref.watch(bookRepositoryProvider);
+  BookRepository get _repository => ref.read(bookRepositoryProvider);
   StreamSubscription<List<BookModel>>? _subscription;
 
   void startListening(String uid) {
