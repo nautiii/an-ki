@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
@@ -50,7 +52,7 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
         );
       }
     } else {
-      HapticFeedback.mediumImpact();
+      unawaited(HapticFeedback.mediumImpact());
     }
   }
 
@@ -183,7 +185,7 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
   }
 
   void _handleGoogleSignIn(BuildContext context, WidgetRef ref) async {
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
     final authNotifier = ref.read(authProvider.notifier);
     final success = await authNotifier.signInWithGoogle(context.l10n);
     if (!context.mounted) return;
@@ -200,12 +202,12 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
         );
       }
     } else {
-      HapticFeedback.mediumImpact();
+      unawaited(HapticFeedback.mediumImpact());
     }
   }
 
   void _handleAnonymousSignIn(BuildContext context, WidgetRef ref) async {
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
     final authNotifier = ref.read(authProvider.notifier);
     final success = await authNotifier.signInAnonymously(context.l10n);
     if (!context.mounted) return;
@@ -222,7 +224,7 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
         );
       }
     } else {
-      HapticFeedback.mediumImpact();
+      unawaited(HapticFeedback.mediumImpact());
     }
   }
 }

@@ -18,7 +18,7 @@ class ConfigurableBookRepository extends FakeBookRepository {
   ConfigurableBookRepository({this.bookByIsbn, this.throwOnScan});
 
   final BookModel? bookByIsbn;
-  final Object? throwOnScan;
+  final Exception? throwOnScan;
   final List<BookModel> saved = [];
 
   @override

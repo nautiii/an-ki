@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
@@ -93,11 +95,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               // Afficher l'overlay de chargement
               if (context.mounted) {
-                showDialog<void>(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) =>
-                      const Center(child: CircularProgressIndicator()),
+                unawaited(
+                  showDialog<void>(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) =>
+                        const Center(child: CircularProgressIndicator()),
+                  ),
                 );
               }
 
@@ -260,7 +264,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               final uid = ref.read(authProvider).user?.uid;
               if (uid == null) return;
 
-              HapticFeedback.lightImpact();
+              unawaited(HapticFeedback.lightImpact());
 
               try {
                 final count = await ref

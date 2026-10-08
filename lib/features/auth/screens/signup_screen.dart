@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
@@ -61,7 +63,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       return;
     }
 
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
     final authNotifier = ref.read(authProvider.notifier);
     final userNotifier = ref.read(userProvider.notifier);
 
@@ -77,7 +79,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
     final authState = ref.read(authProvider);
     if (success && authState.user != null) {
-      HapticFeedback.mediumImpact();
+      unawaited(HapticFeedback.mediumImpact());
       await userNotifier.createUser(
         uid: authState.user!.uid,
         name: _nameController.text.trim(),

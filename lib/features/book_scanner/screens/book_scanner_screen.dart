@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
@@ -53,7 +55,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
           _showBookInfo(book);
         } else {
           _showErrorSnippet(context.l10n.bookNotFound);
-          _resetScanning();
+          unawaited(_resetScanning());
         }
       }
     } catch (error) {
@@ -63,7 +65,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
         } else {
           _showErrorSnippet(context.l10n.bookNotFound);
         }
-        _resetScanning();
+        unawaited(_resetScanning());
       }
     }
   }

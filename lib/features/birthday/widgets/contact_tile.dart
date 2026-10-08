@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:convert';
 
 import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
@@ -40,7 +42,7 @@ class ContactTile extends ConsumerWidget {
           key: Key(birthday.id),
           direction: DismissDirection.startToEnd,
           confirmDismiss: (direction) async {
-            HapticFeedback.mediumImpact();
+            unawaited(HapticFeedback.mediumImpact());
             return await showDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(

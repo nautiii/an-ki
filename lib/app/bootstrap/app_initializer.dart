@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
@@ -67,10 +69,12 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
 
     // Lance les streams anniversaires et livres hors du chemin critique pour ne
     // pas bloquer l'UI pendant leur démarrage.
-    Future.microtask(() {
-      birthdayNotifier.startListening(uid);
-      bookScannerNotifier.startListening(uid);
-    });
+    unawaited(
+      Future.microtask(() {
+        birthdayNotifier.startListening(uid);
+        bookScannerNotifier.startListening(uid);
+      }),
+    );
 
     // Chargement de l'utilisateur Firestore.
     await userNotifier.loadUser(uid);

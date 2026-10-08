@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
@@ -37,7 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
     final authNotifier = ref.read(authProvider.notifier);
     final success = await authNotifier.signIn(
       email: _emailController.text.trim(),
@@ -60,7 +62,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       );
     } else {
-      HapticFeedback.mediumImpact();
+      unawaited(HapticFeedback.mediumImpact());
     }
   }
 

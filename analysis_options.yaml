@@ -28,9 +28,15 @@ linter:
     - prefer_const_declarations
     - prefer_const_literals_to_create_immutables
     - prefer_final_locals
-    - require_trailing_commas
     - avoid_redundant_argument_values
     - use_super_parameters
+    - unawaited_futures
+    - avoid_dynamic_calls
+    - unnecessary_ignore
+    - cancel_subscriptions
+    - close_sinks
+    - only_throw_errors
+    - test_types_in_equals
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
