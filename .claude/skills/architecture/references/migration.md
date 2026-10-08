@@ -4,7 +4,7 @@ Audit of 2026-10-07 (commit `46359f3`): 53 hand-written Dart files in `lib/` (~7
 5 features, 281 tests green, `flutter analyze` clean with strict casts/inference/raw types.
 Update this file as steps land: tick the step, delete the debt it cleared, add what you discover.
 
-**Progress** — M0 done on 2026-10-08. Next: M1.
+**Progress** — M0 and M1 done on 2026-10-08. Next: M2.
 
 ## Contents
 1. What already works
@@ -36,13 +36,14 @@ Plus what imports can't show:
 | A2 | Feature cycles | `user → birthday` (`user_provider.dart` deletes birthdays and clears their notifier; `settings_screen.dart`), `auth → user` (`signup_screen.dart` creates the profile) | features can't be changed or tested alone | M4 |
 | A3 | Models coupled to SDKs | `BirthdayModel.fromFirestore(QueryDocumentSnapshot)`, `Timestamp` in models, `BirthdayCategory.iconData` (Flutter), `CreateBirthdayInput.pictureFile` (`XFile`), widgets importing `data/models` | domain logic untestable without Firebase; UI depends on the data layer | M3 |
 | A4 | Rules duplicated and clock-bound | next occurrence in `birthday_extensions.dart` **and** `notification_service.dart`; `DateTime.now()` in 9 places; J-0/J-7/10:00 policy inside the plugin wrapper | divergent results, date tests depend on the real day, B6 (custom reminders) blocked | M3, M6 |
-| A5 | Singletons bypass DI | `NotificationService.instance` (birthday_provider, app_initializer), `BiometricService.instance` (auth_provider, settings_screen), `FirebaseFirestore.instance` defaults | can't override in tests or per environment | M1 |
 | A6 | Words and context in state | `AuthNotifier` methods take `AppLocalizations`; `errorMessage` strings in state; `Exception('Contacts permission denied')`; `GoogleBooksQuotaExceededException` defined in `data/` and caught by a screen | locale switches and tests leak into logic; untyped errors | M5 |
 | A7 | Navigation split three ways | `AppRoutes` in `app/router` (features can't import it) so features push raw `'/login'`, `'/signup'`; `HomeScreen`/`BookScannerScreen` import `SettingsScreen` and push `MaterialPageRoute`; the shell lives in `features/home/`; `MainTab { birthdays, scanner }` sits in `core/providers/` and `core/common/bottom_bar.dart` reads it | core knows features; routes drift; no place for deep links | M4, M7 |
-| A8 | Small correctness bugs | `AuthNotifier.initializeAuth()` never cancels its `authStateChanges()` subscription; `UserNotifier._repository` and `BookScannerNotifier._repository` call `ref.watch` from methods; `appConfigProvider` is unused while `BookRepository` reads `String.fromEnvironment` itself; `BirthdayRepository.deleteBirthday` reads the document before deleting it (the rules already enforce ownership) | leaks, rebuild surprises, duplicated config, slower optimistic deletes | M1, M2 |
+| A8 | Read-before-write | `BirthdayRepository.deleteBirthday` reads the document before deleting it (the rules already enforce ownership) | slower optimistic deletes | M2 |
 | A9 | State boilerplate | `BirthdayState`/`BookScannerState`/`UserState` hand-roll `isLoading`/`isCreating`/`error` around data that `AsyncValue` models natively | more code, more `copyWith`, inconsistent loading/error handling | M2 |
 
-A10 (tooling gaps) and A11 (`uid` not pinned on updates in `firestore.rules`) were cleared by M0.
+Cleared: A10 (tooling gaps) and A11 (`uid` not pinned on updates) by M0; A5 (singletons bypass DI)
+and most of A8 (uncancelled auth subscription, `ref.watch` in methods, unused `appConfigProvider`)
+by M1.
 
 ## 3. Roadmap
 
@@ -66,17 +67,20 @@ Each step ships alone: tests green, analyzer clean, architecture test green with
   server after editing `plugins:`); a `// ignore: riverpod_lint/<rule>` comment doesn't trip
   `flutter analyze`'s `unnecessary_ignore`.
 
-### M1 — Infrastructure providers · M · no behaviour change
-- Copy `assets/foundation/lib/core/providers/{firebase_providers,clock_provider}.dart` and
-  `assets/foundation/lib/features/auth/providers/session_providers.dart`, with their tests
-  (`assets/foundation/README.md`). An earlier brick may already have installed some of them.
-- Repositories take their SDKs as required constructor arguments, wired from
-  `firestoreProvider`/`firebaseAuthProvider`; repository tests pass fakes positionally.
-- `notificationServiceProvider`, `biometricServiceProvider` (singletons stay for `main()` only);
-  features stop reading `.instance` (A5).
-- `BookRepository` gets its key from `appConfigProvider` and an `httpClientProvider` (A8).
-- Fix A8 bugs: cancel the auth subscription in `ref.onDispose`; `ref.read` in methods.
-- Commit: `REFACTOR(core): inject Firebase and services through providers`.
+### M1 — Infrastructure providers · done 2026-10-08
+- `REFACTOR: add infrastructure and session providers` — the foundation files with their tests,
+  plus `httpClientProvider`.
+- `REFACTOR: inject SDKs into repositories` — required named parameters (Dart 3.12 private named
+  parameters: `BirthdayRepository({required this._firestore})`, called with `firestore:`),
+  wired from `firestoreProvider`/`firebaseAuthProvider`/`googleSignInProvider` (in `auth/data`);
+  `BookRepository` takes its key from `appConfigProvider` and its client from
+  `httpClientProvider`.
+- `REFACTOR: read services through providers` — `notificationServiceProvider`,
+  `biometricServiceProvider`; `.instance` is read by `main()` and these providers only.
+- `FIX(auth): cancel auth state subscription on dispose`;
+  `REFACTOR: read repositories with ref.read in methods`.
+- Learned: with Riverpod 3, a `ref.read` after an `await` throws once the notifier is disposed
+  (tests dispose containers early) — read dependencies before the first `await`.
 
 ### M2 — Session-derived data · L · split per feature (M2a birthday, M2b book_scanner, M2c user)
 - `birthdaysProvider`, `savedBooksProvider`, `userProfileProvider`: `StreamProvider`s on
