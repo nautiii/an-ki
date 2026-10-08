@@ -48,7 +48,7 @@ are always in **English**, as required by `AGENTS.md`.
 | `PERF` | makes something faster or lighter without changing behaviour |
 | `TEST` | only adds or fixes tests (`test/`, test support) |
 | `STYLE` | only formatting or lint-driven cosmetics, zero logic change |
-| `DOCS` | only docs or comments: README, `AGENTS.md`, `shared/*.md`, `PROJECT_CONTEXT.md`, skills |
+| `DOCS` | only docs or comments: README, `AGENTS.md`, `.claude/rules/`, skills |
 | `BUILD` | changes the toolchain: Flutter/Dart SDK constraint, Gradle, AGP, Kotlin, Xcode, build scripts |
 | `CHORE` | maintenance outside the app logic: pub dependency bumps, config, regenerated assets |
 | `CI` | changes CI pipelines |
@@ -78,7 +78,7 @@ several areas (better no scope than a misleading one; never comma-separated list
 | `firestore.rules`, `firebase.json`, Firebase config | `firebase` |
 | `lib/assets/`, launcher icons, splash | `assets` |
 | `scripts/` | `scripts` |
-| `AGENTS.md`, `CLAUDE.md`, `shared/`, `.claude/` | `agents` |
+| `AGENTS.md`, `CLAUDE.md`, `.claude/` | `agents` |
 
 ### Breaking changes
 

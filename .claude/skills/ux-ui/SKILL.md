@@ -54,7 +54,7 @@ type, shape, spacing, depth, motion, haptics, voice). Then, as needed:
 | Implementing tokens, theme, states, undo, agenda, dates, motion | `references/flutter-recipes.md` |
 | Before touching a screen, or for a vague « improve the app » | `references/ux-backlog.md` (audit, big bets, roadmap) |
 
-Project rules still apply (AGENTS.md, `shared/*.md`): dumb widgets, logic in Notifiers,
+Project rules still apply (`AGENTS.md`, `.claude/rules/ui.md`): dumb widgets, logic in Notifiers,
 `context.l10n` with the FR template + EN, colors from the theme only, absolute imports, French
 comments, tests with every change.
 
