@@ -1,17 +1,17 @@
-import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
-import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
+import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
+import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:an_ki/features/book_scanner/providers/isbn_lookup.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
 
-final _book = BookModel(
+const _book = BookModel(
   id: '',
-  uid: '',
   isbn: '987654321',
   title: '1984',
-  authors: const ['George Orwell'],
+  authors: ['George Orwell'],
 );
 
 void main() {
@@ -44,12 +44,12 @@ void main() {
 
   test('rethrows and publishes the error', () async {
     final container = makeContainer(
-      RecordingBookRepository(throwOnScan: GoogleBooksQuotaExceededException()),
+      RecordingBookRepository(throwOnScan: BookFailure.quotaExceeded),
     );
 
     await expectLater(
       container.read(isbnLookupProvider.notifier).lookUp('1'),
-      throwsA(isA<GoogleBooksQuotaExceededException>()),
+      throwsA(BookFailure.quotaExceeded),
     );
     expect(container.read(isbnLookupProvider).hasError, isTrue);
   });

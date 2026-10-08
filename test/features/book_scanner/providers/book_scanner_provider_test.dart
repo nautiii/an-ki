@@ -1,18 +1,17 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
-import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
+import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
 
-final _book = BookModel(
+const _book = BookModel(
   id: '1',
-  uid: 'u1',
   isbn: '987654321',
   title: '1984',
-  authors: const ['George Orwell'],
+  authors: ['George Orwell'],
 );
 
 class _ErroringBookRepository extends FakeBookRepository {

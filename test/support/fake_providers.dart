@@ -7,8 +7,8 @@ import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
 import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
-import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
-import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
+import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
@@ -251,7 +251,11 @@ class FakeBookRepository extends Fake implements BookRepository {
   Stream<List<BookModel>> watchBooks(String uid) => Stream.value([]);
 
   @override
-  Future<void> saveBook(String uid, BookModel book) async {}
+  Future<void> saveBook(
+    String uid,
+    BookModel book, {
+    required DateTime scannedAt,
+  }) async {}
 
   @override
   Future<void> deleteBook(String bookId) async {}
@@ -290,10 +294,15 @@ class RecordingBookRepository extends FakeBookRepository {
     return Stream.value(books);
   }
 
+  /// Livres enregistrés, datés comme ils le seraient dans Firestore.
   @override
-  Future<void> saveBook(String uid, BookModel book) async {
+  Future<void> saveBook(
+    String uid,
+    BookModel book, {
+    required DateTime scannedAt,
+  }) async {
     if (failure case final error?) throw error;
-    saved.add(book);
+    saved.add(book.copyWith(scannedAt: scannedAt));
   }
 }
 

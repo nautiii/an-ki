@@ -1,8 +1,9 @@
 import 'dart:async';
 
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
-import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
+import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Ajout d'un livre à la liste de l'utilisateur (ViewModel de l'action) et
@@ -16,13 +17,17 @@ class BookEditor extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
 
-  /// Enregistre [book] pour l'utilisateur courant ; hors session, ne fait rien.
+  /// Ajoute [book] à la liste de l'utilisateur courant, daté de maintenant ;
+  /// hors session, ne fait rien.
   Future<void> save(BookModel book) async {
     final uid = ref.read(currentUidProvider);
     if (uid == null) return;
     final repository = ref.read(bookRepositoryProvider);
+    final now = ref.read(clockProvider)();
     state = const AsyncLoading();
-    final result = await AsyncValue.guard(() => repository.saveBook(uid, book));
+    final result = await AsyncValue.guard(
+      () => repository.saveBook(uid, book, scannedAt: now),
+    );
     if (ref.mounted) state = result;
   }
 }

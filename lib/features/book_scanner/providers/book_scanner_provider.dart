@@ -1,6 +1,6 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
-import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
+import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Livres scannés par l'utilisateur courant, en temps réel ; liste vide hors

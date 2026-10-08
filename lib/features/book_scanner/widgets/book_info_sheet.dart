@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
+import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:an_ki/features/book_scanner/providers/book_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

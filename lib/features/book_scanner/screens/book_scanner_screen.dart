@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
-import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
+import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
+import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:an_ki/features/book_scanner/providers/book_editor.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/book_scanner/providers/isbn_lookup.dart';
@@ -62,11 +62,10 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
       }
     } catch (error) {
       if (mounted) {
-        if (error is GoogleBooksQuotaExceededException) {
-          _showErrorSnippet(context.l10n.errorQuotaExceeded);
-        } else {
-          _showErrorSnippet(context.l10n.bookNotFound);
-        }
+        _showErrorSnippet(switch (error) {
+          BookFailure.quotaExceeded => context.l10n.errorQuotaExceeded,
+          _ => context.l10n.bookNotFound,
+        });
         unawaited(_resetScanning());
       }
     }

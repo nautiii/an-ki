@@ -1,4 +1,4 @@
-import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
+import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:flutter/material.dart';
 
 class BookCard extends StatelessWidget {

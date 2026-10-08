@@ -1,6 +1,7 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
-import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
+import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
+import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_info_sheet.dart';
@@ -15,7 +16,6 @@ import '../../support/test_harness.dart';
 
 BookModel _book({String id = '1', String? imageUrl}) => BookModel(
   id: id,
-  uid: 'fake-uid',
   isbn: '987654321',
   title: '1984',
   authors: const ['George Orwell'],
@@ -155,9 +155,7 @@ void main() {
     testWidgets('a quota error shows the dedicated message', (tester) async {
       await pumpScreen(
         tester,
-        RecordingBookRepository(
-          throwOnScan: GoogleBooksQuotaExceededException(),
-        ),
+        RecordingBookRepository(throwOnScan: BookFailure.quotaExceeded),
       );
       await tester.pump();
 
