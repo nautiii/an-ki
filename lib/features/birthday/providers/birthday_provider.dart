@@ -53,18 +53,20 @@ class BirthdayNotifier extends Notifier<BirthdayState> {
           (List<BirthdayModel> data) {
             if (ref.mounted) {
               state = state.copyWith(birthdays: data, isLoading: false);
-              NotificationService.instance.scheduleAll(
-                data
-                    .map(
-                      (b) => BirthdayReminder(
-                        id: b.id,
-                        name: b.name,
-                        surname: b.surname,
-                        birthDate: b.date,
-                      ),
-                    )
-                    .toList(),
-              );
+              ref
+                  .read(notificationServiceProvider)
+                  .scheduleAll(
+                    data
+                        .map(
+                          (b) => BirthdayReminder(
+                            id: b.id,
+                            name: b.name,
+                            surname: b.surname,
+                            birthDate: b.date,
+                          ),
+                        )
+                        .toList(),
+                  );
             }
           },
           onError: (Object e) {

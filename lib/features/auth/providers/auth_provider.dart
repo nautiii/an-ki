@@ -65,7 +65,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
   AuthRepository get _repository => ref.read(authRepositoryProvider);
 
-  BiometricService get _biometricService => BiometricService.instance;
+  BiometricService get _biometricService => ref.read(biometricServiceProvider);
 
   void initializeAuth() {
     _repository.authStateChanges().listen((User? user) {
@@ -82,8 +82,11 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> _checkBiometricAvailability() async {
-    final canUse = await _biometricService.canUseFingerprint();
-    final hasToken = await _biometricService.getStoredToken() != null;
+    // Dépendance lue avant le premier await : le notifier peut être libéré
+    // pendant l'attente, et ref ne s'utilise plus après.
+    final biometrics = _biometricService;
+    final canUse = await biometrics.canUseFingerprint();
+    final hasToken = await biometrics.getStoredToken() != null;
 
     if (!ref.mounted) return;
 
@@ -194,17 +197,18 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<bool> signInWithBiometricToken(AppLocalizations l10n) async {
     try {
       state = state.copyWith(isLoading: true);
+      final biometrics = _biometricService;
 
       // 1. Authentification physique.
-      final authenticated = await _biometricService.authenticate();
+      final authenticated = await biometrics.authenticate();
       if (!authenticated) {
         state = state.copyWith(isLoading: false);
         return false;
       }
 
       // 2. Récupération des tokens locaux.
-      final token = await _biometricService.getStoredToken();
-      final uid = await _biometricService.getStoredUserId();
+      final token = await biometrics.getStoredToken();
+      final uid = await biometrics.getStoredUserId();
 
       if (token == null || uid == null) {
         state = state.copyWith(isLoading: false, canUseBiometrics: false);
@@ -215,7 +219,7 @@ class AuthNotifier extends Notifier<AuthState> {
       final isValid = await _repository.isBiometricTokenValid(uid, token);
       if (!isValid) {
         // Token expiré ou invalide en base.
-        await _biometricService.clearBiometricData();
+        await biometrics.clearBiometricData();
         state = state.copyWith(isLoading: false, canUseBiometrics: false);
         return false;
       }
@@ -239,18 +243,19 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> enableBiometrics() async {
     final user = _repository.currentUser;
     if (user == null) return;
+    final biometrics = _biometricService;
 
-    final canUse = await _biometricService.canUseFingerprint();
+    final canUse = await biometrics.canUseFingerprint();
     if (!canUse) return;
 
     // 1. Génération du token.
-    final token = _biometricService.generateToken();
+    final token = biometrics.generateToken();
 
     // 2. Persistance en base.
     await _repository.setBiometricToken(user.uid, token);
 
     // 3. Persistance dans le stockage sécurisé.
-    await _biometricService.saveBiometricData(user.uid, token);
+    await biometrics.saveBiometricData(user.uid, token);
 
     state = state.copyWith(
       canUseBiometrics: true,
@@ -259,15 +264,15 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> disableBiometrics() async {
+    final biometrics = _biometricService;
     final uid =
-        _repository.currentUser?.uid ??
-        await _biometricService.getStoredUserId();
+        _repository.currentUser?.uid ?? await biometrics.getStoredUserId();
 
     if (uid != null) {
       await _repository.setBiometricToken(uid, null);
     }
 
-    await _biometricService.clearBiometricData();
+    await biometrics.clearBiometricData();
     state = state.copyWith(canUseBiometrics: false);
   }
 

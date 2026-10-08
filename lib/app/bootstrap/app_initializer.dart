@@ -29,9 +29,9 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Garde les textes des notifications locales synchronisés avec la locale active.
-    NotificationService.instance.configure(
-      NotificationStrings.fromL10n(context.l10n),
-    );
+    ref
+        .read(notificationServiceProvider)
+        .configure(NotificationStrings.fromL10n(context.l10n));
   }
 
   @override
@@ -50,7 +50,9 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
   }
 
   Future<void> _requestNotificationPermissions() async {
-    final granted = await NotificationService.instance.requestPermissions();
+    final granted = await ref
+        .read(notificationServiceProvider)
+        .requestPermissions();
     if (!mounted) return;
     if (!granted) {
       debugPrint(

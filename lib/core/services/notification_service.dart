@@ -1,6 +1,7 @@
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
@@ -295,3 +296,10 @@ class NotificationService {
   int _reminderNotificationId(String birthdayId) =>
       (_notificationId(birthdayId) + 500000);
 }
+
+/// Service de notifications de l'app. Le singleton ne sert qu'à
+/// l'initialisation dans `main()` : tout le reste lit ce provider, que les
+/// tests remplacent.
+final notificationServiceProvider = Provider<NotificationService>(
+  (ref) => NotificationService.instance,
+);

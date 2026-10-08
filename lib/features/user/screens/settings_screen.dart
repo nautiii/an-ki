@@ -32,7 +32,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _checkBiometrics() async {
-    final available = await BiometricService.instance.canUseFingerprint();
+    final available = await ref
+        .read(biometricServiceProvider)
+        .canUseFingerprint();
     if (mounted) {
       setState(() {
         _isBiometricAvailable = available;

@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:uuid/uuid.dart';
@@ -73,3 +74,8 @@ class BiometricService {
     await _storage.delete(key: _userIdKey);
   }
 }
+
+/// Service biométrique, lu par les features à travers ce provider.
+final biometricServiceProvider = Provider<BiometricService>(
+  (ref) => BiometricService.instance,
+);
