@@ -31,6 +31,9 @@ class TestHarness extends StatelessWidget {
         : overrides;
 
     return ProviderScope(
+      // Pas de nouvelle tentative automatique : un provider en erreur s'affiche
+      // en erreur tout de suite, sans minuteurs de retry en attente.
+      retry: (_, _) => null,
       overrides: finalOverrides.map((e) => e as dynamic).toList().cast(),
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
