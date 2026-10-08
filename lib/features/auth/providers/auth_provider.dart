@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/repositories/auth_repository.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
@@ -58,6 +60,7 @@ class AuthState {
 class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
+    ref.onDispose(() => _authSubscription?.cancel());
     initializeAuth();
     _checkBiometricAvailability();
     return AuthState();
@@ -67,8 +70,11 @@ class AuthNotifier extends Notifier<AuthState> {
 
   BiometricService get _biometricService => ref.read(biometricServiceProvider);
 
+  StreamSubscription<User?>? _authSubscription;
+
   void initializeAuth() {
-    _repository.authStateChanges().listen((User? user) {
+    unawaited(_authSubscription?.cancel());
+    _authSubscription = _repository.authStateChanges().listen((User? user) {
       if (ref.mounted) {
         state = state.copyWith(
           user: user,
