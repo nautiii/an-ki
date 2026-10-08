@@ -10,16 +10,24 @@ service cloud.firestore {
 
     // Birthdays are owned via the `uid` field.
     match /birthday/{birthdayId} {
-      allow read, update, delete: if request.auth != null
+      allow read, delete: if request.auth != null
         && resource.data.uid == request.auth.uid;
+      // Une mise à jour ne peut pas changer le propriétaire du document.
+      allow update: if request.auth != null
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == resource.data.uid;
       allow create: if request.auth != null
         && request.resource.data.uid == request.auth.uid;
     }
 
     // Scanned books are owned via the `uid` field.
     match /books/{bookId} {
-      allow read, update, delete: if request.auth != null
+      allow read, delete: if request.auth != null
         && resource.data.uid == request.auth.uid;
+      // Une mise à jour ne peut pas changer le propriétaire du document.
+      allow update: if request.auth != null
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == resource.data.uid;
       allow create: if request.auth != null
         && request.resource.data.uid == request.auth.uid;
     }
