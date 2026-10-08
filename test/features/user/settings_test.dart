@@ -1,9 +1,9 @@
+import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/user/data/repositories/user_repository.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
-import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/features/user/screens/settings_screen.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -66,16 +66,18 @@ void main() {
 
   List<dynamic> overridesWith({
     SettingsAuthNotifier? auth,
-    FakeUserNotifier? user,
+    RecordingUserRepository? users,
   }) => [
     authProvider.overrideWith(
       () =>
           auth ?? SettingsAuthNotifier(initialState: AuthState(user: _user())),
     ),
-    userProvider.overrideWith(
-      () => user ?? FakeUserNotifier(initialState: UserState(user: _userModel)),
+    // Comme dans l'app : le démarrage attend le premier profil, il est donc
+    // déjà là quand les réglages s'ouvrent.
+    userProfileProvider.overrideWithValue(const AsyncData(_userModel)),
+    userRepositoryProvider.overrideWithValue(
+      users ?? RecordingUserRepository(stored: _userModel),
     ),
-    userRepositoryProvider.overrideWithValue(FakeUserRepository()),
     birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
   ];
 
@@ -100,12 +102,10 @@ void main() {
   });
 
   testWidgets('updates the pseudo', (tester) async {
-    final userNotifier = FakeUserNotifier(
-      initialState: UserState(user: _userModel),
-    );
+    final users = RecordingUserRepository(stored: _userModel);
     await tester.pumpHarness(
       const SettingsScreen(),
-      overrides: overridesWith(user: userNotifier),
+      overrides: overridesWith(users: users),
     );
     await tester.pumpAndSettle();
 
@@ -114,7 +114,7 @@ void main() {
     await tester.tap(find.text('Mettre à jour le pseudo'));
     await tester.pumpAndSettle();
 
-    expect(userNotifier.state.user?.pseudo, 'NewPseudo');
+    expect(users.stored?.pseudo, 'NewPseudo');
     expect(find.text('Pseudo mis à jour avec succès !'), findsOneWidget);
   });
 
@@ -138,9 +138,10 @@ void main() {
   });
 
   testWidgets('changes the language through the dropdown', (tester) async {
+    final users = RecordingUserRepository(stored: _userModel);
     await tester.pumpHarness(
       const SettingsScreen(),
-      overrides: overridesWith(),
+      overrides: overridesWith(users: users),
     );
     await tester.pumpAndSettle();
 
@@ -149,26 +150,21 @@ void main() {
     await tester.tap(find.text('English').last);
     await tester.pumpAndSettle();
 
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(SettingsScreen)),
-    );
-    expect(container.read(userProvider).user?.locale, 'en');
+    expect(users.stored?.locale, 'en');
   });
 
   testWidgets('toggles the theme', (tester) async {
-    final userNotifier = FakeUserNotifier(
-      initialState: UserState(user: _userModel),
-    );
+    final users = RecordingUserRepository(stored: _userModel);
     await tester.pumpHarness(
       const SettingsScreen(),
-      overrides: overridesWith(user: userNotifier),
+      overrides: overridesWith(users: users),
     );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Thème'));
     await tester.pumpAndSettle();
 
-    expect(userNotifier.state.user?.isDark, isTrue);
+    expect(users.stored?.isDark, isTrue);
   });
 
   testWidgets('shows an error when importing contacts is denied', (
@@ -297,9 +293,10 @@ void main() {
   });
 
   testWidgets('confirms and deletes the account', (tester) async {
+    final users = RecordingUserRepository(stored: _userModel);
     await tester.pumpHarness(
       const SettingsScreen(),
-      overrides: overridesWith(),
+      overrides: overridesWith(users: users),
     );
     await tester.pumpAndSettle();
 
@@ -313,6 +310,7 @@ void main() {
 
     // No error SnackBar means the deletion flow completed.
     expect(find.text('Erreur lors de la suppression du compte'), findsNothing);
+    expect(users.deleted, ['uid-1']);
   });
 
   testWidgets('shows an error when account deletion fails', (tester) async {

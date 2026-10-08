@@ -126,7 +126,9 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
               Header(
                 showViewToggle: false,
                 userName: ref.watch(
-                  userProvider.select((s) => s.user?.displayName),
+                  userProfileProvider.select(
+                    (profile) => profile.value?.displayName,
+                  ),
                 ),
                 onOpenSettings: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(

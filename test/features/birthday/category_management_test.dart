@@ -5,6 +5,7 @@ import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/fake_providers.dart';
@@ -33,17 +34,15 @@ void main() {
   }) => [
     categoryNotifierProvider.overrideWith(() => categoryNotifier),
     categoryRepositoryProvider.overrideWithValue(StubCategoryRepository(all)),
-    userProvider.overrideWith(
-      () => FakeUserNotifier(
-        initialState: UserState(
-          user: UserModel(
-            id: 'u',
-            name: 'A',
-            surname: 'B',
-            categories: userCategories,
-            isDark: false,
-            locale: 'fr',
-          ),
+    userProfileProvider.overrideWithValue(
+      AsyncData(
+        UserModel(
+          id: 'u',
+          name: 'A',
+          surname: 'B',
+          categories: userCategories,
+          isDark: false,
+          locale: 'fr',
         ),
       ),
     ),

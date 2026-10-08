@@ -56,17 +56,15 @@ void main() {
     authProvider.overrideWith(
       () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
     ),
-    userProvider.overrideWith(
-      () => FakeUserNotifier(
-        initialState: UserState(
-          user: UserModel(
-            id: 'fake-uid',
-            name: 'A',
-            surname: 'B',
-            categories: userCategories,
-            isDark: false,
-            locale: 'fr',
-          ),
+    userProfileProvider.overrideWithValue(
+      AsyncData(
+        UserModel(
+          id: 'fake-uid',
+          name: 'A',
+          surname: 'B',
+          categories: userCategories,
+          isDark: false,
+          locale: 'fr',
         ),
       ),
     ),

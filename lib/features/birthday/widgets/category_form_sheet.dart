@@ -79,7 +79,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final categoriesState = ref.watch(categoriesProvider);
-    final user = ref.watch(userProvider).user;
+    final user = ref.watch(userProfileProvider).value;
     final userCategoryIds = user?.categories ?? [];
 
     return Container(

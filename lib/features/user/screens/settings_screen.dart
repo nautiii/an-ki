@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
-import 'package:an_ki/features/user/providers/theme_provider.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/providers/contact_import.dart';
+import 'package:an_ki/features/user/providers/account_deletion.dart';
+import 'package:an_ki/features/user/providers/locale_provider.dart';
+import 'package:an_ki/features/user/providers/user_profile_editor.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,7 +27,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    final user = ref.read(userProvider).user;
+    final user = ref.read(userProfileProvider).value;
     _pseudoController = TextEditingController(text: user?.pseudo);
     _checkBiometrics();
   }
@@ -88,7 +89,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           TextButton(
             onPressed: () async {
               final authNotifier = ref.read(authProvider.notifier);
-              final userNotifier = ref.read(userProvider.notifier);
               final l10n = context.l10n;
 
               // Fermer le dialogue de confirmation
@@ -109,11 +109,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Délai pour une transition visuelle fluide
               await Future<void>.delayed(const Duration(milliseconds: 600));
 
-              // Nettoyage de l'état utilisateur (les anniversaires suivent la
-              // session seuls).
-              userNotifier.clear();
+              // Déconnexion : les données suivent la session et se vident
+              // seules.
 
-              // Déconnexion finale
               await authNotifier.signOut(l10n);
             },
             child: Text(
@@ -147,14 +145,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           TextButton(
             onPressed: () async {
               final authNotifier = ref.read(authProvider.notifier);
-              final userNotifier = ref.read(userProvider.notifier);
+              final accountDeletion = ref.read(
+                accountDeletionProvider.notifier,
+              );
               final l10n = context.l10n;
 
               Navigator.of(dialogContext).pop();
 
               try {
                 // 1. Supprimer les données Firestore
-                await userNotifier.deleteAccount(uid);
+                await accountDeletion.eraseData();
                 // 2. Supprimer le compte Auth
                 await authNotifier.deleteAccount(l10n);
               } catch (e) {
@@ -177,6 +177,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Échec d'une écriture optimiste du profil (pseudo, thème, langue).
+    ref.listen(userProfileEditorProvider, (_, next) {
+      if (next is AsyncError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text(context.l10n.errorUnknown),
+          ),
+        );
+      }
+    });
     // Issue de l'import des contacts : nombre importé ou permission refusée.
     ref.listen(contactImportProvider, (_, next) {
       final message = switch (next) {
@@ -226,15 +237,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onPressed: () async {
               final newPseudo = _pseudoController.text.trim();
               if (newPseudo.isNotEmpty) {
-                await ref.read(userProvider.notifier).updatePseudo(newPseudo);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      behavior: SnackBarBehavior.floating,
-                      content: Text(context.l10n.pseudoUpdated),
-                    ),
-                  );
-                }
+                // Écriture optimiste : un échec est signalé par l'écoute de
+                // l'éditeur de profil.
+                unawaited(
+                  ref
+                      .read(userProfileEditorProvider.notifier)
+                      .updatePseudo(newPseudo),
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    content: Text(context.l10n.pseudoUpdated),
+                  ),
+                );
               }
             },
             style: ElevatedButton.styleFrom(
@@ -290,7 +305,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               value: currentLocale.languageCode,
               onChanged: (String? newValue) {
                 if (newValue != null) {
-                  ref.read(localeProvider.notifier).setLocale(Locale(newValue));
+                  unawaited(
+                    ref
+                        .read(userProfileEditorProvider.notifier)
+                        .setLocale(newValue),
+                  );
                 }
               },
               items: const [
@@ -307,7 +326,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
             ),
             value: isDark,
-            onChanged: (_) => ref.read(themeProvider.notifier).toggle(),
+            onChanged: (value) => unawaited(
+              ref.read(userProfileEditorProvider.notifier).setDarkMode(value),
+            ),
           ),
           const Divider(),
           ListTile(

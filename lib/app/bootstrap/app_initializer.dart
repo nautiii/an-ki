@@ -3,16 +3,23 @@ import 'dart:async';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
+import 'package:an_ki/features/user/data/models/user_model.dart';
+import 'package:an_ki/features/user/data/repositories/user_repository.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Widget de bootstrap au niveau application.
+/// Widget de bootstrap au niveau application, monté une fois l'utilisateur
+/// authentifié.
 ///
-/// Orchestre le démarrage transverse une fois l'utilisateur authentifié :
-/// demande les permissions de notification, lance les streams des features et
-/// charge le profil utilisateur Firestore. Il vit dans le composition root
-/// `app/` car il dépend de plusieurs features — ce que `core/` ne doit jamais faire.
+/// Réagit au cycle de vie de la session : demande les permissions de
+/// notification, garde leurs textes dans la langue active, crée le profil
+/// Firestore au premier lancement d'un compte et attend le premier profil.
+/// Les données des features suivent la session seules. Il vit dans le
+/// composition root `app/` car il dépend de plusieurs features — ce que
+/// `core/` ne doit jamais faire.
 class AppInitializer extends ConsumerStatefulWidget {
   final Widget child;
 
@@ -23,6 +30,24 @@ class AppInitializer extends ConsumerStatefulWidget {
 }
 
 class _AppInitializerState extends ConsumerState<AppInitializer> {
+  /// Compte dont le profil est en cours de création : évite les doublons.
+  String? _creatingProfileFor;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_requestNotificationPermissions());
+    // Premier lancement d'un compte : pas encore de profil, on le crée (après
+    // la frame, pour disposer du contexte et de la langue).
+    ref.listenManual(userProfileProvider, fireImmediately: true, (_, next) {
+      if (next case AsyncData(value: null)) {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => unawaited(_createMissingProfile()),
+        );
+      }
+    });
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -30,21 +55,6 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
     ref
         .read(notificationServiceProvider)
         .configure(NotificationStrings.fromL10n(context.l10n));
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _requestNotificationPermissions();
-
-    // Initialisation au démarrage si l'utilisateur est déjà connecté.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final uid = ref.read(authProvider).uid;
-      if (uid != null) {
-        _initializeUser(uid);
-      }
-    });
   }
 
   Future<void> _requestNotificationPermissions() async {
@@ -59,46 +69,64 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
     }
   }
 
-  Future<void> _initializeUser(String uid) async {
-    // Vérification de sécurité avant tout accès à `ref`.
+  /// Crée le profil du compte courant s'il n'existe pas encore : noms saisis
+  /// à l'inscription, sinon tirés du compte Google, sinon « Invité ».
+  Future<void> _createMissingProfile() async {
     if (!mounted) return;
+    final uid = ref.read(currentUidProvider);
+    final auth = ref.read(authProvider);
+    // Sans compte Firebase (session biométrique seule), rien à créer.
+    if (uid == null || auth.user == null || uid == _creatingProfileFor) return;
+    // Le profil a pu arriver entre-temps.
+    if (ref.read(userProfileProvider).value != null) return;
 
-    // Les anniversaires et les livres suivent la session seuls.
-    final userNotifier = ref.read(userProvider.notifier);
-
-    // Chargement de l'utilisateur Firestore.
-    await userNotifier.loadUser(uid);
-
-    // Sécurité : vérifier que le widget est toujours monté après l'await.
-    if (!mounted) return;
-
-    final userState = ref.read(userProvider);
-    final authState = ref.read(authProvider);
-
-    if (userState.user == null && authState.user != null) {
-      final displayName = authState.user!.displayName ?? "";
-      final parts = displayName.split(" ");
-
-      await userNotifier.createUser(
-        uid: uid,
-        name: parts.isNotEmpty && parts.first.isNotEmpty
-            ? parts.first
-            : (authState.isAnonymous ? context.l10n.guest : "-"),
-        surname: parts.length > 1 ? parts.sublist(1).join(" ") : "",
-      );
+    _creatingProfileFor = uid;
+    final typed = ref.read(signUpNamesProvider);
+    final (name, surname) = typed != null
+        ? (typed.name, typed.surname)
+        : _namesFromDisplayName(
+            auth.user!.displayName ?? '',
+            fallback: auth.isAnonymous ? context.l10n.guest : '-',
+          );
+    final profile = UserModel(
+      id: uid,
+      name: name,
+      surname: surname,
+      isDark: MediaQuery.platformBrightnessOf(context) == Brightness.dark,
+      locale: 'fr',
+    );
+    final users = ref.read(userRepositoryProvider);
+    final signUpNames = ref.read(signUpNamesProvider.notifier);
+    try {
+      // Transaction « créer si absent » : n'écrase jamais un profil existant.
+      await users.createUser(profile);
+      signUpNames.clear();
+    } catch (error) {
+      debugPrint('[AppInitializer] profile creation failed: $error');
+      // Permet une nouvelle tentative au prochain profil vide.
+      if (mounted) _creatingProfileFor = null;
     }
+  }
+
+  /// Sépare « Prénom Nom… » ; [fallback] quand le nom affiché est vide.
+  static (String, String) _namesFromDisplayName(
+    String displayName, {
+    required String fallback,
+  }) {
+    final parts = displayName.split(' ');
+    return (
+      parts.first.isNotEmpty ? parts.first : fallback,
+      parts.length > 1 ? parts.sublist(1).join(' ') : '',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Réagit aux changements d'état d'authentification (ex. déverrouillage biométrique).
-    ref.listen<String?>(authProvider.select((s) => s.uid), (previous, nextUid) {
-      if (nextUid != null && nextUid != previous) {
-        _initializeUser(nextUid);
-      }
-    });
-
-    final isLoading = ref.watch(userProvider.select((s) => s.isLoading));
+    final isLoading = ref.watch(
+      userProfileProvider.select(
+        (profile) => profile.isLoading && !profile.hasValue,
+      ),
+    );
 
     if (isLoading) {
       return const Material(child: Center(child: CircularProgressIndicator()));

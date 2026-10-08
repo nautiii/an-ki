@@ -53,20 +53,17 @@ void main() {
     categoryRepositoryProvider.overrideWithValue(
       StubCategoryRepository([family]),
     ),
-    userProvider.overrideWith(
-      () => FakeUserNotifier(
-        initialState: UserState(
-          user:
-              user ??
-              const UserModel(
-                id: 'fake-uid',
-                name: 'A',
-                surname: 'B',
-                categories: ['fam'],
-                isDark: false,
-                locale: 'fr',
-              ),
-        ),
+    userProfileProvider.overrideWithValue(
+      AsyncData(
+        user ??
+            const UserModel(
+              id: 'fake-uid',
+              name: 'A',
+              surname: 'B',
+              categories: ['fam'],
+              isDark: false,
+              locale: 'fr',
+            ),
       ),
     ),
   ];

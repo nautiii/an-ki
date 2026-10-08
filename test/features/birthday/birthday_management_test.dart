@@ -5,6 +5,7 @@ import 'package:an_ki/features/birthday/data/repositories/category_repository.da
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/fake_providers.dart';
@@ -43,7 +44,7 @@ void main() {
     authProvider.overrideWith(
       () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
     ),
-    userProvider.overrideWith(FakeUserNotifier.new),
+    userProfileProvider.overrideWithValue(const AsyncData(null)),
     birthdayRepositoryProvider.overrideWithValue(repository),
     categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
     categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),

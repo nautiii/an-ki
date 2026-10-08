@@ -1,10 +1,11 @@
+import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/auth/screens/signup_screen.dart';
-import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/fake_providers.dart';
@@ -319,16 +320,17 @@ void main() {
       );
     });
 
-    testWidgets('creates the account on success', (tester) async {
-      final userNotifier = FakeUserNotifier(initialState: UserState());
+    testWidgets('keeps the typed names for the profile on success', (
+      tester,
+    ) async {
       await tester.pumpHarness(
         const SignUpScreen(),
-        overrides: [
-          authProvider.overrideWith(FakeAuthNotifier.new),
-          userProvider.overrideWith(() => userNotifier),
-        ],
+        overrides: [authProvider.overrideWith(FakeAuthNotifier.new)],
       );
       await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(SignUpScreen)),
+      );
 
       await tester.enterText(find.byType(TextField).at(0), 'John');
       await tester.enterText(find.byType(TextField).at(1), 'Doe');
@@ -339,7 +341,11 @@ void main() {
       await tester.tap(find.text("S'inscrire").last);
       await tester.pumpAndSettle();
 
-      expect(userNotifier.state.user?.name, 'John');
+      // app/bootstrap créera le profil avec ces noms tels que saisis.
+      expect(container.read(signUpNamesProvider), (
+        name: 'John',
+        surname: 'Doe',
+      ));
     });
 
     testWidgets('shows an error SnackBar on failure', (tester) async {
@@ -348,6 +354,9 @@ void main() {
         overrides: [authProvider.overrideWith(FailingAuthNotifier.new)],
       );
       await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(SignUpScreen)),
+      );
 
       await tester.enterText(find.byType(TextField).at(0), 'John');
       await tester.enterText(find.byType(TextField).at(1), 'Doe');
@@ -359,6 +368,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Oops'), findsOneWidget);
+      // Inscription ratée : rien ne doit rester pour une connexion suivante.
+      expect(container.read(signUpNamesProvider), isNull);
     });
 
     testWidgets('toggles both password fields visibility', (tester) async {

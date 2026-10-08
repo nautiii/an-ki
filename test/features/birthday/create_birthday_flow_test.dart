@@ -5,6 +5,7 @@ import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/test_harness.dart';
@@ -22,7 +23,7 @@ void main() {
           authProvider.overrideWith(
             () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
           ),
-          userProvider.overrideWith(FakeUserNotifier.new),
+          userProfileProvider.overrideWithValue(const AsyncData(null)),
           birthdayRepositoryProvider.overrideWithValue(
             RecordingBirthdayRepository(),
           ),
@@ -51,16 +52,14 @@ void main() {
         authProvider.overrideWith(
           () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
         ),
-        userProvider.overrideWith(
-          () => FakeUserNotifier(
-            initialState: UserState(
-              user: const UserModel(
-                id: '1',
-                name: 'Marie',
-                surname: 'Martin',
-                isDark: false,
-                locale: 'fr',
-              ),
+        userProfileProvider.overrideWithValue(
+          const AsyncData(
+            UserModel(
+              id: '1',
+              name: 'Marie',
+              surname: 'Martin',
+              isDark: false,
+              locale: 'fr',
             ),
           ),
         ),

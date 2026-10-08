@@ -17,7 +17,7 @@ final categoriesProvider = StreamProvider<List<BirthdayCategory>>((ref) {
 /// Provider pour les catégories sélectionnées par l'utilisateur
 final userCategoriesProvider = Provider<List<BirthdayCategory>>((ref) {
   final allCategories = ref.watch(categoriesProvider).value ?? [];
-  final user = ref.watch(userProvider).user;
+  final user = ref.watch(userProfileProvider).value;
   if (user == null) return [];
 
   final filtered = allCategories
@@ -33,19 +33,17 @@ class CategoryNotifier extends Notifier<void> {
   @override
   void build() {}
 
+  /// Ajoute des catégories au profil (union, sans doublon) ; le flux du profil
+  /// se met à jour seul.
   Future<void> addCategoriesToUser(List<String> categoryIds) async {
-    final user = ref.read(userProvider).user;
+    final user = ref.read(userProfileProvider).value;
     if (user == null) return;
 
-    final updatedCategories = {...user.categories, ...categoryIds}.toList();
-    final updatedUser = user.copyWith(categories: updatedCategories);
-
-    await ref.read(userRepositoryProvider).updateUser(updatedUser);
-    await ref.read(userProvider.notifier).loadUser(user.id);
+    await ref.read(userRepositoryProvider).addCategories(user.id, categoryIds);
   }
 
   Future<void> createAndAddCategory(String name, int icon) async {
-    final user = ref.read(userProvider).user;
+    final user = ref.read(userProfileProvider).value;
     if (user == null) return;
 
     final category = BirthdayCategory(id: '', name: name, icon: icon);

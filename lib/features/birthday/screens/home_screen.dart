@@ -49,7 +49,9 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Header(
                 userName: ref.watch(
-                  userProvider.select((s) => s.user?.displayName),
+                  userProfileProvider.select(
+                    (profile) => profile.value?.displayName,
+                  ),
                 ),
                 isListView: viewType == HomeViewType.list,
                 onToggleView: () =>

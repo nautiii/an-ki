@@ -21,19 +21,22 @@ void main() {
     biometricToken: 'token-abc',
   );
 
-  group('fetchUser', () {
-    test('returns null when the document does not exist', () async {
-      expect(await repository.fetchUser('missing'), isNull);
+  group('watchUser', () {
+    test('emits null while the document does not exist', () async {
+      expect(await repository.watchUser('missing').first, isNull);
     });
 
-    test('returns the mapped user when it exists', () async {
+    test('emits the mapped user when it exists', () async {
       await repository.createUser(user);
 
-      final fetched = await repository.fetchUser('user-1');
+      // Le faux Firestore applique la transaction un tick plus tard.
+      final watched = await repository
+          .watchUser('user-1')
+          .firstWhere((user) => user != null);
 
-      expect(fetched, isNotNull);
-      expect(fetched!.name, 'Quentin');
-      expect(fetched.biometricToken, 'token-abc');
+      expect(watched, isNotNull);
+      expect(watched!.name, 'Quentin');
+      expect(watched.biometricToken, 'token-abc');
     });
   });
 
@@ -80,13 +83,42 @@ void main() {
     });
   });
 
-  test('updateUser overwrites the existing fields', () async {
-    await repository.createUser(user);
+  group('updatePreferences', () {
+    test('writes only the given fields', () async {
+      await repository.createUser(user);
 
-    await repository.updateUser(user.copyWith(pseudo: 'Q'));
+      await repository.updatePreferences('user-1', pseudo: 'Q');
 
-    final doc = await firestore.collection('user').doc('user-1').get();
-    expect(doc.data()!['pseudo'], 'Q');
+      final data = (await firestore.collection('user').doc('user-1').get())
+          .data()!;
+      expect(data['pseudo'], 'Q');
+      expect(data['locale'], 'fr');
+      expect(data['biometricToken'], 'token-abc');
+    });
+
+    test('two quick edits do not overwrite each other', () async {
+      await repository.createUser(user);
+
+      await Future.wait([
+        repository.updatePreferences('user-1', isDark: true),
+        repository.updatePreferences('user-1', locale: 'en'),
+      ]);
+
+      final data = (await firestore.collection('user').doc('user-1').get())
+          .data()!;
+      expect(data['isDark'], isTrue);
+      expect(data['locale'], 'en');
+    });
+  });
+
+  test('addCategories adds ids without duplicates', () async {
+    await repository.createUser(user.copyWith(categories: ['fam']));
+
+    await repository.addCategories('user-1', ['fam', 'friend']);
+
+    final data = (await firestore.collection('user').doc('user-1').get())
+        .data()!;
+    expect(data['categories'], ['fam', 'friend']);
   });
 
   test('deleteUser removes the document', () async {

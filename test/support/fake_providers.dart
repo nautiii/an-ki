@@ -11,7 +11,6 @@ import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
 import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/user/data/repositories/user_repository.dart';
-import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_test/flutter_test.dart';
@@ -31,16 +30,109 @@ class MockUser extends Fake implements firebase_auth.User {
 
 class FakeUserRepository extends Fake implements UserRepository {
   @override
-  Future<UserModel?> fetchUser(String uid) async => null;
+  Stream<UserModel?> watchUser(String uid) => Stream.value(null);
 
   @override
   Future<UserModel> createUser(UserModel user) async => user;
 
   @override
-  Future<void> updateUser(UserModel user) async {}
+  Future<void> updatePreferences(
+    String uid, {
+    String? pseudo,
+    bool? isDark,
+    String? locale,
+  }) async {}
+
+  @override
+  Future<void> addCategories(String uid, List<String> categoryIds) async {}
 
   @override
   Future<void> deleteUser(String uid) async {}
+}
+
+/// Dépôt de profils en mémoire : [watchUser] reflète chaque écriture, comme
+/// le cache local de Firestore, pour tester les écritures optimistes.
+class RecordingUserRepository extends FakeUserRepository {
+  RecordingUserRepository({this._stored, this.failure});
+
+  UserModel? _stored;
+
+  /// Erreur levée par chaque écriture quand elle est définie.
+  final Exception? failure;
+
+  final _changes = StreamController<UserModel?>.broadcast();
+  final created = <UserModel>[];
+  final updated = <UserModel>[];
+  final deleted = <String>[];
+
+  UserModel? get stored => _stored;
+
+  @override
+  Stream<UserModel?> watchUser(String uid) {
+    // Abonnement immédiat : aucune écriture n'est perdue entre deux émissions.
+    final controller = StreamController<UserModel?>();
+    final changes = _changes.stream.listen(controller.add);
+    controller
+      ..onCancel = () async {
+        await changes.cancel();
+        await controller.close();
+      }
+      ..add(_stored);
+    return controller.stream;
+  }
+
+  @override
+  Future<UserModel> createUser(UserModel user) async {
+    _maybeFail();
+    created.add(user);
+    // Comme le vrai « créer si absent » : le profil existant gagne.
+    final effective = _stored ?? user;
+    _emit(effective);
+    return effective;
+  }
+
+  @override
+  Future<void> updatePreferences(
+    String uid, {
+    String? pseudo,
+    bool? isDark,
+    String? locale,
+  }) async {
+    _maybeFail();
+    final user = _stored!.copyWith(
+      pseudo: pseudo,
+      isDark: isDark,
+      locale: locale,
+    );
+    updated.add(user);
+    _emit(user);
+  }
+
+  @override
+  Future<void> addCategories(String uid, List<String> categoryIds) async {
+    _maybeFail();
+    final user = _stored!.copyWith(
+      categories: {..._stored!.categories, ...categoryIds}.toList(),
+    );
+    updated.add(user);
+    _emit(user);
+  }
+
+  @override
+  Future<void> deleteUser(String uid) async {
+    _maybeFail();
+    deleted.add(uid);
+    _emit(null);
+  }
+
+  void _emit(UserModel? user) {
+    _stored = user;
+    _changes.add(user);
+  }
+
+  void _maybeFail() {
+    if (failure case final failure?) throw failure;
+  }
 }
 
 class FakeBirthdayRepository extends Fake implements BirthdayRepository {
@@ -84,6 +176,7 @@ class RecordingBirthdayRepository extends FakeBirthdayRepository {
   final created = <CreateBirthdayInput>[];
   final updated = <String>[];
   final deleted = <String>[];
+  final erasedUids = <String>[];
 
   @override
   Stream<List<BirthdayModel>> watchBirthdays(String uid) {
@@ -121,6 +214,12 @@ class RecordingBirthdayRepository extends FakeBirthdayRepository {
   Future<void> deleteBirthday(String birthdayId) async {
     _maybeFail();
     deleted.add(birthdayId);
+  }
+
+  @override
+  Future<void> deleteAllUserBirthdays(String uid) async {
+    _maybeFail();
+    erasedUids.add(uid);
   }
 
   void _maybeFail() {
@@ -258,82 +357,6 @@ class FakeAuthNotifier extends AuthNotifier {
   }
 }
 
-class FakeUserNotifier extends UserNotifier {
-  final UserState? _initialState;
-  final UserModel? defaultLoadedUser;
-
-  FakeUserNotifier({
-    this._initialState,
-    this.defaultLoadedUser = const UserModel(
-      id: 'default-user',
-      name: 'Quentin',
-      surname: 'Maillard',
-      isDark: false,
-      locale: 'fr',
-    ),
-  });
-
-  @override
-  UserState build() {
-    return _initialState ?? UserState();
-  }
-
-  Completer<UserModel?>? _pendingLoad;
-
-  void preparePendingLoad() {
-    _pendingLoad = Completer<UserModel?>();
-  }
-
-  void completePendingLoad([UserModel? user]) {
-    final completer = _pendingLoad;
-    if (completer != null && !completer.isCompleted) {
-      completer.complete(user);
-    }
-  }
-
-  @override
-  Future<void> loadUser(String uid) async {
-    final completer = _pendingLoad;
-    if (completer == null) {
-      state = state.copyWith(user: defaultLoadedUser);
-      return;
-    }
-
-    state = state.copyWith(isLoading: true);
-    final user = await completer.future;
-    state = state.copyWith(user: user, isLoading: false);
-  }
-
-  @override
-  void clear() {
-    state = UserState();
-  }
-
-  @override
-  Future<void> createUser({
-    required String uid,
-    required String name,
-    required String surname,
-  }) async {
-    state = state.copyWith(
-      user: UserModel(
-        id: uid,
-        name: name,
-        surname: surname,
-        isDark: false,
-        locale: 'fr',
-      ),
-    );
-  }
-
-  @override
-  Future<void> updatePseudo(String pseudo) async {
-    if (state.user != null) {
-      state = state.copyWith(user: state.user!.copyWith(pseudo: pseudo));
-    }
-  }
-}
-
 class FakeCategoryNotifier extends CategoryNotifier {
   @override
   void build() {}
@@ -358,6 +381,5 @@ final defaultTestOverrides = [
   categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),
   bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
   authProvider.overrideWith(FakeAuthNotifier.new),
-  userProvider.overrideWith(FakeUserNotifier.new),
   categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
 ];

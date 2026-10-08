@@ -4,7 +4,7 @@ import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/user/providers/user_provider.dart';
+import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -65,7 +65,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
     unawaited(HapticFeedback.lightImpact());
     final authNotifier = ref.read(authProvider.notifier);
-    final userNotifier = ref.read(userProvider.notifier);
+    final signUpNames = ref.read(signUpNamesProvider.notifier);
+    // Le profil sera créé par app/bootstrap avec ces noms tels que saisis.
+    signUpNames.remember(
+      _nameController.text.trim(),
+      _surnameController.text.trim(),
+    );
 
     final success = await authNotifier.signUp(
       email: _emailController.text.trim(),
@@ -80,12 +85,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     final authState = ref.read(authProvider);
     if (success && authState.user != null) {
       unawaited(HapticFeedback.mediumImpact());
-      await userNotifier.createUser(
-        uid: authState.user!.uid,
-        name: _nameController.text.trim(),
-        surname: _surnameController.text.trim(),
-      );
     } else if (!success) {
+      signUpNames.clear();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,

@@ -36,7 +36,6 @@ const featureLayers = {'domain', 'data', 'providers', 'screens', 'widgets'};
 /// premier lancement liste les lignes à ajouter ou retirer.
 const knownViolations = <String>{
   'lib/features/auth/providers/auth_provider.dart -> lib/l10n/app_localizations.dart [state-no-ui]',
-  'lib/features/auth/screens/signup_screen.dart -> lib/features/user/providers/user_provider.dart [feature-graph]',
   'lib/features/birthday/data/models/category_model.dart -> package:flutter/material.dart [data-no-ui]',
   'lib/features/birthday/extensions/birthday_extensions.dart -> (emplacement) [layout]',
   'lib/features/birthday/screens/home_screen.dart -> lib/features/birthday/data/models/birthday_model.dart [ui-no-backend]',
@@ -57,7 +56,7 @@ const knownViolations = <String>{
   'lib/features/home/main_screen.dart -> (emplacement) [layout]',
   'lib/features/home/main_screen.dart -> lib/features/birthday/screens/home_screen.dart [screens-private]',
   'lib/features/home/main_screen.dart -> lib/features/book_scanner/screens/book_scanner_screen.dart [screens-private]',
-  'lib/features/user/providers/user_provider.dart -> lib/features/birthday/data/repositories/birthday_repository.dart [feature-graph]',
+  'lib/features/user/providers/account_deletion.dart -> lib/features/birthday/data/repositories/birthday_repository.dart [feature-graph]',
   'lib/features/user/screens/settings_screen.dart -> lib/features/birthday/providers/contact_import.dart [feature-graph]',
 };
 

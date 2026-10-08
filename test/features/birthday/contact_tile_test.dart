@@ -7,6 +7,7 @@ import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/contact_tile.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/fake_providers.dart';
@@ -49,17 +50,15 @@ void main() {
     authProvider.overrideWith(
       () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
     ),
-    userProvider.overrideWith(
-      () => FakeUserNotifier(
-        initialState: UserState(
-          user: const UserModel(
-            id: 'fake-uid',
-            name: 'A',
-            surname: 'B',
-            categories: ['fam'],
-            isDark: false,
-            locale: 'fr',
-          ),
+    userProfileProvider.overrideWithValue(
+      const AsyncData(
+        UserModel(
+          id: 'fake-uid',
+          name: 'A',
+          surname: 'B',
+          categories: ['fam'],
+          isDark: false,
+          locale: 'fr',
         ),
       ),
     ),

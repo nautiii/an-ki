@@ -1,3 +1,4 @@
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/models/category_model.dart';
 import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
@@ -6,6 +7,8 @@ import 'package:an_ki/features/user/data/repositories/user_repository.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../support/fake_providers.dart';
 
 class StubCategoryRepository implements CategoryRepository {
   StubCategoryRepository(this.categories);
@@ -23,65 +26,47 @@ class StubCategoryRepository implements CategoryRepository {
   }
 }
 
-class StubUserRepository implements UserRepository {
-  StubUserRepository(this._stored);
-
-  UserModel? _stored;
-  final List<UserModel> updated = [];
-
-  @override
-  Future<UserModel?> fetchUser(String uid) async => _stored;
-
-  @override
-  Future<void> updateUser(UserModel user) async {
-    updated.add(user);
-    _stored = user;
-  }
-
-  @override
-  Future<UserModel> createUser(UserModel user) async => user;
-
-  @override
-  Future<void> deleteUser(String uid) async {}
-}
+const _user = UserModel(
+  id: 'u',
+  name: 'A',
+  surname: 'B',
+  categories: ['fam'],
+  isDark: false,
+  locale: 'fr',
+);
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
   final family = BirthdayCategory(id: 'fam', name: 'Family', icon: 1);
   final friend = BirthdayCategory(id: 'fri', name: 'Apple', icon: 2);
 
-  ProviderContainer makeContainer({
-    required List<BirthdayCategory> categories,
-    UserModel? storedUser,
-  }) {
-    final container = ProviderContainer(
+  /// Conteneur avec la session `u` ; attend le premier profil (Riverpod 3 met
+  /// en pause un flux sans listener, d'où l'écoute).
+  Future<ProviderContainer> makeContainer({
+    required StubCategoryRepository categories,
+    required RecordingUserRepository users,
+  }) async {
+    final container = ProviderContainer.test(
+      retry: (_, _) => null,
       overrides: [
-        categoryRepositoryProvider.overrideWithValue(
-          StubCategoryRepository(categories),
-        ),
-        userRepositoryProvider.overrideWithValue(
-          StubUserRepository(storedUser),
-        ),
+        categoryRepositoryProvider.overrideWithValue(categories),
+        userRepositoryProvider.overrideWithValue(users),
+        currentUidProvider.overrideWithValue('u'),
       ],
     );
-    addTearDown(container.dispose);
-    return container;
-  }
-
-  /// Subscribes to [categoriesProvider] (so the underlying stream is listened
-  /// to) and waits for its first emission.
-  Future<void> primeCategories(ProviderContainer container) async {
-    final sub = container.listen(categoriesProvider, (_, _) {});
-    addTearDown(sub.close);
+    container.listen(userProfileProvider, (_, _) {});
+    container.listen(categoriesProvider, (_, _) {});
+    await container.read(userProfileProvider.future);
     await container.read(categoriesProvider.future);
+    return container;
   }
 
   group('categoriesProvider', () {
     test('emits categories sorted alphabetically (case-insensitive)', () async {
-      final container = makeContainer(categories: [family, friend]);
+      final container = await makeContainer(
+        categories: StubCategoryRepository([family, friend]),
+        users: RecordingUserRepository(),
+      );
 
-      await primeCategories(container);
       final result = container.read(categoriesProvider).value!;
 
       expect(result.map((c) => c.name), ['Apple', 'Family']);
@@ -89,28 +74,20 @@ void main() {
   });
 
   group('userCategoriesProvider', () {
-    test('is empty when there is no user', () async {
-      final container = makeContainer(categories: [family, friend]);
-      await primeCategories(container);
+    test('is empty when there is no profile', () async {
+      final container = await makeContainer(
+        categories: StubCategoryRepository([family, friend]),
+        users: RecordingUserRepository(),
+      );
 
       expect(container.read(userCategoriesProvider), isEmpty);
     });
 
     test('keeps only the categories selected by the user', () async {
-      const user = UserModel(
-        id: 'u',
-        name: 'A',
-        surname: 'B',
-        categories: ['fam'],
-        isDark: false,
-        locale: 'fr',
+      final container = await makeContainer(
+        categories: StubCategoryRepository([family, friend]),
+        users: RecordingUserRepository(stored: _user),
       );
-      final container = makeContainer(
-        categories: [family, friend],
-        storedUser: user,
-      );
-      await primeCategories(container);
-      await container.read(userProvider.notifier).loadUser('u');
 
       final result = container.read(userCategoriesProvider);
 
@@ -119,95 +96,62 @@ void main() {
   });
 
   group('CategoryNotifier', () {
-    test('addCategoriesToUser is a no-op without a user', () async {
-      final repo = StubUserRepository(null);
-      final container = ProviderContainer(
-        overrides: [
-          categoryRepositoryProvider.overrideWithValue(
-            StubCategoryRepository(const []),
-          ),
-          userRepositoryProvider.overrideWithValue(repo),
-        ],
+    test('addCategoriesToUser is a no-op without a profile', () async {
+      final users = RecordingUserRepository();
+      final container = await makeContainer(
+        categories: StubCategoryRepository(const []),
+        users: users,
       );
-      addTearDown(container.dispose);
 
       await container
           .read(categoryNotifierProvider.notifier)
           .addCategoriesToUser(['x']);
 
-      expect(repo.updated, isEmpty);
+      expect(users.updated, isEmpty);
     });
 
     test('addCategoriesToUser merges and persists the ids', () async {
-      const user = UserModel(
-        id: 'u',
-        name: 'A',
-        surname: 'B',
-        categories: ['fam'],
-        isDark: false,
-        locale: 'fr',
+      final users = RecordingUserRepository(stored: _user);
+      final container = await makeContainer(
+        categories: StubCategoryRepository(const []),
+        users: users,
       );
-      final repo = StubUserRepository(user);
-      final container = ProviderContainer(
-        overrides: [
-          categoryRepositoryProvider.overrideWithValue(
-            StubCategoryRepository(const []),
-          ),
-          userRepositoryProvider.overrideWithValue(repo),
-        ],
-      );
-      addTearDown(container.dispose);
-      await container.read(userProvider.notifier).loadUser('u');
 
       await container
           .read(categoryNotifierProvider.notifier)
           .addCategoriesToUser(['fri']);
 
-      expect(repo.updated.last.categories.toSet(), {'fam', 'fri'});
+      expect(users.stored?.categories.toSet(), {'fam', 'fri'});
     });
 
     test('createAndAddCategory creates the category then links it', () async {
-      const user = UserModel(
-        id: 'u',
-        name: 'A',
-        surname: 'B',
-        isDark: false,
-        locale: 'fr',
+      final categories = StubCategoryRepository(const []);
+      final users = RecordingUserRepository(stored: _user);
+      final container = await makeContainer(
+        categories: categories,
+        users: users,
       );
-      final categoryRepo = StubCategoryRepository(const []);
-      final userRepo = StubUserRepository(user);
-      final container = ProviderContainer(
-        overrides: [
-          categoryRepositoryProvider.overrideWithValue(categoryRepo),
-          userRepositoryProvider.overrideWithValue(userRepo),
-        ],
-      );
-      addTearDown(container.dispose);
-      await container.read(userProvider.notifier).loadUser('u');
 
       await container
           .read(categoryNotifierProvider.notifier)
           .createAndAddCategory('Work', 42);
 
-      expect(categoryRepo.created.single.name, 'Work');
-      expect(userRepo.updated.last.categories, contains('new-id'));
+      expect(categories.created.single.name, 'Work');
+      expect(users.stored?.categories, contains('new-id'));
     });
 
-    test('createAndAddCategory is a no-op without a user', () async {
-      final categoryRepo = StubCategoryRepository(const []);
-      final container = ProviderContainer(
-        overrides: [
-          categoryRepositoryProvider.overrideWithValue(categoryRepo),
-          userRepositoryProvider.overrideWithValue(StubUserRepository(null)),
-        ],
+    test('createAndAddCategory is a no-op without a profile', () async {
+      final categories = StubCategoryRepository(const []);
+      final container = await makeContainer(
+        categories: categories,
+        users: RecordingUserRepository(),
       );
-      addTearDown(container.dispose);
 
       await container
           .read(categoryNotifierProvider.notifier)
           .createAndAddCategory('Work', 42);
 
-      expect(categoryRepo.created, isEmpty);
+      expect(categories.created, isEmpty);
     });
   });
 }

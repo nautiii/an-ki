@@ -49,7 +49,7 @@ void main() {
         authProvider.overrideWith(
           () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
         ),
-        userProvider.overrideWith(FakeUserNotifier.new),
+        userProfileProvider.overrideWithValue(const AsyncData(null)),
         categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),
       ],
     );

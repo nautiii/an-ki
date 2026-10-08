@@ -11,13 +11,12 @@ class UserRepository {
   CollectionReference<Map<String, dynamic>> get _users =>
       _firestore.collection('user');
 
-  Future<UserModel?> fetchUser(String uid) async {
-    final DocumentSnapshot<Map<String, dynamic>> doc = await _users
-        .doc(uid)
-        .get();
-
-    return doc.exists ? UserModel.fromFirestore(doc) : null;
-  }
+  /// Profil de [uid] en temps réel ; null tant que le document n'existe pas
+  /// (premier lancement d'un compte).
+  Stream<UserModel?> watchUser(String uid) => _users
+      .doc(uid)
+      .snapshots()
+      .map((doc) => doc.exists ? UserModel.fromFirestore(doc) : null);
 
   /// Crée le document utilisateur **uniquement s'il n'existe pas déjà**.
   ///
@@ -43,9 +42,24 @@ class UserRepository {
     });
   }
 
-  Future<void> updateUser(UserModel user) async {
-    await _users.doc(user.id).update(user.toJson());
-  }
+  /// Met à jour les préférences données, champ par champ : deux modifications
+  /// rapprochées (thème puis langue) ne s'écrasent pas, contrairement à une
+  /// réécriture du profil entier lu un instant plus tôt.
+  Future<void> updatePreferences(
+    String uid, {
+    String? pseudo,
+    bool? isDark,
+    String? locale,
+  }) => _users.doc(uid).update({
+    'pseudo': ?pseudo,
+    'isDark': ?isDark,
+    'locale': ?locale,
+  });
+
+  /// Ajoute des catégories au profil sans doublon (union côté Firestore).
+  Future<void> addCategories(String uid, List<String> categoryIds) => _users
+      .doc(uid)
+      .update({'categories': FieldValue.arrayUnion(categoryIds)});
 
   Future<void> deleteUser(String uid) async {
     await _users.doc(uid).delete();
