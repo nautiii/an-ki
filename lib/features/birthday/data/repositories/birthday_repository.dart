@@ -37,6 +37,24 @@ class BirthdayRepository {
     await _birthdays.add(data);
   }
 
+  /// Crée plusieurs anniversaires sans photo (import de contacts), par lots de
+  /// [_batchLimit] écritures. Tous les lots partent d'un coup : Firestore les
+  /// applique au cache local immédiatement, le Future attend le serveur.
+  Future<void> createBirthdays(String uid, List<CreateBirthdayInput> inputs) {
+    final commits = <Future<void>>[];
+    for (var start = 0; start < inputs.length; start += _batchLimit) {
+      final batch = _firestore.batch();
+      for (final input in inputs.skip(start).take(_batchLimit)) {
+        batch.set(_birthdays.doc(), {...input.toJson(), 'uid': uid});
+      }
+      commits.add(batch.commit());
+    }
+    return Future.wait(commits);
+  }
+
+  /// Limite Firestore d'écritures par lot.
+  static const _batchLimit = 500;
+
   Future<void> updateBirthday(
     String uid,
     String birthdayId,
@@ -53,12 +71,10 @@ class BirthdayRepository {
     await _birthdays.doc(birthdayId).update(data);
   }
 
-  Future<void> deleteBirthday(String uid, String birthdayId) async {
-    final doc = await _birthdays.doc(birthdayId).get();
-    if (doc.exists && doc.data()?['uid'] == uid) {
-      await _birthdays.doc(birthdayId).delete();
-    }
-  }
+  /// Supprime un anniversaire. La propriété du document est vérifiée par les
+  /// règles Firestore : pas de lecture préalable, qui retarderait l'écriture.
+  Future<void> deleteBirthday(String birthdayId) =>
+      _birthdays.doc(birthdayId).delete();
 
   Future<void> deleteAllUserBirthdays(String uid) async {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _birthdays

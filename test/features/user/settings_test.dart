@@ -1,6 +1,5 @@
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
-import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/user/data/repositories/user_repository.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -76,7 +75,6 @@ void main() {
     userProvider.overrideWith(
       () => user ?? FakeUserNotifier(initialState: UserState(user: _userModel)),
     ),
-    birthdayProvider.overrideWith(FakeBirthdayNotifier.new),
     userRepositoryProvider.overrideWithValue(FakeUserRepository()),
     birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
   ];

@@ -6,7 +6,6 @@ import 'package:an_ki/features/birthday/data/models/category_model.dart';
 import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
 import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
-import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
 import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
@@ -53,6 +52,12 @@ class FakeBirthdayRepository extends Fake implements BirthdayRepository {
   Future<void> createBirthday(String uid, CreateBirthdayInput input) async {}
 
   @override
+  Future<void> createBirthdays(
+    String uid,
+    List<CreateBirthdayInput> inputs,
+  ) async {}
+
+  @override
   Future<void> updateBirthday(
     String uid,
     String birthdayId,
@@ -60,10 +65,68 @@ class FakeBirthdayRepository extends Fake implements BirthdayRepository {
   ) async {}
 
   @override
-  Future<void> deleteBirthday(String uid, String birthdayId) async {}
+  Future<void> deleteBirthday(String birthdayId) async {}
 
   @override
   Future<void> deleteAllUserBirthdays(String uid) async {}
+}
+
+/// Dépôt d'anniversaires qui sert [initial] par utilisateur et enregistre
+/// chaque écriture : les tests observent les effets sans faux notifier.
+class RecordingBirthdayRepository extends FakeBirthdayRepository {
+  RecordingBirthdayRepository({this.initial = const [], this.failure});
+
+  final List<BirthdayModel> initial;
+
+  /// Erreur levée par chaque écriture quand elle est définie.
+  final Exception? failure;
+
+  final watchedUids = <String>[];
+  final created = <CreateBirthdayInput>[];
+  final updated = <String>[];
+  final deleted = <String>[];
+
+  @override
+  Stream<List<BirthdayModel>> watchBirthdays(String uid) {
+    watchedUids.add(uid);
+    return Stream.value(initial);
+  }
+
+  @override
+  Future<void> createBirthday(String uid, CreateBirthdayInput input) async {
+    _maybeFail();
+    created.add(input);
+  }
+
+  @override
+  Future<void> createBirthdays(
+    String uid,
+    List<CreateBirthdayInput> inputs,
+  ) async {
+    _maybeFail();
+    created.addAll(inputs);
+  }
+
+  @override
+  Future<void> updateBirthday(
+    String uid,
+    String birthdayId,
+    CreateBirthdayInput input,
+  ) async {
+    _maybeFail();
+    updated.add(birthdayId);
+    created.add(input);
+  }
+
+  @override
+  Future<void> deleteBirthday(String birthdayId) async {
+    _maybeFail();
+    deleted.add(birthdayId);
+  }
+
+  void _maybeFail() {
+    if (failure case final failure?) throw failure;
+  }
 }
 
 class FakeCategoryRepository extends Fake implements CategoryRepository {
@@ -232,55 +295,6 @@ class FakeUserNotifier extends UserNotifier {
   }
 }
 
-class FakeBirthdayNotifier extends BirthdayNotifier {
-  final BirthdayState? _initialState;
-
-  FakeBirthdayNotifier({this._initialState});
-
-  @override
-  BirthdayState build() {
-    return _initialState ?? BirthdayState(isLoading: false);
-  }
-
-  final List<CreateBirthdayInput> createdInputs = [];
-  final List<String> deletedIds = [];
-
-  @override
-  void startListening(String uid) {
-    state = state.copyWith(isLoading: false);
-  }
-
-  @override
-  Future<void> createBirthday(String uid, CreateBirthdayInput input) async {
-    state = state.copyWith(isCreating: true);
-    createdInputs.add(input);
-    await Future<void>.value();
-    state = state.copyWith(isCreating: false);
-  }
-
-  @override
-  Future<void> updateBirthday(
-    String uid,
-    String birthdayId,
-    CreateBirthdayInput input,
-  ) async {
-    state = state.copyWith(isCreating: true);
-    createdInputs.add(input);
-    await Future<void>.value();
-    state = state.copyWith(isCreating: false);
-  }
-
-  @override
-  Future<void> deleteBirthday(String uid, String birthdayId) async {
-    deletedIds.add(birthdayId);
-  }
-
-  @override
-  void clear() {
-    state = BirthdayState();
-  }
-}
-
 class FakeCategoryNotifier extends CategoryNotifier {
   @override
   void build() {}
@@ -358,7 +372,6 @@ final defaultTestOverrides = [
   bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
   authProvider.overrideWith(FakeAuthNotifier.new),
   userProvider.overrideWith(FakeUserNotifier.new),
-  birthdayProvider.overrideWith(FakeBirthdayNotifier.new),
   categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
   bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
 ];

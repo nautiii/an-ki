@@ -29,7 +29,7 @@ class _NextBirthdayCardState extends ConsumerState<NextBirthdayCard> {
   @override
   Widget build(BuildContext context) {
     final nextBirthdays = ref.watch(nextBirthdaysProvider);
-    final isLoading = ref.watch(birthdayProvider.select((s) => s.isLoading));
+    final isLoading = ref.watch(birthdaysLoadingProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     if (isLoading) {

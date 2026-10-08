@@ -1,12 +1,13 @@
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/data/models/category_model.dart';
 import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../support/fake_providers.dart';
 import '../../support/network_image_mock.dart';
 import '../../support/test_harness.dart';
 
@@ -47,11 +48,8 @@ void main() {
     await tester.pumpHarness(
       const BirthdayCalendar(),
       overrides: [
-        birthdayProvider.overrideWith(
-          () => FakeBirthdayNotifier(
-            initialState: BirthdayState(birthdays: birthdays, isLoading: false),
-          ),
-        ),
+        birthdaysProvider.overrideWithValue(AsyncData(birthdays)),
+        currentUidProvider.overrideWithValue('u1'),
         categoryRepositoryProvider.overrideWithValue(
           StubCategoryRepository([family]),
         ),

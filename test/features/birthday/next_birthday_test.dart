@@ -5,6 +5,7 @@ import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/fake_providers.dart';
@@ -42,13 +43,8 @@ void main() {
     await tester.pumpHarness(
       const NextBirthdayCard(),
       overrides: [
-        birthdayProvider.overrideWith(
-          () => FakeBirthdayNotifier(
-            initialState: BirthdayState(
-              birthdays: birthdays,
-              isLoading: isLoading,
-            ),
-          ),
+        birthdaysProvider.overrideWithValue(
+          isLoading ? const AsyncLoading() : AsyncData(birthdays),
         ),
         authProvider.overrideWith(
           () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),

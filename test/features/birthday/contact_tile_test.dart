@@ -1,8 +1,8 @@
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/data/models/category_model.dart';
+import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
-import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/contact_tile.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
@@ -63,7 +63,7 @@ void main() {
         ),
       ),
     ),
-    birthdayProvider.overrideWith(FakeBirthdayNotifier.new),
+    birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
     categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
     categoryRepositoryProvider.overrideWithValue(
       StubCategoryRepository([family], fail: failCategories),

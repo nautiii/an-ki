@@ -58,8 +58,7 @@ const knownViolations = <String>{
   'lib/features/home/main_screen.dart -> lib/features/birthday/screens/home_screen.dart [screens-private]',
   'lib/features/home/main_screen.dart -> lib/features/book_scanner/screens/book_scanner_screen.dart [screens-private]',
   'lib/features/user/providers/user_provider.dart -> lib/features/birthday/data/repositories/birthday_repository.dart [feature-graph]',
-  'lib/features/user/providers/user_provider.dart -> lib/features/birthday/providers/birthday_provider.dart [feature-graph]',
-  'lib/features/user/screens/settings_screen.dart -> lib/features/birthday/providers/birthday_provider.dart [feature-graph]',
+  'lib/features/user/screens/settings_screen.dart -> lib/features/birthday/providers/contact_import.dart [feature-graph]',
 };
 
 /// Ce que chaque règle protège, et comment corriger.

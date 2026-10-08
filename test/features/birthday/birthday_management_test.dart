@@ -1,9 +1,9 @@
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
-import 'package:an_ki/features/birthday/screens/home_screen.dart';
-import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,12 +40,12 @@ void main() {
   final next = _relative(5, id: 'next', name: 'Alice', surname: 'Wonderland');
   final listed = _relative(40, id: 'listed', name: 'Bob', surname: 'Builder');
 
-  List<dynamic> overridesWith(FakeBirthdayNotifier birthdayNotifier) => [
+  List<dynamic> overridesWith(RecordingBirthdayRepository repository) => [
     authProvider.overrideWith(
       () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
     ),
     userProvider.overrideWith(FakeUserNotifier.new),
-    birthdayProvider.overrideWith(() => birthdayNotifier),
+    birthdayRepositoryProvider.overrideWithValue(repository),
     categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
     categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),
     bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
@@ -55,12 +55,7 @@ void main() {
     await tester.pumpHarness(
       const HomeScreen(),
       overrides: overridesWith(
-        FakeBirthdayNotifier(
-          initialState: BirthdayState(
-            birthdays: [next, listed],
-            isLoading: false,
-          ),
-        ),
+        RecordingBirthdayRepository(initial: [next, listed]),
       ),
     );
     await tester.pumpAndSettle();
@@ -73,13 +68,11 @@ void main() {
   testWidgets('swiping a listed birthday asks for confirmation and deletes it', (
     tester,
   ) async {
-    final birthdayNotifier = FakeBirthdayNotifier(
-      initialState: BirthdayState(birthdays: [next, listed], isLoading: false),
-    );
+    final repository = RecordingBirthdayRepository(initial: [next, listed]);
 
     await tester.pumpHarness(
       const HomeScreen(),
-      overrides: overridesWith(birthdayNotifier),
+      overrides: overridesWith(repository),
     );
     await tester.pumpAndSettle();
 
@@ -94,17 +87,40 @@ void main() {
     await tester.tap(find.text('Supprimer'));
     await tester.pumpAndSettle();
 
-    expect(birthdayNotifier.deletedIds, contains('listed'));
+    expect(repository.deleted, contains('listed'));
   });
 
-  testWidgets('cancelling the confirmation keeps the birthday', (tester) async {
-    final birthdayNotifier = FakeBirthdayNotifier(
-      initialState: BirthdayState(birthdays: [next, listed], isLoading: false),
+  testWidgets('a failed delete is announced once the tile is gone', (
+    tester,
+  ) async {
+    final repository = RecordingBirthdayRepository(
+      initial: [next, listed],
+      failure: Exception('denied'),
     );
 
     await tester.pumpHarness(
       const HomeScreen(),
-      overrides: overridesWith(birthdayNotifier),
+      overrides: overridesWith(repository),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.text('Bob Builder'), const Offset(600, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Supprimer'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text("Erreur lors de l'enregistrement de l'anniversaire"),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('cancelling the confirmation keeps the birthday', (tester) async {
+    final repository = RecordingBirthdayRepository(initial: [next, listed]);
+
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overridesWith(repository),
     );
     await tester.pumpAndSettle();
 
@@ -114,7 +130,7 @@ void main() {
     await tester.tap(find.text('Annuler'));
     await tester.pumpAndSettle();
 
-    expect(birthdayNotifier.deletedIds, isEmpty);
+    expect(repository.deleted, isEmpty);
     expect(find.text('Bob Builder'), findsOneWidget);
   });
 }

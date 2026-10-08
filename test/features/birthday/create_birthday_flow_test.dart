@@ -1,10 +1,10 @@
-import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/birthday/screens/home_screen.dart';
-import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
-import 'package:an_ki/features/user/providers/user_provider.dart';
+import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
+import 'package:an_ki/features/user/data/models/user_model.dart';
+import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -17,8 +17,6 @@ void main() {
   testWidgets(
     'HomeScreen opens the create birthday page from the search bar add button',
     (WidgetTester tester) async {
-      final birthdayNotifierInstance = FakeBirthdayNotifier();
-
       await tester.pumpHarness(
         const HomeScreen(),
         overrides: [
@@ -26,7 +24,9 @@ void main() {
             () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
           ),
           userProvider.overrideWith(FakeUserNotifier.new),
-          birthdayProvider.overrideWith(() => birthdayNotifierInstance),
+          birthdayRepositoryProvider.overrideWithValue(
+            RecordingBirthdayRepository(),
+          ),
           categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
           bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
         ],
@@ -45,7 +45,7 @@ void main() {
   testWidgets('Create birthday flow submits a new birthday to the provider', (
     WidgetTester tester,
   ) async {
-    final birthdayNotifierInstance = FakeBirthdayNotifier();
+    final repository = RecordingBirthdayRepository();
 
     await tester.pumpHarness(
       const HomeScreen(),
@@ -66,7 +66,7 @@ void main() {
             ),
           ),
         ),
-        birthdayProvider.overrideWith(() => birthdayNotifierInstance),
+        birthdayRepositoryProvider.overrideWithValue(repository),
         categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
         bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
       ],
@@ -82,9 +82,9 @@ void main() {
     await tester.tap(find.text('Ajouter').last);
     await tester.pumpAndSettle();
 
-    expect(birthdayNotifierInstance.createdInputs, hasLength(1));
-    expect(birthdayNotifierInstance.createdInputs.single.name, 'Thomas');
-    expect(birthdayNotifierInstance.createdInputs.single.surname, 'Leroy');
+    expect(repository.created, hasLength(1));
+    expect(repository.created.single.name, 'Thomas');
+    expect(repository.created.single.surname, 'Leroy');
     expect(find.text('Nouvel anniversaire'), findsNothing);
   });
 }

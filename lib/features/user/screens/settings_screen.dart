@@ -6,7 +6,7 @@ import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/user/providers/theme_provider.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/providers/contact_import.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -89,7 +89,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onPressed: () async {
               final authNotifier = ref.read(authProvider.notifier);
               final userNotifier = ref.read(userProvider.notifier);
-              final birthdayNotifier = ref.read(birthdayProvider.notifier);
               final l10n = context.l10n;
 
               // Fermer le dialogue de confirmation
@@ -110,9 +109,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Délai pour une transition visuelle fluide
               await Future<void>.delayed(const Duration(milliseconds: 600));
 
-              // Nettoyage simultané des états
+              // Nettoyage de l'état utilisateur (les anniversaires suivent la
+              // session seuls).
               userNotifier.clear();
-              birthdayNotifier.clear();
 
               // Déconnexion finale
               await authNotifier.signOut(l10n);
@@ -178,6 +177,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Issue de l'import des contacts : nombre importé ou permission refusée.
+    ref.listen(contactImportProvider, (_, next) {
+      final message = switch (next) {
+        AsyncData(:final value?) =>
+          value > 0
+              ? context.l10n.contactsImported(value)
+              : context.l10n.noContactsWithBirthday,
+        AsyncError() => context.l10n.permissionDenied,
+        _ => null,
+      };
+      if (message != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(behavior: SnackBarBehavior.floating, content: Text(message)),
+        );
+      }
+    });
     ref.listen(authProvider, (previous, next) {
       if (!next.isAuthenticated && previous?.isAuthenticated == true) {
         if (context.mounted) {
@@ -262,39 +277,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             leading: const Icon(Icons.contact_page_rounded),
             title: Text(context.l10n.importContacts),
             trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () async {
-              final uid = ref.read(authProvider).user?.uid;
-              if (uid == null) return;
-
+            onTap: () {
               unawaited(HapticFeedback.lightImpact());
-
-              try {
-                final count = await ref
-                    .read(birthdayProvider.notifier)
-                    .importFromContacts(uid);
-
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      behavior: SnackBarBehavior.floating,
-                      content: Text(
-                        count > 0
-                            ? context.l10n.contactsImported(count)
-                            : context.l10n.noContactsWithBirthday,
-                      ),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      behavior: SnackBarBehavior.floating,
-                      content: Text(context.l10n.permissionDenied),
-                    ),
-                  );
-                }
-              }
+              unawaited(ref.read(contactImportProvider.notifier).run());
             },
           ),
           const Divider(),

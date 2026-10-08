@@ -2,7 +2,6 @@ import 'package:an_ki/app/bootstrap/app_initializer.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:an_ki/features/user/data/repositories/user_repository.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart' as fam;
@@ -26,7 +25,6 @@ void main() {
           () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
         ),
         userProvider.overrideWith(() => userNotifierInstance),
-        birthdayProvider.overrideWith(FakeBirthdayNotifier.new),
         bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
         userRepositoryProvider.overrideWithValue(FakeUserRepository()),
       ],
@@ -59,7 +57,6 @@ void main() {
           ),
         ),
         userProvider.overrideWith(() => userNotifier),
-        birthdayProvider.overrideWith(FakeBirthdayNotifier.new),
         bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
         userRepositoryProvider.overrideWithValue(FakeUserRepository()),
       ],
@@ -80,7 +77,6 @@ void main() {
       overrides: [
         authProvider.overrideWith(() => authNotifier),
         userProvider.overrideWith(FakeUserNotifier.new),
-        birthdayProvider.overrideWith(FakeBirthdayNotifier.new),
         bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
         userRepositoryProvider.overrideWithValue(FakeUserRepository()),
       ],

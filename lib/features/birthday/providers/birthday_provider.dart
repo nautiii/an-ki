@@ -1,173 +1,46 @@
-import 'dart:async';
-
-import 'package:an_ki/core/services/contacts_service.dart';
-import 'package:an_ki/core/services/notification_service.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
-import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
 import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
 import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class BirthdayState {
-  final List<BirthdayModel> birthdays;
-  final bool isLoading;
-  final bool isCreating;
-
-  BirthdayState({
-    this.birthdays = const [],
-    this.isLoading = true,
-    this.isCreating = false,
-  });
-
-  BirthdayState copyWith({
-    List<BirthdayModel>? birthdays,
-    bool? isLoading,
-    bool? isCreating,
-  }) {
-    return BirthdayState(
-      birthdays: birthdays ?? this.birthdays,
-      isLoading: isLoading ?? this.isLoading,
-      isCreating: isCreating ?? this.isCreating,
-    );
-  }
-}
-
-class BirthdayNotifier extends Notifier<BirthdayState> {
-  @override
-  BirthdayState build() {
-    ref.onDispose(() => _subscription?.cancel());
-    return BirthdayState();
-  }
-
-  BirthdayRepository get _repository => ref.read(birthdayRepositoryProvider);
-  StreamSubscription<List<BirthdayModel>>? _subscription;
-
-  void startListening(String uid) {
-    _subscription?.cancel();
-    state = state.copyWith(isLoading: true);
-
-    _subscription = _repository
-        .watchBirthdays(uid)
-        .listen(
-          (List<BirthdayModel> data) {
-            if (ref.mounted) {
-              state = state.copyWith(birthdays: data, isLoading: false);
-              ref
-                  .read(notificationServiceProvider)
-                  .scheduleAll(
-                    data
-                        .map(
-                          (b) => BirthdayReminder(
-                            id: b.id,
-                            name: b.name,
-                            surname: b.surname,
-                            birthDate: b.date,
-                          ),
-                        )
-                        .toList(),
-                  );
-            }
-          },
-          onError: (Object e) {
-            debugPrint('[BirthdayNotifier] watchBirthdays failed: $e');
-            if (ref.mounted) {
-              state = state.copyWith(isLoading: false);
-            }
-          },
-        );
-  }
-
-  void clear() {
-    _subscription?.cancel();
-    _subscription = null;
-    state = BirthdayState();
-  }
-
-  Future<void> createBirthday(String uid, CreateBirthdayInput input) async {
-    if (state.isCreating) {
-      return;
-    }
-
-    state = state.copyWith(isCreating: true);
-
-    try {
-      await _repository.createBirthday(uid, input);
-    } finally {
-      if (ref.mounted) {
-        state = state.copyWith(isCreating: false);
-      }
-    }
-  }
-
-  Future<void> updateBirthday(
-    String uid,
-    String birthdayId,
-    CreateBirthdayInput input,
-  ) async {
-    if (state.isCreating) {
-      return;
-    }
-
-    state = state.copyWith(isCreating: true);
-
-    try {
-      await _repository.updateBirthday(uid, birthdayId, input);
-    } finally {
-      if (ref.mounted) {
-        state = state.copyWith(isCreating: false);
-      }
-    }
-  }
-
-  Future<void> deleteBirthday(String uid, String birthdayId) async {
-    await _repository.deleteBirthday(uid, birthdayId);
-  }
-
-  Future<int> importFromContacts(String uid) async {
-    final contacts = ref.read(contactsServiceProvider);
-
-    final granted = await contacts.requestReadPermission();
-    if (!granted) {
-      throw Exception('Contacts permission denied');
-    }
-
-    final imported = await contacts.fetchBirthdays();
-    for (final contact in imported) {
-      await _repository.createBirthday(
-        uid,
-        CreateBirthdayInput(
-          uid: uid,
-          name: contact.name,
-          surname: contact.surname,
-          date: contact.date,
-          categories: const [],
-        ),
-      );
-    }
-    return imported.length;
-  }
-}
-
-final birthdayProvider = NotifierProvider<BirthdayNotifier, BirthdayState>(
-  BirthdayNotifier.new,
-);
-
-/// Provider pour récupérer uniquement la liste des anniversaires
-final birthdaysListProvider = Provider<List<BirthdayModel>>((ref) {
-  return ref.watch(birthdayProvider.select((s) => s.birthdays));
+/// Anniversaires de l'utilisateur courant, en temps réel ; liste vide hors
+/// session.
+///
+/// Dérivé de [currentUidProvider] : connexion, changement de compte et
+/// déconnexion relancent ou coupent l'abonnement Firestore sans code
+/// d'initialisation ni remise à zéro manuelle.
+final birthdaysProvider = StreamProvider<List<BirthdayModel>>((ref) {
+  final uid = ref.watch(currentUidProvider);
+  if (uid == null) return Stream.value(const []);
+  return ref.watch(birthdayRepositoryProvider).watchBirthdays(uid);
 });
 
-/// Provider pour calculer le prochain anniversaire (ou les prochains si même jour)
+/// Vrai tant que la première liste n'est pas arrivée (ni donnée ni erreur).
+final birthdaysLoadingProvider = Provider<bool>((ref) {
+  final birthdays = ref.watch(birthdaysProvider);
+  return birthdays.isLoading && !birthdays.hasValue && !birthdays.hasError;
+});
+
+/// Liste courante des anniversaires : vide pendant le premier chargement ou
+/// en cas d'erreur, la précédente pendant un rechargement.
+final birthdaysListProvider = Provider<List<BirthdayModel>>(
+  (ref) => ref.watch(birthdaysProvider).value ?? const [],
+);
+
+/// Le ou les prochains anniversaires (plusieurs s'ils tombent le même jour).
 final nextBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
   final birthdays = ref.watch(birthdaysListProvider);
   return birthdays.nextBirthdays;
 });
 
-/// Notifier pour gérer la chaîne de recherche
+/// Texte de recherche, remis à zéro quand l'utilisateur change.
 class BirthdaySearchNotifier extends Notifier<String> {
   @override
-  String build() => '';
+  String build() {
+    ref.watch(currentUidProvider);
+    return '';
+  }
 
   void update(String value) => state = value;
 }
@@ -176,10 +49,13 @@ final birthdaySearchProvider = NotifierProvider<BirthdaySearchNotifier, String>(
   BirthdaySearchNotifier.new,
 );
 
-/// Notifier pour gérer les catégories filtrées (par ID)
+/// Catégories filtrées (par id), remises à zéro quand l'utilisateur change.
 class BirthdayCategoryFilterNotifier extends Notifier<List<String>> {
   @override
-  List<String> build() => [];
+  List<String> build() {
+    ref.watch(currentUidProvider);
+    return const [];
+  }
 
   void update(List<String> value) => state = value;
 }

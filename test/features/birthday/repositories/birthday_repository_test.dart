@@ -124,25 +124,34 @@ void main() {
         'categories': <String>[],
       });
 
-      await repository.deleteBirthday('user-1', ref.id);
+      await repository.deleteBirthday(ref.id);
 
       final doc = await firestore.collection('birthday').doc(ref.id).get();
       expect(doc.exists, isFalse);
     });
+    // La propriété du document est vérifiée par les règles Firestore
+    // (`firestore.rules`), pas par une lecture préalable côté client.
+  });
 
-    test('does not delete a birthday owned by someone else', () async {
-      final ref = await firestore.collection('birthday').add({
-        'uid': 'user-2',
-        'name': 'X',
-        'surname': 'Y',
-        'date': Timestamp.fromDate(DateTime(1990)),
-        'categories': <String>[],
-      });
+  group('createBirthdays', () {
+    test('stores every input with the uid', () async {
+      await repository.createBirthdays('user-1', [
+        input(name: 'A'),
+        input(name: 'B'),
+      ]);
 
-      await repository.deleteBirthday('user-1', ref.id);
+      final stored = await firestore.collection('birthday').get();
+      expect(stored.docs.map((d) => d.data()['name']), ['A', 'B']);
+      expect(stored.docs.map((d) => d.data()['uid']).toSet(), {'user-1'});
+    });
 
-      final doc = await firestore.collection('birthday').doc(ref.id).get();
-      expect(doc.exists, isTrue);
+    test('splits more than 500 writes into several batches', () async {
+      await repository.createBirthdays('user-1', [
+        for (var i = 0; i < 501; i++) input(name: 'P$i'),
+      ]);
+
+      final stored = await firestore.collection('birthday').get();
+      expect(stored.docs, hasLength(501));
     });
   });
 

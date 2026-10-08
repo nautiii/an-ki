@@ -1,5 +1,4 @@
 import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
-import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/user/data/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
@@ -91,9 +90,8 @@ class UserNotifier extends Notifier<UserState> {
       // 2. Supprimer l'utilisateur de Firestore
       await _repository.deleteUser(uid);
 
-      // 3. Nettoyer les états locaux
+      // 3. Nettoyer l'état local (les anniversaires suivent la session seuls).
       clear();
-      ref.read(birthdayProvider.notifier).clear();
     } finally {
       state = state.copyWith(isLoading: false);
     }

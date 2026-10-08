@@ -3,6 +3,7 @@ import 'package:an_ki/core/common/search_bar.dart';
 import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/providers/home_view_provider.dart';
@@ -22,8 +23,20 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Les écritures sont optimistes (la feuille se ferme sans attendre) :
+    // l'accueil, toujours monté dessous, annonce un échec tardif. Il remplace
+    // le message en cours (« … supprimé ») que l'échec contredit.
+    ref.listen(birthdayEditorProvider, (_, next) {
+      if (next is AsyncError) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(content: Text(context.l10n.errorSavingBirthday)),
+          );
+      }
+    });
     final filteredBirthdays = ref.watch(filteredBirthdaysProvider);
-    final isLoading = ref.watch(birthdayProvider.select((s) => s.isLoading));
+    final isLoading = ref.watch(birthdaysLoadingProvider);
     final viewType = ref.watch(homeViewProvider);
 
     return Scaffold(

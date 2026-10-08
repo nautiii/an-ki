@@ -1,14 +1,15 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/data/models/category_model.dart';
 import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
-import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -80,11 +81,12 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     if (image != null) setState(() => _selectedImage = image);
   }
 
-  Future<void> _save() async {
+  /// Valide, lance l'écriture sans l'attendre puis ferme la feuille : un échec
+  /// éventuel est annoncé par l'écran d'accueil.
+  void _save() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    final authState = ref.read(authProvider);
-    final uid = authState.user?.uid;
+    final uid = ref.read(currentUidProvider);
     if (uid == null) return;
 
     final input = CreateBirthdayInput(
@@ -96,22 +98,12 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
       pictureFile: _selectedImage,
     );
 
-    try {
-      if (widget.birthdayToEdit != null) {
-        await ref
-            .read(birthdayProvider.notifier)
-            .updateBirthday(uid, widget.birthdayToEdit!.id, input);
-      } else {
-        await ref.read(birthdayProvider.notifier).createBirthday(uid, input);
-      }
-      if (mounted) Navigator.of(context).pop(true);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.errorSavingBirthday)),
-        );
-      }
-    }
+    final editor = ref.read(birthdayEditorProvider.notifier);
+    final toEdit = widget.birthdayToEdit;
+    unawaited(
+      toEdit != null ? editor.edit(toEdit.id, input) : editor.create(input),
+    );
+    Navigator.of(context).pop(true);
   }
 
   Future<void> _delete() async {
@@ -141,13 +133,12 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     );
 
     if (confirmed == true && mounted) {
-      final uid = ref.read(authProvider).uid;
-      if (uid != null) {
-        await ref
-            .read(birthdayProvider.notifier)
-            .deleteBirthday(uid, widget.birthdayToEdit!.id);
-        if (mounted) Navigator.of(context).pop(true);
-      }
+      unawaited(
+        ref
+            .read(birthdayEditorProvider.notifier)
+            .delete(widget.birthdayToEdit!.id),
+      );
+      Navigator.of(context).pop(true);
     }
   }
 
@@ -155,7 +146,6 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final isCreating = ref.watch(birthdayProvider.select((s) => s.isCreating));
 
     return Container(
       decoration: BoxDecoration(
@@ -268,7 +258,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                       children: [
                         if (widget.birthdayToEdit != null) ...[
                           IconButton.filledTonal(
-                            onPressed: isCreating ? null : _delete,
+                            onPressed: _delete,
                             style: IconButton.styleFrom(
                               foregroundColor: colorScheme.error,
                               backgroundColor: colorScheme.errorContainer
@@ -284,27 +274,18 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                         ],
                         Expanded(
                           child: FilledButton.icon(
-                            onPressed: isCreating ? null : _save,
+                            onPressed: _save,
                             style: FilledButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            icon: isCreating
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : Icon(
-                                    widget.birthdayToEdit != null
-                                        ? Icons.check_rounded
-                                        : Icons.add_rounded,
-                                  ),
+                            icon: Icon(
+                              widget.birthdayToEdit != null
+                                  ? Icons.check_rounded
+                                  : Icons.add_rounded,
+                            ),
                             label: Text(
                               widget.birthdayToEdit != null
                                   ? context.l10n.save

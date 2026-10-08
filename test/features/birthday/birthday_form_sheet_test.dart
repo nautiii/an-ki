@@ -1,13 +1,15 @@
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
 import 'package:an_ki/features/birthday/data/models/category_model.dart';
+import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
-import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/fake_providers.dart';
@@ -28,12 +30,6 @@ class StubCategoryRepository implements CategoryRepository {
   Future<String> createCategory(BirthdayCategory category) async => 'x';
 }
 
-class _ThrowingBirthdayNotifier extends FakeBirthdayNotifier {
-  @override
-  Future<void> updateBirthday(String uid, String id, input) async =>
-      throw Exception('save failed');
-}
-
 void main() {
   final family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
 
@@ -46,11 +42,14 @@ void main() {
     categories: const ['fam'],
   );
 
-  List<dynamic> overrides(FakeBirthdayNotifier notifier, {UserModel? user}) => [
+  List<dynamic> overrides(
+    RecordingBirthdayRepository repository, {
+    UserModel? user,
+  }) => [
     authProvider.overrideWith(
       () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
     ),
-    birthdayProvider.overrideWith(() => notifier),
+    birthdayRepositoryProvider.overrideWithValue(repository),
     categoryRepositoryProvider.overrideWithValue(
       StubCategoryRepository([family]),
     ),
@@ -73,11 +72,11 @@ void main() {
   ];
 
   testWidgets('create mode validates required fields', (tester) async {
-    final notifier = FakeBirthdayNotifier();
+    final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
         const BirthdayFormSheet(),
-        overrides: overrides(notifier),
+        overrides: overrides(repository),
       );
       await tester.pumpAndSettle();
 
@@ -85,17 +84,17 @@ void main() {
       await tester.tap(find.text('Ajouter').last);
       await tester.pumpAndSettle();
 
-      expect(notifier.createdInputs, isEmpty);
+      expect(repository.created, isEmpty);
       expect(find.text('Champ obligatoire'), findsWidgets);
     });
   });
 
   testWidgets('create mode submits with a selected category', (tester) async {
-    final notifier = FakeBirthdayNotifier();
+    final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
         const BirthdayFormSheet(),
-        overrides: overrides(notifier),
+        overrides: overrides(repository),
       );
       await tester.pumpAndSettle();
 
@@ -109,22 +108,22 @@ void main() {
       await tester.tap(find.text('Ajouter').last);
       await tester.pumpAndSettle();
 
-      expect(notifier.createdInputs, hasLength(1));
-      expect(notifier.createdInputs.single.name, 'Bob');
-      expect(notifier.createdInputs.single.categories, contains('fam'));
+      expect(repository.created, hasLength(1));
+      expect(repository.created.single.name, 'Bob');
+      expect(repository.created.single.categories, contains('fam'));
     });
   });
 
   testWidgets('edit mode pre-fills, shows the picture and updates', (
     tester,
   ) async {
-    final notifier = FakeBirthdayNotifier();
+    final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
         BirthdayFormSheet(
           birthdayToEdit: editable.copyWith(picture: _pngBase64),
         ),
-        overrides: overrides(notifier),
+        overrides: overrides(repository),
       );
       await tester.pumpAndSettle();
 
@@ -138,19 +137,19 @@ void main() {
       await tester.tap(find.text('Enregistrer').last);
       await tester.pumpAndSettle();
 
-      expect(notifier.createdInputs, hasLength(1));
-      expect(notifier.createdInputs.single.name, 'Alice');
+      expect(repository.updated, ['edit-1']);
+      expect(repository.created.single.name, 'Alice');
     });
   });
 
   testWidgets('edit mode tolerates an invalid picture', (tester) async {
-    final notifier = FakeBirthdayNotifier();
+    final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
         BirthdayFormSheet(
           birthdayToEdit: editable.copyWith(picture: '!!notbase64!!'),
         ),
-        overrides: overrides(notifier),
+        overrides: overrides(repository),
       );
       await tester.pumpAndSettle();
 
@@ -159,11 +158,11 @@ void main() {
   });
 
   testWidgets('edit mode deletes after confirmation', (tester) async {
-    final notifier = FakeBirthdayNotifier();
+    final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
         BirthdayFormSheet(birthdayToEdit: editable),
-        overrides: overrides(notifier),
+        overrides: overrides(repository),
       );
       await tester.pumpAndSettle();
 
@@ -174,16 +173,16 @@ void main() {
       await tester.tap(find.text('Supprimer'));
       await tester.pumpAndSettle();
 
-      expect(notifier.deletedIds, contains('edit-1'));
+      expect(repository.deleted, contains('edit-1'));
     });
   });
 
   testWidgets('opens and closes the date picker', (tester) async {
-    final notifier = FakeBirthdayNotifier();
+    final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
         const BirthdayFormSheet(),
-        overrides: overrides(notifier),
+        overrides: overrides(repository),
       );
       await tester.pumpAndSettle();
 
@@ -198,11 +197,11 @@ void main() {
   });
 
   testWidgets('close button is wired', (tester) async {
-    final notifier = FakeBirthdayNotifier();
+    final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
         const BirthdayFormSheet(),
-        overrides: overrides(notifier),
+        overrides: overrides(repository),
       );
       await tester.pumpAndSettle();
 
@@ -215,11 +214,11 @@ void main() {
   testWidgets('cancelling the delete dialog keeps the birthday', (
     tester,
   ) async {
-    final notifier = FakeBirthdayNotifier();
+    final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
         BirthdayFormSheet(birthdayToEdit: editable),
-        overrides: overrides(notifier),
+        overrides: overrides(repository),
       );
       await tester.pumpAndSettle();
 
@@ -228,38 +227,30 @@ void main() {
       await tester.tap(find.text('Annuler'));
       await tester.pumpAndSettle();
 
-      expect(notifier.deletedIds, isEmpty);
+      expect(repository.deleted, isEmpty);
     });
   });
 
-  testWidgets('shows a SnackBar when saving fails', (tester) async {
-    final notifier = _ThrowingBirthdayNotifier();
+  testWidgets('a failed save reaches the editor state', (tester) async {
+    final repository = RecordingBirthdayRepository(
+      failure: Exception('save failed'),
+    );
     await mockNetworkImages(() async {
       await tester.pumpHarness(
         BirthdayFormSheet(birthdayToEdit: editable),
-        overrides: overrides(notifier),
+        overrides: overrides(repository),
       );
       await tester.pumpAndSettle();
+      // En vrai, l'écran d'accueil écoute l'éditeur et affiche l'erreur.
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(BirthdayFormSheet)),
+      );
+      container.listen(birthdayEditorProvider, (_, _) {});
 
       await tester.tap(find.text('Enregistrer').last);
       await tester.pumpAndSettle();
 
-      expect(find.byType(SnackBar), findsOneWidget);
-    });
-  });
-
-  testWidgets('disables the actions while creating', (tester) async {
-    final notifier = FakeBirthdayNotifier(
-      initialState: BirthdayState(isCreating: true, isLoading: false),
-    );
-    await mockNetworkImages(() async {
-      await tester.pumpHarness(
-        const BirthdayFormSheet(),
-        overrides: overrides(notifier),
-      );
-      await tester.pump();
-
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(container.read(birthdayEditorProvider).hasError, isTrue);
     });
   });
 }

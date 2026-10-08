@@ -3,6 +3,7 @@ import 'package:an_ki/app/router/app_router.dart';
 import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
+import 'package:an_ki/features/birthday/providers/reminder_sync_provider.dart';
 import 'package:an_ki/features/home/main_screen.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/features/user/providers/theme_provider.dart';
@@ -15,6 +16,9 @@ class App extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Active la synchro des rappels pour toute la vie de l'app : un provider
+    // que personne n'écoute est mis en pause.
+    ref.watch(reminderSyncProvider);
     final themeMode = ref.watch(themeProvider);
     final isAuthenticated = ref.watch(
       authProvider.select((s) => s.isAuthenticated),

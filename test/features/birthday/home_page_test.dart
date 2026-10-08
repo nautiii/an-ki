@@ -71,10 +71,8 @@ void main() {
         ),
       ),
     ),
-    birthdayProvider.overrideWith(
-      () => FakeBirthdayNotifier(
-        initialState: BirthdayState(birthdays: birthdays, isLoading: isLoading),
-      ),
+    birthdaysProvider.overrideWithValue(
+      isLoading ? const AsyncLoading() : AsyncData(birthdays),
     ),
     categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
     categoryRepositoryProvider.overrideWithValue(
