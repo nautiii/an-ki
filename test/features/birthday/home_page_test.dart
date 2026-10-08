@@ -6,7 +6,6 @@ import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
-import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -78,7 +77,6 @@ void main() {
     categoryRepositoryProvider.overrideWithValue(
       StubCategoryRepository(repoCategories),
     ),
-    bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
   ];
 
   testWidgets('shows the empty state when there are no other birthdays', (

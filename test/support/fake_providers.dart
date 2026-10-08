@@ -9,7 +9,6 @@ import 'package:an_ki/features/birthday/data/repositories/category_repository.da
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
 import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
-import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/user/data/repositories/user_repository.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -157,6 +156,46 @@ class FakeBookRepository extends Fake implements BookRepository {
 
   @override
   Future<void> deleteBook(String bookId) async {}
+}
+
+/// Dépôt de livres configurable qui enregistre les écritures.
+class RecordingBookRepository extends FakeBookRepository {
+  RecordingBookRepository({
+    this.bookByIsbn,
+    this.throwOnScan,
+    this.books = const [],
+    this.failure,
+  });
+
+  final BookModel? bookByIsbn;
+  final Exception? throwOnScan;
+
+  /// Livres servis par [watchBooks].
+  final List<BookModel> books;
+
+  /// Erreur levée par chaque écriture quand elle est définie.
+  final Exception? failure;
+
+  final watchedUids = <String>[];
+  final saved = <BookModel>[];
+
+  @override
+  Future<BookModel?> fetchBookByIsbn(String isbn) async {
+    if (throwOnScan case final error?) throw error;
+    return bookByIsbn;
+  }
+
+  @override
+  Stream<List<BookModel>> watchBooks(String uid) {
+    watchedUids.add(uid);
+    return Stream.value(books);
+  }
+
+  @override
+  Future<void> saveBook(String uid, BookModel book) async {
+    if (failure case final error?) throw error;
+    saved.add(book);
+  }
 }
 
 // --- Notifiers ---
@@ -313,58 +352,6 @@ class FakeCategoryNotifier extends CategoryNotifier {
   }
 }
 
-class FakeBookScannerNotifier extends BookScannerNotifier {
-  final BookScannerState? _initialState;
-
-  FakeBookScannerNotifier({this._initialState});
-
-  @override
-  BookScannerState build() => _initialState ?? BookScannerState();
-
-  final List<BookModel> savedBooks = [];
-  // Réglé par les tests : champ public voulu sur ce faux notifier.
-  // ignore: riverpod_lint/avoid_public_notifier_properties
-  BookModel? bookToReturnOnScan;
-
-  @override
-  void startListening(String uid) {
-    state = state.copyWith(isLoading: false);
-  }
-
-  @override
-  Future<BookModel?> scanIsbn(String isbn) async {
-    state = state.copyWith(isScanning: true);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    if (ref.mounted) {
-      state = state.copyWith(
-        isScanning: false,
-        scannedBook: bookToReturnOnScan,
-      );
-    }
-    return bookToReturnOnScan;
-  }
-
-  @override
-  Future<void> saveBook(BookModel book) async {
-    state = state.copyWith(isSaving: true);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    savedBooks.add(book);
-    if (ref.mounted) {
-      state = state.copyWith(isSaving: false);
-    }
-  }
-
-  @override
-  Future<void> deleteBook(String bookId) async {
-    savedBooks.removeWhere((b) => b.id == bookId);
-  }
-
-  @override
-  void reset() {
-    state = state.copyWith(clearScannedBook: true, clearError: true);
-  }
-}
-
 final defaultTestOverrides = [
   userRepositoryProvider.overrideWithValue(FakeUserRepository()),
   birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
@@ -373,5 +360,4 @@ final defaultTestOverrides = [
   authProvider.overrideWith(FakeAuthNotifier.new),
   userProvider.overrideWith(FakeUserNotifier.new),
   categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
-  bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
 ];

@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
-import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
+import 'package:an_ki/features/book_scanner/providers/book_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -134,12 +136,12 @@ class BookInfoSheet extends ConsumerWidget {
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              onPressed: () async {
-                await ref.read(bookScannerProvider.notifier).saveBook(book);
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  onClosed();
-                }
+              // Écriture optimiste : on ferme tout de suite, l'écran du
+              // scanner annonce un échec éventuel.
+              onPressed: () {
+                unawaited(ref.read(bookEditorProvider.notifier).save(book));
+                Navigator.pop(context);
+                onClosed();
               },
               child: Text(context.l10n.add),
             ),

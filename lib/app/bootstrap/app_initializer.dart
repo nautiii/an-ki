@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -64,12 +63,8 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
     // Vérification de sécurité avant tout accès à `ref`.
     if (!mounted) return;
 
+    // Les anniversaires et les livres suivent la session seuls.
     final userNotifier = ref.read(userProvider.notifier);
-    final bookScannerNotifier = ref.read(bookScannerProvider.notifier);
-
-    // Lance le stream des livres hors du chemin critique pour ne pas bloquer
-    // l'UI pendant son démarrage. Les anniversaires suivent la session seuls.
-    unawaited(Future.microtask(() => bookScannerNotifier.startListening(uid)));
 
     // Chargement de l'utilisateur Firestore.
     await userNotifier.loadUser(uid);

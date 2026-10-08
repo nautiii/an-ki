@@ -4,7 +4,6 @@ import 'package:an_ki/features/birthday/data/repositories/birthday_repository.da
 import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
-import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -48,7 +47,6 @@ void main() {
     birthdayRepositoryProvider.overrideWithValue(repository),
     categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
     categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),
-    bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
   ];
 
   testWidgets('HomeScreen lists non-next birthdays', (tester) async {

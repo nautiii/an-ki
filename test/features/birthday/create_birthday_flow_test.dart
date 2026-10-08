@@ -2,7 +2,6 @@ import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
-import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/user/data/models/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +27,6 @@ void main() {
             RecordingBirthdayRepository(),
           ),
           categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
-          bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
         ],
       );
       await tester.pumpAndSettle();
@@ -68,7 +66,6 @@ void main() {
         ),
         birthdayRepositoryProvider.overrideWithValue(repository),
         categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
-        bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
       ],
     );
     await tester.pumpAndSettle();

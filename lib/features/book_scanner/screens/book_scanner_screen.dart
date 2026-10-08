@@ -4,7 +4,9 @@ import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
 import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
+import 'package:an_ki/features/book_scanner/providers/book_editor.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
+import 'package:an_ki/features/book_scanner/providers/isbn_lookup.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_card.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_info_sheet.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -49,7 +51,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
     if (!mounted) return;
 
     try {
-      final book = await ref.read(bookScannerProvider.notifier).scanIsbn(isbn);
+      final book = await ref.read(isbnLookupProvider.notifier).lookUp(isbn);
       if (mounted) {
         if (book != null) {
           _showBookInfo(book);
@@ -102,11 +104,16 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isLoading = ref.watch(bookScannerProvider.select((s) => s.isLoading));
-    final isScanning = ref.watch(
-      bookScannerProvider.select((s) => s.isScanning),
-    );
-    final books = ref.watch(bookScannerProvider.select((s) => s.savedBooks));
+    // L'ajout d'un livre est optimiste (la feuille se ferme sans attendre) :
+    // l'écran, toujours monté dessous, annonce un échec tardif.
+    ref.listen(bookEditorProvider, (_, next) {
+      if (next is AsyncError) _showErrorSnippet(context.l10n.errorUnknown);
+    });
+    final savedBooks = ref.watch(savedBooksProvider);
+    final isLoading =
+        savedBooks.isLoading && !savedBooks.hasValue && !savedBooks.hasError;
+    final isScanning = ref.watch(isbnLookupProvider.select((s) => s.isLoading));
+    final books = savedBooks.value ?? const <BookModel>[];
 
     return Scaffold(
       body: SafeArea(

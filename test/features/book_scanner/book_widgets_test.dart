@@ -1,5 +1,6 @@
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/book_scanner/data/models/book_model.dart';
-import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
+import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_card.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_info_sheet.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ void main() {
   group('BookInfoSheet', () {
     testWidgets('renders details with a cover image and saves', (tester) async {
       var closed = false;
+      final repository = RecordingBookRepository();
       await mockNetworkImages(() async {
         await tester.pumpHarness(
           BookInfoSheet(
@@ -32,7 +34,8 @@ void main() {
             onClosed: () => closed = true,
           ),
           overrides: [
-            bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
+            bookRepositoryProvider.overrideWithValue(repository),
+            currentUidProvider.overrideWithValue('u'),
           ],
         );
         await tester.pumpAndSettle();
@@ -47,6 +50,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
 
         expect(closed, isTrue);
+        expect(repository.saved.single.title, '1984');
       });
     });
 
@@ -60,7 +64,8 @@ void main() {
             onClosed: () {},
           ),
           overrides: [
-            bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
+            bookRepositoryProvider.overrideWithValue(RecordingBookRepository()),
+            currentUidProvider.overrideWithValue('u'),
           ],
         );
         await tester.pumpAndSettle();
