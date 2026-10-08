@@ -515,8 +515,9 @@ test('streams the ideas of the signed-in user', () async {
 - After an `await`, check `ref.mounted` before touching `state`: a disposed Notifier throws.
 - Methods use `ref.read`; only `build` uses `ref.watch`. A `ref.watch` getter called from a
   method (`UserNotifier._repository` today) is a bug waiting to happen.
-- Automatic retry is on by default (10 tries, 200 ms → 6.4 s) for exceptions; disable it in tests
-  (`retry: (_, _) => null`) and in the widget harness, and render `hasError` first.
+- Automatic retry is on by default (10 tries, 200 ms → 6.4 s) for exceptions: render `hasError`
+  first. Tests turn it off — the widget harness does since M0, `ProviderContainer.test` takes
+  `retry: (_, _) => null`.
 - Paused providers: hidden widgets (`TickerMode`) pause their listeners; side-effect providers
   must be watched from an always-visible widget.
 - `AsyncValue.value` returns the previous value during loading/error; `valueOrNull` is gone.
@@ -528,7 +529,8 @@ test('streams the ideas of the signed-in user', () async {
 - Timers inside providers (`todayProvider`) outlive a `testWidgets` body: override the provider
   with a value in widget tests.
 - `riverpod_lint` (analyzer plugin) reports in the IDE and with `dart analyze`; `flutter analyze`
-  does not run plugins (checked with Flutter 3.47.6).
+  does not run plugins (checked with Flutter 3.47.6). Suppress a plugin diagnostic with
+  `// ignore: riverpod_lint/<rule>`: `flutter analyze`'s `unnecessary_ignore` accepts it.
 - Firestore: write futures wait for the server; snapshots carry local writes at once;
   `serverTimestamp()` is null until acknowledged; security rules don't filter queries.
 - Dart 3.13: `final` on a constructor parameter that doesn't declare a field is an error;

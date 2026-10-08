@@ -1,8 +1,7 @@
 # Structure — where code goes, what may import what
 
-The executable version of this file is `test/architecture/architecture_test.dart`
-(source: `assets/foundation/test/architecture/`). When the two disagree, fix one of them in the
-same change.
+The executable version of this file is `test/architecture/architecture_test.dart` (installed by
+migration step M0). When the two disagree, fix one of them in the same change.
 
 ## Contents
 1. Target tree
@@ -221,8 +220,9 @@ the shape of a package.
 
 ## 9. The architecture test
 
-- Install: copy `assets/foundation/test/architecture/architecture_test.dart` to
-  `test/architecture/`. It ships with today's debt in `knownViolations`, so it starts green.
+- Installed in `test/architecture/` by M0 (2026-10-08), with the 25 violations of that day in
+  `knownViolations`. The repo file is the source of truth from then on; the copy in
+  `assets/foundation/` is only the original template.
 - It runs with the rest of `flutter test` (pure `dart:io`, ~1 s) and prints violations grouped
   by rule, each with its fix hint.
 - Adding a feature: add it to `featureDependencies` with its edges (the test fails until you do).

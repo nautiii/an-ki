@@ -163,15 +163,10 @@ Propose the fixes; apply them only when asked or when they are in scope.
 
 ## Verify — show, don't claim
 
-- `dart format` on touched files; `flutter analyze` clean; `dart analyze` too once
-  `riverpod_lint` is installed (`flutter analyze` doesn't run analyzer plugins).
-- `flutter test` for the touched features and `test/architecture/`. Before migration step M0
-  installs it, run it from `build/` (paths relative to the repo root, skill folder present in the
-  checkout):
-  ```bash
-  mkdir -p build/arch_check && cp .claude/skills/architecture/assets/foundation/test/architecture/architecture_test.dart build/arch_check/
-  flutter test build/arch_check/architecture_test.dart
-  ```
+- `dart format` on touched files; `flutter analyze` and `dart analyze` both clean (only
+  `dart analyze` runs the `riverpod_lint` plugin).
+- `flutter test` for the touched features and `flutter test test/architecture`, then the whole
+  suite.
 - Tests exist at each layer touched; screen tests cover loading, empty, data and error.
 - Visible behaviour changed → run the app (run skill, Android phone over USB), or say it wasn't run.
 - If unrelated tests fail, report them rather than fixing them silently.
@@ -229,7 +224,8 @@ Propose the fixes; apply them only when asked or when they are in scope.
   before `await container.read(p.future)`, or it never completes; in the app, side-effect
   providers must be watched from an always-mounted widget in `app/`.
 - Automatic retry (on by default) keeps a failing provider in `AsyncLoading` with an error
-  attached: render `hasError` first; disable retry in tests and in the widget harness.
+  attached: render `hasError` first. The widget harness disables it; `ProviderContainer.test`
+  needs `retry: (_, _) => null`.
 - Dependents are notified lazily: in a test, change the source then re-read the dependent
   provider instead of counting synchronous listener calls.
 - `todayProvider` arms a midnight timer: in `testWidgets`, override it with a fixed date or the

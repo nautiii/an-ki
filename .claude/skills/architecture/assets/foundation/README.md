@@ -1,8 +1,9 @@
 # Foundation files
 
 Additive building blocks of the target architecture, to copy at the same path under the repo
-root. None changes existing behaviour. Migration steps M0 and M1 install them all; a brick may
-install the ones it needs earlier (then say so in `references/migration.md`).
+root. None changes existing behaviour. M0 installed the architecture test (2026-10-08; the repo
+copy is now the source of truth); M1 installs the rest, and a brick may install the ones it needs
+earlier (then say so in `references/migration.md`).
 
 Validated on 2026-10-07 in a copy of the repo: `flutter analyze` clean, full suite green
 (310 tests, with the example feature).
@@ -21,4 +22,4 @@ cp $S/lib/core/providers/clock_provider.dart lib/core/providers/
 cp $S/test/core/providers/clock_provider_test.dart test/core/providers/
 ```
 
-Copy only what the current step or brick needs; `test/architecture/` first (M0).
+Copy only what the current step or brick needs.

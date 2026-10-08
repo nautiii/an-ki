@@ -1,8 +1,10 @@
 # Audit and migration plan — from today's code to the target
 
 Audit of 2026-10-07 (commit `46359f3`): 53 hand-written Dart files in `lib/` (~7 100 lines),
-5 features, 281 tests green, `flutter analyze` clean with strict casts/inference/raw types. Update this file as steps land:
-tick the step, delete the debt it cleared, add what you discover.
+5 features, 281 tests green, `flutter analyze` clean with strict casts/inference/raw types.
+Update this file as steps land: tick the step, delete the debt it cleared, add what you discover.
+
+**Progress** — M0 done on 2026-10-08. Next: M1.
 
 ## Contents
 1. What already works
@@ -39,35 +41,30 @@ Plus what imports can't show:
 | A7 | Navigation split three ways | `AppRoutes` in `app/router` (features can't import it) so features push raw `'/login'`, `'/signup'`; `HomeScreen`/`BookScannerScreen` import `SettingsScreen` and push `MaterialPageRoute`; the shell lives in `features/home/`; `MainTab { birthdays, scanner }` sits in `core/providers/` and `core/common/bottom_bar.dart` reads it | core knows features; routes drift; no place for deep links | M4, M7 |
 | A8 | Small correctness bugs | `AuthNotifier.initializeAuth()` never cancels its `authStateChanges()` subscription; `UserNotifier._repository` and `BookScannerNotifier._repository` call `ref.watch` from methods; `appConfigProvider` is unused while `BookRepository` reads `String.fromEnvironment` itself; `BirthdayRepository.deleteBirthday` reads the document before deleting it (the rules already enforce ownership) | leaks, rebuild surprises, duplicated config, slower optimistic deletes | M1, M2 |
 | A9 | State boilerplate | `BirthdayState`/`BookScannerState`/`UserState` hand-roll `isLoading`/`isCreating`/`error` around data that `AsyncValue` models natively | more code, more `copyWith`, inconsistent loading/error handling | M2 |
-| A10 | Tooling gaps | `require_trailing_commas` is a no-op since Dart 3.7; 15 `unawaited_futures` hits; no `riverpod_lint`; the widget harness keeps Riverpod's automatic retry | silent fire-and-forget futures; slow, flaky error tests later | M0 |
-| A11 | Rules gaps | `firestore.rules`: `birthday` and `books` updates check the stored `uid` but not the new one (`request.resource.data.uid == resource.data.uid` missing), so a document can be handed to another account; `category` is a shared collection any signed-in user can read and create (by design today, revisit with backlog B7) | data integrity relies on client code | M0 |
+
+A10 (tooling gaps) and A11 (`uid` not pinned on updates in `firestore.rules`) were cleared by M0.
 
 ## 3. Roadmap
 
 Each step ships alone: tests green, analyzer clean, architecture test green with a shorter
 `knownViolations`. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent + review).
 
-### M0 — Safety net and tooling · S · no behaviour change
-- Copy `assets/foundation/test/architecture/architecture_test.dart` → `test/architecture/`; run it
-  (green with the baseline).
-- `analysis_options.yaml`: drop `require_trailing_commas`; add `unawaited_futures`,
-  `avoid_dynamic_calls`, `unnecessary_ignore`, `cancel_subscriptions`, `close_sinks`,
-  `only_throw_errors`, `test_types_in_equals`; fix the 15 + 1 hits (wrap intended fire-and-forget
-  in `unawaited(...)`). `discarded_futures` stays off (24 hits, mostly widget callbacks: noise).
-- `riverpod_lint` (approval: new analyzer plugin), nothing in `pubspec.yaml` — append to
-  `analysis_options.yaml`:
-  ```yaml
-  plugins:
-    riverpod_lint: 3.1.9
-  ```
-  Then restart the IDE's analysis server and check with `dart analyze` (`flutter analyze` ignores
-  plugins): 4 infos today, `ThemeNotifier.isDark` and 3 public fields on test fakes.
-- `test/support/test_harness.dart`: `ProviderScope(retry: (_, _) => null, …)`.
-- `firestore.rules`: pin `uid` on `birthday`/`books` updates (A11); the maintainer deploys with
-  `firebase deploy --only firestore:rules`.
-- Commits: `TEST: add architecture boundary test`, `CHORE: tighten analyzer lints`,
-  `CHORE: enable riverpod_lint plugin`, `TEST: disable provider retry in harness`,
-  `FIX(firebase): forbid changing a document's owner`.
+### M0 — Safety net and tooling · done 2026-10-08
+- `TEST: add architecture boundary test` — `test/architecture/`, 25 known violations.
+- `CHORE: tighten analyzer lints` — 7 rules added (`unawaited_futures`, `avoid_dynamic_calls`,
+  `unnecessary_ignore`, `cancel_subscriptions`, `close_sinks`, `only_throw_errors`,
+  `test_types_in_equals`), `require_trailing_commas` dropped; 15 intended fire-and-forget calls
+  (haptics, a microtask, the sign-out overlay, scanner restarts) wrapped in `unawaited`,
+  behaviour unchanged. `discarded_futures` stays off (24 hits in widget callbacks: noise).
+- `CHORE: enable riverpod_lint plugin` — `plugins: riverpod_lint: 3.1.9` in
+  `analysis_options.yaml`; `ThemeNotifier.isDark` made private; three legacy test fakes keep
+  their spy fields behind `// ignore: riverpod_lint/avoid_public_notifier_properties`.
+- `TEST: disable provider retry in harness`.
+- `FIX(firebase): forbid changing a document's owner` — **the maintainer deploys it**
+  (`firebase deploy --only firestore:rules`); not run in the emulator (no Firebase CLI here).
+- Learned: plugin diagnostics only show with `dart analyze` and in the IDE (restart its analysis
+  server after editing `plugins:`); a `// ignore: riverpod_lint/<rule>` comment doesn't trip
+  `flutter analyze`'s `unnecessary_ignore`.
 
 ### M1 — Infrastructure providers · M · no behaviour change
 - Copy `assets/foundation/lib/core/providers/{firebase_providers,clock_provider}.dart` and
@@ -148,7 +145,7 @@ Each step ships alone: tests green, analyzer clean, architecture test green with
 2. Behaviour-preserving first: if a behaviour isn't covered by a test, add the test before
    moving code.
 3. Move with `git mv` (history follows), then fix imports; keep each commit compiling.
-4. Run `dart format`, `flutter analyze`, `dart analyze` (plugins) once M0 is in, the touched
+4. Run `dart format`, `flutter analyze`, `dart analyze` (runs `riverpod_lint`), the touched
    features' tests, then the whole suite and `test/architecture/`.
 5. Remove the cleared lines from `knownViolations`; update this file (tick the step, remove fixed
    debt, note discoveries).

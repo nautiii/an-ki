@@ -38,8 +38,12 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
   it. Pin async data with `xProvider.overrideWithValue(const AsyncData(…))`. Cover loading, empty,
   data and error; accessibility with `meetsGuideline(androidTapTargetGuideline)`,
   `meetsGuideline(labeledTapTargetGuideline)` and `find.bySemanticsLabel`.
-- The harness keeps Riverpod's automatic retry until migration M0: test error states at provider
-  level, or override the provider with a fixed `AsyncError`.
+- The harness disables Riverpod's automatic retry (`retry: (_, _) => null`): a provider in error
+  renders its error at once, with no retry timer left pending.
+- Test fakes may keep public spy fields on legacy notifiers with
+  `// ignore: riverpod_lint/avoid_public_notifier_properties` (both analyzers accept it).
+- `test/architecture/` runs with the suite: a new feature is declared in `featureDependencies`,
+  fixed debt is removed from `knownViolations`, a new violation is fixed in the code.
 - `TestHarness` doesn't apply `AppTheme`: widget tests check behaviour; look and contrast are
   checked with the ux-ui snapshot tool.
 

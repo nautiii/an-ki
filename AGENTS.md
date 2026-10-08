@@ -37,7 +37,7 @@ Every dependency is pinned to an exact version.
 |------|---------|
 | Dependencies | `flutter pub get` |
 | Format | `dart format <files>` |
-| Analysis — must be clean | `flutter analyze` (+ `dart analyze` once `riverpod_lint` is on: `flutter analyze` skips analyzer plugins) |
+| Analysis — must be clean | `flutter analyze` and `dart analyze` (only the latter runs the `riverpod_lint` plugin) |
 | Tests | `flutter test`, or `flutter test test/features/<feature>` |
 | Strings, after any `.arb` change | `flutter gen-l10n` |
 | Run on the phone | `scripts/run.ps1` (= `flutter run --dart-define-from-file=secrets.json`) |
@@ -65,9 +65,10 @@ scripts/            PowerShell: run, build and deploy
 ## Architecture: target vs today
 
 Target: feature-first layered MVVM — `screens/ widgets/ → providers/ → data/ → domain/` inside
-each feature, features linked by a declared acyclic graph, rules enforced by `test/architecture/`
-(from migration step M0). Today's code predates it; the plan is
-`.claude/skills/architecture/references/migration.md` (M0–M8).
+each feature, features linked by a declared acyclic graph, rules enforced by
+`test/architecture/architecture_test.dart` (known debt listed there, it only shrinks). Today's
+code predates the target; the plan is `.claude/skills/architecture/references/migration.md`
+(M0 done, next M1–M8).
 
 - Never copy a legacy pattern into new code: session handling with `startListening`/`clear()`,
   `XState` with `isLoading`/`errorMessage` strings, `AppLocalizations` passed to notifiers,
