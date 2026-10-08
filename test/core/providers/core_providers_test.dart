@@ -99,7 +99,6 @@ void main() {
       final container = userContainer(null);
       // The test platform reports light brightness by default.
       expect(container.read(themeProvider), ThemeMode.light);
-      expect(container.read(themeProvider.notifier).isDark, false);
     });
 
     test('reflects the loaded user theme', () async {

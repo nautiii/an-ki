@@ -30,14 +30,14 @@ class ThemeNotifier extends Notifier<ThemeMode> {
     return systemIsDark ? ThemeMode.dark : ThemeMode.light;
   }
 
-  bool get isDark =>
+  bool get _isDark =>
       state == ThemeMode.dark ||
       (state == ThemeMode.system &&
           WidgetsBinding.instance.platformDispatcher.platformBrightness ==
               Brightness.dark);
 
   void toggle() {
-    final newIsDark = !isDark;
+    final newIsDark = !_isDark;
     state = newIsDark ? ThemeMode.dark : ThemeMode.light;
     ref.read(userProvider.notifier).updateTheme(newIsDark);
   }

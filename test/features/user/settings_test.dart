@@ -22,6 +22,8 @@ class SettingsAuthNotifier extends FakeAuthNotifier {
   SettingsAuthNotifier({super.initialState, this.throwOnDelete = false});
 
   final bool throwOnDelete;
+  // Espion du test : champ public voulu sur ce faux notifier.
+  // ignore: riverpod_lint/avoid_public_notifier_properties
   bool signedOut = false;
 
   @override

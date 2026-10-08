@@ -308,6 +308,8 @@ class FakeBookScannerNotifier extends BookScannerNotifier {
   BookScannerState build() => _initialState ?? BookScannerState();
 
   final List<BookModel> savedBooks = [];
+  // Réglé par les tests : champ public voulu sur ce faux notifier.
+  // ignore: riverpod_lint/avoid_public_notifier_properties
   BookModel? bookToReturnOnScan;
 
   @override

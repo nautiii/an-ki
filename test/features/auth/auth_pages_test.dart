@@ -45,6 +45,8 @@ class BiometricStartAuthNotifier extends FakeAuthNotifier {
       );
 
   final bool succeed;
+  // Espion du test : champ public voulu sur ce faux notifier.
+  // ignore: riverpod_lint/avoid_public_notifier_properties
   bool called = false;
 
   @override
