@@ -4,7 +4,7 @@ Audit of 2026-10-07 (commit `46359f3`): 53 hand-written Dart files in `lib/` (~7
 5 features, 281 tests green, `flutter analyze` clean with strict casts/inference/raw types.
 Update this file as steps land: tick the step, delete the debt it cleared, add what you discover.
 
-**Progress** — M0 and M1 done on 2026-10-08. Next: M2.
+**Progress** — M0, M1 and M2 done (2026-10-08/09). Next: M3.
 
 ## Contents
 1. What already works
@@ -32,18 +32,19 @@ Plus what imports can't show:
 
 | # | Debt | Evidence | Consequence | Step |
 |---|------|----------|-------------|------|
-| A1 | Imperative session lifecycle | `app/bootstrap/app_initializer.dart` calls `startListening(uid)` on two notifiers and `loadUser`/`createUser`; `settings_screen.dart` calls `clear()` on three notifiers | forgotten resets leak the previous account's data; races between auth and streams; session knowledge spread in UI | M2 |
 | A2 | Feature cycles | `user → birthday` (`user_provider.dart` deletes birthdays and clears their notifier; `settings_screen.dart`), `auth → user` (`signup_screen.dart` creates the profile) | features can't be changed or tested alone | M4 |
 | A3 | Models coupled to SDKs | `BirthdayModel.fromFirestore(QueryDocumentSnapshot)`, `Timestamp` in models, `BirthdayCategory.iconData` (Flutter), `CreateBirthdayInput.pictureFile` (`XFile`), widgets importing `data/models` | domain logic untestable without Firebase; UI depends on the data layer | M3 |
 | A4 | Rules duplicated and clock-bound | next occurrence in `birthday_extensions.dart` **and** `notification_service.dart`; `DateTime.now()` in 9 places; J-0/J-7/10:00 policy inside the plugin wrapper | divergent results, date tests depend on the real day, B6 (custom reminders) blocked | M3, M6 |
 | A6 | Words and context in state | `AuthNotifier` methods take `AppLocalizations`; `errorMessage` strings in state; `Exception('Contacts permission denied')`; `GoogleBooksQuotaExceededException` defined in `data/` and caught by a screen | locale switches and tests leak into logic; untyped errors | M5 |
 | A7 | Navigation split three ways | `AppRoutes` in `app/router` (features can't import it) so features push raw `'/login'`, `'/signup'`; `HomeScreen`/`BookScannerScreen` import `SettingsScreen` and push `MaterialPageRoute`; the shell lives in `features/home/`; `MainTab { birthdays, scanner }` sits in `core/providers/` and `core/common/bottom_bar.dart` reads it | core knows features; routes drift; no place for deep links | M4, M7 |
-| A8 | Read-before-write | `BirthdayRepository.deleteBirthday` reads the document before deleting it (the rules already enforce ownership) | slower optimistic deletes | M2 |
-| A9 | State boilerplate | `BirthdayState`/`BookScannerState`/`UserState` hand-roll `isLoading`/`isCreating`/`error` around data that `AsyncValue` models natively | more code, more `copyWith`, inconsistent loading/error handling | M2 |
+
+| A12 | Category writes still awaited | `CategoryNotifier` (a `Notifier<void>` bag of methods) awaits `createCategory` (server-generated id) then `addCategories`; `category_form_sheet.dart` waits before closing | the sheet hangs offline; no failure reporting | M5 |
+| A13 | Account deletion leaves data behind | `AccountDeletion` erases birthdays and the profile, not the scanned `books` (the `user` feature may not depend on `book_scanner`) | orphaned personal data | M4 |
+| A14 | `AuthState` still hand-rolled | `isLoading`/`errorMessage` flags, `l10n` parameters, biometric lock mixed with the session | the last legacy notifier | M5 |
 
 Cleared: A10 (tooling gaps) and A11 (`uid` not pinned on updates) by M0; A5 (singletons bypass DI)
-and most of A8 (uncancelled auth subscription, `ref.watch` in methods, unused `appConfigProvider`)
-by M1.
+and most of A8 by M1; A1 (imperative session lifecycle), the rest of A8 (read-before-delete) and
+A9 (state boilerplate, except `AuthState` → A14) by M2.
 
 ## 3. Roadmap
 
@@ -82,18 +83,33 @@ Each step ships alone: tests green, analyzer clean, architecture test green with
 - Learned: with Riverpod 3, a `ref.read` after an `await` throws once the notifier is disposed
   (tests dispose containers early) — read dependencies before the first `await`.
 
-### M2 — Session-derived data · L · split per feature (M2a birthday, M2b book_scanner, M2c user)
-- `birthdaysProvider`, `savedBooksProvider`, `userProfileProvider`: `StreamProvider`s on
-  `currentUidProvider` (patterns §6). Derived providers keep their names, read `.value`.
-- Writes move to controllers: `BirthdayEditor` (optimistic create/update/delete),
-  `ContactImport` (awaited), `BookScanner` lookup (awaited) (patterns §9).
-- Notification scheduling leaves `BirthdayNotifier` for `reminderSyncProvider`, activated in
-  `app/` (patterns §10); it moves to `features/reminders/` in M6.
-- `AppInitializer` → `app/bootstrap/session_bootstrap.dart`: reacts to `currentUidProvider`
-  (ensure the profile exists, request notification permission); no stream starts, no `clear()`.
-- Delete `BirthdayState`/`BookScannerState`/`UserState` once unused (A9); rewrite their tests as
-  provider tests over fake repositories; drop the matching fake Notifiers in `test/support`.
-- Commits: `REFACTOR(birthday): derive birthdays from the session`, … one per feature.
+### M2 — Session-derived data · done 2026-10-09
+- `REFACTOR(birthday): derive birthdays from the session` — `birthdaysProvider` on
+  `currentUidProvider`; `BirthdayEditor` (optimistic writes, the home screen reports failures and
+  replaces the « supprimé » snackbar it contradicts); `ContactImport` (local part awaited, batched
+  writes not awaited, double tap ignored); `reminderSyncProvider` activated by `App` — sign-out
+  now also cancels the local reminders; delete without read-before-write.
+- `REFACTOR(book_scanner): derive saved books from the session` — `savedBooksProvider`,
+  `IsbnLookup` (awaited), `BookEditor` (optimistic, the screen reports failures).
+- `REFACTOR(user): derive the profile from the session` — `userProfileProvider` streams
+  `user/{uid}`; theme and locale derive from it; `UserProfileEditor` writes field by field;
+  `AppInitializer` creates a missing profile reactively (typed sign-up names travel through
+  `signUpNamesProvider` in `auth`, so compound first names stay exact and `auth` no longer imports
+  `user`); `AccountDeletion` erases the account data before the auth account goes.
+- Tests: fake **repositories** in `test/support` (`RecordingBirthdayRepository`,
+  `RecordingBookRepository`, `RecordingUserRepository` whose stream reflects writes); every fake
+  Notifier except `FakeAuthNotifier`/`FakeCategoryNotifier` is gone; moved tests follow the mirror
+  layout (`providers/`, `test/app/bootstrap/`). Architecture debt 25 → 23.
+- Learned:
+  - Writing a whole document read a moment earlier loses concurrent edits (theme then language):
+    write the changed fields only (`update`, `FieldValue.arrayUnion`).
+  - `autoDispose` controllers need a host screen listening (home, scanner, settings) to keep them
+    alive and to report late failures; a sheet alone is not enough.
+  - A failure that contradicts the snackbar on screen must replace it (`hideCurrentSnackBar`),
+    otherwise it queues behind it for 4 s.
+  - Riverpod notifies dependents lazily; a provider nobody listens to is paused — tests listen,
+    then read.
+  - `fake_cloud_firestore` applies a transaction one tick late to snapshot listeners.
 
 ### M3 — Domain extraction · M per feature
 - `data/models/*` → `domain/`; Firestore mapping → private functions in the repository;

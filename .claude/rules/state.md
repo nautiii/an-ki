@@ -43,6 +43,8 @@ Riverpod 3.4 with hand-written providers. Patterns with code: architecture skill
 
 ## Legacy, until migrated
 
-`AuthNotifier`, `UserNotifier`, `BirthdayNotifier` and `BookScannerNotifier` still use `XState`
-flags, `startListening`/`clear()`, `l10n` parameters and singletons. In a bug fix, keep their
-local pattern; don't extend it to new code; migrate them only through `migration.md` (M1–M5).
+`AuthNotifier` (`AuthState` flags, `l10n` parameters) and `CategoryNotifier` (awaited writes in a
+`Notifier<void>`) are the last legacy notifiers. In a bug fix, keep their local pattern; don't
+extend it to new code; they migrate in M5 (`migration.md`). Every other piece of state already
+follows the target shapes above — copy those, e.g. `BirthdayEditor`, `ContactImport`,
+`userProfileProvider`.
