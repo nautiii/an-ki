@@ -29,7 +29,6 @@ import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
-import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
@@ -200,24 +199,13 @@ List<Override> sampleOverrides({
           : AsyncData(birthdays ?? sampleBirthdays()),
     ),
     savedBooksProvider.overrideWithValue(const AsyncData([])),
-    categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
-    categoryRepositoryProvider.overrideWithValue(_StubCategoryRepository(cats)),
+    categoryRepositoryProvider.overrideWithValue(
+      RecordingCategoryRepository(cats),
+    ),
     userRepositoryProvider.overrideWithValue(FakeUserRepository()),
     birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
     bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
   ];
-}
-
-class _StubCategoryRepository implements CategoryRepository {
-  _StubCategoryRepository(this.categories);
-
-  final List<BirthdayCategory> categories;
-
-  @override
-  Stream<List<BirthdayCategory>> watchCategories() => Stream.value(categories);
-
-  @override
-  Future<String> createCategory(BirthdayCategory category) async => 'new';
 }
 
 // ═══ MOTEUR — inutile de modifier en dessous ══════════════════════════════════
