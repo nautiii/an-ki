@@ -1,4 +1,4 @@
-import 'package:an_ki/features/auth/data/repositories/auth_repository.dart';
+import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';

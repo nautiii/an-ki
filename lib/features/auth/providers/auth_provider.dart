@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/core/services/biometric_service.dart';
-import 'package:an_ki/features/auth/data/repositories/auth_repository.dart';
+import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -1,4 +1,4 @@
-import 'package:an_ki/features/auth/data/repositories/auth_repository.dart';
+import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
