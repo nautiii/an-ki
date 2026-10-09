@@ -1,7 +1,9 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/domain/birthday_model.dart';
-import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_display.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,6 +30,7 @@ class _NextBirthdayCardState extends ConsumerState<NextBirthdayCard> {
   Widget build(BuildContext context) {
     final nextBirthdays = ref.watch(nextBirthdaysProvider);
     final isLoading = ref.watch(birthdaysLoadingProvider);
+    final today = ref.watch(todayProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     if (isLoading) {
@@ -72,7 +75,7 @@ class _NextBirthdayCardState extends ConsumerState<NextBirthdayCard> {
                   HapticFeedback.lightImpact();
                   BirthdayFormSheet.show(context, birthdayToEdit: birthday);
                 },
-                child: _BirthdayItem(birthday: birthday),
+                child: _BirthdayItem(birthday: birthday, today: today),
               );
             },
           ),
@@ -140,8 +143,9 @@ class _BaseCard extends StatelessWidget {
 
 class _BirthdayItem extends StatelessWidget {
   final BirthdayModel birthday;
+  final DateTime today;
 
-  const _BirthdayItem({required this.birthday});
+  const _BirthdayItem({required this.birthday, required this.today});
 
   @override
   Widget build(BuildContext context) {
@@ -178,14 +182,20 @@ class _BirthdayItem extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 16),
-        Expanded(child: _BirthdayContent(birthday: birthday, isLoading: false)),
+        Expanded(
+          child: _BirthdayContent(
+            birthday: birthday,
+            today: today,
+            isLoading: false,
+          ),
+        ),
         const SizedBox(width: 12),
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              birthday.age.toString(),
+              birthday.ageOn(today).toString(),
               style: textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w900,
                 color: colorScheme.onPrimary,
@@ -209,9 +219,16 @@ class _BirthdayItem extends StatelessWidget {
 }
 
 class _BirthdayContent extends StatelessWidget {
-  const _BirthdayContent({required this.birthday, required this.isLoading});
+  const _BirthdayContent({
+    required this.birthday,
+    this.today,
+    required this.isLoading,
+  });
 
   final BirthdayModel? birthday;
+
+  /// Jour courant, requis pour afficher un [birthday].
+  final DateTime? today;
   final bool isLoading;
 
   String _daysLabel(int days, BuildContext context) {
@@ -224,7 +241,8 @@ class _BirthdayContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final int? days = birthday?.daysUntilNext;
+    final today = this.today;
+    final int? days = today == null ? null : birthday?.daysUntilNext(today);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,7 +304,7 @@ class _BirthdayContent extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                birthday!.getFormattedDate(context, includeYear: false),
+                birthday!.formattedDate(context, includeYear: false),
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onPrimary.withValues(alpha: 0.8),
                   fontWeight: FontWeight.w500,

@@ -1,7 +1,8 @@
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/domain/birthday_model.dart';
-import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Anniversaires de l'utilisateur courant, en temps réel ; liste vide hors
@@ -28,10 +29,11 @@ final birthdaysListProvider = Provider<List<BirthdayModel>>(
   (ref) => ref.watch(birthdaysProvider).value ?? const [],
 );
 
-/// Le ou les prochains anniversaires (plusieurs s'ils tombent le même jour).
+/// Le ou les prochains anniversaires (plusieurs s'ils tombent le même jour),
+/// recalculés quand le jour change.
 final nextBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
   final birthdays = ref.watch(birthdaysListProvider);
-  return birthdays.nextBirthdays;
+  return birthdays.nextBirthdays(ref.watch(todayProvider));
 });
 
 /// Texte de recherche, remis à zéro quand l'utilisateur change.
@@ -72,8 +74,9 @@ final filteredBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
   final nextIds = nextBirthdays.map((b) => b.id).toSet();
   final searchQuery = ref.watch(birthdaySearchProvider).toLowerCase();
   final categoryFilters = ref.watch(birthdayCategoryFilterProvider);
+  final today = ref.watch(todayProvider);
 
-  // 1. Filtrer et Trier
+  // 1. Filtrer
   final filtered = allBirthdays.where((birthday) {
     // Exclure le ou les prochains anniversaires (déjà affichés en haut)
     if (nextIds.contains(birthday.id)) return false;
@@ -90,12 +93,10 @@ final filteredBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
     if (searchQuery.isEmpty) return true;
     return birthday.name.toLowerCase().contains(searchQuery) ||
         birthday.surname.toLowerCase().contains(searchQuery);
-  }).toList();
+  });
 
   // 2. Trier par proximité (jours restants)
-  filtered.sort((a, b) => a.daysUntilNext.compareTo(b.daysUntilNext));
-
-  return filtered;
+  return filtered.sortedByNext(today);
 });
 
 /// Provider pour filtrer les anniversaires par catégories et recherche (SANS exclusion du prochain)

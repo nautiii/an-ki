@@ -36,7 +36,6 @@ const featureLayers = {'domain', 'data', 'providers', 'screens', 'widgets'};
 /// premier lancement liste les lignes à ajouter ou retirer.
 const knownViolations = <String>{
   'lib/features/auth/providers/auth_provider.dart -> lib/l10n/app_localizations.dart [state-no-ui]',
-  'lib/features/birthday/extensions/birthday_extensions.dart -> (emplacement) [layout]',
   'lib/features/birthday/screens/home_screen.dart -> lib/features/user/screens/settings_screen.dart [screens-private]',
   'lib/features/book_scanner/screens/book_scanner_screen.dart -> lib/features/user/screens/settings_screen.dart [screens-private]',
   'lib/features/home/main_screen.dart -> (emplacement) [layout]',

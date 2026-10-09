@@ -1,7 +1,8 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/domain/birthday_model.dart';
-import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
@@ -18,12 +19,13 @@ class BirthdayCalendar extends ConsumerStatefulWidget {
 }
 
 class _BirthdayCalendarState extends ConsumerState<BirthdayCalendar> {
-  DateTime _focusedDate = DateTime.now();
+  late DateTime _focusedDate = ref.read(todayProvider);
 
   @override
   Widget build(BuildContext context) {
     final birthdays = ref.watch(categoryFilteredBirthdaysProvider);
     final categories = ref.watch(categoriesProvider).value ?? [];
+    final today = ref.watch(todayProvider);
 
     return Column(
       children: [
@@ -49,6 +51,7 @@ class _BirthdayCalendarState extends ConsumerState<BirthdayCalendar> {
         const SizedBox(height: 16),
         _CalendarGrid(
           focusedDate: _focusedDate,
+          today: today,
           birthdays: birthdays,
           categories: categories,
         ),
@@ -110,11 +113,13 @@ extension StringExtension on String {
 
 class _CalendarGrid extends StatelessWidget {
   final DateTime focusedDate;
+  final DateTime today;
   final List<BirthdayModel> birthdays;
   final List<BirthdayCategory> categories;
 
   const _CalendarGrid({
     required this.focusedDate,
+    required this.today,
     required this.birthdays,
     required this.categories,
   });
@@ -147,7 +152,7 @@ class _CalendarGrid extends StatelessWidget {
 
         return _CalendarDayCell(
           day: day,
-          isToday: DateUtils.isSameDay(date, DateTime.now()),
+          isToday: DateUtils.isSameDay(date, today),
           birthdays: dayBirthdays,
           categories: categories,
           onTap: dayBirthdays.isEmpty
@@ -237,7 +242,7 @@ class _CalendarGrid extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              "${birthday.age} ${context.l10n.yearsOld}",
+                              "${birthday.ageOn(today)} ${context.l10n.yearsOld}",
                               style: textTheme.bodyMedium?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),

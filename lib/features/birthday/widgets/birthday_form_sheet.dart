@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/domain/birthday_model.dart';
@@ -43,9 +44,9 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
   late final TextEditingController _surnameController;
 
   List<String> _selectedCategories = [];
-  DateTime _selectedDate = DateTime.now().subtract(
-    const Duration(days: 365 * 25),
-  );
+  late DateTime _selectedDate = ref
+      .read(clockProvider)()
+      .subtract(const Duration(days: 365 * 25));
 
   /// Photo choisie dans la galerie, lue dès le choix : le brouillon porte des
   /// octets, jamais un fichier.
@@ -310,6 +311,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
 
   void _showDatePicker(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final now = ref.read(clockProvider)();
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: colorScheme.surface,
@@ -342,7 +344,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
               child: CupertinoDatePicker(
                 mode: CupertinoDatePickerMode.date,
                 initialDateTime: _selectedDate,
-                maximumDate: DateTime.now(),
+                maximumDate: now,
                 onDateTimeChanged: (date) =>
                     setState(() => _selectedDate = date),
               ),
