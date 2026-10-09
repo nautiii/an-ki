@@ -62,8 +62,8 @@ class const Idea({
 - `==`/`hashCode` on every model and state that flows through providers: Riverpod 3 filters
   updates with `==`, and tests compare values. Lists: `listEquals(a, b)` and `Object.hashAll`
   from `package:flutter/foundation.dart`.
-- No `fromFirestore`/`toJson` on new domain models: mapping lives in `data/`. Legacy models keep
-  theirs until their feature migrates.
+- No `fromFirestore`/`toJson` on domain models: mapping lives in private functions of the
+  repository (every feature since M3).
 - Form input is its own type (`IdeaDraft`) carrying the validation rule (`isValid`) used by both
   the button state and the controller. Files picked by the user become bytes or a path in the
   draft, never an `XFile` (that is a plugin type).

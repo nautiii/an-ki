@@ -33,9 +33,9 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
 - Fake **repositories** (`class _FakeX extends Fake implements XRepository`), not notifiers: they
   exercise the real logic. Start a notifier in a given state with `overrideWithBuild`; families
   use `overrideWith2` (`overrideWith` is deprecated since Riverpod 3.2). Shared fakes:
-  `RecordingBirthdayRepository`, `RecordingBookRepository`, `RecordingUserRepository` (its
-  `watchUser` reflects writes, like the Firestore cache); `FakeAuthNotifier` and
-  `FakeCategoryNotifier` are the last legacy fake notifiers.
+  `RecordingBirthdayRepository`, `RecordingBookRepository`, `RecordingCategoryRepository`,
+  `RecordingUserRepository` (its `watchUser` reflects writes, like the Firestore cache);
+  `FakeAuthNotifier` is the last legacy fake notifier.
 - **Widgets and screens**: `await tester.pumpHarness(widget, overrides: […])` (French locale,
   800×1200). A non-empty `overrides` list **replaces** `defaultTestOverrides`, it doesn't extend
   it. Pin async data with `xProvider.overrideWithValue(const AsyncData(…))`. Cover loading, empty,
