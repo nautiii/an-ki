@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:an_ki/core/extensions/firestore_extensions.dart';
 import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/domain/birthday_model.dart';
@@ -30,23 +31,15 @@ class BirthdayRepository {
   Future<void> createBirthday(String uid, BirthdayDraft draft) =>
       _birthdays.add({..._draftToMap(draft), 'uid': uid});
 
-  /// Crée plusieurs anniversaires (import de contacts), par lots de
-  /// [_batchLimit] écritures. Tous les lots partent d'un coup : Firestore les
-  /// applique au cache local immédiatement, le Future attend le serveur.
-  Future<void> createBirthdays(String uid, List<BirthdayDraft> drafts) {
-    final commits = <Future<void>>[];
-    for (var start = 0; start < drafts.length; start += _batchLimit) {
-      final batch = _firestore.batch();
-      for (final draft in drafts.skip(start).take(_batchLimit)) {
-        batch.set(_birthdays.doc(), {..._draftToMap(draft), 'uid': uid});
-      }
-      commits.add(batch.commit());
-    }
-    return Future.wait(commits);
-  }
-
-  /// Limite Firestore d'écritures par lot.
-  static const _batchLimit = 500;
+  /// Crée plusieurs anniversaires (import de contacts), par lots d'écritures
+  /// envoyés d'un coup : Firestore les applique au cache local immédiatement,
+  /// le Future attend le serveur.
+  Future<void> createBirthdays(String uid, List<BirthdayDraft> drafts) =>
+      _firestore.writeInBatches(
+        drafts,
+        (batch, draft) =>
+            batch.set(_birthdays.doc(), {..._draftToMap(draft), 'uid': uid}),
+      );
 
   /// Remplace les champs saisis ; la photo n'est réécrite que si le brouillon
   /// en apporte une nouvelle.
@@ -61,17 +54,14 @@ class BirthdayRepository {
   Future<void> deleteBirthday(String birthdayId) =>
       _birthdays.doc(birthdayId).delete();
 
+  /// Efface tous les anniversaires de [uid] (suppression du compte), par lots
+  /// d'écritures : un gros import de contacts dépasse vite la limite d'un lot.
   Future<void> deleteAllUserBirthdays(String uid) async {
-    final QuerySnapshot<Map<String, dynamic>> snapshot = await _birthdays
-        .where('uid', isEqualTo: uid)
-        .get();
-
-    final WriteBatch batch = _firestore.batch();
-    for (final QueryDocumentSnapshot<Map<String, dynamic>> doc
-        in snapshot.docs) {
-      batch.delete(doc.reference);
-    }
-    await batch.commit();
+    final snapshot = await _birthdays.where('uid', isEqualTo: uid).get();
+    await _firestore.writeInBatches(
+      snapshot.docs,
+      (batch, doc) => batch.delete(doc.reference),
+    );
   }
 }
 

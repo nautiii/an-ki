@@ -255,5 +255,16 @@ void main() {
       expect(remaining.docs, hasLength(1));
       expect(remaining.docs.single.data()['uid'], 'user-2');
     });
+
+    test('erases more than 500 birthdays', () async {
+      await repository.createBirthdays('user-1', [
+        for (var i = 0; i < 501; i++) draft(name: 'P$i'),
+      ]);
+
+      await repository.deleteAllUserBirthdays('user-1');
+
+      final remaining = await firestore.collection('birthday').get();
+      expect(remaining.docs, isEmpty);
+    });
   });
 }
