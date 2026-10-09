@@ -11,7 +11,6 @@ import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
-import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_test/flutter_test.dart';
 
@@ -326,23 +325,19 @@ class FakeAuthNotifier extends AuthNotifier {
   void initializeAuth() {}
 
   @override
-  Future<bool> signIn({
-    required String email,
-    required String password,
-    required AppLocalizations l10n,
-  }) async {
+  Future<bool> signIn({required String email, required String password}) async {
     state = state.copyWith(user: MockUser());
     return true;
   }
 
   @override
-  Future<bool> signInAnonymously(AppLocalizations l10n) async {
+  Future<bool> signInAnonymously() async {
     state = state.copyWith(user: MockUser());
     return true;
   }
 
   @override
-  Future<bool> signInWithGoogle(AppLocalizations l10n) async {
+  Future<bool> signInWithGoogle() async {
     state = state.copyWith(user: MockUser());
     return true;
   }
@@ -353,19 +348,18 @@ class FakeAuthNotifier extends AuthNotifier {
     required String password,
     required String name,
     required String surname,
-    required AppLocalizations l10n,
   }) async {
     state = state.copyWith(user: MockUser());
     return true;
   }
 
   @override
-  Future<bool> linkWithGoogle(AppLocalizations l10n) async {
+  Future<bool> linkWithGoogle() async {
     return true;
   }
 
   @override
-  Future<void> signOut(AppLocalizations l10n) async {
+  Future<void> signOut() async {
     state = AuthState();
   }
 }

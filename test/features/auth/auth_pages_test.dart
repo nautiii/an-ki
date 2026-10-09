@@ -1,9 +1,9 @@
+import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
 import 'package:an_ki/features/auth/screens/signup_screen.dart';
-import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,19 +11,19 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../support/fake_providers.dart';
 import '../../support/test_harness.dart';
 
-/// Always fails authentication and exposes an error message.
+/// Always fails authentication and exposes a failure.
 class FailingAuthNotifier extends FakeAuthNotifier {
-  FailingAuthNotifier() : super(initialState: AuthState(errorMessage: 'Oops'));
+  FailingAuthNotifier()
+    : super(initialState: AuthState(failure: AuthFailure.unknown));
 
   @override
-  Future<bool> signInWithGoogle(AppLocalizations l10n) async => false;
+  Future<bool> signInWithGoogle() async => false;
   @override
-  Future<bool> signInAnonymously(AppLocalizations l10n) async => false;
+  Future<bool> signInAnonymously() async => false;
   @override
   Future<bool> signIn({
     required String email,
     required String password,
-    required AppLocalizations l10n,
   }) async => false;
   @override
   Future<bool> signUp({
@@ -31,7 +31,6 @@ class FailingAuthNotifier extends FakeAuthNotifier {
     required String password,
     required String name,
     required String surname,
-    required AppLocalizations l10n,
   }) async => false;
 }
 
@@ -41,7 +40,7 @@ class BiometricStartAuthNotifier extends FakeAuthNotifier {
     : super(
         initialState: AuthState(
           canUseBiometrics: true,
-          errorMessage: succeed ? null : 'BioErr',
+          failure: succeed ? null : AuthFailure.biometricFailed,
         ),
       );
 
@@ -51,7 +50,7 @@ class BiometricStartAuthNotifier extends FakeAuthNotifier {
   bool called = false;
 
   @override
-  Future<bool> signInWithBiometricToken(AppLocalizations l10n) async {
+  Future<bool> signInWithBiometricToken() async {
     called = true;
     return succeed;
   }
@@ -94,7 +93,7 @@ void main() {
       await tester.tap(find.text('Connexion Google'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Oops'), findsOneWidget);
+      expect(find.text('Une erreur est survenue.'), findsOneWidget);
     });
 
     testWidgets('anonymous sign-in success path', (tester) async {
@@ -137,7 +136,7 @@ void main() {
       await tester.tap(find.text('Continuer sans compte'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Oops'), findsOneWidget);
+      expect(find.text('Une erreur est survenue.'), findsOneWidget);
     });
 
     testWidgets('runs biometric sign-in on startup (success)', (tester) async {
@@ -160,7 +159,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('BioErr'), findsOneWidget);
+      expect(
+        find.text("Erreur lors de l'authentification biométrique"),
+        findsOneWidget,
+      );
     });
 
     testWidgets('disables the buttons while loading', (tester) async {
@@ -223,7 +225,7 @@ void main() {
       await tester.tap(find.text('Se connecter').last);
       await tester.pumpAndSettle();
 
-      expect(find.text('Oops'), findsOneWidget);
+      expect(find.text('Une erreur est survenue.'), findsOneWidget);
     });
 
     testWidgets('toggles password visibility', (tester) async {
@@ -367,7 +369,7 @@ void main() {
       await tester.tap(find.text("S'inscrire").last);
       await tester.pumpAndSettle();
 
-      expect(find.text('Oops'), findsOneWidget);
+      expect(find.text('Une erreur est survenue.'), findsOneWidget);
       // Inscription ratée : rien ne doit rester pour une connexion suivante.
       expect(container.read(signUpNamesProvider), isNull);
     });

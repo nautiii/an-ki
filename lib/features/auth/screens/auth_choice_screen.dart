@@ -5,6 +5,7 @@ import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,22 +33,21 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
 
   void _handleBiometricSignIn() async {
     final authNotifier = ref.read(authProvider.notifier);
-    final success = await authNotifier.signInWithBiometricToken(context.l10n);
+    final success = await authNotifier.signInWithBiometricToken();
 
     if (!mounted) return;
 
     if (!success) {
-      final authState = ref.read(authProvider);
-      // On n'affiche l'erreur que s'il y a un vrai message (pas une annulation manuelle)
-      if (authState.errorMessage != null &&
-          authState.errorMessage!.isNotEmpty) {
+      // Rien à signaler pour une annulation manuelle : pas d'échec publié.
+      final failure = ref.read(authProvider).failure;
+      if (failure != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            content: Text(authState.errorMessage!),
+            content: Text(failure.message(context)),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -191,16 +191,16 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
   void _handleGoogleSignIn(BuildContext context, WidgetRef ref) async {
     unawaited(HapticFeedback.lightImpact());
     final authNotifier = ref.read(authProvider.notifier);
-    final success = await authNotifier.signInWithGoogle(context.l10n);
+    final success = await authNotifier.signInWithGoogle();
     if (!context.mounted) return;
 
     if (!success) {
-      final authState = ref.read(authProvider);
-      if (authState.errorMessage != null) {
+      final failure = ref.read(authProvider).failure;
+      if (failure != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
-            content: Text(authState.errorMessage!),
+            content: Text(failure.message(context)),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -213,16 +213,16 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
   void _handleAnonymousSignIn(BuildContext context, WidgetRef ref) async {
     unawaited(HapticFeedback.lightImpact());
     final authNotifier = ref.read(authProvider.notifier);
-    final success = await authNotifier.signInAnonymously(context.l10n);
+    final success = await authNotifier.signInAnonymously();
     if (!context.mounted) return;
 
     if (!success) {
-      final authState = ref.read(authProvider);
-      if (authState.errorMessage != null) {
+      final failure = ref.read(authProvider).failure;
+      if (failure != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
-            content: Text(authState.errorMessage!),
+            content: Text(failure.message(context)),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

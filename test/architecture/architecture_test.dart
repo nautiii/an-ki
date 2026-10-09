@@ -34,9 +34,7 @@ const featureLayers = {'domain', 'data', 'providers', 'screens', 'widgets'};
 ///
 /// Relevé du 2026-10-07 ; si le code a bougé avant l'installation, le
 /// premier lancement liste les lignes à ajouter ou retirer.
-const knownViolations = <String>{
-  'lib/features/auth/providers/auth_provider.dart -> lib/l10n/app_localizations.dart [state-no-ui]',
-};
+const knownViolations = <String>{};
 
 /// Ce que chaque règle protège, et comment corriger.
 const ruleHints = <String, String>{

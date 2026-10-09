@@ -1,10 +1,9 @@
 import 'package:an_ki/features/auth/data/auth_repository.dart';
+import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -33,13 +32,11 @@ const _uidKey = 'biometric_user_id';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late AppLocalizations l10n;
   late FakeBiometricChannels channels;
 
   setUpAll(() async {
     GoogleSignInPlatform.instance = FakeGoogleSignInPlatform();
     await GoogleSignIn.instance.initialize();
-    l10n = await AppLocalizations.delegate.load(const Locale('en'));
   });
 
   setUp(() {
@@ -106,7 +103,7 @@ void main() {
 
       final ok = await container
           .read(authProvider.notifier)
-          .signIn(email: 'test@example.com', password: 'pwd', l10n: l10n);
+          .signIn(email: 'test@example.com', password: 'pwd');
 
       expect(ok, isTrue);
       expect(container.read(authProvider).user?.uid, 'uid-1');
@@ -121,13 +118,10 @@ void main() {
 
       final ok = await container
           .read(authProvider.notifier)
-          .signIn(email: 'test@example.com', password: 'bad', l10n: l10n);
+          .signIn(email: 'test@example.com', password: 'bad');
 
       expect(ok, isFalse);
-      expect(
-        container.read(authProvider).errorMessage,
-        l10n.errorWrongPassword,
-      );
+      expect(container.read(authProvider).failure, AuthFailure.wrongPassword);
     });
 
     test('signIn maps unexpected errors to a generic message', () async {
@@ -139,10 +133,10 @@ void main() {
 
       final ok = await container
           .read(authProvider.notifier)
-          .signIn(email: 'x', password: 'y', l10n: l10n);
+          .signIn(email: 'x', password: 'y');
 
       expect(ok, isFalse);
-      expect(container.read(authProvider).errorMessage, l10n.connectionError);
+      expect(container.read(authProvider).failure, AuthFailure.signInFailed);
     });
 
     test('signUp succeeds', () async {
@@ -156,7 +150,6 @@ void main() {
             password: 'pwd',
             name: 'New',
             surname: 'User',
-            l10n: l10n,
           );
 
       expect(ok, isTrue);
@@ -172,16 +165,10 @@ void main() {
 
       final ok = await container
           .read(authProvider.notifier)
-          .signUp(
-            email: 'x',
-            password: 'y',
-            name: 'N',
-            surname: 'S',
-            l10n: l10n,
-          );
+          .signUp(email: 'x', password: 'y', name: 'N', surname: 'S');
 
       expect(ok, isFalse);
-      expect(container.read(authProvider).errorMessage, l10n.errorWeakPassword);
+      expect(container.read(authProvider).failure, AuthFailure.weakPassword);
     });
 
     test('signUp maps unexpected errors to the registration message', () async {
@@ -193,20 +180,29 @@ void main() {
 
       final ok = await container
           .read(authProvider.notifier)
-          .signUp(
-            email: 'x',
-            password: 'y',
-            name: 'N',
-            surname: 'S',
-            l10n: l10n,
-          );
+          .signUp(email: 'x', password: 'y', name: 'N', surname: 'S');
 
       expect(ok, isFalse);
-      expect(container.read(authProvider).errorMessage, l10n.registrationError);
+      expect(container.read(authProvider).failure, AuthFailure.signUpFailed);
     });
 
-    test('error code mapping covers the documented codes', () async {
-      Future<String?> messageFor(String code) async {
+    test('a new operation clears the previous failure', () async {
+      final auth = MockFirebaseAuth(mockUser: buildUser(anonymous: true));
+      whenCalling(Invocation.method(#signInWithEmailAndPassword, null))
+          .on(auth)
+          .thenThrow(FirebaseAuthException(code: 'wrong-password'));
+      final container = makeContainer(auth);
+      final notifier = container.read(authProvider.notifier);
+      await notifier.signIn(email: 'a', password: 'bad');
+      expect(container.read(authProvider).failure, AuthFailure.wrongPassword);
+
+      await notifier.signInAnonymously();
+
+      expect(container.read(authProvider).failure, isNull);
+    });
+
+    test('maps the documented Firebase codes to failures', () async {
+      Future<AuthFailure?> failureFor(String code) async {
         final auth = MockFirebaseAuth(mockUser: buildUser());
         whenCalling(Invocation.method(#signInWithEmailAndPassword, []))
             .on(auth)
@@ -214,17 +210,17 @@ void main() {
         final container = makeContainer(auth);
         await container
             .read(authProvider.notifier)
-            .signIn(email: 'a', password: 'b', l10n: l10n);
-        return container.read(authProvider).errorMessage;
+            .signIn(email: 'a', password: 'b');
+        return container.read(authProvider).failure;
       }
 
-      expect(await messageFor('invalid-email'), l10n.errorInvalidEmail);
-      expect(await messageFor('user-not-found'), l10n.errorUserNotFound);
+      expect(await failureFor('invalid-email'), AuthFailure.invalidEmail);
+      expect(await failureFor('user-not-found'), AuthFailure.userNotFound);
       expect(
-        await messageFor('email-already-in-use'),
-        l10n.errorEmailAlreadyInUse,
+        await failureFor('email-already-in-use'),
+        AuthFailure.emailAlreadyInUse,
       );
-      expect(await messageFor('something-else'), l10n.errorUnknown);
+      expect(await failureFor('something-else'), AuthFailure.unknown);
     });
   });
 
@@ -235,7 +231,7 @@ void main() {
 
       final ok = await container
           .read(authProvider.notifier)
-          .signInAnonymously(l10n);
+          .signInAnonymously();
 
       expect(ok, isTrue);
       expect(container.read(authProvider).user, isNotNull);
@@ -250,10 +246,10 @@ void main() {
 
       final ok = await container
           .read(authProvider.notifier)
-          .signInAnonymously(l10n);
+          .signInAnonymously();
 
       expect(ok, isFalse);
-      expect(container.read(authProvider).errorMessage, l10n.errorUnknown);
+      expect(container.read(authProvider).failure, AuthFailure.unknown);
     });
   });
 
@@ -263,9 +259,9 @@ void main() {
       final container = makeContainer(auth);
       await container
           .read(authProvider.notifier)
-          .signIn(email: 'a', password: 'b', l10n: l10n);
+          .signIn(email: 'a', password: 'b');
 
-      await container.read(authProvider.notifier).signOut(l10n);
+      await container.read(authProvider.notifier).signOut();
 
       expect(container.read(authProvider).user, isNull);
     });
@@ -275,10 +271,10 @@ void main() {
       final container = makeContainer(auth);
       await container
           .read(authProvider.notifier)
-          .signIn(email: 'a', password: 'b', l10n: l10n);
+          .signIn(email: 'a', password: 'b');
       channels.storage[_tokenKey] = 'tok'; // biometric configured
 
-      await container.read(authProvider.notifier).signOut(l10n);
+      await container.read(authProvider.notifier).signOut();
 
       expect(container.read(authProvider).user, isNotNull);
       expect(
@@ -337,7 +333,7 @@ void main() {
 
         final ok = await container
             .read(authProvider.notifier)
-            .signInWithBiometricToken(l10n);
+            .signInWithBiometricToken();
 
         expect(ok, isTrue);
         expect(container.read(authProvider).isBiometricallyAuthenticated, true);
@@ -350,7 +346,7 @@ void main() {
 
         final ok = await container
             .read(authProvider.notifier)
-            .signInWithBiometricToken(l10n);
+            .signInWithBiometricToken();
 
         expect(ok, isFalse);
       });
@@ -360,7 +356,7 @@ void main() {
 
         final ok = await container
             .read(authProvider.notifier)
-            .signInWithBiometricToken(l10n);
+            .signInWithBiometricToken();
 
         expect(ok, isFalse);
         expect(container.read(authProvider).canUseBiometrics, isFalse);
@@ -374,7 +370,7 @@ void main() {
 
         final ok = await container
             .read(authProvider.notifier)
-            .signInWithBiometricToken(l10n);
+            .signInWithBiometricToken();
 
         expect(ok, isFalse);
         expect(channels.storage[_tokenKey], isNull);
@@ -390,10 +386,13 @@ void main() {
 
         final ok = await container
             .read(authProvider.notifier)
-            .signInWithBiometricToken(l10n);
+            .signInWithBiometricToken();
 
         expect(ok, isFalse);
-        expect(container.read(authProvider).errorMessage, l10n.biometricError);
+        expect(
+          container.read(authProvider).failure,
+          AuthFailure.biometricFailed,
+        );
       });
     });
 
@@ -416,9 +415,9 @@ void main() {
         .thenThrow(FirebaseAuthException(code: 'fail'));
     final container = makeContainer(auth);
 
-    await container.read(authProvider.notifier).signOut(l10n);
+    await container.read(authProvider.notifier).signOut();
 
-    expect(container.read(authProvider).errorMessage, l10n.errorSignOut);
+    expect(container.read(authProvider).failure, AuthFailure.signOutFailed);
   });
 
   group('deleteAccount', () {
@@ -427,9 +426,9 @@ void main() {
       final container = makeContainer(auth);
       await container
           .read(authProvider.notifier)
-          .signIn(email: 'a', password: 'b', l10n: l10n);
+          .signIn(email: 'a', password: 'b');
 
-      await container.read(authProvider.notifier).deleteAccount(l10n);
+      await container.read(authProvider.notifier).deleteAccount();
 
       expect(container.read(authProvider).user, isNull);
     });
@@ -443,13 +442,13 @@ void main() {
       final container = makeContainer(auth);
       await container
           .read(authProvider.notifier)
-          .signIn(email: 'a', password: 'b', l10n: l10n);
+          .signIn(email: 'a', password: 'b');
 
       await expectLater(
-        container.read(authProvider.notifier).deleteAccount(l10n),
-        throwsA(isA<FirebaseAuthException>()),
+        container.read(authProvider.notifier).deleteAccount(),
+        throwsA(AuthFailure.unknown),
       );
-      expect(container.read(authProvider).errorMessage, isNotNull);
+      expect(container.read(authProvider).failure, AuthFailure.unknown);
     });
 
     test('maps unexpected errors to the generic delete message', () async {
@@ -461,15 +460,15 @@ void main() {
       final container = makeContainer(auth);
       await container
           .read(authProvider.notifier)
-          .signIn(email: 'a', password: 'b', l10n: l10n);
+          .signIn(email: 'a', password: 'b');
 
       await expectLater(
-        container.read(authProvider.notifier).deleteAccount(l10n),
+        container.read(authProvider.notifier).deleteAccount(),
         throwsA(isA<Exception>()),
       );
       expect(
-        container.read(authProvider).errorMessage,
-        l10n.deleteAccountError,
+        container.read(authProvider).failure,
+        AuthFailure.deleteAccountFailed,
       );
     });
   });

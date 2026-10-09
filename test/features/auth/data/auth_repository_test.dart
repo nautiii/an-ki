@@ -1,8 +1,11 @@
 import 'package:an_ki/features/auth/data/auth_repository.dart';
+import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:mock_exceptions/mock_exceptions.dart';
 
 void main() {
   AuthRepository build(
@@ -60,6 +63,36 @@ void main() {
       final user = await repo.signInAnonymously();
 
       expect(user, isNotNull);
+    });
+  });
+
+  group('failure translation', () {
+    Future<void> expectFailure(String code, AuthFailure failure) async {
+      final auth = MockFirebaseAuth();
+      whenCalling(Invocation.method(#signInWithEmailAndPassword, null))
+          .on(auth)
+          .thenThrow(FirebaseAuthException(code: code));
+      final repo = build(auth, FakeFirebaseFirestore());
+
+      await expectLater(
+        repo.signInWithEmail(email: 'a@b.c', password: 'pwd'),
+        throwsA(failure),
+      );
+    }
+
+    test('maps the documented Firebase Auth codes', () async {
+      await expectFailure('weak-password', AuthFailure.weakPassword);
+      await expectFailure(
+        'email-already-in-use',
+        AuthFailure.emailAlreadyInUse,
+      );
+      await expectFailure('invalid-email', AuthFailure.invalidEmail);
+      await expectFailure('user-not-found', AuthFailure.userNotFound);
+      await expectFailure('wrong-password', AuthFailure.wrongPassword);
+    });
+
+    test('maps any other code to unknown', () async {
+      await expectFailure('too-many-requests', AuthFailure.unknown);
     });
   });
 

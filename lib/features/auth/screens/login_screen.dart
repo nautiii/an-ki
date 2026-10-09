@@ -5,6 +5,7 @@ import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,7 +46,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final success = await authNotifier.signIn(
       email: _emailController.text.trim(),
       password: _passwordController.text,
-      l10n: context.l10n,
     );
 
     if (!mounted) return;
@@ -58,7 +58,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          content: Text(authState.errorMessage ?? context.l10n.connectionError),
+          content: Text(
+            authState.failure?.message(context) ?? context.l10n.connectionError,
+          ),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );

@@ -6,6 +6,7 @@ import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
+import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -78,7 +79,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       password: _passwordController.text,
       name: _nameController.text.trim(),
       surname: _surnameController.text.trim(),
-      l10n: context.l10n,
     );
 
     if (!mounted) return;
@@ -92,7 +92,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         SnackBar(
           behavior: SnackBarBehavior.floating,
           content: Text(
-            authState.errorMessage ?? context.l10n.registrationError,
+            authState.failure?.message(context) ??
+                context.l10n.registrationError,
           ),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),

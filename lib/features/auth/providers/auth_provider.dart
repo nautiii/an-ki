@@ -2,15 +2,19 @@ import 'dart:async';
 
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
-import 'package:an_ki/l10n/app_localizations.dart';
+import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+/// Session et verrou biométrique, plus l'issue de la dernière opération.
+///
+/// [failure] décrit l'échec de la dernière opération (null sinon) : l'UI en
+/// tire le message, l'état ne porte aucun texte.
 class AuthState {
   final User? user;
   final bool isLoading;
-  final String? errorMessage;
+  final AuthFailure? failure;
   final bool canUseBiometrics;
   final bool isBiometricallyAuthenticated;
   final String? biometricUid;
@@ -18,16 +22,19 @@ class AuthState {
   AuthState({
     this.user,
     this.isLoading = false,
-    this.errorMessage,
+    this.failure,
     this.canUseBiometrics = false,
     this.isBiometricallyAuthenticated = false,
     this.biometricUid,
   });
 
+  /// Copie modifiée. Un argument null signifie « inchangé » ; `clearFailure`
+  /// efface l'échec précédent.
   AuthState copyWith({
     User? user,
     bool? isLoading,
-    String? errorMessage,
+    AuthFailure? failure,
+    bool clearFailure = false,
     bool? canUseBiometrics,
     bool? isBiometricallyAuthenticated,
     String? biometricUid,
@@ -35,7 +42,7 @@ class AuthState {
     return AuthState(
       user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage ?? this.errorMessage,
+      failure: clearFailure ? null : failure ?? this.failure,
       canUseBiometrics: canUseBiometrics ?? this.canUseBiometrics,
       isBiometricallyAuthenticated:
           isBiometricallyAuthenticated ?? this.isBiometricallyAuthenticated,
@@ -55,6 +62,26 @@ class AuthState {
   bool get isAnonymous => user?.isAnonymous ?? false;
 
   String? get uid => user?.uid ?? biometricUid;
+
+  @override
+  bool operator ==(Object other) =>
+      other is AuthState &&
+      other.user == user &&
+      other.isLoading == isLoading &&
+      other.failure == failure &&
+      other.canUseBiometrics == canUseBiometrics &&
+      other.isBiometricallyAuthenticated == isBiometricallyAuthenticated &&
+      other.biometricUid == biometricUid;
+
+  @override
+  int get hashCode => Object.hash(
+    user,
+    isLoading,
+    failure,
+    canUseBiometrics,
+    isBiometricallyAuthenticated,
+    biometricUid,
+  );
 }
 
 class AuthNotifier extends Notifier<AuthState> {
@@ -111,10 +138,9 @@ class AuthNotifier extends Notifier<AuthState> {
     required String password,
     required String name,
     required String surname,
-    required AppLocalizations l10n,
   }) async {
     try {
-      state = state.copyWith(isLoading: true);
+      state = state.copyWith(isLoading: true, clearFailure: true);
 
       final user = await _repository.signUp(
         email: email,
@@ -124,28 +150,21 @@ class AuthNotifier extends Notifier<AuthState> {
 
       state = state.copyWith(user: user, isLoading: false);
       return true;
-    } on FirebaseAuthException catch (e) {
-      state = state.copyWith(
-        errorMessage: _getErrorMessage(e.code, l10n),
-        isLoading: false,
-      );
+    } on AuthFailure catch (failure) {
+      state = state.copyWith(failure: failure, isLoading: false);
       return false;
-    } catch (e) {
+    } catch (_) {
       state = state.copyWith(
-        errorMessage: l10n.registrationError,
+        failure: AuthFailure.signUpFailed,
         isLoading: false,
       );
       return false;
     }
   }
 
-  Future<bool> signIn({
-    required String email,
-    required String password,
-    required AppLocalizations l10n,
-  }) async {
+  Future<bool> signIn({required String email, required String password}) async {
     try {
-      state = state.copyWith(isLoading: true);
+      state = state.copyWith(isLoading: true, clearFailure: true);
 
       final user = await _repository.signInWithEmail(
         email: email,
@@ -158,24 +177,21 @@ class AuthNotifier extends Notifier<AuthState> {
         isBiometricallyAuthenticated: true,
       );
       return true;
-    } on FirebaseAuthException catch (e) {
-      state = state.copyWith(
-        errorMessage: _getErrorMessage(e.code, l10n),
-        isLoading: false,
-      );
+    } on AuthFailure catch (failure) {
+      state = state.copyWith(failure: failure, isLoading: false);
       return false;
-    } catch (e) {
+    } catch (_) {
       state = state.copyWith(
-        errorMessage: l10n.connectionError,
+        failure: AuthFailure.signInFailed,
         isLoading: false,
       );
       return false;
     }
   }
 
-  Future<bool> signInWithGoogle(AppLocalizations l10n) async {
+  Future<bool> signInWithGoogle() async {
     try {
-      state = state.copyWith(isLoading: true);
+      state = state.copyWith(isLoading: true, clearFailure: true);
 
       final user = await _repository.signInWithGoogle();
 
@@ -185,24 +201,21 @@ class AuthNotifier extends Notifier<AuthState> {
         isBiometricallyAuthenticated: true,
       );
       return true;
-    } on FirebaseAuthException catch (e) {
-      state = state.copyWith(
-        errorMessage: _getErrorMessage(e.code, l10n),
-        isLoading: false,
-      );
+    } on AuthFailure catch (failure) {
+      state = state.copyWith(failure: failure, isLoading: false);
       return false;
-    } catch (e) {
+    } catch (_) {
       state = state.copyWith(
-        errorMessage: l10n.errorGoogleLogin,
+        failure: AuthFailure.googleSignInFailed,
         isLoading: false,
       );
       return false;
     }
   }
 
-  Future<bool> signInWithBiometricToken(AppLocalizations l10n) async {
+  Future<bool> signInWithBiometricToken() async {
     try {
-      state = state.copyWith(isLoading: true);
+      state = state.copyWith(isLoading: true, clearFailure: true);
       final biometrics = _biometricService;
 
       // 1. Authentification physique.
@@ -237,9 +250,9 @@ class AuthNotifier extends Notifier<AuthState> {
         biometricUid: uid,
       );
       return true;
-    } catch (e) {
+    } catch (_) {
       state = state.copyWith(
-        errorMessage: l10n.biometricError,
+        failure: AuthFailure.biometricFailed,
         isLoading: false,
       );
       return false;
@@ -282,9 +295,9 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(canUseBiometrics: false);
   }
 
-  Future<void> signOut(AppLocalizations l10n) async {
+  Future<void> signOut() async {
     try {
-      state = state.copyWith(isLoading: true);
+      state = state.copyWith(isLoading: true, clearFailure: true);
 
       final hasToken = await _biometricService.getStoredToken() != null;
 
@@ -304,14 +317,17 @@ class AuthNotifier extends Notifier<AuthState> {
         await _repository.signOutGoogle();
         state = AuthState();
       }
-    } catch (e) {
-      state = state.copyWith(errorMessage: l10n.errorSignOut, isLoading: false);
+    } catch (_) {
+      state = state.copyWith(
+        failure: AuthFailure.signOutFailed,
+        isLoading: false,
+      );
     }
   }
 
-  Future<bool> signInAnonymously(AppLocalizations l10n) async {
+  Future<bool> signInAnonymously() async {
     try {
-      state = state.copyWith(isLoading: true);
+      state = state.copyWith(isLoading: true, clearFailure: true);
       final user = await _repository.signInAnonymously();
       state = state.copyWith(
         user: user,
@@ -319,74 +335,49 @@ class AuthNotifier extends Notifier<AuthState> {
         isBiometricallyAuthenticated: true,
       );
       return true;
-    } on FirebaseAuthException catch (e) {
-      state = state.copyWith(
-        errorMessage: _getErrorMessage(e.code, l10n),
-        isLoading: false,
-      );
+    } on AuthFailure catch (failure) {
+      state = state.copyWith(failure: failure, isLoading: false);
       return false;
     }
   }
 
-  Future<bool> linkWithGoogle(AppLocalizations l10n) async {
+  Future<bool> linkWithGoogle() async {
     try {
-      state = state.copyWith(isLoading: true);
+      state = state.copyWith(isLoading: true, clearFailure: true);
       final user = await _repository.linkCurrentUserWithGoogle();
       state = state.copyWith(user: user, isLoading: false);
       return true;
-    } on FirebaseAuthException catch (e) {
-      state = state.copyWith(
-        errorMessage: _getErrorMessage(e.code, l10n),
-        isLoading: false,
-      );
+    } on AuthFailure catch (failure) {
+      state = state.copyWith(failure: failure, isLoading: false);
       return false;
     } on GoogleSignInException catch (e) {
+      // Une annulation par l'utilisateur n'est pas un échec à signaler.
       state = state.copyWith(
-        errorMessage: e.code == GoogleSignInExceptionCode.canceled
+        failure: e.code == GoogleSignInExceptionCode.canceled
             ? null
-            : l10n.errorGoogleLogin,
+            : AuthFailure.googleSignInFailed,
         isLoading: false,
       );
       return false;
     }
   }
 
-  Future<void> deleteAccount(AppLocalizations l10n) async {
+  Future<void> deleteAccount() async {
     try {
-      state = state.copyWith(isLoading: true);
+      state = state.copyWith(isLoading: true, clearFailure: true);
       await _repository.deleteCurrentUser();
       await _repository.signOutGoogle();
       await disableBiometrics();
       state = AuthState();
-    } on FirebaseAuthException catch (e) {
+    } on AuthFailure catch (failure) {
+      state = state.copyWith(failure: failure, isLoading: false);
+      rethrow;
+    } catch (_) {
       state = state.copyWith(
-        errorMessage: _getErrorMessage(e.code, l10n),
+        failure: AuthFailure.deleteAccountFailed,
         isLoading: false,
       );
       rethrow;
-    } catch (e) {
-      state = state.copyWith(
-        errorMessage: l10n.deleteAccountError,
-        isLoading: false,
-      );
-      rethrow;
-    }
-  }
-
-  String _getErrorMessage(String code, AppLocalizations l10n) {
-    switch (code) {
-      case 'weak-password':
-        return l10n.errorWeakPassword;
-      case 'email-already-in-use':
-        return l10n.errorEmailAlreadyInUse;
-      case 'invalid-email':
-        return l10n.errorInvalidEmail;
-      case 'user-not-found':
-        return l10n.errorUserNotFound;
-      case 'wrong-password':
-        return l10n.errorWrongPassword;
-      default:
-        return l10n.errorUnknown;
     }
   }
 }

@@ -6,7 +6,6 @@ import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
-import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart' as fam;
 import 'package:flutter/material.dart';
@@ -33,15 +32,15 @@ class SettingsAuthNotifier extends FakeAuthNotifier {
   Future<void> disableBiometrics() async =>
       state = state.copyWith(canUseBiometrics: false);
   @override
-  Future<bool> linkWithGoogle(AppLocalizations l10n) async => true;
+  Future<bool> linkWithGoogle() async => true;
   @override
-  Future<void> signOut(AppLocalizations l10n) async {
+  Future<void> signOut() async {
     signedOut = true;
     state = AuthState();
   }
 
   @override
-  Future<void> deleteAccount(AppLocalizations l10n) async {
+  Future<void> deleteAccount() async {
     if (throwOnDelete) throw Exception('delete failed');
     state = AuthState();
   }

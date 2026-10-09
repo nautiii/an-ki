@@ -77,7 +77,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Navigator.of(dialogContext).pop();
                 final success = await ref
                     .read(authProvider.notifier)
-                    .linkWithGoogle(context.l10n);
+                    .linkWithGoogle();
                 if (success && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(context.l10n.dataSavedSuccess)),
@@ -89,7 +89,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           TextButton(
             onPressed: () async {
               final authNotifier = ref.read(authProvider.notifier);
-              final l10n = context.l10n;
 
               // Fermer le dialogue de confirmation
               Navigator.of(dialogContext).pop();
@@ -112,7 +111,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Déconnexion : les données suivent la session et se vident
               // seules.
 
-              await authNotifier.signOut(l10n);
+              await authNotifier.signOut();
             },
             child: Text(
               isAnonymous
@@ -156,7 +155,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 // 1. Supprimer les données Firestore
                 await accountDeletion.eraseData();
                 // 2. Supprimer le compte Auth
-                await authNotifier.deleteAccount(l10n);
+                await authNotifier.deleteAccount();
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
