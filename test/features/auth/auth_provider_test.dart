@@ -41,6 +41,25 @@ class _GoogleFailingAuthRepository extends AuthRepository {
   Future<User?> signInWithGoogle() async => throw error;
 }
 
+/// AuthRepository that links the anonymous account to Google without the
+/// plugin, or fails with [error].
+class _LinkingAuthRepository extends AuthRepository {
+  _LinkingAuthRepository({this.error})
+    : super(
+        auth: MockFirebaseAuth(),
+        googleSignIn: GoogleSignIn.instance,
+        firestore: FakeFirebaseFirestore(),
+      );
+
+  final Exception? error;
+
+  @override
+  Future<User?> linkCurrentUserWithGoogle() async {
+    if (error case final error?) throw error;
+    return MockUser(uid: 'uid-1');
+  }
+}
+
 const _tokenKey = 'biometric_auth_token';
 const _uidKey = 'biometric_user_id';
 
@@ -301,6 +320,104 @@ void main() {
 
       expect(ok, isFalse);
       expect(container.read(authProvider).failure, AuthFailure.unknown);
+    });
+  });
+
+  group('startup', () {
+    /// Laisse la session Firebase et la vérification biométrique aboutir.
+    Future<void> settle() async {
+      for (var i = 0; i < 5; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+    }
+
+    test('a restored session opens the app without biometrics', () async {
+      final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
+      final container = makeContainer(auth);
+      container.listen(authProvider, (_, _) {});
+      await settle();
+
+      expect(container.read(authProvider).isAuthenticated, isTrue);
+      expect(container.read(authProvider).uid, 'uid-1');
+    });
+
+    test(
+      'a restored session stays locked when biometrics are set up',
+      () async {
+        channels.storage[_tokenKey] = 'tok';
+        channels.storage[_uidKey] = 'uid-1';
+        final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
+        final container = makeContainer(auth);
+        container.listen(authProvider, (_, _) {});
+        await settle();
+
+        // Verrouillée, l'app garde la session : les données suivent derrière.
+        expect(container.read(authProvider).isAuthenticated, isFalse);
+        expect(container.read(authProvider).uid, 'uid-1');
+      },
+    );
+
+    test('the fingerprint opens a locked session', () async {
+      final firestore = FakeFirebaseFirestore();
+      await firestore.collection('user').doc('uid-1').set({
+        'biometricToken': 'tok',
+      });
+      channels.storage[_tokenKey] = 'tok';
+      channels.storage[_uidKey] = 'uid-1';
+      final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
+      final container = makeContainer(auth, firestore: firestore);
+      container.listen(authProvider, (_, _) {});
+      await settle();
+
+      final ok = await container
+          .read(authProvider.notifier)
+          .signInWithBiometricToken();
+
+      expect(ok, isTrue);
+      expect(container.read(authProvider).isAuthenticated, isTrue);
+    });
+  });
+
+  group('linking an anonymous account to Google', () {
+    Future<(bool, AuthFailure?)> link(_LinkingAuthRepository repository) async {
+      final container = makeContainer(
+        MockFirebaseAuth(),
+        repository: repository,
+      );
+      final ok = await container.read(authProvider.notifier).linkWithGoogle();
+      return (ok, container.read(authProvider).failure);
+    }
+
+    test('succeeds', () async {
+      expect(await link(_LinkingAuthRepository()), (true, null));
+    });
+
+    test('stays silent when the user cancels', () async {
+      final repository = _LinkingAuthRepository(
+        error: const GoogleSignInException(
+          code: GoogleSignInExceptionCode.canceled,
+        ),
+      );
+
+      expect(await link(repository), (false, null));
+    });
+
+    test('reports a plugin error', () async {
+      final repository = _LinkingAuthRepository(
+        error: const GoogleSignInException(
+          code: GoogleSignInExceptionCode.unknownError,
+        ),
+      );
+
+      expect(await link(repository), (false, AuthFailure.googleSignInFailed));
+    });
+
+    test('reports a Firebase refusal', () async {
+      final repository = _LinkingAuthRepository(
+        error: AuthFailure.emailAlreadyInUse,
+      );
+
+      expect(await link(repository), (false, AuthFailure.emailAlreadyInUse));
     });
   });
 
