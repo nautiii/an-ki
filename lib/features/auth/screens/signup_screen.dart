@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:flutter/material.dart';
@@ -276,7 +277,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           ? null
                           : () =>
                                 Navigator.of(context)
-                                    .pushReplacementNamed('/login'),
+                                    .pushReplacementNamed(AppRoutes.login),
                       child: Text(
                         context.l10n.signIn,
                         style: TextStyle(

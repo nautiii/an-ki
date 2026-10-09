@@ -1,16 +1,34 @@
 import 'dart:ui';
 
-import 'package:an_ki/core/providers/navigation_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class BottomBar extends ConsumerWidget {
-  const BottomBar({super.key});
+/// Destination de la [BottomBar] : icônes au repos et sélectionnée, libellé
+/// affiché quand elle est sélectionnée.
+class const BottomBarDestination({
+  required final IconData icon,
+  required final IconData selectedIcon,
+  required final String label,
+});
+
+/// Barre de navigation flottante et floutée.
+///
+/// Sans état : l'appelant fournit les destinations et l'index sélectionné, et
+/// reçoit l'index choisi dans [onSelected] (jamais l'index déjà sélectionné).
+class BottomBar extends StatelessWidget {
+  const BottomBar({
+    super.key,
+    required this.destinations,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  final List<BottomBarDestination> destinations;
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final selectedTab = ref.watch(navigationProvider);
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -50,34 +68,18 @@ class BottomBar extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _BottomBarItem(
-                      isSelected: selectedTab == MainTab.birthdays,
-                      icon: Icons.cake_outlined,
-                      activeIcon: Icons.cake_rounded,
-                      label: "Anniversaires",
-                      onTap: () {
-                        if (selectedTab != MainTab.birthdays) {
+                    for (final (index, destination) in destinations.indexed)
+                      _BottomBarItem(
+                        isSelected: index == selectedIndex,
+                        icon: destination.icon,
+                        activeIcon: destination.selectedIcon,
+                        label: destination.label,
+                        onTap: () {
+                          if (index == selectedIndex) return;
                           HapticFeedback.selectionClick();
-                          ref
-                              .read(navigationProvider.notifier)
-                              .setTab(MainTab.birthdays);
-                        }
-                      },
-                    ),
-                    _BottomBarItem(
-                      isSelected: selectedTab == MainTab.scanner,
-                      icon: Icons.qr_code_scanner_rounded,
-                      activeIcon: Icons.qr_code_scanner_rounded,
-                      label: "Scanner",
-                      onTap: () {
-                        if (selectedTab != MainTab.scanner) {
-                          HapticFeedback.selectionClick();
-                          ref
-                              .read(navigationProvider.notifier)
-                              .setTab(MainTab.scanner);
-                        }
-                      },
-                    ),
+                          onSelected(index);
+                        },
+                      ),
                   ],
                 ),
               ),

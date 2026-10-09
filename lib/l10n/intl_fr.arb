@@ -100,6 +100,14 @@
   "newCategory": "Nouvelle catégorie",
   "categoryName": "Nom de la catégorie",
   "chooseIcon": "Choisir une icône",
+  "tabBirthdays": "Anniversaires",
+  "@tabBirthdays": {
+    "description": "Libellé de l'onglet des anniversaires (barre du bas)"
+  },
+  "tabScanner": "Scanner",
+  "@tabScanner": {
+    "description": "Libellé de l'onglet du scanner de livres (barre du bas)"
+  },
   "bookScanner": "Scanner un livre",
   "bookScannerTitle": "Scanner de livres",
   "bookTitle": "Titre",

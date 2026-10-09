@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
 import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:an_ki/features/book_scanner/providers/book_editor.dart';
@@ -10,7 +11,6 @@ import 'package:an_ki/features/book_scanner/providers/isbn_lookup.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_card.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_info_sheet.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
-import 'package:an_ki/features/user/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -129,11 +129,8 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                     (profile) => profile.value?.displayName,
                   ),
                 ),
-                onOpenSettings: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const SettingsScreen(),
-                  ),
-                ),
+                onOpenSettings: () =>
+                    Navigator.of(context).pushNamed(AppRoutes.settings),
               ),
               const SizedBox(height: 24),
 

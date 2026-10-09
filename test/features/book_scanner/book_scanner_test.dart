@@ -1,3 +1,4 @@
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
@@ -46,6 +47,20 @@ void main() {
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsWidgets);
+    });
+
+    testWidgets('the settings button opens the settings route', (tester) async {
+      await tester.pumpHarness(
+        const BookScannerScreen(),
+        overrides: [savedBooksProvider.overrideWithValue(const AsyncData([]))],
+        routes: {AppRoutes.settings: (_) => const Text('Settings route')},
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.settings_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Settings route'), findsOneWidget);
     });
 
     testWidgets('displays saved books in a carousel', (tester) async {

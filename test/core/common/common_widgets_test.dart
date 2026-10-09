@@ -3,9 +3,7 @@ import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/search_bar.dart';
-import 'package:an_ki/core/providers/navigation_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/test_harness.dart';
@@ -176,38 +174,68 @@ void main() {
   });
 
   group('BottomBar', () {
-    testWidgets('switches the active tab', (tester) async {
-      await tester.pumpHarness(const BottomBar());
-      await tester.pumpAndSettle();
+    const destinations = [
+      BottomBarDestination(
+        icon: Icons.cake_outlined,
+        selectedIcon: Icons.cake_rounded,
+        label: 'Birthdays',
+      ),
+      BottomBarDestination(
+        icon: Icons.qr_code_scanner_rounded,
+        selectedIcon: Icons.qr_code_scanner_rounded,
+        label: 'Scanner',
+      ),
+    ];
 
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(BottomBar)),
+    Future<List<int>> pumpBar(WidgetTester tester, {int selected = 0}) async {
+      final picked = <int>[];
+      await tester.pumpHarness(
+        BottomBar(
+          destinations: destinations,
+          selectedIndex: selected,
+          onSelected: picked.add,
+        ),
       );
+      await tester.pumpAndSettle();
+      return picked;
+    }
 
-      expect(container.read(navigationProvider), MainTab.birthdays);
+    testWidgets('shows the label of the selected destination only', (
+      tester,
+    ) async {
+      await pumpBar(tester);
+
+      expect(find.byIcon(Icons.cake_rounded), findsOneWidget);
+      expect(find.text('Birthdays'), findsOneWidget);
+      expect(find.text('Scanner'), findsNothing);
+    });
+
+    testWidgets('reports the destination tapped', (tester) async {
+      final picked = await pumpBar(tester);
 
       await tester.tap(find.byIcon(Icons.qr_code_scanner_rounded));
-      await tester.pumpAndSettle();
 
-      expect(container.read(navigationProvider), MainTab.scanner);
+      expect(picked, [1]);
+    });
 
-      // Tapping the already-selected tab is a no-op.
+    testWidgets('ignores a tap on the selected destination', (tester) async {
+      final picked = await pumpBar(tester, selected: 1);
+
       await tester.tap(find.byIcon(Icons.qr_code_scanner_rounded));
-      await tester.pumpAndSettle();
-      expect(container.read(navigationProvider), MainTab.scanner);
 
-      // Switch back to the birthdays tab.
-      await tester.tap(find.byIcon(Icons.cake_outlined));
-      await tester.pumpAndSettle();
-      expect(container.read(navigationProvider), MainTab.birthdays);
+      expect(picked, isEmpty);
     });
 
     testWidgets('renders in dark mode', (tester) async {
       await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            theme: ThemeData.dark(),
-            home: const Scaffold(body: BottomBar()),
+        MaterialApp(
+          theme: ThemeData.dark(),
+          home: Scaffold(
+            body: BottomBar(
+              destinations: destinations,
+              selectedIndex: 0,
+              onSelected: (_) {},
+            ),
           ),
         ),
       );

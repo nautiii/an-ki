@@ -566,6 +566,18 @@ abstract class AppLocalizations {
   /// **'Choisir une icône'**
   String get chooseIcon;
 
+  /// Libellé de l'onglet des anniversaires (barre du bas)
+  ///
+  /// In fr, this message translates to:
+  /// **'Anniversaires'**
+  String get tabBirthdays;
+
+  /// Libellé de l'onglet du scanner de livres (barre du bas)
+  ///
+  /// In fr, this message translates to:
+  /// **'Scanner'**
+  String get tabScanner;
+
   /// No description provided for @bookScanner.
   ///
   /// In fr, this message translates to:

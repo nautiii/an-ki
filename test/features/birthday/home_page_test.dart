@@ -1,3 +1,4 @@
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
@@ -87,6 +88,22 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Aucun anniversaire trouvé.'), findsOneWidget);
+    });
+  });
+
+  testWidgets('the settings button opens the settings route', (tester) async {
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        const HomeScreen(),
+        overrides: overrides(birthdays: const []),
+        routes: {AppRoutes.settings: (_) => const Text('Settings route')},
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.settings_rounded));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Settings route'), findsOneWidget);
     });
   });
 

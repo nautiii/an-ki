@@ -22,7 +22,6 @@ const featureDependencies = <String, Set<String>>{
   'user': {'auth'},
   'birthday': {'auth', 'user'},
   'book_scanner': {'auth', 'user'},
-  'home': {'birthday', 'book_scanner'},
 };
 
 /// Dossiers autorisés directement sous `lib/features/<feature>/`.
@@ -36,11 +35,6 @@ const featureLayers = {'domain', 'data', 'providers', 'screens', 'widgets'};
 /// premier lancement liste les lignes à ajouter ou retirer.
 const knownViolations = <String>{
   'lib/features/auth/providers/auth_provider.dart -> lib/l10n/app_localizations.dart [state-no-ui]',
-  'lib/features/birthday/screens/home_screen.dart -> lib/features/user/screens/settings_screen.dart [screens-private]',
-  'lib/features/book_scanner/screens/book_scanner_screen.dart -> lib/features/user/screens/settings_screen.dart [screens-private]',
-  'lib/features/home/main_screen.dart -> (emplacement) [layout]',
-  'lib/features/home/main_screen.dart -> lib/features/birthday/screens/home_screen.dart [screens-private]',
-  'lib/features/home/main_screen.dart -> lib/features/book_scanner/screens/book_scanner_screen.dart [screens-private]',
   'lib/features/user/providers/account_deletion.dart -> lib/features/birthday/data/birthday_repository.dart [feature-graph]',
   'lib/features/user/screens/settings_screen.dart -> lib/features/birthday/providers/contact_import.dart [feature-graph]',
 };

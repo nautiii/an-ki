@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -124,7 +125,9 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
                       icon: Icons.email_outlined,
                       onPressed: isLoading
                           ? null
-                          : () => Navigator.of(context).pushNamed('/login'),
+                          : () =>
+                                Navigator.of(context)
+                                    .pushNamed(AppRoutes.login),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -153,7 +156,8 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
                           onPressed: isLoading
                               ? null
                               : () =>
-                                    Navigator.of(context).pushNamed('/signup'),
+                                    Navigator.of(context)
+                                        .pushNamed(AppRoutes.signup),
                           child: Text(
                             context.l10n.signUp,
                             style: TextStyle(

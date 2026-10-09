@@ -100,6 +100,8 @@
   "newCategory": "New category",
   "categoryName": "Category's name",
   "chooseIcon": "Choose an icon",
+  "tabBirthdays": "Birthdays",
+  "tabScanner": "Scanner",
   "bookScanner": "Scan a book",
   "bookScannerTitle": "Book Scanner",
   "bookTitle": "Title",

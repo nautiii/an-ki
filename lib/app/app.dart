@@ -1,10 +1,10 @@
 import 'package:an_ki/app/bootstrap/app_initializer.dart';
 import 'package:an_ki/app/router/app_router.dart';
+import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/birthday/providers/reminder_sync_provider.dart';
-import 'package:an_ki/features/home/main_screen.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/features/user/providers/theme_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
@@ -34,7 +34,7 @@ class App extends ConsumerWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: isAuthenticated
-          ? const AppInitializer(child: MainScreen())
+          ? const AppInitializer(child: MainShell())
           : const AuthChoiceScreen(),
       routes: AppRouter.routes,
     );

@@ -252,6 +252,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chooseIcon => 'Choisir une icône';
 
   @override
+  String get tabBirthdays => 'Anniversaires';
+
+  @override
+  String get tabScanner => 'Scanner';
+
+  @override
   String get bookScanner => 'Scanner un livre';
 
   @override

@@ -1,3 +1,4 @@
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/search_bar.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
@@ -11,7 +12,6 @@ import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
-import 'package:an_ki/features/user/screens/settings_screen.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -56,11 +56,8 @@ class HomeScreen extends ConsumerWidget {
                 isListView: viewType == HomeViewType.list,
                 onToggleView: () =>
                     ref.read(homeViewProvider.notifier).toggle(),
-                onOpenSettings: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const SettingsScreen(),
-                  ),
-                ),
+                onOpenSettings: () =>
+                    Navigator.of(context).pushNamed(AppRoutes.settings),
               ),
               const SizedBox(height: 24),
               const NextBirthdayCard(),

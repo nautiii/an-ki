@@ -250,6 +250,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chooseIcon => 'Choose an icon';
 
   @override
+  String get tabBirthdays => 'Birthdays';
+
+  @override
+  String get tabScanner => 'Scanner';
+
+  @override
   String get bookScanner => 'Scan a book';
 
   @override
