@@ -366,9 +366,10 @@ final reminderSyncProvider = Provider<void>((ref) {
 });
 ```
 
-(`birthdaysProvider` and `planReminders` are target names, introduced by migration steps M2 and
-M6.) Activate it from an always-mounted widget in `app/` (`ref.watch(reminderSyncProvider)` in
-the app or shell `build`). Riverpod 3 pauses providers whose listeners are all paused or gone, so
+(Simplified: the real `features/reminders/providers/reminder_sync_provider.dart` also passes
+`now` from `clockProvider` and maps the plan to `core`'s `ReminderNotification`.)
+Activate it from an always-mounted widget in `app/` (`ref.watch(reminderSyncProvider)` in the
+app or shell `build`). Riverpod 3 pauses providers whose listeners are all paused or gone, so
 a side-effect provider nobody watches simply stops.
 
 ## 11. Rendering state in widgets
@@ -513,8 +514,10 @@ test('streams the ideas of the signed-in user', () async {
 ## 15. Riverpod 3 / Firebase gotchas
 
 - After an `await`, check `ref.mounted` before touching `state`: a disposed Notifier throws.
+  Read every dependency (`ref.read(x)`) before the first `await`: a `ref` used once its notifier
+  is disposed throws too.
 - Methods use `ref.read`; only `build` uses `ref.watch`. A `ref.watch` getter called from a
-  method (`UserNotifier._repository` today) is a bug waiting to happen.
+  method is a bug waiting to happen.
 - Automatic retry is on by default (10 tries, 200 ms → 6.4 s) for exceptions: render `hasError`
   first. Tests turn it off — the widget harness does since M0, `ProviderContainer.test` takes
   `retry: (_, _) => null`.
@@ -526,12 +529,28 @@ test('streams the ideas of the signed-in user', () async {
   `AsyncValue.error` is the original.
 - `StateProvider` / `StateNotifierProvider` live in `legacy.dart`: never use them.
 - A family takes one argument; use a record for several.
-- Timers inside providers (`todayProvider`) outlive a `testWidgets` body: override the provider
-  with a value in widget tests.
+- Timers inside providers (`todayProvider`) need no override in widget tests: the test
+  unmounts the `ProviderScope` before checking timers, which disposes the provider and cancels
+  its timer. Pin the day only when an assertion depends on it.
+- An `autoDispose` controller with optimistic writes needs an always-mounted screen (home,
+  scanner, settings) that `ref.listen`s it: that keeps it alive and announces late failures. A
+  failure contradicting the snackbar on screen replaces it (`hideCurrentSnackBar`) instead of
+  queuing behind it.
 - `riverpod_lint` (analyzer plugin) reports in the IDE and with `dart analyze`; `flutter analyze`
   does not run plugins (checked with Flutter 3.47.6). Suppress a plugin diagnostic with
   `// ignore: riverpod_lint/<rule>`: `flutter analyze`'s `unnecessary_ignore` accepts it.
 - Firestore: write futures wait for the server; snapshots carry local writes at once;
   `serverTimestamp()` is null until acknowledged; security rules don't filter queries.
+- Firestore: write only the fields that changed (`update`, `FieldValue.arrayUnion`) — rewriting a
+  document read a moment earlier loses a concurrent edit (theme, then language). `orderBy` leaves
+  out documents missing the field: always write the sort key.
+- Dates: local midnights are 23 h or 25 h apart around DST changes. Count days between
+  `DateTime.utc(y, m, d)` values and step in calendar days (`DateTime(y, m, d - 7)`), never with
+  `Duration(days: n)`.
+- Images: `MemoryImage` is keyed by its bytes instance; decode base64 once (in the repository),
+  never in `build`, or every rebuild decodes the picture again.
+- Test doubles: `fake_cloud_firestore` applies a transaction one tick late to snapshot listeners
+  and enforces the 500-operation batch limit (a 501-document test proves batching);
+  `firebase_auth_mocks` asserts that `signInAnonymously` gets an anonymous mock user.
 - Dart 3.13: `final` on a constructor parameter that doesn't declare a field is an error;
   `require_trailing_commas` has been a no-op since the 3.7 formatter.

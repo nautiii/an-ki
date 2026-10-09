@@ -91,7 +91,7 @@ Full placement table, rules and naming: `references/structure.md`.
 | Adding, moving or reviewing any code | `references/structure.md` |
 | Writing a model, repository, provider, controller, screen or test | `references/patterns.md`, then `assets/example/` (a complete, tested feature to copy and adapt) |
 | Before proposing a different approach, a package, or bending a rule | `references/decisions.md` — each decision says when to revisit it |
-| « refacto », « migre », « nettoie », debt, or touching legacy code | `references/migration.md` — audit and step-by-step plan |
+| « refacto », « migre », « nettoie », debt, or touching legacy code | `references/migration.md` — open debt and remaining steps |
 
 ## Size the change — it sets the ceremony
 
@@ -131,7 +131,7 @@ The current structure is not sacred: when the right answer is structural, say so
 Since M3 every model is a pure `domain/` type mapped by its repository, and the foundation
 providers (clock and today, Firebase instances, current uid) are installed. What still predates
 the target is listed in `migration.md` §2: navigation without deep links (M7) and the all-in-one
-`AuthNotifier` (A14).
+`AuthNotifier` (A14, step M9).
 When a brick lands there:
 - If the step is small and covers what you touch, propose doing that step first, as its own
   commit.
@@ -149,8 +149,8 @@ When a brick lands there:
 2. Lock behaviour: add the missing tests before moving code.
 3. Move with `git mv`, fix imports, keep every commit compiling; never mix a move with a
    behaviour change in one commit.
-4. Verify; delete the cleared `knownViolations` lines; update `migration.md` (tick the step,
-   remove fixed debt, record discoveries).
+4. Verify (`knownViolations` stays empty); update `migration.md` (a line in *Done*, fixed debt
+   removed, discoveries recorded).
 5. Report, with the debt count before → after.
 
 ## Workflow C — review
