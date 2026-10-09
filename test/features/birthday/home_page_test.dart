@@ -1,7 +1,7 @@
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
-import 'package:an_ki/features/birthday/data/models/category_model.dart';
-import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
+import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
@@ -29,7 +29,7 @@ class StubCategoryRepository implements CategoryRepository {
 
 void main() {
   final now = DateTime.now();
-  final family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
+  const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
 
   BirthdayModel onDay(int daysAhead, {required String id, String? cat}) {
     final target = DateTime(
@@ -39,7 +39,6 @@ void main() {
     ).add(Duration(days: daysAhead));
     return BirthdayModel(
       id: id,
-      uid: 'fake-uid',
       name: 'Person$id',
       surname: 'X',
       date: DateTime(1990, target.month, target.day),

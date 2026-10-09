@@ -1,8 +1,10 @@
+import 'dart:convert';
+
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
-import 'package:an_ki/features/birthday/data/models/category_model.dart';
-import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
-import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
+import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
@@ -16,8 +18,9 @@ import '../../support/fake_providers.dart';
 import '../../support/network_image_mock.dart';
 import '../../support/test_harness.dart';
 
-const _pngBase64 =
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+final _png = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+);
 
 class StubCategoryRepository implements CategoryRepository {
   StubCategoryRepository(this.categories);
@@ -31,11 +34,10 @@ class StubCategoryRepository implements CategoryRepository {
 }
 
 void main() {
-  final family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
+  const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
 
   final editable = BirthdayModel(
     id: 'edit-1',
-    uid: 'fake-uid',
     name: 'Alice',
     surname: 'Wonderland',
     date: DateTime(1990, 5, 10),
@@ -117,9 +119,7 @@ void main() {
     final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
-        BirthdayFormSheet(
-          birthdayToEdit: editable.copyWith(picture: _pngBase64),
-        ),
+        BirthdayFormSheet(birthdayToEdit: editable.copyWith(picture: _png)),
         overrides: overrides(repository),
       );
       await tester.pumpAndSettle();
@@ -136,21 +136,6 @@ void main() {
 
       expect(repository.updated, ['edit-1']);
       expect(repository.created.single.name, 'Alice');
-    });
-  });
-
-  testWidgets('edit mode tolerates an invalid picture', (tester) async {
-    final repository = RecordingBirthdayRepository();
-    await mockNetworkImages(() async {
-      await tester.pumpHarness(
-        BirthdayFormSheet(
-          birthdayToEdit: editable.copyWith(picture: '!!notbase64!!'),
-        ),
-        overrides: overrides(repository),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Modifier'), findsOneWidget);
     });
   });
 

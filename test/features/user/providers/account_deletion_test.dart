@@ -1,5 +1,5 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:an_ki/features/user/providers/account_deletion.dart';

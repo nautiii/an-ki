@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
-import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Écritures sur les anniversaires (ViewModel des actions) et état de la
@@ -17,14 +17,14 @@ class BirthdayEditor extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
 
-  Future<void> create(CreateBirthdayInput input) => _write(
-    (uid) => ref.read(birthdayRepositoryProvider).createBirthday(uid, input),
+  Future<void> create(BirthdayDraft draft) => _write(
+    (uid) => ref.read(birthdayRepositoryProvider).createBirthday(uid, draft),
   );
 
-  Future<void> edit(String birthdayId, CreateBirthdayInput input) => _write(
+  Future<void> edit(String birthdayId, BirthdayDraft draft) => _write(
     (uid) => ref
         .read(birthdayRepositoryProvider)
-        .updateBirthday(uid, birthdayId, input),
+        .updateBirthday(uid, birthdayId, draft),
   );
 
   Future<void> delete(String birthdayId) => _write(

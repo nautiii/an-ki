@@ -1,19 +1,14 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
-import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
 
-CreateBirthdayInput _input() => CreateBirthdayInput(
-  uid: 'u1',
-  name: 'New',
-  surname: 'Person',
-  date: DateTime(2000),
-  categories: const [],
-);
+BirthdayDraft _input() =>
+    BirthdayDraft(name: 'New', surname: 'Person', date: DateTime(2000));
 
 void main() {
   ProviderContainer makeContainer(

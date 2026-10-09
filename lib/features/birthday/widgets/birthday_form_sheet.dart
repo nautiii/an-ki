@@ -1,16 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:an_ki/core/common/anki_text_field.dart';
-import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
-import 'package:an_ki/features/birthday/data/models/category_model.dart';
-import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
+import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
+import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,7 +46,10 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
   DateTime _selectedDate = DateTime.now().subtract(
     const Duration(days: 365 * 25),
   );
-  XFile? _selectedImage;
+
+  /// Photo choisie dans la galerie, lue dès le choix : le brouillon porte des
+  /// octets, jamais un fichier.
+  Uint8List? _picture;
 
   @override
   void initState() {
@@ -78,7 +79,9 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
       maxWidth: 512,
       maxHeight: 512,
     );
-    if (image != null) setState(() => _selectedImage = image);
+    if (image == null) return;
+    final bytes = await image.readAsBytes();
+    if (mounted) setState(() => _picture = bytes);
   }
 
   /// Valide, lance l'écriture sans l'attendre puis ferme la feuille : un échec
@@ -86,22 +89,18 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
   void _save() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    final uid = ref.read(currentUidProvider);
-    if (uid == null) return;
-
-    final input = CreateBirthdayInput(
-      uid: uid,
+    final draft = BirthdayDraft(
       name: _nameController.text.trim(),
       surname: _surnameController.text.trim(),
       date: _selectedDate,
       categories: _selectedCategories,
-      pictureFile: _selectedImage,
+      picture: _picture,
     );
 
     final editor = ref.read(birthdayEditorProvider.notifier);
     final toEdit = widget.birthdayToEdit;
     unawaited(
-      toEdit != null ? editor.edit(toEdit.id, input) : editor.create(input),
+      toEdit != null ? editor.edit(toEdit.id, draft) : editor.create(draft),
     );
     Navigator.of(context).pop(true);
   }
@@ -198,8 +197,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
 
                     Center(
                       child: _ImagePickerButton(
-                        imageFile: _selectedImage,
-                        initialImageUrl: widget.birthdayToEdit?.picture,
+                        picture: _picture ?? widget.birthdayToEdit?.picture,
                         onTap: _pickImage,
                       ),
                     ),
@@ -357,27 +355,16 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
 }
 
 class _ImagePickerButton extends StatelessWidget {
-  const _ImagePickerButton({
-    this.imageFile,
-    this.initialImageUrl,
-    required this.onTap,
-  });
+  const _ImagePickerButton({this.picture, required this.onTap});
 
-  final XFile? imageFile;
-  final String? initialImageUrl;
+  final Uint8List? picture;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    ImageProvider? image;
-    if (imageFile != null) {
-      image = FileImage(File(imageFile!.path));
-    } else if (initialImageUrl != null) {
-      try {
-        image = MemoryImage(base64Decode(initialImageUrl!));
-      } catch (_) {}
-    }
+    final picture = this.picture;
+    final ImageProvider? image = picture != null ? MemoryImage(picture) : null;
 
     return GestureDetector(
       onTap: onTap,
@@ -440,7 +427,7 @@ class _CategorySelector extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: ChoiceChip(
-              label: Text(cat.getLocalizedName(context)),
+              label: Text(cat.localizedName(context)),
               avatar: Icon(
                 cat.iconData,
                 size: 18,

@@ -1,5 +1,5 @@
-import 'package:an_ki/features/birthday/data/models/category_model.dart';
-import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
+import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

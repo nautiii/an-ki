@@ -1,6 +1,6 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/birthday/data/models/category_model.dart';
-import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
+import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
@@ -36,8 +36,8 @@ const _user = UserModel(
 );
 
 void main() {
-  final family = BirthdayCategory(id: 'fam', name: 'Family', icon: 1);
-  final friend = BirthdayCategory(id: 'fri', name: 'Apple', icon: 2);
+  const family = BirthdayCategory(id: 'fam', name: 'Family', icon: 1);
+  const friend = BirthdayCategory(id: 'fri', name: 'Apple', icon: 2);
 
   /// Conteneur avec la session `u` ; attend le premier profil (Riverpod 3 met
   /// en pause un flux sans listener, d'où l'écoute).

@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
-import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -37,12 +37,10 @@ class ContactImport extends AsyncNotifier<int?> {
         repository
             .createBirthdays(uid, [
               for (final contact in imported)
-                CreateBirthdayInput(
-                  uid: uid,
+                BirthdayDraft(
                   name: contact.name,
                   surname: contact.surname,
                   date: contact.date,
-                  categories: const [],
                 ),
             ])
             .catchError((Object error) {

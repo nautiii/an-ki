@@ -71,4 +71,19 @@ extension WidgetTesterExt on WidgetTester {
       ),
     );
   }
+
+  /// Contexte localisé (français, comme le harnais) pour tester une
+  /// extension d'affichage — libellé, date — sans écran.
+  Future<BuildContext> pumpLocalizedContext() async {
+    late BuildContext captured;
+    await pumpHarness(
+      Builder(
+        builder: (context) {
+          captured = context;
+          return const SizedBox();
+        },
+      ),
+    );
+    return captured;
+  }
 }

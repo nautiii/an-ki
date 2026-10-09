@@ -1,11 +1,10 @@
-import 'dart:convert';
-
-import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
-import 'package:an_ki/features/birthday/data/models/category_model.dart';
+import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/birthday_model.dart';
+import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -210,15 +209,16 @@ class _CalendarGrid extends StatelessWidget {
                 separatorBuilder: (context, index) => const Divider(height: 24),
                 itemBuilder: (context, index) {
                   final birthday = birthdays[index];
+                  final picture = birthday.picture;
                   return Row(
                     children: [
                       CircleAvatar(
                         radius: 24,
                         backgroundColor: colorScheme.primaryContainer,
-                        backgroundImage: birthday.picture != null
-                            ? MemoryImage(base64Decode(birthday.picture!))
+                        backgroundImage: picture != null
+                            ? MemoryImage(picture)
                             : null,
-                        child: birthday.picture == null
+                        child: picture == null
                             ? Icon(
                                 Icons.cake_rounded,
                                 color: colorScheme.primary,

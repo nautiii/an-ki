@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
-import 'package:an_ki/features/birthday/data/models/category_model.dart';
-import 'package:an_ki/features/birthday/data/models/create_birthday_input.dart';
-import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
-import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
+import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
+import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/book_scanner/domain/book_model.dart';
@@ -140,19 +140,16 @@ class FakeBirthdayRepository extends Fake implements BirthdayRepository {
   Stream<List<BirthdayModel>> watchBirthdays(String uid) => Stream.value([]);
 
   @override
-  Future<void> createBirthday(String uid, CreateBirthdayInput input) async {}
+  Future<void> createBirthday(String uid, BirthdayDraft draft) async {}
 
   @override
-  Future<void> createBirthdays(
-    String uid,
-    List<CreateBirthdayInput> inputs,
-  ) async {}
+  Future<void> createBirthdays(String uid, List<BirthdayDraft> drafts) async {}
 
   @override
   Future<void> updateBirthday(
     String uid,
     String birthdayId,
-    CreateBirthdayInput input,
+    BirthdayDraft draft,
   ) async {}
 
   @override
@@ -173,7 +170,7 @@ class RecordingBirthdayRepository extends FakeBirthdayRepository {
   final Exception? failure;
 
   final watchedUids = <String>[];
-  final created = <CreateBirthdayInput>[];
+  final created = <BirthdayDraft>[];
   final updated = <String>[];
   final deleted = <String>[];
   final erasedUids = <String>[];
@@ -185,29 +182,26 @@ class RecordingBirthdayRepository extends FakeBirthdayRepository {
   }
 
   @override
-  Future<void> createBirthday(String uid, CreateBirthdayInput input) async {
+  Future<void> createBirthday(String uid, BirthdayDraft draft) async {
     _maybeFail();
-    created.add(input);
+    created.add(draft);
   }
 
   @override
-  Future<void> createBirthdays(
-    String uid,
-    List<CreateBirthdayInput> inputs,
-  ) async {
+  Future<void> createBirthdays(String uid, List<BirthdayDraft> drafts) async {
     _maybeFail();
-    created.addAll(inputs);
+    created.addAll(drafts);
   }
 
   @override
   Future<void> updateBirthday(
     String uid,
     String birthdayId,
-    CreateBirthdayInput input,
+    BirthdayDraft draft,
   ) async {
     _maybeFail();
     updated.add(birthdayId);
-    created.add(input);
+    created.add(draft);
   }
 
   @override

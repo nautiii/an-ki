@@ -1,7 +1,10 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
-import 'package:an_ki/features/birthday/data/models/category_model.dart';
-import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
+import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +15,9 @@ import '../../support/network_image_mock.dart';
 import '../../support/test_harness.dart';
 
 // 1x1 transparent PNG.
-const _pngBase64 =
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+final _png = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+);
 
 class StubCategoryRepository implements CategoryRepository {
   StubCategoryRepository(this.categories);
@@ -28,12 +32,11 @@ class StubCategoryRepository implements CategoryRepository {
 
 void main() {
   final now = DateTime.now();
-  final family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
+  const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
 
-  BirthdayModel onDay(int day, {String id = '1', String? picture}) =>
+  BirthdayModel onDay(int day, {String id = '1', Uint8List? picture}) =>
       BirthdayModel(
         id: id,
-        uid: 'u',
         name: 'Alice',
         surname: 'Wonderland',
         date: DateTime(1990, now.month, day),
@@ -77,7 +80,7 @@ void main() {
     tester,
   ) async {
     await mockNetworkImages(() async {
-      await pumpCalendar(tester, birthdays: [onDay(15, picture: _pngBase64)]);
+      await pumpCalendar(tester, birthdays: [onDay(15, picture: _png)]);
 
       await tester.tap(find.text('15'));
       await tester.pumpAndSettle();
@@ -93,7 +96,7 @@ void main() {
       await pumpCalendar(
         tester,
         birthdays: [
-          onDay(15, picture: _pngBase64),
+          onDay(15, picture: _png),
           onDay(15, id: '2'),
         ],
       );

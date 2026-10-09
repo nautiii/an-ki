@@ -1,6 +1,9 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
-import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
+import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -12,13 +15,14 @@ import '../../support/fake_providers.dart';
 import '../../support/network_image_mock.dart';
 import '../../support/test_harness.dart';
 
-const _pngBase64 =
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+final _png = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+);
 
 void main() {
   final now = DateTime.now();
 
-  BirthdayModel relative(int daysAhead, {String id = '1', String? picture}) {
+  BirthdayModel relative(int daysAhead, {String id = '1', Uint8List? picture}) {
     final target = DateTime(
       now.year,
       now.month,
@@ -26,11 +30,9 @@ void main() {
     ).add(Duration(days: daysAhead));
     return BirthdayModel(
       id: id,
-      uid: 'fake-uid',
       name: 'Alice',
       surname: 'Wonderland',
       date: DateTime(1990, target.month, target.day),
-      categories: const [],
       picture: picture,
     );
   }
@@ -75,7 +77,7 @@ void main() {
 
   testWidgets('labels a birthday happening today', (tester) async {
     await mockNetworkImages(() async {
-      await pumpCard(tester, birthdays: [relative(0, picture: _pngBase64)]);
+      await pumpCard(tester, birthdays: [relative(0, picture: _png)]);
       await tester.pumpAndSettle();
 
       expect(find.text('Alice Wonderland'), findsOneWidget);

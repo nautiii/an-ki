@@ -1,20 +1,11 @@
+import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
-import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
-import 'package:an_ki/features/birthday/data/models/category_model.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 BirthdayModel _birthday({String id = '1', required DateTime date}) {
-  return BirthdayModel(
-    id: id,
-    uid: 'u',
-    name: 'A',
-    surname: 'B',
-    date: date,
-    categories: const [],
-  );
+  return BirthdayModel(id: id, name: 'A', surname: 'B', date: date);
 }
 
 /// Pumps a widget able to expose a localized [BuildContext] (French locale).
@@ -123,43 +114,6 @@ void main() {
 
       expect(result.map((b) => b.id).toSet(), {'a', 'b'});
     });
-  });
-
-  group('BirthdayCategoryX', () {
-    test('color maps known categories and falls back to grey', () {
-      BirthdayCategory cat(String name) =>
-          BirthdayCategory(id: '1', name: name, icon: 0);
-
-      expect(cat('family').color, Colors.blue);
-      expect(cat('FRIEND').color, Colors.green); // case-insensitive
-      expect(cat('unknown').color, Colors.grey);
-      expect(cat('other').color, Colors.grey);
-    });
-
-    testWidgets(
-      'getLocalizedName resolves known keys and echoes custom names',
-      (tester) async {
-        final context = await _localizedContext(tester);
-        final l10n = context.l10n;
-
-        expect(
-          BirthdayCategory(
-            id: '1',
-            name: 'family',
-            icon: 0,
-          ).getLocalizedName(context),
-          l10n.family,
-        );
-        expect(
-          BirthdayCategory(
-            id: '2',
-            name: 'MyCustom',
-            icon: 0,
-          ).getLocalizedName(context),
-          'MyCustom',
-        );
-      },
-    );
   });
 
   group('getFormattedDate', () {

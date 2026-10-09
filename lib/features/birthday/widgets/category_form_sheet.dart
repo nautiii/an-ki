@@ -1,7 +1,7 @@
 import 'package:an_ki/core/common/anki_text_field.dart';
-import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -157,7 +157,7 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
                               return Padding(
                                 padding: const EdgeInsets.only(right: 8),
                                 child: FilterChip(
-                                  label: Text(cat.getLocalizedName(context)),
+                                  label: Text(cat.localizedName(context)),
                                   avatar: Icon(
                                     cat.iconData,
                                     size: 18,

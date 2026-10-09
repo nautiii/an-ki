@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/core/services/notification_service.dart';
-import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/reminder_sync_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,11 +20,9 @@ class _RecordingNotificationService extends Fake
 void main() {
   final lea = BirthdayModel(
     id: 'lea',
-    uid: 'u1',
     name: 'Léa',
     surname: 'Martin',
     date: DateTime(1994, 3, 12),
-    categories: const [],
   );
 
   late _RecordingNotificationService notifications;

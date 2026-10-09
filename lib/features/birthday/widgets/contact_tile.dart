@@ -1,12 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
+import 'package:an_ki/features/birthday/domain/birthday_model.dart';
+import 'package:an_ki/features/birthday/extensions/birthday_extensions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,15 +22,10 @@ class ContactTile extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final categoriesState = ref.watch(categoriesProvider);
 
-    ImageProvider? backgroundImage;
-
-    if (birthday.picture != null) {
-      try {
-        backgroundImage = MemoryImage(base64Decode(birthday.picture!));
-      } catch (e) {
-        backgroundImage = null;
-      }
-    }
+    final picture = birthday.picture;
+    final ImageProvider? backgroundImage = picture != null
+        ? MemoryImage(picture)
+        : null;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -204,7 +199,7 @@ class ContactTile extends ConsumerWidget {
                                           ),
                                           const SizedBox(width: 5),
                                           Text(
-                                            cat.getLocalizedName(context),
+                                            cat.localizedName(context),
                                             style: textTheme.labelSmall
                                                 ?.copyWith(
                                                   color: colorScheme

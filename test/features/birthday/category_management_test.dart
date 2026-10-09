@@ -1,5 +1,5 @@
-import 'package:an_ki/features/birthday/data/models/category_model.dart';
-import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
+import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
@@ -24,8 +24,8 @@ class StubCategoryRepository implements CategoryRepository {
 }
 
 void main() {
-  final family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
-  final friend = BirthdayCategory(id: 'fri', name: 'friend', icon: 0xe1bf);
+  const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
+  const friend = BirthdayCategory(id: 'fri', name: 'friend', icon: 0xe1bf);
 
   List<dynamic> overrides(
     FakeCategoryNotifier categoryNotifier, {

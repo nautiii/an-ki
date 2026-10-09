@@ -1,7 +1,7 @@
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
-import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
-import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
+import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -26,11 +26,9 @@ BirthdayModel _relative(
   ).add(Duration(days: daysAhead));
   return BirthdayModel(
     id: id,
-    uid: 'fake-uid',
     name: name,
     surname: surname,
     date: DateTime(1990, target.month, target.day),
-    categories: const [],
   );
 }
 
