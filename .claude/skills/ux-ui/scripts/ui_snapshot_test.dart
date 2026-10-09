@@ -21,19 +21,19 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
-import 'package:an_ki/features/birthday/data/models/birthday_model.dart';
-import 'package:an_ki/features/birthday/data/models/category_model.dart';
-import 'package:an_ki/features/birthday/data/repositories/birthday_repository.dart';
-import 'package:an_ki/features/birthday/data/repositories/category_repository.dart';
+import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
-import 'package:an_ki/features/book_scanner/data/repositories/book_repository.dart';
+import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
-import 'package:an_ki/features/home/main_screen.dart';
-import 'package:an_ki/features/user/data/models/user_model.dart';
-import 'package:an_ki/features/user/data/repositories/user_repository.dart';
+import 'package:an_ki/features/user/data/user_repository.dart';
+import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -57,7 +57,7 @@ import '../../../test/support/network_image_mock.dart';
 // Recettes (ajouter l'import de l'écran) :
 //   calendrier  → act: (t) => t.tap(find.byIcon(Icons.calendar_month_rounded))
 //   chargement  → overrides: sampleOverrides(isLoading: true)
-//   paramètres  → build: () => const SettingsScreen(),
+//   paramètres  → build: () => const SettingsScreen(),   // features/settings/screens/
 //                 prepare: () => FakeBiometricChannels().install()   // ../../../test/support/platform_mocks.dart
 //   connexion   → build: () => const AuthChoiceScreen()
 //   recherche   → act: (t) => t.enterText(find.byType(TextField).first, 'Lé')
@@ -66,17 +66,17 @@ import '../../../test/support/network_image_mock.dart';
 final List<UiScene> scenes = [
   UiScene(
     name: 'home',
-    build: () => const MainScreen(),
+    build: () => const MainShell(),
     overrides: sampleOverrides(),
   ),
   UiScene(
     name: 'home_empty',
-    build: () => const MainScreen(),
+    build: () => const MainShell(),
     overrides: sampleOverrides(birthdays: const []),
   ),
   UiScene(
     name: 'birthday_form',
-    build: () => const MainScreen(),
+    build: () => const MainShell(),
     overrides: sampleOverrides(),
     act: (tester) => tester.tap(find.byIcon(Icons.add_rounded).first),
   ),
@@ -118,7 +118,6 @@ List<BirthdayModel> sampleBirthdays() {
     final next = today.add(Duration(days: inDays));
     return BirthdayModel(
       id: id,
-      uid: 'fake-uid',
       name: name,
       surname: surname,
       date: DateTime(next.year - turning, next.month, next.day),
@@ -182,35 +181,30 @@ List<Override> sampleOverrides({
     authProvider.overrideWith(
       () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
     ),
-    userProvider.overrideWith(
-      () => FakeUserNotifier(
-        initialState: UserState(
-          user: UserModel(
-            id: 'fake-uid',
-            name: 'Camille',
-            surname: 'Durand',
-            pseudo: 'Camille',
-            categories: [for (final c in cats) c.id],
-            isDark: false,
-            locale: 'fr',
-          ),
+    userProfileProvider.overrideWithValue(
+      AsyncData(
+        UserModel(
+          id: 'fake-uid',
+          name: 'Camille',
+          surname: 'Durand',
+          pseudo: 'Camille',
+          categories: [for (final c in cats) c.id],
+          isDark: false,
+          locale: 'fr',
         ),
       ),
     ),
-    birthdayProvider.overrideWith(
-      () => FakeBirthdayNotifier(
-        initialState: BirthdayState(
-          birthdays: birthdays ?? sampleBirthdays(),
-          isLoading: isLoading,
-        ),
-      ),
+    birthdaysProvider.overrideWithValue(
+      isLoading
+          ? const AsyncLoading()
+          : AsyncData(birthdays ?? sampleBirthdays()),
     ),
+    savedBooksProvider.overrideWithValue(const AsyncData([])),
     categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
     categoryRepositoryProvider.overrideWithValue(_StubCategoryRepository(cats)),
     userRepositoryProvider.overrideWithValue(FakeUserRepository()),
     birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
     bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
-    bookScannerProvider.overrideWith(FakeBookScannerNotifier.new),
   ];
 }
 

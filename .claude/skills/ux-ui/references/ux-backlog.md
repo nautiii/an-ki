@@ -141,7 +141,7 @@ auth or dependencies → design brief + maintainer approval first.
   jour le pseudo » button; destructive actions mixed with preferences → grouped sections, segmented
   controls, instant apply, danger zone (patterns J).
 - **Q5 Auth intro**: staggered fades reveal buttons after up to ~1.8 s → ≤ 600 ms, CTAs visible
-  at once; raw route strings `'/login'`, `'/signup'` → `AppRoutes`.
+  at once (route paths already go through `AppRoutes`, M4).
 - **Q6 Search**: no-results dead end → « Ajouter « … » » prefilled; highlight matches.
 - **Q7 Category sheet**: save always enabled then errors via snackbar → disable until valid,
   inline guidance.

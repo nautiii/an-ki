@@ -2,7 +2,6 @@
 paths:
   - "lib/features/*/screens/**"
   - "lib/features/*/widgets/**"
-  - "lib/features/home/**"
   - "lib/app/shell/**"
   - "lib/core/common/**"
   - "lib/core/theme/**"

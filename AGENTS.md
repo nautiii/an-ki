@@ -53,10 +53,10 @@ themselves.
 
 ```
 lib/main.dart       process start: Firebase, notifications, ProviderScope
-lib/app/            composition root — MaterialApp, route table, bootstrap; the only code that knows every feature
+lib/app/            composition root — MaterialApp, route table, shell (tabs), bootstrap; the only code that knows every feature
 lib/core/           feature-agnostic — common/ (dumb shared widgets), theme/, services/ (plugin wrappers),
-                    providers/, extensions/, config/; never imports app/ or a feature
-lib/features/<f>/   auth · user · birthday · book_scanner · home — domain/, data/, providers/, screens/, widgets/
+                    providers/, routing/ (route paths), extensions/, config/; never imports app/ or a feature
+lib/features/<f>/   auth · user · birthday · book_scanner · settings — domain/, data/, providers/, screens/, widgets/
 lib/l10n/           intl_fr.arb (template) + intl_en.arb; app_localizations*.dart are generated
 test/               mirrors lib/; test/support/ holds the widget harness and shared fakes
 scripts/            PowerShell: run, build and deploy
@@ -68,7 +68,7 @@ Target: feature-first layered MVVM — `screens/ widgets/ → providers/ → dat
 each feature, features linked by a declared acyclic graph, rules enforced by
 `test/architecture/architecture_test.dart` (known debt listed there, it only shrinks). Today's
 code predates the target; the plan is `.claude/skills/architecture/references/migration.md`
-(M0–M3 done, next M4–M8).
+(M0–M4 done, next M5–M8).
 
 - Never copy a legacy pattern into new code: session handling with `startListening`/`clear()`,
   `XState` with `isLoading`/`errorMessage` strings, `AppLocalizations` passed to notifiers,

@@ -123,7 +123,7 @@ Why each boundary:
 | A widget used by ≥ 2 features | `core/common/`, dumb (params + callbacks) | `AnKiEmptyState` |
 | Orchestration across features triggered by a user action | the lowest feature that already depends on every participant (often `settings`), else a new feature (`account`) | `AccountDeletion` |
 | Orchestration triggered by the app lifecycle (sign-in, start) | `app/bootstrap/` | `SessionBootstrap` |
-| Tab selection, shell layout | `app/shell/` | `MainShell`, `mainTabProvider` |
+| Tab selection, shell layout | `app/shell/` | `MainShell`, `navigationProvider` |
 | Asset paths, fixed keys | `core/constants/` | `AppAssets` |
 | A fake shared by several test files | `test/support/` | `FakeIdeaRepository` |
 
@@ -163,10 +163,9 @@ feature and is not part of it.
 | `user` | auth | auth |
 | `birthday` | auth, user | auth, user |
 | `book_scanner` | auth, user | absorbed by `ideas` |
-| `home` | birthday, book_scanner | moved to `app/shell` |
 | `reminders` | | auth, birthday |
 | `ideas` | | auth, birthday |
-| `settings` | | auth, user, birthday, reminders |
+| `settings` | auth, user, birthday, book_scanner | auth, user, birthday, reminders, ideas |
 | `onboarding` | | auth, birthday, reminders |
 
 Reading the target: `auth` and `user` are foundations, `birthday` (people and their dates) is the

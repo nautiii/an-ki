@@ -4,7 +4,7 @@ Audit of 2026-10-07 (commit `46359f3`): 53 hand-written Dart files in `lib/` (~7
 5 features, 281 tests green, `flutter analyze` clean with strict casts/inference/raw types.
 Update this file as steps land: tick the step, delete the debt it cleared, add what you discover.
 
-**Progress** — M0 to M3 done (2026-10-08/09). Next: M4.
+**Progress** — M0 to M4 done (2026-10-08/09). Next: M5.
 
 ## Contents
 1. What already works
@@ -28,23 +28,22 @@ Keep these; the target builds on them.
 ## 2. Debt, with evidence
 
 The architecture test reported 25 violations at the audit (the `knownViolations` baseline; 8
-left after M3).
+left after M3, 1 after M4).
 Plus what imports can't show:
 
 | # | Debt | Evidence | Consequence | Step |
 |---|------|----------|-------------|------|
-| A2 | Undeclared feature edges | `user → birthday`: `account_deletion.dart` erases birthdays, `settings_screen.dart` imports contacts (`auth → user` cleared by M2) | features can't be changed or tested alone | M4 |
 | A4 | Reminder rules in the plugin wrapper | `notification_service.dart` computes its own next occurrence from `DateTime.now()` (the birthday rules live in `birthday/domain/birthday_dates.dart` since M3); J-0/J-7/10:00 policy inside the plugin wrapper | divergent results, B6 (custom reminders) blocked | M6 |
 | A6 | Words and context in state | `AuthNotifier` methods take `AppLocalizations`; `errorMessage` strings in state; `Exception('Contacts permission denied')` | locale switches and tests leak into logic; untyped errors | M5 |
-| A7 | Navigation split three ways | `AppRoutes` in `app/router` (features can't import it) so features push raw `'/login'`, `'/signup'`; `HomeScreen`/`BookScannerScreen` import `SettingsScreen` and push `MaterialPageRoute`; the shell lives in `features/home/`; `MainTab { birthdays, scanner }` sits in `core/providers/` and `core/common/bottom_bar.dart` reads it | core knows features; routes drift; no place for deep links | M4, M7 |
+| A7 | Navigation without deep links | named routes with paths in `core/routing/app_routes.dart` (since M4); notification taps can't open a page, no URL state | B3/B4/B5 need a router | M7 |
 | A12 | Category writes still awaited | `CategoryNotifier` (a `Notifier<void>` bag of methods) awaits `createCategory` (server-generated id) then `addCategories`; `category_form_sheet.dart` waits before closing | the sheet hangs offline; no failure reporting | M5 |
-| A13 | Account deletion leaves data behind | `AccountDeletion` erases birthdays and the profile, not the scanned `books` (the `user` feature may not depend on `book_scanner`) | orphaned personal data | M4 |
 | A14 | `AuthState` still hand-rolled | `isLoading`/`errorMessage` flags, `l10n` parameters, biometric lock mixed with the session | the last legacy notifier | M5 |
 
 Cleared: A10 (tooling gaps) and A11 (`uid` not pinned on updates) by M0; A5 (singletons bypass DI)
 and most of A8 by M1; A1 (imperative session lifecycle), the rest of A8 (read-before-delete) and
 A9 (state boilerplate, except `AuthState` → A14) by M2; A3 (models coupled to SDKs) and the
-birthday half of A4 by M3.
+birthday half of A4 by M3; A2 (undeclared feature edges), the M4 half of A7 and A13 (books left
+behind by account deletion) by M4.
 
 ## 3. Roadmap
 
@@ -142,18 +141,28 @@ Each step ships alone: tests green, analyzer clean, architecture test green with
     `ProviderScope` before checking timers, which cancels the midnight timer. Pin the day only
     when the assertion depends on it.
 
-### M4 — Break cycles, move composition to `app/` · M
-- New feature `settings` (`screens/settings_screen.dart` from `user`, `AccountDeletion`
-  controller, patterns §13); `featureDependencies['settings'] = {'auth', 'user', 'birthday'}`.
-- Profile creation leaves `signup_screen.dart` (session bootstrap does it) → no `auth → user`.
-- `features/home/main_screen.dart` → `app/shell/main_shell.dart`; `MainTab` +
-  `navigationProvider` → `app/shell/`; `BottomBar` becomes dumb (selected index + callback).
-- `core/routing/app_routes.dart` holds the paths; `app/router` keeps the table; features use
-  `AppRoutes.*`, settings opens by path (A7).
-- Remove `home` from `featureDependencies`. Clears every `feature-graph`, `screens-private` and
-  remaining `layout` line.
-- Commits: `REFACTOR(app): move shell and route paths out of features`,
-  `REFACTOR(settings): extract settings feature`.
+### M4 — Break cycles, move composition to `app/` · done 2026-10-09
+- `REFACTOR(app): move shell and route paths out of features` — `features/home/main_screen.dart`
+  → `app/shell/main_shell.dart` (`MainShell`); `MainTab` + `navigationProvider` → `app/shell/`;
+  `BottomBar` is stateless (destinations, selected index, callback; labels `tabBirthdays`,
+  `tabScanner` in the ARB instead of hard-coded French); `AppRoutes` paths in
+  `core/routing/app_routes.dart`, the table stays in `app/router`; features navigate by path
+  (settings, login, signup); `home` leaves `featureDependencies`.
+- `FIX(app): reset the selected tab with the session`.
+- `REFACTOR(settings): extract the settings feature` — `SettingsScreen` and `AccountDeletion`
+  leave `user`, which no longer imports `birthday`.
+- `FIX(birthday): erase accounts with over 500 birthdays` — `writeInBatches` extension in
+  `core/extensions/firestore_extensions.dart`, used by every multi-document write.
+- `FIX(settings): erase scanned books with the account` — A13;
+  `featureDependencies['settings'] = {'auth', 'user', 'birthday', 'book_scanner'}`.
+- Also: the ux-ui snapshot script follows the new paths and providers (it was broken since M2:
+  it isn't compiled by the suite — `.claude/` is a hidden folder the analyzer skips).
+- Architecture debt 8 → 1 (`auth_provider.dart → app_localizations.dart`, M5).
+- Learned:
+  - `fake_cloud_firestore` enforces the 500-operation batch limit: a test with 501 documents
+    proves a batching bug.
+  - A test moved one folder deeper keeps its relative `../support/` imports: fix them by hand
+    (the analyzer flags them at once).
 
 ### M5 — Typed failures, words in the UI · M
 - `AuthFailure` (enum) mapped from `FirebaseAuthException.code` in `AuthRepository`;
