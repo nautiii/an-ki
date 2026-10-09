@@ -48,10 +48,7 @@ void main() {
       final birthday = _born(DateTime(2000, 2, 29));
 
       expect(birthday.nextOccurrence(DateTime(2027, 2)), DateTime(2027, 3));
-      expect(
-        birthday.nextOccurrence(DateTime(2028, 2)),
-        DateTime(2028, 2, 29),
-      );
+      expect(birthday.nextOccurrence(DateTime(2028, 2)), DateTime(2028, 2, 29));
     });
   });
 
