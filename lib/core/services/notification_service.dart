@@ -45,25 +45,44 @@ class NotificationStrings {
       );
 }
 
-/// Objet de valeur simple consommé par [NotificationService.scheduleAll].
-///
-/// Vit dans `core` pour que le service reste découplé de tout modèle de feature.
-/// Les features mappent leur propre objet métier (ex. `BirthdayModel`) vers ce type.
-class BirthdayReminder {
-  final String id;
-  final String name;
-  final String surname;
-  final DateTime birthDate;
+/// Type de rappel ; il choisit le texte de la notification.
+enum ReminderType { birthday, weekBefore }
 
-  const BirthdayReminder({
-    required this.id,
-    required this.name,
-    required this.surname,
-    required this.birthDate,
-  });
+/// Rappel à afficher, décidé par la feature `reminders` : le service ne
+/// calcule aucune date, il planifie ce qu'on lui donne.
+///
+/// Vit dans `core` pour que le service reste découplé de tout modèle de
+/// feature ; la feature mappe son plan vers ce type.
+class const ReminderNotification({
+  /// Identifiant stable de la notification.
+  required final int id,
+  required final ReminderType type,
+  required final String name,
+  required final String surname,
+
+  /// Âge atteint le jour de l'anniversaire.
+  required final int age,
+
+  /// Moment du rappel, heure locale ; il se répète chaque année.
+  required final DateTime at,
+}) {
+  @override
+  bool operator ==(Object other) =>
+      other is ReminderNotification &&
+      other.id == id &&
+      other.type == type &&
+      other.name == name &&
+      other.surname == surname &&
+      other.age == age &&
+      other.at == at;
+
+  @override
+  int get hashCode => Object.hash(id, type, name, surname, age, at);
 }
 
-/// Service singleton gérant les notifications locales d'anniversaire.
+/// Service singleton des notifications locales : initialisation du plugin,
+/// permissions, planification des rappels qu'on lui donne. Aucune règle de
+/// date ici : le quand vient de la feature `reminders`.
 class NotificationService {
   @visibleForTesting
   NotificationService(this._plugin);
@@ -77,7 +96,6 @@ class NotificationService {
   bool _initialized = false;
 
   static const String _channelId = 'birthday_channel';
-  static const int _notificationHour = 10; // 10:00 chaque matin
 
   NotificationStrings _strings = NotificationStrings.french;
 
@@ -159,122 +177,66 @@ class NotificationService {
     return granted;
   }
 
-  /// Met à jour les notifications planifiées pour les rappels donnés.
-  /// Annule les notifications obsolètes et planifie les nouvelles ou mises à jour.
-  Future<void> scheduleAll(List<BirthdayReminder> birthdays) async {
+  /// Remplace les rappels planifiés par [reminders] : annule ceux qui n'y
+  /// sont plus, planifie (ou replanifie) les autres.
+  Future<void> scheduleAll(List<ReminderNotification> reminders) async {
     if (!_initialized) return;
 
+    final ids = {for (final reminder in reminders) reminder.id};
     final pending = await _plugin.pendingNotificationRequests();
-    final currentIds = <int>{};
-    for (final b in birthdays) {
-      currentIds.add(_notificationId(b.id));
-      currentIds.add(_reminderNotificationId(b.id));
-    }
-
     // On n'annule que ce qui n'est plus dans la liste actuelle.
-    for (final p in pending) {
-      if (!currentIds.contains(p.id)) {
-        await _plugin.cancel(id: p.id);
+    for (final request in pending) {
+      if (!ids.contains(request.id)) {
+        await _plugin.cancel(id: request.id);
       }
     }
 
-    for (final birthday in birthdays) {
-      await _scheduleBirthdayNotification(birthday);
-      await _scheduleReminderNotification(birthday);
+    for (final reminder in reminders) {
+      await _schedule(reminder);
     }
 
     debugPrint(
-      '[NotificationService] ${birthdays.length} reminder(s) processed.',
+      '[NotificationService] ${reminders.length} reminder(s) scheduled.',
     );
   }
 
-  Future<void> _scheduleBirthdayNotification(BirthdayReminder birthday) async {
+  Future<void> _schedule(ReminderNotification reminder) async {
     try {
-      DateTime next = _nextOccurrence(birthday.birthDate);
-
-      // Planification standard.
-      tz.TZDateTime scheduledDate = _tzAt(next, _notificationHour);
-
-      // Si le créneau d'aujourd'hui est déjà passé, on bascule à l'année prochaine.
-      if (scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
-        next = DateTime(next.year + 1, next.month, next.day);
-        scheduledDate = _tzAt(next, _notificationHour);
-      }
-
-      final int ageAtBirthday = next.year - birthday.birthDate.year;
-
       await _plugin.zonedSchedule(
-        id: _notificationId(birthday.id),
-        title: '🎂 ${birthday.name} ${birthday.surname}',
-        body: _strings.birthdayBody(birthday.name, ageAtBirthday),
-        scheduledDate: scheduledDate,
-        notificationDetails: _notificationDetails(),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.dateAndTime,
-      );
-    } catch (e) {
-      debugPrint(
-        '[NotificationService] Failed to schedule birthday ${birthday.id}: $e',
-      );
-    }
-  }
-
-  Future<void> _scheduleReminderNotification(BirthdayReminder birthday) async {
-    try {
-      DateTime next = _nextOccurrence(birthday.birthDate);
-
-      // J-7
-      DateTime reminderDate = next.subtract(const Duration(days: 7));
-
-      tz.TZDateTime scheduledDate = _tzAt(reminderDate, _notificationHour);
-
-      if (scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
-        // Si le rappel de cette année est passé, on planifie celui de l'an prochain.
-        next = DateTime(next.year + 1, next.month, next.day);
-        reminderDate = next.subtract(const Duration(days: 7));
-        scheduledDate = _tzAt(reminderDate, _notificationHour);
-      }
-
-      final int upcomingAge = next.year - birthday.birthDate.year;
-
-      await _plugin.zonedSchedule(
-        id: _reminderNotificationId(birthday.id),
-        title: _strings.reminderTitle,
-        body: _strings.reminderBody(
-          birthday.name,
-          birthday.surname,
-          upcomingAge,
+        id: reminder.id,
+        title: switch (reminder.type) {
+          ReminderType.birthday => '🎂 ${reminder.name} ${reminder.surname}',
+          ReminderType.weekBefore => _strings.reminderTitle,
+        },
+        body: switch (reminder.type) {
+          ReminderType.birthday => _strings.birthdayBody(
+            reminder.name,
+            reminder.age,
+          ),
+          ReminderType.weekBefore => _strings.reminderBody(
+            reminder.name,
+            reminder.surname,
+            reminder.age,
+          ),
+        },
+        scheduledDate: tz.TZDateTime(
+          tz.local,
+          reminder.at.year,
+          reminder.at.month,
+          reminder.at.day,
+          reminder.at.hour,
+          reminder.at.minute,
         ),
-        scheduledDate: scheduledDate,
         notificationDetails: _notificationDetails(),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.dateAndTime,
       );
     } catch (e) {
       debugPrint(
-        '[NotificationService] Failed to schedule reminder ${birthday.id}: $e',
+        '[NotificationService] Failed to schedule reminder ${reminder.id}: $e',
       );
     }
   }
-
-  /// Prochaine occurrence d'anniversaire (aujourd'hui ou dans le futur) pour [birthDate].
-  DateTime _nextOccurrence(DateTime birthDate) {
-    final DateTime now = DateTime.now();
-    final DateTime todayAtMidnight = DateTime(now.year, now.month, now.day);
-    DateTime candidate = DateTime(now.year, birthDate.month, birthDate.day);
-
-    if (candidate.isBefore(todayAtMidnight)) {
-      candidate = DateTime(now.year + 1, birthDate.month, birthDate.day);
-    }
-    return candidate;
-  }
-
-  /// Construit un [TZDateTime] à l'heure voulue pour la date donnée.
-  tz.TZDateTime _tzAt(DateTime date, int hour) =>
-      tz.TZDateTime(tz.local, date.year, date.month, date.day, hour);
-
-  /// Identifiant entier stable et unique dérivé de l'ID du document Firestore.
-  int _notificationId(String birthdayId) => birthdayId.hashCode.abs() % 100000;
 
   NotificationDetails _notificationDetails() {
     return NotificationDetails(
@@ -292,9 +254,6 @@ class NotificationService {
       ),
     );
   }
-
-  int _reminderNotificationId(String birthdayId) =>
-      (_notificationId(birthdayId) + 500000);
 }
 
 /// Service de notifications de l'app. Le singleton ne sert qu'à

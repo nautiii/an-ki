@@ -104,102 +104,71 @@ void main() {
   });
 
   group('NotificationService', () {
-    test(
-      'scheduleAll cancels obsolete notifications and schedules new ones',
-      () async {
-        final birthdays = [
-          BirthdayReminder(
-            id: 'birthday-1',
-            name: 'John',
-            surname: 'Doe',
-            birthDate: DateTime(1990),
-          ),
-        ];
-
-        mockPlugin.pendingRequests.add(
-          const PendingNotificationRequest(999, 'Old', 'Body', 'Payload'),
-        );
-
-        await service.scheduleAll(birthdays);
-
-        expect(mockPlugin.cancelledIds, contains(999));
-        expect(mockPlugin.zonedScheduleCalls.length, equals(2));
-
-        final birthdayCall = mockPlugin.zonedScheduleCalls.firstWhere(
-          (c) => c.title!.contains('John Doe'),
-        );
-        expect(birthdayCall.body, contains('C\'est l\'anniversaire de John'));
-      },
+    ReminderNotification reminder(
+      ReminderType type, {
+      int id = 1,
+      DateTime? at,
+    }) => ReminderNotification(
+      id: id,
+      type: type,
+      name: 'John',
+      surname: 'Doe',
+      age: 36,
+      at: at ?? DateTime(2026, 6, 30, 10),
     );
 
-    test(
-      'scheduleAll handles empty list by cancelling all existing (if any)',
-      () async {
-        mockPlugin.pendingRequests.add(
-          const PendingNotificationRequest(123, 'Title', 'Body', 'Payload'),
-        );
+    test('cancels the notifications no longer planned', () async {
+      mockPlugin.pendingRequests.addAll(const [
+        PendingNotificationRequest(1, 'Kept', 'Body', 'Payload'),
+        PendingNotificationRequest(999, 'Old', 'Body', 'Payload'),
+      ]);
 
-        await service.scheduleAll([]);
+      await service.scheduleAll([reminder(ReminderType.birthday)]);
 
-        expect(mockPlugin.cancelledIds, contains(123));
-        expect(mockPlugin.zonedScheduleCalls, isEmpty);
-      },
-    );
-
-    test('scheduled date is advanced to next year if occurrence for this year passed', () async {
-      final now = DateTime.now();
-      final yesterday = now.subtract(const Duration(days: 1));
-
-      final birthday = BirthdayReminder(
-        id: 'b1',
-        name: 'Past',
-        surname: 'Person',
-        birthDate: DateTime(1990, yesterday.month, yesterday.day),
-      );
-
-      await service.scheduleAll([birthday]);
-
-      final call = mockPlugin.zonedScheduleCalls.firstWhere(
-        (c) => c.id < 500000,
-      );
-
-      expect(call.scheduledDate.year, equals(now.year + 1));
+      expect(mockPlugin.cancelledIds, [999]);
     });
 
-    test(
-      'reminder is rolled to next year when the J-7 date has passed',
-      () async {
-        // Birthday in 2 days -> the J-7 reminder is in the past -> rolled.
-        final soon = DateTime.now().add(const Duration(days: 2));
-        final birthday = BirthdayReminder(
-          id: 'soon',
-          name: 'Soon',
-          surname: 'Person',
-          birthDate: DateTime(1990, soon.month, soon.day),
-        );
+    test('schedules each reminder at its given local time', () async {
+      await service.scheduleAll([
+        reminder(ReminderType.birthday, at: DateTime(2026, 6, 30, 10)),
+        reminder(ReminderType.weekBefore, id: 2, at: DateTime(2026, 6, 23, 10)),
+      ]);
 
-        await service.scheduleAll([birthday]);
+      expect(mockPlugin.zonedScheduleCalls.map((c) => c.id), [1, 2]);
+      expect(mockPlugin.zonedScheduleCalls.map((c) => c.scheduledDate), [
+        tz.TZDateTime(tz.local, 2026, 6, 30, 10),
+        tz.TZDateTime(tz.local, 2026, 6, 23, 10),
+      ]);
+    });
 
-        final reminder = mockPlugin.zonedScheduleCalls.firstWhere(
-          (c) => c.id >= 500000,
-        );
-        expect(
-          reminder.scheduledDate.isAfter(tz.TZDateTime.now(tz.UTC)),
-          isTrue,
-        );
-      },
-    );
+    test('words each reminder by its type', () async {
+      await service.scheduleAll([
+        reminder(ReminderType.birthday),
+        reminder(ReminderType.weekBefore, id: 2),
+      ]);
+
+      final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
+      expect(day.title, '🎂 John Doe');
+      expect(day.body, "C'est l'anniversaire de John (36 ans) !");
+      expect(weekBefore.title, '🎉 Anniversaire bientôt');
+      expect(weekBefore.body, 'John Doe aura 36 ans dans 7 jours.');
+    });
+
+    test('an empty list cancels every pending notification', () async {
+      mockPlugin.pendingRequests.add(
+        const PendingNotificationRequest(123, 'Title', 'Body', 'Payload'),
+      );
+
+      await service.scheduleAll([]);
+
+      expect(mockPlugin.cancelledIds, contains(123));
+      expect(mockPlugin.zonedScheduleCalls, isEmpty);
+    });
 
     test('swallows scheduling failures without throwing', () async {
       mockPlugin.throwOnSchedule = true;
-      final birthday = BirthdayReminder(
-        id: 'b1',
-        name: 'A',
-        surname: 'B',
-        birthDate: DateTime(1990, 6),
-      );
 
-      await service.scheduleAll([birthday]);
+      await service.scheduleAll([reminder(ReminderType.birthday)]);
 
       expect(mockPlugin.zonedScheduleCalls, isEmpty);
     });

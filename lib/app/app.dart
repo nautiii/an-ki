@@ -4,7 +4,7 @@ import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
-import 'package:an_ki/features/birthday/providers/reminder_sync_provider.dart';
+import 'package:an_ki/features/reminders/providers/reminder_sync_provider.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/features/user/providers/theme_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
