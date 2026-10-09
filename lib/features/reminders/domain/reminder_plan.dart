@@ -20,8 +20,9 @@ abstract final class ReminderPolicy {
 
 /// Rappel planifié pour un anniversaire.
 class const PlannedReminder({
-  /// Identifiant stable de la notification, dérivé de l'anniversaire et du
-  /// type de rappel.
+  /// Identifiant de la notification, unique dans le plan et stable d'une
+  /// replanification à l'autre ; dérivé de l'anniversaire et du type de
+  /// rappel.
   required final int id,
   required final ReminderKind kind,
   required final String name,
@@ -53,12 +54,21 @@ class const PlannedReminder({
 List<PlannedReminder> planReminders(
   Iterable<Birthday> birthdays, {
   required DateTime now,
-}) => [
-  for (final birthday in birthdays)
-    for (final kind in ReminderKind.values) _plan(birthday, kind, now),
-];
+}) {
+  final slots = _notificationSlots(birthdays.map((b) => b.id));
+  return [
+    for (final birthday in birthdays)
+      for (final kind in ReminderKind.values)
+        _plan(birthday, kind, slots[birthday.id]!, now),
+  ];
+}
 
-PlannedReminder _plan(Birthday birthday, ReminderKind kind, DateTime now) {
+PlannedReminder _plan(
+  Birthday birthday,
+  ReminderKind kind,
+  int slot,
+  DateTime now,
+) {
   final daysBefore = switch (kind) {
     ReminderKind.birthday => 0,
     ReminderKind.weekBefore => ReminderPolicy.daysBefore,
@@ -74,7 +84,7 @@ PlannedReminder _plan(Birthday birthday, ReminderKind kind, DateTime now) {
     at = _reminderAt(occurrence, daysBefore);
   }
   return PlannedReminder(
-    id: _notificationId(birthday.id, kind),
+    id: _notificationId(slot, kind),
     kind: kind,
     name: birthday.name,
     surname: birthday.surname,
@@ -93,13 +103,57 @@ DateTime _reminderAt(DateTime occurrence, int daysBefore) => DateTime(
   ReminderPolicy.hour,
 );
 
-/// Id entier (le plugin l'exige) stable pour un anniversaire et un type de
-/// rappel. Même formule qu'avant l'extraction : les rappels déjà planifiés sur
-/// les téléphones sont remplacés, pas dupliqués.
-int _notificationId(String birthdayId, ReminderKind kind) {
-  final base = birthdayId.hashCode.abs() % 100000;
-  return switch (kind) {
-    ReminderKind.birthday => base,
-    ReminderKind.weekBefore => base + 500000,
-  };
+/// Nombre d'emplacements d'id : le J-7 prend `emplacement + 500000`, les
+/// deux plages ne se chevauchent pas.
+const _slotCount = 100000;
+const _weekBeforeOffset = 500000;
+
+/// Emplacement de départ d'un anniversaire. Même formule qu'avant
+/// l'extraction : les rappels déjà planifiés sur les téléphones sont
+/// remplacés, pas dupliqués.
+int _naturalSlot(String birthdayId) => birthdayId.hashCode.abs() % _slotCount;
+
+/// Attribue à chaque anniversaire un emplacement unique : deux anniversaires
+/// sur le même emplacement s'écraseraient (`zonedSchedule` remplace la
+/// notification de même id) et l'un perdrait ses deux rappels.
+///
+/// Déterministe et aussi stable que possible :
+/// 1. chaque emplacement naturel revient au plus petit id qui le vise, donc
+///    un anniversaire sans collision garde toujours son id historique ;
+/// 2. les perdants, triés par id, sondent linéairement les emplacements
+///    suivants (en bouclant) jusqu'au premier libre.
+/// Seuls les perdants d'une collision peuvent changer d'id d'une liste à
+/// l'autre ; le balayage de `NotificationService.scheduleAll` annule alors
+/// l'ancien.
+Map<String, int> _notificationSlots(Iterable<String> birthdayIds) {
+  final ids = birthdayIds.toSet().toList()..sort();
+  if (ids.length > _slotCount) {
+    throw StateError('More than $_slotCount birthdays to remind.');
+  }
+  final slots = <String, int>{};
+  final taken = <int>{};
+  final losers = <String>[];
+  for (final id in ids) {
+    final slot = _naturalSlot(id);
+    if (taken.add(slot)) {
+      slots[id] = slot;
+    } else {
+      losers.add(id);
+    }
+  }
+  for (final id in losers) {
+    var slot = _naturalSlot(id);
+    while (!taken.add(slot)) {
+      slot = (slot + 1) % _slotCount;
+    }
+    slots[id] = slot;
+  }
+  return slots;
 }
+
+/// Id entier (le plugin l'exige) d'un rappel, dérivé de l'emplacement de son
+/// anniversaire et de son type.
+int _notificationId(int slot, ReminderKind kind) => switch (kind) {
+  ReminderKind.birthday => slot,
+  ReminderKind.weekBefore => slot + _weekBeforeOffset,
+};

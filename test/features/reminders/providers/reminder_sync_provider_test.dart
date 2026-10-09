@@ -89,4 +89,37 @@ void main() {
 
     expect(notifications.scheduled, isEmpty);
   });
+
+  test('schedules both reminders of birthdays whose ids collide', () async {
+    // Deux ids visant le même emplacement (formule historique) : avant, le
+    // second écrasait le jour J et le J-7 du premier.
+    int slot(String id) => id.hashCode.abs() % 100000;
+    final seen = <int, String>{};
+    late final String first;
+    late final String second;
+    for (var i = 0; ; i++) {
+      final id = 'birthday-$i';
+      if (seen[slot(id)] case final other?) {
+        (first, second) = (other, id);
+        break;
+      }
+      seen[slot(id)] = id;
+    }
+    makeContainer();
+
+    birthdays.add([
+      Birthday(id: first, name: 'Léa', surname: 'Martin', date: lea.date),
+      Birthday(id: second, name: 'Hugo', surname: 'Martin', date: lea.date),
+    ]);
+    await Future<void>.delayed(Duration.zero);
+
+    final reminders = notifications.scheduled.single;
+    expect(reminders.map((r) => r.id).toSet(), hasLength(4));
+    for (final name in ['Léa', 'Hugo']) {
+      expect(
+        reminders.where((r) => r.name == name).map((r) => r.type),
+        unorderedEquals(ReminderType.values),
+      );
+    }
+  });
 }
