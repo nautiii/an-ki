@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/fake_providers.dart';
 import '../../support/network_image_mock.dart';
 import '../../support/test_harness.dart';
 
@@ -18,17 +19,6 @@ import '../../support/test_harness.dart';
 final _png = base64Decode(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
 );
-
-class StubCategoryRepository implements CategoryRepository {
-  StubCategoryRepository(this.categories);
-  final List<BirthdayCategory> categories;
-
-  @override
-  Stream<List<BirthdayCategory>> watchCategories() => Stream.value(categories);
-
-  @override
-  Future<String> createCategory(BirthdayCategory category) async => 'x';
-}
 
 void main() {
   final now = DateTime.now();
@@ -54,7 +44,7 @@ void main() {
         birthdaysProvider.overrideWithValue(AsyncData(birthdays)),
         currentUidProvider.overrideWithValue('u1'),
         categoryRepositoryProvider.overrideWithValue(
-          StubCategoryRepository([family]),
+          RecordingCategoryRepository([family]),
         ),
       ],
     );

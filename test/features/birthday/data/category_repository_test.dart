@@ -42,9 +42,18 @@ void main() {
     });
   });
 
-  test('createCategory persists the category and returns its id', () async {
-    final id = await repository.createCategory(
-      const BirthdayCategory(id: '', name: 'Sport', icon: 42),
+  test('newCategoryId generates distinct local ids', () {
+    final first = repository.newCategoryId();
+
+    expect(first, isNotEmpty);
+    expect(repository.newCategoryId(), isNot(first));
+  });
+
+  test('createCategory stores the category under its own id', () async {
+    final id = repository.newCategoryId();
+
+    await repository.createCategory(
+      BirthdayCategory(id: id, name: 'Sport', icon: 42),
     );
 
     final doc = await firestore.collection('category').doc(id).get();

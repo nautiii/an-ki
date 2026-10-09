@@ -31,6 +31,7 @@
   "signOut": "Se déconnecter",
   "signOutConfirmation": "Êtes-vous sûr de vouloir vous déconnecter ?",
   "errorSavingBirthday": "Erreur lors de l'enregistrement de l'anniversaire",
+  "errorSavingCategory": "Erreur lors de l'enregistrement de la catégorie",
   "login": "Connexion",
   "registration": "Inscription",
   "january": "Janvier",

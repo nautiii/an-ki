@@ -19,12 +19,14 @@ class CategoryRepository {
       .snapshots()
       .map((snapshot) => snapshot.docs.map(_categoryFromDoc).toList());
 
-  Future<String> createCategory(BirthdayCategory category) async {
-    final docRef = await _db
-        .collection('category')
-        .add(_categoryToMap(category));
-    return docRef.id;
-  }
+  /// Id d'une nouvelle catégorie, généré localement : le profil peut la
+  /// référencer avant que le serveur ait répondu.
+  String newCategoryId() => _db.collection('category').doc().id;
+
+  /// Crée [category] sous son id. Le Future se résout à l'accusé du serveur :
+  /// l'UI ne l'attend pas.
+  Future<void> createCategory(BirthdayCategory category) =>
+      _db.collection('category').doc(category.id).set(_categoryToMap(category));
 }
 
 /// Point de code de `Icons.category`, icône d'une catégorie qui n'en a pas.

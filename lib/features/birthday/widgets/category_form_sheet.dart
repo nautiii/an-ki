@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -47,7 +50,9 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
     super.dispose();
   }
 
-  Future<void> _save() async {
+  /// Lance les écritures sans les attendre puis ferme la feuille : un échec
+  /// éventuel est annoncé par l'écran d'accueil.
+  void _save() {
     final customName = _controller.text.trim();
 
     if (customName.isEmpty && _selectedDefaultIds.isEmpty) {
@@ -57,21 +62,17 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
       return;
     }
 
-    // Si on a des catégories par défaut sélectionnées
+    final editor = ref.read(categoryEditorProvider.notifier);
+    // Catégories suggérées sélectionnées.
     if (_selectedDefaultIds.isNotEmpty) {
-      await ref
-          .read(categoryNotifierProvider.notifier)
-          .addCategoriesToUser(_selectedDefaultIds.toList());
+      unawaited(editor.addToProfile(_selectedDefaultIds.toList()));
     }
-
-    // Si on a un nom personnalisé, on crée la catégorie
+    // Catégorie personnalisée.
     if (customName.isNotEmpty) {
-      await ref
-          .read(categoryNotifierProvider.notifier)
-          .createAndAddCategory(customName, _selectedIconCode);
+      unawaited(editor.create(customName, _selectedIconCode));
     }
 
-    if (mounted) Navigator.pop(context);
+    Navigator.pop(context);
   }
 
   @override

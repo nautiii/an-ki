@@ -22,17 +22,6 @@ final _png = base64Decode(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
 );
 
-class StubCategoryRepository implements CategoryRepository {
-  StubCategoryRepository(this.categories);
-  final List<BirthdayCategory> categories;
-
-  @override
-  Stream<List<BirthdayCategory>> watchCategories() => Stream.value(categories);
-
-  @override
-  Future<String> createCategory(BirthdayCategory category) async => 'x';
-}
-
 void main() {
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
 
@@ -53,7 +42,7 @@ void main() {
     ),
     birthdayRepositoryProvider.overrideWithValue(repository),
     categoryRepositoryProvider.overrideWithValue(
-      StubCategoryRepository([family]),
+      RecordingCategoryRepository([family]),
     ),
     userProfileProvider.overrideWithValue(
       AsyncData(

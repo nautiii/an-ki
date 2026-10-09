@@ -2,7 +2,6 @@ import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_model.dart';
-import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,7 +43,6 @@ void main() {
     ),
     userProfileProvider.overrideWithValue(const AsyncData(null)),
     birthdayRepositoryProvider.overrideWithValue(repository),
-    categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
     categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),
   ];
 

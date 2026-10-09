@@ -1,7 +1,8 @@
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
-import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
+import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -11,48 +12,39 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../support/fake_providers.dart';
 import '../../support/test_harness.dart';
 
-class StubCategoryRepository implements CategoryRepository {
-  StubCategoryRepository(this.categories);
-  final List<BirthdayCategory> categories;
-
-  @override
-  Stream<List<BirthdayCategory>> watchCategories() => Stream.value(categories);
-
-  @override
-  Future<String> createCategory(BirthdayCategory category) async =>
-      'new-cat-id';
-}
-
 void main() {
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
   const friend = BirthdayCategory(id: 'fri', name: 'friend', icon: 0xe1bf);
 
-  List<dynamic> overrides(
-    FakeCategoryNotifier categoryNotifier, {
+  late RecordingCategoryRepository categories;
+  late RecordingUserRepository users;
+
+  List<dynamic> overrides({
     List<BirthdayCategory> all = const [],
     List<String> userCategories = const [],
-  }) => [
-    categoryNotifierProvider.overrideWith(() => categoryNotifier),
-    categoryRepositoryProvider.overrideWithValue(StubCategoryRepository(all)),
-    userProfileProvider.overrideWithValue(
-      AsyncData(
-        UserModel(
-          id: 'u',
-          name: 'A',
-          surname: 'B',
-          categories: userCategories,
-          isDark: false,
-          locale: 'fr',
-        ),
-      ),
-    ),
-  ];
+  }) {
+    final profile = UserModel(
+      id: 'u',
+      name: 'A',
+      surname: 'B',
+      categories: userCategories,
+      isDark: false,
+      locale: 'fr',
+    );
+    categories = RecordingCategoryRepository(all);
+    users = RecordingUserRepository(stored: profile);
+    return [
+      categoryRepositoryProvider.overrideWithValue(categories),
+      userRepositoryProvider.overrideWithValue(users),
+      currentUidProvider.overrideWithValue('u'),
+      userProfileProvider.overrideWithValue(AsyncData(profile)),
+    ];
+  }
 
   testWidgets('creates a custom category with a chosen icon', (tester) async {
-    final categoryNotifier = FakeCategoryNotifier();
     await tester.pumpHarness(
       const CategoryFormSheet(),
-      overrides: overrides(categoryNotifier, all: [family]),
+      overrides: overrides(all: [family]),
     );
     await tester.pumpAndSettle();
 
@@ -66,14 +58,15 @@ void main() {
     await tester.tap(find.text('Ajouter').last);
     await tester.pumpAndSettle();
 
-    expect(categoryNotifier.createdNames, contains('Work'));
+    expect(categories.created.single.name, 'Work');
+    expect(categories.created.single.icon, Icons.work_rounded.codePoint);
+    expect(users.stored?.categories, contains('new-cat-1'));
   });
 
   testWidgets('adds selected suggested categories', (tester) async {
-    final categoryNotifier = FakeCategoryNotifier();
     await tester.pumpHarness(
       const CategoryFormSheet(),
-      overrides: overrides(categoryNotifier, all: [family, friend]),
+      overrides: overrides(all: [family, friend]),
     );
     await tester.pumpAndSettle();
 
@@ -87,15 +80,14 @@ void main() {
     await tester.tap(find.text('Ajouter').last);
     await tester.pumpAndSettle();
 
-    expect(categoryNotifier.addedToUser, isNotEmpty);
-    expect(categoryNotifier.addedToUser.first, contains('fam'));
+    expect(users.stored?.categories, ['fam']);
+    expect(categories.created, isEmpty);
   });
 
   testWidgets('warns when nothing is selected or typed', (tester) async {
-    final categoryNotifier = FakeCategoryNotifier();
     await tester.pumpHarness(
       const CategoryFormSheet(),
-      overrides: overrides(categoryNotifier, all: [family]),
+      overrides: overrides(all: [family]),
     );
     await tester.pumpAndSettle();
 
@@ -106,19 +98,14 @@ void main() {
       find.text('Veuillez sélectionner ou créer une catégorie'),
       findsOneWidget,
     );
-    expect(categoryNotifier.createdNames, isEmpty);
-    expect(categoryNotifier.addedToUser, isEmpty);
+    expect(categories.created, isEmpty);
+    expect(users.updated, isEmpty);
   });
 
   testWidgets('shows a message when no suggestions remain', (tester) async {
-    final categoryNotifier = FakeCategoryNotifier();
     await tester.pumpHarness(
       const CategoryFormSheet(),
-      overrides: overrides(
-        categoryNotifier,
-        all: [family],
-        userCategories: const ['fam'],
-      ),
+      overrides: overrides(all: [family], userCategories: const ['fam']),
     );
     await tester.pumpAndSettle();
 
@@ -126,7 +113,6 @@ void main() {
   });
 
   testWidgets('close button dismisses the sheet', (tester) async {
-    final categoryNotifier = FakeCategoryNotifier();
     await tester.pumpHarness(
       const SizedBox(),
       home: Builder(
@@ -139,7 +125,7 @@ void main() {
           ),
         ),
       ),
-      overrides: overrides(categoryNotifier, all: [family]),
+      overrides: overrides(all: [family]),
     );
     await tester.pumpAndSettle();
 

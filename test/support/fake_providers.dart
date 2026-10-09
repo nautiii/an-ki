@@ -6,7 +6,6 @@ import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/domain/birthday_model.dart';
-import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
@@ -232,8 +231,37 @@ class FakeCategoryRepository extends Fake implements CategoryRepository {
       _categoriesController.stream;
 
   @override
-  Future<String> createCategory(BirthdayCategory category) async =>
-      'new-cat-id';
+  String newCategoryId() => 'new-cat-id';
+
+  @override
+  Future<void> createCategory(BirthdayCategory category) async {}
+}
+
+/// Dépôt de catégories qui sert [categories] (ou [watchError]) et enregistre
+/// les créations, avec des ids locaux prévisibles (`new-cat-1`, `new-cat-2`…).
+class RecordingCategoryRepository extends Fake implements CategoryRepository {
+  RecordingCategoryRepository(this.categories, {this.watchError});
+
+  final List<BirthdayCategory> categories;
+
+  /// Erreur émise par [watchCategories] à la place des catégories.
+  final Exception? watchError;
+
+  final created = <BirthdayCategory>[];
+  var _lastId = 0;
+
+  @override
+  Stream<List<BirthdayCategory>> watchCategories() => switch (watchError) {
+    final error? => Stream.error(error),
+    null => Stream.value(categories),
+  };
+
+  @override
+  String newCategoryId() => 'new-cat-${++_lastId}';
+
+  @override
+  Future<void> createCategory(BirthdayCategory category) async =>
+      created.add(category);
 }
 
 class FakeBookRepository extends Fake implements BookRepository {
@@ -364,29 +392,10 @@ class FakeAuthNotifier extends AuthNotifier {
   }
 }
 
-class FakeCategoryNotifier extends CategoryNotifier {
-  @override
-  void build() {}
-
-  final List<List<String>> addedToUser = [];
-  final List<String> createdNames = [];
-
-  @override
-  Future<void> addCategoriesToUser(List<String> categoryIds) async {
-    addedToUser.add(categoryIds);
-  }
-
-  @override
-  Future<void> createAndAddCategory(String name, int icon) async {
-    createdNames.add(name);
-  }
-}
-
 final defaultTestOverrides = [
   userRepositoryProvider.overrideWithValue(FakeUserRepository()),
   birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
   categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),
   bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
   authProvider.overrideWith(FakeAuthNotifier.new),
-  categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
 ];

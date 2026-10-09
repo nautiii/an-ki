@@ -1,6 +1,5 @@
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
-import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -27,7 +26,6 @@ void main() {
           birthdayRepositoryProvider.overrideWithValue(
             RecordingBirthdayRepository(),
           ),
-          categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
         ],
       );
       await tester.pumpAndSettle();
@@ -64,7 +62,6 @@ void main() {
           ),
         ),
         birthdayRepositoryProvider.overrideWithValue(repository),
-        categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
       ],
     );
     await tester.pumpAndSettle();

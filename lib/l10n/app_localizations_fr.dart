@@ -108,6 +108,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Erreur lors de l\'enregistrement de l\'anniversaire';
 
   @override
+  String get errorSavingCategory =>
+      'Erreur lors de l\'enregistrement de la catégorie';
+
+  @override
   String get login => 'Connexion';
 
   @override

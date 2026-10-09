@@ -106,6 +106,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorSavingBirthday => 'Error saving birthday';
 
   @override
+  String get errorSavingCategory => 'Error saving category';
+
+  @override
   String get login => 'Login';
 
   @override

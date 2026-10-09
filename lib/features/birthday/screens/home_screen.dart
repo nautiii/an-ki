@@ -1,3 +1,4 @@
+import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/search_bar.dart';
@@ -33,6 +34,13 @@ class HomeScreen extends ConsumerWidget {
           ..showSnackBar(
             SnackBar(content: Text(context.l10n.errorSavingBirthday)),
           );
+      }
+    });
+    ref.listen(categoryEditorProvider, (_, next) {
+      if (next is AsyncError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.errorSavingCategory)),
+        );
       }
     });
     final filteredBirthdays = ref.watch(filteredBirthdaysProvider);

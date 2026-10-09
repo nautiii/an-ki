@@ -290,6 +290,12 @@ abstract class AppLocalizations {
   /// **'Erreur lors de l\'enregistrement de l\'anniversaire'**
   String get errorSavingBirthday;
 
+  /// No description provided for @errorSavingCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors de l\'enregistrement de la catégorie'**
+  String get errorSavingCategory;
+
   /// No description provided for @login.
   ///
   /// In fr, this message translates to:

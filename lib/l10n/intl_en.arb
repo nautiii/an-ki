@@ -31,6 +31,7 @@
   "signOut": "Sign out",
   "signOutConfirmation": "Are you sure you want to sign out?",
   "errorSavingBirthday": "Error saving birthday",
+  "errorSavingCategory": "Error saving category",
   "login": "Login",
   "registration": "Registration",
   "january": "January",

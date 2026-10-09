@@ -6,7 +6,6 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_model.dart';
-import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/contact_tile.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -20,22 +19,6 @@ import '../../support/test_harness.dart';
 final _png = base64Decode(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
 );
-
-class StubCategoryRepository implements CategoryRepository {
-  StubCategoryRepository(this.categories, {this.fail = false});
-  final List<BirthdayCategory> categories;
-  final bool fail;
-
-  @override
-  Stream<List<BirthdayCategory>> watchCategories() => fail
-      ? Stream.fromFuture(
-          Future<List<BirthdayCategory>>.error(Exception('boom')),
-        )
-      : Stream.value(categories);
-
-  @override
-  Future<String> createCategory(BirthdayCategory category) async => 'x';
-}
 
 void main() {
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
@@ -66,9 +49,10 @@ void main() {
       ),
     ),
     birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
-    categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
     categoryRepositoryProvider.overrideWithValue(
-      StubCategoryRepository([family], fail: failCategories),
+      RecordingCategoryRepository([
+        family,
+      ], watchError: failCategories ? Exception('boom') : null),
     ),
   ];
 

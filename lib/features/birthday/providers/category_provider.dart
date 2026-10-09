@@ -1,6 +1,5 @@
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
-import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -28,33 +27,3 @@ final userCategoriesProvider = Provider<List<BirthdayCategory>>((ref) {
   return filtered
     ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 });
-
-class CategoryNotifier extends Notifier<void> {
-  @override
-  void build() {}
-
-  /// Ajoute des catégories au profil (union, sans doublon) ; le flux du profil
-  /// se met à jour seul.
-  Future<void> addCategoriesToUser(List<String> categoryIds) async {
-    final user = ref.read(userProfileProvider).value;
-    if (user == null) return;
-
-    await ref.read(userRepositoryProvider).addCategories(user.id, categoryIds);
-  }
-
-  Future<void> createAndAddCategory(String name, int icon) async {
-    final user = ref.read(userProfileProvider).value;
-    if (user == null) return;
-
-    final category = BirthdayCategory(id: '', name: name, icon: icon);
-    final newCategoryId = await ref
-        .read(categoryRepositoryProvider)
-        .createCategory(category);
-
-    await addCategoriesToUser([newCategoryId]);
-  }
-}
-
-final categoryNotifierProvider = NotifierProvider<CategoryNotifier, void>(
-  CategoryNotifier.new,
-);

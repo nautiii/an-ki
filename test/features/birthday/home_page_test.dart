@@ -4,9 +4,10 @@ import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
-import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
+import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -16,17 +17,6 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../support/fake_providers.dart';
 import '../../support/network_image_mock.dart';
 import '../../support/test_harness.dart';
-
-class StubCategoryRepository implements CategoryRepository {
-  StubCategoryRepository(this.categories);
-  final List<BirthdayCategory> categories;
-
-  @override
-  Stream<List<BirthdayCategory>> watchCategories() => Stream.value(categories);
-
-  @override
-  Future<String> createCategory(BirthdayCategory category) async => 'x';
-}
 
 void main() {
   final now = DateTime.now();
@@ -71,9 +61,8 @@ void main() {
     birthdaysProvider.overrideWithValue(
       isLoading ? const AsyncLoading() : AsyncData(birthdays),
     ),
-    categoryNotifierProvider.overrideWith(FakeCategoryNotifier.new),
     categoryRepositoryProvider.overrideWithValue(
-      StubCategoryRepository(repoCategories),
+      RecordingCategoryRepository(repoCategories),
     ),
   ];
 
@@ -88,6 +77,34 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Aucun anniversaire trouvé.'), findsOneWidget);
+    });
+  });
+
+  testWidgets('announces a failed category write', (tester) async {
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        const HomeScreen(),
+        overrides: [
+          ...overrides(birthdays: const []),
+          userRepositoryProvider.overrideWithValue(
+            RecordingUserRepository(failure: Exception('rules')),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(HomeScreen)),
+      );
+
+      await container.read(categoryEditorProvider.notifier).addToProfile([
+        'fri',
+      ]);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text("Erreur lors de l'enregistrement de la catégorie"),
+        findsOneWidget,
+      );
     });
   });
 
