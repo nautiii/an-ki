@@ -45,9 +45,15 @@ anniversaire. Simple, élégante et efficace.
       les dossiers respectifs.
     - Activez l'Authentification (Email, Google, Anonyme) et Firestore.
 
-4. **Lancer l'application** :
+4. **Configurer les secrets** : copiez `secrets.example.json` en `secrets.json` (ignoré par git)
+   et renseignez la clé `GOOGLE_BOOKS_API_KEY` (clé Google Books, restreinte à l'app Android).
    ```bash
-   flutter run
+   cp secrets.example.json secrets.json
+   ```
+
+5. **Lancer l'application** :
+   ```bash
+   flutter run --dart-define-from-file=secrets.json
    ```
 
 6. **Génération d'assets (Icônes & Splash)** :
