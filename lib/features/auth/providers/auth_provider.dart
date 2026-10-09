@@ -204,6 +204,15 @@ class AuthNotifier extends Notifier<AuthState> {
     } on AuthFailure catch (failure) {
       state = state.copyWith(failure: failure, isLoading: false);
       return false;
+    } on GoogleSignInException catch (e) {
+      // Une annulation par l'utilisateur n'est pas un échec à signaler.
+      state = state.copyWith(
+        failure: e.code == GoogleSignInExceptionCode.canceled
+            ? null
+            : AuthFailure.googleSignInFailed,
+        isLoading: false,
+      );
+      return false;
     } catch (_) {
       state = state.copyWith(
         failure: AuthFailure.googleSignInFailed,

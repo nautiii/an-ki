@@ -26,6 +26,21 @@ class _ThrowingAuthRepository extends AuthRepository {
       throw Exception('lookup failed');
 }
 
+/// AuthRepository whose Google sign-in fails in the plugin with [error].
+class _GoogleFailingAuthRepository extends AuthRepository {
+  _GoogleFailingAuthRepository(this.error)
+    : super(
+        auth: MockFirebaseAuth(),
+        googleSignIn: GoogleSignIn.instance,
+        firestore: FakeFirebaseFirestore(),
+      );
+
+  final GoogleSignInException error;
+
+  @override
+  Future<User?> signInWithGoogle() async => throw error;
+}
+
 const _tokenKey = 'biometric_auth_token';
 const _uidKey = 'biometric_user_id';
 
@@ -221,6 +236,42 @@ void main() {
         AuthFailure.emailAlreadyInUse,
       );
       expect(await failureFor('something-else'), AuthFailure.unknown);
+    });
+  });
+
+  group('google', () {
+    Future<ProviderContainer> signInFailingWith(
+      GoogleSignInExceptionCode code,
+    ) async {
+      final container = makeContainer(
+        MockFirebaseAuth(),
+        repository: _GoogleFailingAuthRepository(
+          GoogleSignInException(code: code),
+        ),
+      );
+      final ok = await container.read(authProvider.notifier).signInWithGoogle();
+      expect(ok, isFalse);
+      return container;
+    }
+
+    test('a cancelled Google sign-in is not reported as a failure', () async {
+      final container = await signInFailingWith(
+        GoogleSignInExceptionCode.canceled,
+      );
+
+      expect(container.read(authProvider).failure, isNull);
+      expect(container.read(authProvider).isLoading, isFalse);
+    });
+
+    test('a Google plugin error is reported', () async {
+      final container = await signInFailingWith(
+        GoogleSignInExceptionCode.unknownError,
+      );
+
+      expect(
+        container.read(authProvider).failure,
+        AuthFailure.googleSignInFailed,
+      );
     });
   });
 
