@@ -4,7 +4,8 @@ Audit of 2026-10-07 (commit `46359f3`): 53 hand-written Dart files in `lib/` (~7
 5 features, 281 tests green, `flutter analyze` clean with strict casts/inference/raw types.
 Update this file as steps land: tick the step, delete the debt it cleared, add what you discover.
 
-**Progress** — M0 to M5 done (2026-10-08/09). Next: M6.
+**Progress** — M0 to M6 done (2026-10-08/09). Next: M7 and M8, both on approval (see their
+steps); open debt A7 and A14.
 
 ## Contents
 1. What already works
@@ -33,7 +34,6 @@ Plus what imports can't show:
 
 | # | Debt | Evidence | Consequence | Step |
 |---|------|----------|-------------|------|
-| A4 | Reminder rules in the plugin wrapper | `notification_service.dart` computes its own next occurrence from `DateTime.now()` (the birthday rules live in `birthday/domain/birthday_dates.dart` since M3); J-0/J-7/10:00 policy inside the plugin wrapper | divergent results, B6 (custom reminders) blocked | M6 |
 | A7 | Navigation without deep links | named routes with paths in `core/routing/app_routes.dart` (since M4); notification taps can't open a page, no URL state | B3/B4/B5 need a router | M7 |
 | A14 | `AuthNotifier` mixes three concerns | one `Notifier<AuthState>` holds the Firebase session, the biometric lock (`canUseBiometrics`, `biometricUid`) and every auth action with an `isLoading` flag; screens read `state.failure` after awaiting a `bool` | hard to test and to extend (onboarding, account linking); the lock rules live in UI-facing state | after M6, own brief (phone check of the biometric flows) |
 
@@ -42,7 +42,7 @@ and most of A8 by M1; A1 (imperative session lifecycle), the rest of A8 (read-be
 A9 (state boilerplate, except `AuthState` → A14) by M2; A3 (models coupled to SDKs) and the
 birthday half of A4 by M3; A2 (undeclared feature edges), the M4 half of A7 and A13 (books left
 behind by account deletion) by M4; A6 (words and context in state) and A12 (awaited category
-writes) by M5, with the message half of A14.
+writes) by M5, with the message half of A14; the rest of A4 (reminder rules in the plugin wrapper) by M6.
 
 ## 3. Roadmap
 
@@ -184,12 +184,22 @@ Each step ships alone: tests green, analyzer clean, architecture test green with
 - Learned: `firebase_auth_mocks` asserts that `signInAnonymously` gets an anonymous mock user;
   build the mock to match the call under test.
 
-### M6 — Reminders feature · M · prepares backlog B3/B6
-- `features/reminders/`: `domain/reminder_plan.dart` (pure: birthdays + today + preferences →
-  planned notifications: J-0, J-7, 10:00, ages), `providers/reminder_sync_provider.dart`.
-- `NotificationService` keeps only plugin work: init, permissions, schedule what it is given,
-  cancel stale ids.
-- Commit: `REFACTOR(reminders): extract reminder planning from NotificationService`.
+### M6 — Reminders feature · done 2026-10-09 · prepares backlog B3/B6
+- `REFACTOR(reminders): extract reminder planning from NotificationService` — new feature
+  `reminders` (`featureDependencies['reminders'] = {'birthday'}`): `domain/reminder_plan.dart`
+  (`planReminders(birthdays, now:)` → `PlannedReminder` J-0 and J-7 at 10:00 with the age
+  reached, `ReminderPolicy` constants, notification ids with the same formula as before so
+  phones replace their scheduled reminders instead of doubling them), built on
+  `birthday_dates.dart`; `providers/reminder_sync_provider.dart` (moved from `birthday`) plans
+  with `clockProvider` and maps to the `core` value object `ReminderNotification`.
+- `NotificationService` keeps plugin work only: init, permissions, cancel stale ids, schedule each
+  `ReminderNotification` at its local time with the injected texts. No date rule, no
+  `DateTime.now()`.
+- Found on the way: the J-7 date was computed with `Duration(days: 7)`, one day early when the
+  week spanned the spring DST change; now counted in calendar days (tested).
+- Not done: a yearly repeating notification keeps the age written when it was scheduled; the
+  app re-plans at every launch and on every change, so it only shows if the app isn't opened
+  for a year. Preferences (B6) will add a `ReminderPreferences` parameter to `planReminders`.
 
 ### M7 — go_router · M · approval, with the first of B3/B4/B5
 - See decision D9 (material_ui coupling of go_router 18, router provider, `StatefulShellRoute`,

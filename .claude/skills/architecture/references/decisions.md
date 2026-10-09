@@ -53,8 +53,9 @@ classes, no repository interfaces. Orchestration lives in controllers; cross-fea
 lowest feature that depends on all participants, or in `app/bootstrap`.
 
 **Why.** The previous rule "no domain layer, logic in Notifiers" left rules with no pure home:
-the next-birthday computation exists twice (UI extensions and `NotificationService`), `DateTime.now()`
-is read in 9 places, and models import Firestore and Flutter. A domain folder of plain functions
+the next-birthday computation existed twice (UI extensions and `NotificationService`),
+`DateTime.now()` was read in 9 places, and models imported Firestore and Flutter (all fixed by
+M3 and M6). A domain folder of plain functions
 fixes that without adding indirection — a function is the smallest possible "use case".
 
 **Revisit when** a single flow combines 3+ repositories *and* is triggered from 2+ places (then a

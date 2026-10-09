@@ -40,8 +40,9 @@ without a plan to build it.
 ## Plugin wrappers (`lib/core/services/`)
 
 - A service is a thin, stateless door to a plugin: no business rule, no policy (*when* to remind
-  is a domain rule of the future `reminders` feature), no text of its own, no feature import.
-  Features map their objects onto `core` value objects (`BirthdayReminder`).
+  is a domain rule of the `reminders` feature, `reminder_plan.dart`), no text of its own, no
+  feature import. Features map their objects onto `core` value objects
+  (`ReminderNotification`, `ImportedBirthday`).
 - `.instance` singletons exist for `main()` initialization only; everything else should read a
   provider (`notificationServiceProvider`, migration M1) so tests can override it. Keep the
   `@visibleForTesting` constructors.

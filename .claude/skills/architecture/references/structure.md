@@ -163,7 +163,7 @@ feature and is not part of it.
 | `user` | auth | auth |
 | `birthday` | auth, user | auth, user |
 | `book_scanner` | auth, user | absorbed by `ideas` |
-| `reminders` | | auth, birthday |
+| `reminders` | birthday | auth, birthday |
 | `ideas` | | auth, birthday |
 | `settings` | auth, user, birthday, book_scanner | auth, user, birthday, reminders, ideas |
 | `onboarding` | | auth, birthday, reminders |
@@ -186,7 +186,7 @@ When an import would create a cycle, in this order:
    `app/router` passes the other feature's widget. Example: the person page (birthday) shows a
    gift-ideas section built by `ideas`, wired in the route builder.
 4. **Move the shared concept down.** A type both need goes to the lower feature's `domain/`, or
-   to `core/` if it is truly feature-agnostic (like `BirthdayReminder` in `core/services`).
+   to `core/` if it is truly feature-agnostic (like `ReminderNotification` in `core/services`).
 
 ## 7. Naming
 

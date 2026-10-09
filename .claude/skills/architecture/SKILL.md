@@ -130,8 +130,8 @@ The current structure is not sacred: when the right answer is structural, say so
 
 Since M3 every model is a pure `domain/` type mapped by its repository, and the foundation
 providers (clock and today, Firebase instances, current uid) are installed. What still predates
-the target is listed in `migration.md` §2: reminder rules inside `NotificationService` (M6),
-navigation without deep links (M7), the all-in-one `AuthNotifier` (A14).
+the target is listed in `migration.md` §2: navigation without deep links (M7) and the all-in-one
+`AuthNotifier` (A14).
 When a brick lands there:
 - If the step is small and covers what you touch, propose doing that step first, as its own
   commit.
