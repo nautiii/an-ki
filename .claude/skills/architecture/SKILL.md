@@ -126,20 +126,18 @@ The current structure is not sacred: when the right answer is structural, say so
    look and feel of screens, apply the ux-ui skill.
 5. **Verify** (below), then **report**.
 
-### In a feature that isn't migrated yet
+### In code that isn't migrated yet
 
-Most of today's code predates the target (`migration.md`). When a brick lands in such a feature:
-- **Foundation first.** The files in `assets/foundation/` (clock and today, Firebase instances,
-  current uid) are additive: install the ones the brick needs, with their tests, and note it in
-  `migration.md` (M1 partly done). Existing repositories keep their constructors until M1.
-- If the feature's migration step is small and covers what you touch (e.g. moving its models to
-  `domain/` before adding a domain rule), propose doing that step first, as its own commit.
-- Otherwise build the new pieces to the target wherever that stays local — a new `domain/` file
-  with a pure rule over plain values, a controller, a session-scoped provider — and follow the
-  existing pattern where the target would conflict (no `domain/` file importing `data/models/`).
-- Adding a field to a legacy model is not a rework: extend its current shape (constructor,
-  `copyWith`, tolerant read in `fromFirestore`, `toJson`) and its tests; the primary-constructor
-  and `==` conversion belongs to step M3.
+Since M3 every model is a pure `domain/` type mapped by its repository, and the foundation
+providers (clock and today, Firebase instances, current uid) are installed. What still predates
+the target is listed in `migration.md` §2: the auth and category notifiers (M5), the shell and the
+settings screen living in features (M4), reminder rules inside `NotificationService` (M6).
+When a brick lands there:
+- If the step is small and covers what you touch, propose doing that step first, as its own
+  commit.
+- Otherwise build the new pieces to the target wherever that stays local — a pure domain rule, a
+  controller, a session-scoped provider — and follow the local pattern where the target would
+  conflict.
 - Finish what you start: moving only some of a feature's existing models or providers to the new
   layout is the half-migration to avoid; new files in the target layout next to legacy ones are
   fine. Never add a line to `knownViolations`; name the remaining debt in the report.

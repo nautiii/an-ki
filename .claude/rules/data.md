@@ -10,14 +10,15 @@ paths:
 
 Patterns with code: architecture skill, `references/patterns.md` §1–4; decisions D4, D5, D6, D8.
 
-## Domain (`domain/`; legacy models still in `data/models/`)
+## Domain (`domain/`)
 
 - Pure Dart: no Flutter UI, Firebase, Riverpod, plugin or `l10n` import; never reads the clock
   (`today` is a parameter).
-- New models: Dart 3.13 primary constructor (`class const X({required final …})`), `copyWith`
+- Models: Dart 3.13 primary constructor (`class const X({required final …})`), `copyWith`
   with `clearX` flags for nullable fields, `==`/`hashCode`; no `fromFirestore`/`toJson` — mapping
-  lives in `data/`. Legacy `XModel` types keep theirs until their feature migrates (M3).
-- Form input is a draft (`XDraft`, legacy `CreateXInput`) carrying its validation rule; a picked
+  lives in private functions of the repository. Every feature follows this since M3; the legacy
+  `XModel` names stay until M8.
+- Form input is a draft (`XDraft`, e.g. `BirthdayDraft`) carrying its validation rule; a picked
   file becomes bytes, never an `XFile`.
 - Failures: `enum XFailure implements Exception`, or a `sealed class` when cases carry data. No
   user-facing text.

@@ -4,7 +4,7 @@ Audit of 2026-10-07 (commit `46359f3`): 53 hand-written Dart files in `lib/` (~7
 5 features, 281 tests green, `flutter analyze` clean with strict casts/inference/raw types.
 Update this file as steps land: tick the step, delete the debt it cleared, add what you discover.
 
-**Progress** — M0, M1 and M2 done (2026-10-08/09). Next: M3.
+**Progress** — M0 to M3 done (2026-10-08/09). Next: M4.
 
 ## Contents
 1. What already works
@@ -27,24 +27,24 @@ Keep these; the target builds on them.
 
 ## 2. Debt, with evidence
 
-The architecture test reports 25 violations today (they are the `knownViolations` baseline).
+The architecture test reported 25 violations at the audit (the `knownViolations` baseline; 8
+left after M3).
 Plus what imports can't show:
 
 | # | Debt | Evidence | Consequence | Step |
 |---|------|----------|-------------|------|
-| A2 | Feature cycles | `user → birthday` (`user_provider.dart` deletes birthdays and clears their notifier; `settings_screen.dart`), `auth → user` (`signup_screen.dart` creates the profile) | features can't be changed or tested alone | M4 |
-| A3 | Models coupled to SDKs | `BirthdayModel.fromFirestore(QueryDocumentSnapshot)`, `Timestamp` in models, `BirthdayCategory.iconData` (Flutter), `CreateBirthdayInput.pictureFile` (`XFile`), widgets importing `data/models` | domain logic untestable without Firebase; UI depends on the data layer | M3 |
-| A4 | Rules duplicated and clock-bound | next occurrence in `birthday_extensions.dart` **and** `notification_service.dart`; `DateTime.now()` in 9 places; J-0/J-7/10:00 policy inside the plugin wrapper | divergent results, date tests depend on the real day, B6 (custom reminders) blocked | M3, M6 |
-| A6 | Words and context in state | `AuthNotifier` methods take `AppLocalizations`; `errorMessage` strings in state; `Exception('Contacts permission denied')`; `GoogleBooksQuotaExceededException` defined in `data/` and caught by a screen | locale switches and tests leak into logic; untyped errors | M5 |
+| A2 | Undeclared feature edges | `user → birthday`: `account_deletion.dart` erases birthdays, `settings_screen.dart` imports contacts (`auth → user` cleared by M2) | features can't be changed or tested alone | M4 |
+| A4 | Reminder rules in the plugin wrapper | `notification_service.dart` computes its own next occurrence from `DateTime.now()` (the birthday rules live in `birthday/domain/birthday_dates.dart` since M3); J-0/J-7/10:00 policy inside the plugin wrapper | divergent results, B6 (custom reminders) blocked | M6 |
+| A6 | Words and context in state | `AuthNotifier` methods take `AppLocalizations`; `errorMessage` strings in state; `Exception('Contacts permission denied')` | locale switches and tests leak into logic; untyped errors | M5 |
 | A7 | Navigation split three ways | `AppRoutes` in `app/router` (features can't import it) so features push raw `'/login'`, `'/signup'`; `HomeScreen`/`BookScannerScreen` import `SettingsScreen` and push `MaterialPageRoute`; the shell lives in `features/home/`; `MainTab { birthdays, scanner }` sits in `core/providers/` and `core/common/bottom_bar.dart` reads it | core knows features; routes drift; no place for deep links | M4, M7 |
-
 | A12 | Category writes still awaited | `CategoryNotifier` (a `Notifier<void>` bag of methods) awaits `createCategory` (server-generated id) then `addCategories`; `category_form_sheet.dart` waits before closing | the sheet hangs offline; no failure reporting | M5 |
 | A13 | Account deletion leaves data behind | `AccountDeletion` erases birthdays and the profile, not the scanned `books` (the `user` feature may not depend on `book_scanner`) | orphaned personal data | M4 |
 | A14 | `AuthState` still hand-rolled | `isLoading`/`errorMessage` flags, `l10n` parameters, biometric lock mixed with the session | the last legacy notifier | M5 |
 
 Cleared: A10 (tooling gaps) and A11 (`uid` not pinned on updates) by M0; A5 (singletons bypass DI)
 and most of A8 by M1; A1 (imperative session lifecycle), the rest of A8 (read-before-delete) and
-A9 (state boilerplate, except `AuthState` → A14) by M2.
+A9 (state boilerplate, except `AuthState` → A14) by M2; A3 (models coupled to SDKs) and the
+birthday half of A4 by M3.
 
 ## 3. Roadmap
 
@@ -111,15 +111,36 @@ Each step ships alone: tests green, analyzer clean, architecture test green with
     then read.
   - `fake_cloud_firestore` applies a transaction one tick late to snapshot listeners.
 
-### M3 — Domain extraction · M per feature
-- `data/models/*` → `domain/`; Firestore mapping → private functions in the repository;
-  `data/repositories/*` → `data/`.
-- `birthday_extensions.dart` splits: date rules → `domain/birthday_dates.dart` (explicit
-  `today`, reused by notifications); labels/colors/icons → `widgets/category_display.dart` (A3, A4).
-- `CreateBirthdayInput` → `BirthdayDraft` with picture bytes instead of `XFile`.
-- `GoogleBooksQuotaExceededException` → `domain/book_failure.dart`.
-- Clears the `ui-no-backend`, `data-no-ui` and birthday `layout` lines.
-- Commits: `REFACTOR(birthday): move models and date rules to domain`, …
+### M3 — Domain extraction · done 2026-10-09
+- `REFACTOR(user|book_scanner|birthday): move the … model(s) to domain` — every model is a pure
+  Dart primary-constructor class with `==` in `domain/`; Firestore (and Google Books) mapping is
+  private to the repository, with tolerant reads; repositories sit in `data/`. `BookModel` and
+  `BirthdayModel` lose the owner `uid` (the repository writes it); `BookFailure.quotaExceeded`
+  replaces `GoogleBooksQuotaExceededException`; the scan date comes from `clockProvider` and null
+  fields are no longer written.
+- `CreateBirthdayInput` → `BirthdayDraft`; photos travel as bytes (read when picked, decoded once
+  by the repository instead of `base64Decode` in every `build`); a birthday document without a
+  date is skipped instead of failing the whole list.
+- `REFACTOR(birthday): extract birthday date rules` — `domain/birthday_dates.dart`
+  (`nextOccurrence`, `daysUntilNext`, `ageOn`, `sortedByNext`, `nextBirthdays`, all taking
+  `today`); providers and widgets read `todayProvider`, so lists and ages refresh at midnight;
+  `widgets/category_display.dart` (icon, color, label), `widgets/birthday_display.dart`
+  (formatted date); `extensions/` is gone.
+- `FIX(birthday): count days to a birthday across DST` — found while extracting.
+- `REFACTOR(auth): move the auth repository to data/`.
+- Left for M6: `NotificationService` keeps its own next-occurrence rule — `core` can't import
+  `birthday/domain`; the `reminders` feature will plan from `birthday_dates.dart`.
+- Tests: mapping tests moved from model tests to repository tests (complete and old-shape
+  documents); `tester.pumpLocalizedContext()` for display extensions. Architecture debt 23 → 8.
+- Learned:
+  - Day counts between two local midnights lose an hour at the spring DST change: count on UTC
+    dates.
+  - Firestore `orderBy` leaves out documents missing the field: always write the sort key.
+  - `MemoryImage` is keyed by its bytes instance: decoding base64 in `build` re-decodes the image
+    on every rebuild.
+  - Widgets watching `todayProvider` need no override in widget tests: the test unmounts the
+    `ProviderScope` before checking timers, which cancels the midnight timer. Pin the day only
+    when the assertion depends on it.
 
 ### M4 — Break cycles, move composition to `app/` · M
 - New feature `settings` (`screens/settings_screen.dart` from `user`, `AccountDeletion`

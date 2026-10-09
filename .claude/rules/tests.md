@@ -12,9 +12,10 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
 
 - `test/` mirrors `lib/` file by file: `lib/features/<f>/<layer>/x.dart` →
   `test/features/<f>/<layer>/x_test.dart`; a flow over several screens →
-  `test/features/<f>/<flow>_flow_test.dart`. Older tests sit one level higher
-  (`test/features/birthday/repositories/`): new files follow the mirror.
-- Shared fakes and helpers live in `test/support/`: reuse them, don't redefine them per file.
+  `test/features/<f>/<flow>_flow_test.dart`. Older screen and widget tests sit at the feature
+  root (`test/features/birthday/contact_tile_test.dart`): new files follow the mirror.
+- Shared fakes and helpers live in `test/support/`: reuse them, don't redefine them per file
+  (`tester.pumpLocalizedContext()` gives a French `BuildContext` for display extensions).
 - Never touch real Firebase, network or platform channels. Use `FakeFirebaseFirestore`,
   `MockFirebaseAuth` (firebase_auth_mocks), `MockClient` (http), `mock_exceptions`, `mocktail`,
   and the doubles in `test/support/`: `FakeBiometricChannels`, `FakeGoogleSignInPlatform`,

@@ -21,7 +21,7 @@ Riverpod 3.4 with hand-written providers. Patterns with code: architecture skill
 - Dependencies come from providers (`ref.read(xRepositoryProvider)`); never construct a
   repository or read a `.instance` singleton in new code.
 - Business rules are pure domain functions taking every input, today's date included (from
-  `clockProvider`/`todayProvider` once installed); providers only wire them.
+  `todayProvider`, e.g. `birthday_dates.dart`); providers only wire them.
 - `==`/`hashCode` on every state class: Riverpod 3 filters updates with `==`.
 
 ## Target shapes for new code
