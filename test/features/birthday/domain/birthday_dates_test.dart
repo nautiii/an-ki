@@ -30,6 +30,14 @@ void main() {
       expect(birthday.daysUntilNext(today), 364);
     });
 
+    test('count calendar days across a daylight saving change', () {
+      // Passage à l'heure d'été fin mars en Europe : 31 jours de calendrier,
+      // mais une heure de moins entre les deux minuits locaux.
+      final birthday = _born(DateTime(1990, 4));
+
+      expect(birthday.daysUntilNext(DateTime(2026, 3)), 31);
+    });
+
     test('ignore the time of day of today', () {
       final birthday = _born(DateTime(1990, 6, 16));
 

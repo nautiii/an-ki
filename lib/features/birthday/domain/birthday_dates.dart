@@ -17,10 +17,11 @@ extension BirthdayDates on BirthdayModel {
   }
 
   /// Jours avant le prochain anniversaire : 0 le jour même.
-  int daysUntilNext(DateTime today) {
-    final day = _dayOf(today);
-    return nextOccurrence(day).difference(day).inDays;
-  }
+  ///
+  /// Compté en jours de calendrier (dates UTC) : entre deux minuits locaux,
+  /// un passage à l'heure d'été retire une heure et ferait perdre un jour.
+  int daysUntilNext(DateTime today) =>
+      _utcDay(nextOccurrence(today)).difference(_utcDay(today)).inDays;
 
   /// Âge en années révolues à [today] ; l'anniversaire compte dès son jour.
   int ageOn(DateTime today) {
@@ -49,3 +50,6 @@ extension BirthdayListDates on Iterable<BirthdayModel> {
 
 DateTime _dayOf(DateTime moment) =>
     DateTime(moment.year, moment.month, moment.day);
+
+DateTime _utcDay(DateTime moment) =>
+    DateTime.utc(moment.year, moment.month, moment.day);
