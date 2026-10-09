@@ -1,5 +1,6 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
@@ -18,6 +19,7 @@ const _user = UserModel(
 
 void main() {
   late RecordingBirthdayRepository birthdays;
+  late RecordingBookRepository books;
   late RecordingUserRepository users;
 
   ProviderContainer makeContainer({String? uid = 'user-1'}) {
@@ -25,6 +27,7 @@ void main() {
       retry: (_, _) => null,
       overrides: [
         birthdayRepositoryProvider.overrideWithValue(birthdays),
+        bookRepositoryProvider.overrideWithValue(books),
         userRepositoryProvider.overrideWithValue(users),
         currentUidProvider.overrideWithValue(uid),
       ],
@@ -35,15 +38,17 @@ void main() {
 
   setUp(() {
     birthdays = RecordingBirthdayRepository();
+    books = RecordingBookRepository();
     users = RecordingUserRepository(stored: _user);
   });
 
-  test('erases the birthdays, then the profile', () async {
+  test('erases the birthdays, the books, then the profile', () async {
     final container = makeContainer();
 
     await container.read(accountDeletionProvider.notifier).eraseData();
 
     expect(birthdays.erasedUids, ['user-1']);
+    expect(books.erasedUids, ['user-1']);
     expect(users.deleted, ['user-1']);
     expect(container.read(accountDeletionProvider), isA<AsyncData<void>>());
   });
@@ -54,6 +59,18 @@ void main() {
     await container.read(accountDeletionProvider.notifier).eraseData();
 
     expect(birthdays.erasedUids, isEmpty);
+    expect(books.erasedUids, isEmpty);
+    expect(users.deleted, isEmpty);
+  });
+
+  test('keeps the profile when the books cannot be erased', () async {
+    books = RecordingBookRepository(failure: Exception('denied'));
+    final container = makeContainer();
+
+    await expectLater(
+      container.read(accountDeletionProvider.notifier).eraseData(),
+      throwsException,
+    );
     expect(users.deleted, isEmpty);
   });
 

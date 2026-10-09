@@ -202,6 +202,24 @@ void main() {
       });
     });
 
+    test('deleteAllUserBooks removes the books of the uid only', () async {
+      for (var i = 0; i < 3; i++) {
+        await firestore.collection('books').add({
+          'uid': 'user-1',
+          'title': '$i',
+        });
+      }
+      await firestore.collection('books').add({
+        'uid': 'user-2',
+        'title': 'Keep',
+      });
+
+      await repository.deleteAllUserBooks('user-1');
+
+      final remaining = (await firestore.collection('books').get()).docs;
+      expect(remaining.map((d) => d.data()['title']), ['Keep']);
+    });
+
     test('deleteBook removes the document', () async {
       final ref = await firestore.collection('books').add({'title': 'X'});
 

@@ -253,6 +253,9 @@ class FakeBookRepository extends Fake implements BookRepository {
 
   @override
   Future<void> deleteBook(String bookId) async {}
+
+  @override
+  Future<void> deleteAllUserBooks(String uid) async {}
 }
 
 /// Dépôt de livres configurable qui enregistre les écritures.
@@ -275,6 +278,7 @@ class RecordingBookRepository extends FakeBookRepository {
 
   final watchedUids = <String>[];
   final saved = <BookModel>[];
+  final erasedUids = <String>[];
 
   @override
   Future<BookModel?> fetchBookByIsbn(String isbn) async {
@@ -297,6 +301,12 @@ class RecordingBookRepository extends FakeBookRepository {
   }) async {
     if (failure case final error?) throw error;
     saved.add(book.copyWith(scannedAt: scannedAt));
+  }
+
+  @override
+  Future<void> deleteAllUserBooks(String uid) async {
+    if (failure case final error?) throw error;
+    erasedUids.add(uid);
   }
 }
 

@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Effacement des données Firestore du compte (anniversaires, puis profil),
-/// que l'écran fait suivre de la suppression du compte d'authentification.
+/// Effacement des données Firestore du compte (anniversaires, livres, puis
+/// profil), que l'écran fait suivre de la suppression du compte
+/// d'authentification.
 ///
 /// Opération attendue : le compte n'est supprimé qu'une fois ses données
 /// effacées. Orchestration entre features : elle vit dans `settings`, qui
@@ -21,10 +23,12 @@ class AccountDeletion extends AsyncNotifier<void> {
     final uid = ref.read(currentUidProvider);
     if (uid == null) return;
     final birthdays = ref.read(birthdayRepositoryProvider);
+    final books = ref.read(bookRepositoryProvider);
     final users = ref.read(userRepositoryProvider);
     state = const AsyncLoading();
     try {
       await birthdays.deleteAllUserBirthdays(uid);
+      await books.deleteAllUserBooks(uid);
       await users.deleteUser(uid);
       if (ref.mounted) state = const AsyncData(null);
     } catch (error, stackTrace) {

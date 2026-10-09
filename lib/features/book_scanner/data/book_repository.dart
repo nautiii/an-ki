@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:an_ki/core/config/app_config.dart';
+import 'package:an_ki/core/extensions/firestore_extensions.dart';
 import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/core/providers/http_client_provider.dart';
 import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
@@ -89,6 +90,16 @@ class BookRepository {
 
   Future<void> deleteBook(String bookId) async {
     await _books.doc(bookId).delete();
+  }
+
+  /// Efface tous les livres de [uid] (suppression du compte), par lots
+  /// d'écritures.
+  Future<void> deleteAllUserBooks(String uid) async {
+    final snapshot = await _books.where('uid', isEqualTo: uid).get();
+    await _firestore.writeInBatches(
+      snapshot.docs,
+      (batch, doc) => batch.delete(doc.reference),
+    );
   }
 }
 
