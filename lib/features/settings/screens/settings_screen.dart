@@ -4,6 +4,7 @@ import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/birthday/domain/contact_import_failure.dart';
 import 'package:an_ki/features/birthday/providers/contact_import.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
@@ -187,14 +188,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         );
       }
     });
-    // Issue de l'import des contacts : nombre importé ou permission refusée.
+    // Issue de l'import des contacts : nombre importé, permission refusée ou
+    // échec de lecture.
     ref.listen(contactImportProvider, (_, next) {
       final message = switch (next) {
         AsyncData(:final value?) =>
           value > 0
               ? context.l10n.contactsImported(value)
               : context.l10n.noContactsWithBirthday,
-        AsyncError() => context.l10n.permissionDenied,
+        AsyncError(error: ContactImportFailure.permissionDenied) =>
+          context.l10n.permissionDenied,
+        AsyncError() => context.l10n.errorUnknown,
         _ => null,
       };
       if (message != null) {

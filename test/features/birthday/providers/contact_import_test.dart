@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/domain/contact_import_failure.dart';
 import 'package:an_ki/features/birthday/providers/contact_import.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -56,7 +57,10 @@ void main() {
 
     await container.read(contactImportProvider.notifier).run();
 
-    expect(container.read(contactImportProvider).hasError, isTrue);
+    expect(
+      container.read(contactImportProvider).error,
+      ContactImportFailure.permissionDenied,
+    );
     expect(repo.created, isEmpty);
   });
 

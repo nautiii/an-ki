@@ -1,4 +1,5 @@
 import 'package:an_ki/core/common/header.dart';
+import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
@@ -57,6 +58,12 @@ const _userModel = UserModel(
   isDark: false,
   locale: 'fr',
 );
+
+/// Service de contacts dont l'utilisateur refuse la permission.
+class _DeniedContactsService extends ContactsService {
+  @override
+  Future<bool> requestReadPermission() async => false;
+}
 
 void main() {
   late FakeBiometricChannels channels;
@@ -168,7 +175,25 @@ void main() {
     expect(users.stored?.isDark, isTrue);
   });
 
-  testWidgets('shows an error when importing contacts is denied', (
+  testWidgets('says so when the contacts permission is refused', (
+    tester,
+  ) async {
+    await tester.pumpHarness(
+      const SettingsScreen(),
+      overrides: [
+        ...overridesWith(),
+        contactsServiceProvider.overrideWithValue(_DeniedContactsService()),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Importer les contacts'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Permission refusée.'), findsOneWidget);
+  });
+
+  testWidgets('shows a generic error when the contacts plugin fails', (
     tester,
   ) async {
     // Make the contacts plugin throw so the handler hits its catch branch.
@@ -194,7 +219,7 @@ void main() {
     await tester.tap(find.text('Importer les contacts'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Permission refusée.'), findsOneWidget);
+    expect(find.text('Une erreur est survenue.'), findsOneWidget);
   });
 
   group('sign out', () {

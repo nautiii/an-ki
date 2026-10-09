@@ -4,6 +4,7 @@ import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
+import 'package:an_ki/features/birthday/domain/contact_import_failure.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,7 +12,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// État : `null` avant tout import, puis le nombre de contacts importés ;
 /// `AsyncLoading` pendant l'import (un second appel est ignoré),
-/// `AsyncError` si la permission est refusée ou la lecture échoue.
+/// `AsyncError` si la permission est refusée
+/// ([ContactImportFailure.permissionDenied]) ou si la lecture échoue.
 ///
 /// La partie locale (permission, lecture des contacts) est attendue ; les
 /// écritures partent en lots sans attendre le serveur, pour rester instantanées
@@ -30,7 +32,7 @@ class ContactImport extends AsyncNotifier<int?> {
     state = const AsyncLoading();
     final result = await AsyncValue.guard(() async {
       if (!await contacts.requestReadPermission()) {
-        throw Exception('Contacts permission denied');
+        throw ContactImportFailure.permissionDenied;
       }
       final imported = await contacts.fetchBirthdays();
       unawaited(
