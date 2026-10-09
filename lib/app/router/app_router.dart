@@ -4,7 +4,7 @@ import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
 import 'package:an_ki/features/auth/screens/signup_screen.dart';
-import 'package:an_ki/features/user/screens/settings_screen.dart';
+import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 
 /// Table de routes de l'application, consommée par [MaterialApp.routes] :

@@ -9,8 +9,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// que l'écran fait suivre de la suppression du compte d'authentification.
 ///
 /// Opération attendue : le compte n'est supprimé qu'une fois ses données
-/// effacées. Relève de l'orchestration entre features : elle rejoindra la
-/// feature `settings` (migration M4).
+/// effacées. Orchestration entre features : elle vit dans `settings`, qui
+/// dépend de chacune d'elles.
 class AccountDeletion extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}

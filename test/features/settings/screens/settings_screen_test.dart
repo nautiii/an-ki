@@ -1,10 +1,10 @@
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
-import 'package:an_ki/features/user/screens/settings_screen.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart' as fam;
@@ -13,9 +13,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../support/fake_providers.dart';
-import '../../support/platform_mocks.dart';
-import '../../support/test_harness.dart';
+import '../../../support/fake_providers.dart';
+import '../../../support/platform_mocks.dart';
+import '../../../support/test_harness.dart';
 
 class SettingsAuthNotifier extends FakeAuthNotifier {
   SettingsAuthNotifier({super.initialState, this.throwOnDelete = false});

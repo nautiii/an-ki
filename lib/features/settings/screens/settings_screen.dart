@@ -5,7 +5,7 @@ import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/birthday/providers/contact_import.dart';
-import 'package:an_ki/features/user/providers/account_deletion.dart';
+import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/features/user/providers/user_profile_editor.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
