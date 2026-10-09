@@ -88,6 +88,25 @@ void main() {
     });
   });
 
+  testWidgets('create mode rejects names made of spaces', (tester) async {
+    final repository = RecordingBirthdayRepository();
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        const BirthdayFormSheet(),
+        overrides: overrides(repository),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).at(0), '   ');
+      await tester.enterText(find.byType(TextField).at(1), 'Builder');
+      await tester.tap(find.text('Ajouter').last);
+      await tester.pumpAndSettle();
+
+      expect(repository.created, isEmpty);
+      expect(find.text('Champ obligatoire'), findsWidgets);
+    });
+  });
+
   testWidgets('create mode submits with a selected category', (tester) async {
     final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {

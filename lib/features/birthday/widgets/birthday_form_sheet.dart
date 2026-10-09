@@ -208,18 +208,18 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                       controller: _nameController,
                       label: context.l10n.firstName,
                       prefixIcon: Icons.person_outline_rounded,
-                      validator: (v) => v?.isEmpty ?? true
-                          ? context.l10n.requiredField
-                          : null,
+                      validator: (v) => BirthdayDraft.isValidName(v ?? '')
+                          ? null
+                          : context.l10n.requiredField,
                     ),
                     const SizedBox(height: 16),
                     AnKiTextField(
                       controller: _surnameController,
                       label: context.l10n.lastName,
                       prefixIcon: Icons.badge_outlined,
-                      validator: (v) => v?.isEmpty ?? true
-                          ? context.l10n.requiredField
-                          : null,
+                      validator: (v) => BirthdayDraft.isValidName(v ?? '')
+                          ? null
+                          : context.l10n.requiredField,
                     ),
                     const SizedBox(height: 24),
 

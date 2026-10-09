@@ -18,6 +18,21 @@ void main() {
     expect(draft.picture, isNull);
   });
 
+  group('validation', () {
+    test('a name needs more than spaces', () {
+      expect(BirthdayDraft.isValidName('Alice'), isTrue);
+      expect(BirthdayDraft.isValidName(' Al '), isTrue);
+      expect(BirthdayDraft.isValidName(''), isFalse);
+      expect(BirthdayDraft.isValidName('   '), isFalse);
+    });
+
+    test('a draft needs a first name and a name', () {
+      expect(base.isValid, isTrue);
+      expect(base.copyWith(name: ' ').isValid, isFalse);
+      expect(base.copyWith(surname: '').isValid, isFalse);
+    });
+  });
+
   group('copyWith', () {
     test('overrides only the provided fields', () {
       final picture = Uint8List.fromList([1, 2]);
