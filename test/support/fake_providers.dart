@@ -426,9 +426,12 @@ class FakeAuthRepository extends Fake implements AuthRepository {
     _emit(null);
   }
 
+  /// Comme les règles Firestore : seul le compte connecté écrit son profil.
   @override
-  Future<void> setBiometricToken(String uid, String? token) async =>
-      biometricTokens[uid] = token;
+  Future<void> setBiometricToken(String uid, String? token) async {
+    if (_user?.uid != uid) throw Exception('permission-denied');
+    biometricTokens[uid] = token;
+  }
 
   @override
   Future<bool> isBiometricTokenValid(String uid, String token) async {

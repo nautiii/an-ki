@@ -158,7 +158,9 @@ class AuthController extends AsyncNotifier<void> {
       // Firebase ferme déjà la session d'un compte supprimé : on le dit.
       await repository.signOutFirebase();
       await repository.signOutGoogle();
-      await _clearBiometrics(repository, biometrics);
+      // Le profil, jeton compris, est déjà effacé, et la session fermée
+      // interdit d'y écrire : seul l'appareil garde un jeton à oublier.
+      await biometrics.clearBiometricData();
       lock.disable();
       return true;
     });

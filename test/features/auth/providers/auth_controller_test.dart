@@ -1,3 +1,4 @@
+import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
@@ -12,6 +13,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:mock_exceptions/mock_exceptions.dart';
 
+import '../../../support/fake_providers.dart'
+    show FakeAuthRepository, FakeBiometricService;
 import '../../../support/platform_mocks.dart';
 
 /// AuthRepository whose biometric lookup always throws, to drive the error path.
@@ -580,6 +583,36 @@ void main() {
       expect(ok, isTrue);
       expect(auth.currentUser, isNull);
       expect(container.read(authAccessProvider), AuthAccess.signedOut);
+    });
+
+    test('with the fingerprint on, forgets the device token', () async {
+      // Profil déjà effacé par les réglages, session fermée : plus rien à
+      // écrire dans Firestore, seul l'appareil garde son jeton.
+      final repository = FakeAuthRepository(user: buildUser())
+        ..biometricTokens['uid-1'] = 'tok';
+      final biometrics = FakeBiometricService(
+        available: true,
+        token: 'tok',
+        userId: 'uid-1',
+      );
+      final container = ProviderContainer.test(
+        retry: (_, _) => null,
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          biometricServiceProvider.overrideWithValue(biometrics),
+        ],
+      );
+      container.listen(authAccessProvider, (_, _) {});
+      await settle();
+
+      final ok = await controllerOf(container).deleteAccount();
+
+      expect(ok, isTrue);
+      expect(biometrics.token, isNull);
+      expect(
+        container.read(biometricLockProvider).value,
+        BiometricLock.disabled,
+      );
     });
 
     test('reports a Firebase refusal', () async {
