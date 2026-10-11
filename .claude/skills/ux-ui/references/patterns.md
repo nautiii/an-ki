@@ -147,6 +147,11 @@ A spinner is acceptable only inside the control that triggered a short action.
 People come back when AnKi saves them from forgetting and makes them look thoughtful.
 - Notification copy is personal and actionable: « Demain, Léa fête ses 30 ans 🎂 » with actions
   « Souhaiter » (opens share/SMS/WhatsApp with a prefilled message) and « Idée cadeau ».
+- No age in a repeating notification: reminders repeat yearly (`DateTimeComponents.dateAndTime`)
+  with the text written when scheduled, so an age goes stale if the app isn't reopened for a year.
+  Today's texts carry none. Bringing it back means scheduling each occurrence as a one-shot
+  (exact age for the next one, an ageless yearly fallback after it), within iOS's 64 pending
+  notifications; `ReminderNotification.age` is still computed for that.
 - Cadence: J-7 + J-0 (current) + optional J-1; per-person mute; quiet hours.
 - Weekly digest (opt-in) « Cette semaine : 2 anniversaires » — Monday morning.
 - Close the loop: « Marquer comme souhaité » → mint check, small celebration (peak-end rule).

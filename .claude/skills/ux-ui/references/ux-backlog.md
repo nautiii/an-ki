@@ -87,7 +87,8 @@ auth or dependencies → design brief + maintainer approval first.
 - **Problem**: fixed J-7 + J-0 for everyone; generic J-7 title; no time of day, quiet hours or digest.
 - **Proposal**: Settings › Rappels (default cadence J-30/J-7/J-1/J-0, time, quiet hours, optional
   Monday digest « Cette semaine : 2 anniversaires ») + per-person override on the person page;
-  personal copy « Demain, Léa fête ses 30 ans ».
+  personal copy « Demain, Léa fête ses 30 ans » (the age needs one-shot scheduling, see patterns
+  §I).
 - **Cost**: medium (notification_service, per-person settings).
 
 ### B7 — Groups, simplified

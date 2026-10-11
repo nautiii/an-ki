@@ -130,7 +130,7 @@ The current structure is not sacred: when the right answer is structural, say so
 
 Since M3 every model is a pure `domain/` type mapped by its repository, and the foundation
 providers (clock and today, Firebase instances, current uid) are installed. What still predates
-the target is listed in `migration.md` §2: a few local fixes (A15–A17) and
+the target is listed in `migration.md` §2: a few local fixes (A15, A16) and
 the per-user collections, on need (M10).
 When a brick lands there:
 - If the step is small and covers what you touch, propose doing that step first, as its own

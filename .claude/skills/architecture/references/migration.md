@@ -79,7 +79,6 @@ account's session, a sign-out that left the session open) are fixed and tested.
 |---|------|----------|-------------|------|
 | A15 | Book lookup failures flattened | `BookRepository.fetchBookByIsbn` returns `null` for every failure but the quota (HTTP error, network, parsing), as for an unknown ISBN; a volume without title gets `'Unknown Title'`, an English UI string in the data layer | offline, a scan reads « Livre non trouvé »; untranslatable text | local fix: `BookFailure.network`, empty title worded by the UI |
 | A16 | `invalid-credential` worded as unknown | with email-enumeration protection (on by default for projects created since September 2023), Firebase Auth answers a wrong email or password with `invalid-credential`; `AuthRepository` maps it to `AuthFailure.unknown` | « Une erreur est survenue. » after a typo in the password (check on the phone) | local fix: `AuthFailure.invalidCredentials` and its ARB message |
-| A17 | Yearly reminders keep a stale age | notifications repeat each year (`DateTimeComponents.dateAndTime`) with the age written when scheduled; right only because the app re-plans at launch and on every change | wrong age if the app isn't opened for a year | with B6: drop the age from repeated texts, or schedule the next occurrences one by one |
 
 UX debt (contrast, 200 % text, labels, raw colors, dates without `DateFormat`) is tracked in the
 ux-ui backlog (`ux-backlog.md`), not here.
