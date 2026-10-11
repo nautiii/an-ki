@@ -32,20 +32,7 @@
   "signOutConfirmation": "Êtes-vous sûr de vouloir vous déconnecter ?",
   "errorSavingBirthday": "Erreur lors de l'enregistrement de l'anniversaire",
   "errorSavingCategory": "Erreur lors de l'enregistrement de la catégorie",
-  "january": "Janvier",
-  "february": "Février",
-  "march": "Mars",
-  "april": "Avril",
-  "may": "Mai",
-  "june": "Juin",
-  "july": "Juillet",
-  "august": "Août",
-  "september": "Septembre",
-  "october": "Octobre",
-  "november": "Novembre",
-  "december": "Décembre",
   "nextBirthday": "Prochain anniversaire",
-  "noBirthdayRegistered": "Aucun anniversaire",
   "today": "Aujourd'hui 🎉",
   "tomorrow": "Demain",
   "inDays": "Dans {days} jours",
@@ -119,6 +106,14 @@
   "addBirthday": "Ajouter un anniversaire",
   "@addBirthday": {
     "description": "Bouton ou infobulle d'ajout d'un anniversaire"
+  },
+  "emptyBirthdaysTitle": "Vos anniversaires vivront ici",
+  "@emptyBirthdaysTitle": {
+    "description": "Titre de l'accueil sans aucun anniversaire"
+  },
+  "emptyBirthdaysMessage": "Ajoutez le premier : AnKi vous préviendra au bon moment.",
+  "@emptyBirthdaysMessage": {
+    "description": "Message de l'accueil sans aucun anniversaire"
   },
   "bookScannerTitle": "Scanner de livres",
   "bookTitle": "Titre",

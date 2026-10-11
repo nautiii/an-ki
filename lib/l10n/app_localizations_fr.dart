@@ -112,46 +112,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Erreur lors de l\'enregistrement de la catégorie';
 
   @override
-  String get january => 'Janvier';
-
-  @override
-  String get february => 'Février';
-
-  @override
-  String get march => 'Mars';
-
-  @override
-  String get april => 'Avril';
-
-  @override
-  String get may => 'Mai';
-
-  @override
-  String get june => 'Juin';
-
-  @override
-  String get july => 'Juillet';
-
-  @override
-  String get august => 'Août';
-
-  @override
-  String get september => 'Septembre';
-
-  @override
-  String get october => 'Octobre';
-
-  @override
-  String get november => 'Novembre';
-
-  @override
-  String get december => 'Décembre';
-
-  @override
   String get nextBirthday => 'Prochain anniversaire';
-
-  @override
-  String get noBirthdayRegistered => 'Aucun anniversaire';
 
   @override
   String get today => 'Aujourd\'hui 🎉';
@@ -257,6 +218,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get addBirthday => 'Ajouter un anniversaire';
+
+  @override
+  String get emptyBirthdaysTitle => 'Vos anniversaires vivront ici';
+
+  @override
+  String get emptyBirthdaysMessage =>
+      'Ajoutez le premier : AnKi vous préviendra au bon moment.';
 
   @override
   String get bookScannerTitle => 'Scanner de livres';

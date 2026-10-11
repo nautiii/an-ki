@@ -1,5 +1,10 @@
+import 'package:an_ki/core/common/anki_avatar.dart';
+import 'package:an_ki/core/common/moon_phase.dart';
+import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/theme/anki_colors.dart';
+import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
@@ -9,311 +14,210 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class NextBirthdayCard extends ConsumerStatefulWidget {
+/// Héros « prochain anniversaire » (signature S1) : la ou les personnes dont
+/// l'anniversaire arrive en premier, empilées quand elles tombent le même jour.
+///
+/// Squelette pendant le chargement ; rien sans anniversaire, l'accueil
+/// affichant alors son état vide.
+class NextBirthdayCard extends ConsumerWidget {
   const NextBirthdayCard({super.key});
 
-  @override
-  ConsumerState<NextBirthdayCard> createState() => _NextBirthdayCardState();
-}
-
-class _NextBirthdayCardState extends ConsumerState<NextBirthdayCard> {
-  final PageController _pageController = PageController();
-  int _currentPage = 0;
+  /// Hauteur du squelette : celle d'une carte à taille de texte normale.
+  static const double skeletonHeight = 104;
 
   @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final nextBirthdays = ref.watch(nextBirthdaysProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = ref.watch(birthdaysLoadingProvider);
+    final nextBirthdays = ref.watch(nextBirthdaysProvider);
     final today = ref.watch(todayProvider);
-    final colorScheme = Theme.of(context).colorScheme;
 
     if (isLoading) {
-      return SizedBox(
-        height: 110,
-        child: _BaseCard(
-          child: Center(
-            child: CircularProgressIndicator(
-              color: colorScheme.onPrimary,
-              strokeWidth: 2,
-            ),
-          ),
-        ),
-      );
+      return const SkeletonBox(height: skeletonHeight, radius: AppRadii.lg);
     }
-
-    if (nextBirthdays.isEmpty) {
-      return const SizedBox(
-        height: 110,
-        child: _BaseCard(
-          child: Center(
-            child: _BirthdayContent(birthday: null, isLoading: false),
-          ),
-        ),
-      );
-    }
+    if (nextBirthdays.isEmpty) return const SizedBox.shrink();
 
     return Column(
       children: [
-        SizedBox(
-          height: 110,
-          child: PageView.builder(
-            controller: _pageController,
-            clipBehavior: Clip.none,
-            onPageChanged: (index) => setState(() => _currentPage = index),
-            itemCount: nextBirthdays.length,
-            itemBuilder: (context, index) {
-              final birthday = nextBirthdays[index];
-
-              return _BaseCard(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  BirthdayFormSheet.show(context, birthdayToEdit: birthday);
-                },
-                child: _BirthdayItem(birthday: birthday, today: today),
-              );
-            },
-          ),
-        ),
-        if (nextBirthdays.length > 1) ...[
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              nextBirthdays.length,
-              (index) => Container(
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                width: _currentPage == index ? 12 : 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(3),
-                  color: _currentPage == index
-                      ? colorScheme.primary
-                      : colorScheme.primary.withValues(alpha: 0.3),
-                ),
-              ),
-            ),
-          ),
+        for (final (index, birthday) in nextBirthdays.indexed) ...[
+          if (index > 0) const SizedBox(height: AppSpacing.xs),
+          _HeroCard(birthday: birthday, today: today),
         ],
       ],
     );
   }
 }
 
-class _BaseCard extends StatelessWidget {
-  final Widget child;
-  final VoidCallback? onTap;
+class _HeroCard extends StatelessWidget {
+  const _HeroCard({required this.birthday, required this.today});
 
-  const _BaseCard({required this.child, this.onTap});
+  final Birthday birthday;
+  final DateTime today;
+
+  static const _shape = RoundedSuperellipseBorder(
+    borderRadius: BorderRadius.all(Radius.circular(AppRadii.lg)),
+  );
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colors = context.ankiColors;
+    final picture = birthday.picture;
+    final avatar = AnKiAvatar(
+      name: '${birthday.name} ${birthday.surname}',
+      image: picture != null ? MemoryImage(picture) : null,
+      radius: 28,
+    );
+    final details = _HeroDetails(birthday: birthday, today: today);
+    final age = _HeroAge(age: birthday.ageOn(today));
+    // Grand texte : avatar et âge passent au-dessus, le texte prend la largeur.
+    final reflow = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.primary.withValues(alpha: 0.25),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        shape: _shape,
+        gradient: colors.hero,
+        shadows: colors.floatingShadow,
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        shape: _shape,
+        clipBehavior: Clip.antiAlias,
+        child: MergeSemantics(
+          child: Semantics(
+            button: true,
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                BirthdayFormSheet.show(context, birthdayToEdit: birthday);
+              },
+              splashColor: colors.onHero.withValues(alpha: 0.12),
+              highlightColor: colors.onHero.withValues(alpha: 0.08),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: reflow
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: [avatar, const Spacer(), age]),
+                          const SizedBox(height: AppSpacing.sm),
+                          details,
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          avatar,
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(child: details),
+                          const SizedBox(width: AppSpacing.sm),
+                          age,
+                        ],
+                      ),
+              ),
             ),
-          ],
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [colorScheme.primary, colorScheme.tertiary],
           ),
         ),
-        child: child,
       ),
     );
   }
 }
 
-class _BirthdayItem extends StatelessWidget {
+/// Qui et quand : surtitre, nom, lune et compte à rebours, date.
+class _HeroDetails extends StatelessWidget {
+  const _HeroDetails({required this.birthday, required this.today});
+
   final Birthday birthday;
   final DateTime today;
 
-  const _BirthdayItem({required this.birthday, required this.today});
-
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
-    final picture = birthday.picture;
-    final ImageProvider? backgroundImage = picture != null
-        ? MemoryImage(picture)
-        : null;
-
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: colorScheme.onPrimary.withValues(alpha: 0.4),
-              width: 1.5,
-            ),
-          ),
-          child: CircleAvatar(
-            radius: 28,
-            backgroundColor: colorScheme.onPrimary.withValues(alpha: 0.2),
-            backgroundImage: backgroundImage,
-            child: backgroundImage == null
-                ? Icon(
-                    Icons.cake_outlined,
-                    color: colorScheme.onPrimary,
-                    size: 26,
-                  )
-                : null,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _BirthdayContent(
-            birthday: birthday,
-            today: today,
-            isLoading: false,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              birthday.ageOn(today).toString(),
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: colorScheme.onPrimary,
-                letterSpacing: -1,
-              ),
-            ),
-            Text(
-              context.l10n.yearsOld.toUpperCase(),
-              style: textTheme.labelSmall?.copyWith(
-                color: colorScheme.onPrimary.withValues(alpha: 0.8),
-                fontWeight: FontWeight.w900,
-                fontSize: 9,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _BirthdayContent extends StatelessWidget {
-  const _BirthdayContent({
-    required this.birthday,
-    this.today,
-    required this.isLoading,
-  });
-
-  final Birthday? birthday;
-
-  /// Jour courant, requis pour afficher un [birthday].
-  final DateTime? today;
-  final bool isLoading;
-
-  String _daysLabel(int days, BuildContext context) {
-    if (days == 0) return context.l10n.today.toUpperCase();
-    if (days == 1) return context.l10n.tomorrow.toUpperCase();
-    return context.l10n.inDays(days).toUpperCase();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final today = this.today;
-    final int? days = today == null ? null : birthday?.daysUntilNext(today);
+    final onHero = context.ankiColors.onHero;
+    // Texte secondaire à 85 % : contraste AA sur tout le dégradé.
+    final secondary = onHero.withValues(alpha: 0.85);
+    final days = birthday.daysUntilNext(today);
+    final countdown = switch (days) {
+      0 => context.l10n.today,
+      1 => context.l10n.tomorrow,
+      _ => context.l10n.inDays(days),
+    };
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          context.l10n.nextBirthday.toUpperCase(),
-          style: textTheme.labelSmall?.copyWith(
-            color: colorScheme.onPrimary.withValues(alpha: 0.7),
-            fontWeight: FontWeight.w800,
-          ),
-          overflow: TextOverflow.ellipsis,
+          context.l10n.nextBirthday,
+          style: textTheme.labelMedium?.copyWith(color: secondary),
         ),
-        const SizedBox(height: 4),
-        if (isLoading)
-          SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              color: colorScheme.onPrimary,
-            ),
-          )
-        else if (birthday == null)
-          Text(
-            context.l10n.noBirthdayRegistered,
-            style: textTheme.titleMedium?.copyWith(
-              color: colorScheme.onPrimary,
-              fontWeight: FontWeight.bold,
-            ),
-            overflow: TextOverflow.ellipsis,
-          )
-        else ...[
-          Text(
-            '${birthday!.name} ${birthday!.surname}',
-            style: textTheme.titleLarge?.copyWith(
-              color: colorScheme.onPrimary,
-              fontWeight: FontWeight.w900,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: colorScheme.onPrimary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(4),
+        const SizedBox(height: AppSpacing.xxs),
+        Text(
+          '${birthday.name} ${birthday.surname}',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: textTheme.titleLarge?.copyWith(color: onHero),
+        ),
+        const SizedBox(height: AppSpacing.xxs),
+        // La date passe à la ligne plutôt que de déborder (grand texte).
+        Wrap(
+          spacing: AppSpacing.xs,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                MoonPhase(
+                  daysLeft: days,
+                  size: 16,
+                  litColor: onHero,
+                  shadowColor: onHero.withValues(alpha: 0.25),
                 ),
-                child: Text(
-                  _daysLabel(days!, context),
-                  style: textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onPrimary,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 10,
+                const SizedBox(width: AppSpacing.xs),
+                Flexible(
+                  child: Text(
+                    countdown,
+                    style: textTheme.labelLarge?.copyWith(color: onHero),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                birthday!.formattedDate(context, includeYear: false),
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onPrimary.withValues(alpha: 0.8),
-                  fontWeight: FontWeight.w500,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+              ],
+            ),
+            Text(
+              birthday.formattedDate(context, includeYear: false),
+              style: textTheme.bodyMedium?.copyWith(color: secondary),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Âge en grand, son unité dessous.
+class _HeroAge extends StatelessWidget {
+  const _HeroAge({required this.age});
+
+  final int age;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final onHero = context.ankiColors.onHero;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '$age',
+          style: textTheme.headlineSmall?.copyWith(
+            color: onHero,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
-        ],
+        ),
+        Text(
+          context.l10n.yearsOld,
+          style: textTheme.labelMedium?.copyWith(
+            color: onHero.withValues(alpha: 0.85),
+          ),
+        ),
       ],
     );
   }

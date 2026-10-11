@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
@@ -10,248 +13,244 @@ import 'package:an_ki/features/birthday/widgets/birthday_display.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// Tuile d'une personne : avatar, nom, date, catégories et âge.
+///
+/// Toucher ouvre la modification. Glisser vers la droite, ou l'action
+/// « Supprimer » des lecteurs d'écran, supprime après confirmation.
 class ContactTile extends ConsumerWidget {
+  const ContactTile({super.key, required this.birthday});
+
   final Birthday birthday;
 
-  const ContactTile({super.key, required this.birthday});
+  static const _radius = BorderRadius.all(Radius.circular(AppRadii.lg));
+
+  String get _fullName => '${birthday.name} ${birthday.surname}';
+
+  Future<bool> _confirmDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.deleteBirthdayTitle),
+        content: Text(context.l10n.deleteBirthdayConfirmation(_fullName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: Text(context.l10n.delete),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
+
+  void _delete(BuildContext context, WidgetRef ref) {
+    unawaited(ref.read(birthdayEditorProvider.notifier).delete(birthday.id));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.birthdayDeleted(_fullName))),
+    );
+  }
+
+  /// Chemin des lecteurs d'écran, sans glissement : même confirmation.
+  Future<void> _confirmThenDelete(BuildContext context, WidgetRef ref) async {
+    if (await _confirmDelete(context) && context.mounted) {
+      _delete(context, ref);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ClipRSuperellipse(
+      borderRadius: _radius,
+      child: Dismissible(
+        key: Key(birthday.id),
+        direction: DismissDirection.startToEnd,
+        confirmDismiss: (_) {
+          unawaited(HapticFeedback.mediumImpact());
+          return _confirmDelete(context);
+        },
+        onDismissed: (_) => _delete(context, ref),
+        background: ColoredBox(
+          color: colorScheme.errorContainer,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Icon(
+                Icons.delete_outline_rounded,
+                color: colorScheme.onErrorContainer,
+              ),
+            ),
+          ),
+        ),
+        child: Card(
+          margin: EdgeInsets.zero,
+          child: MergeSemantics(
+            child: Semantics(
+              button: true,
+              customSemanticsActions: {
+                CustomSemanticsAction(label: context.l10n.delete): () =>
+                    unawaited(_confirmThenDelete(context, ref)),
+              },
+              child: InkWell(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  BirthdayFormSheet.show(context, birthdayToEdit: birthday);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  child: _TileContent(birthday: birthday),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TileContent extends ConsumerWidget {
+  const _TileContent({required this.birthday});
+
+  final Birthday birthday;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final categoriesState = ref.watch(categoriesProvider);
     final today = ref.watch(todayProvider);
-
+    // Les puces sont un complément : sans catégories chargées, la tuile reste lisible.
+    final allCategories = ref.watch(categoriesProvider).value ?? const [];
+    final categories = allCategories
+        .where((category) => birthday.categories.contains(category.id))
+        .toList();
     final picture = birthday.picture;
-    final ImageProvider? backgroundImage = picture != null
-        ? MemoryImage(picture)
-        : null;
+    final fullName = '${birthday.name} ${birthday.surname}';
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Dismissible(
-          key: Key(birthday.id),
-          direction: DismissDirection.startToEnd,
-          confirmDismiss: (direction) async {
-            unawaited(HapticFeedback.mediumImpact());
-            return await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text(context.l10n.deleteBirthdayTitle),
-                content: Text(
-                  context.l10n.deleteBirthdayConfirmation(
-                    "${birthday.name} ${birthday.surname}",
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text(context.l10n.cancel),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    style: TextButton.styleFrom(
-                      foregroundColor: colorScheme.error,
-                    ),
-                    child: Text(context.l10n.delete),
-                  ),
-                ],
-              ),
-            );
-          },
-          onDismissed: (direction) {
-            unawaited(
-              ref.read(birthdayEditorProvider.notifier).delete(birthday.id),
-            );
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  context.l10n.birthdayDeleted(
-                    "${birthday.name} ${birthday.surname}",
-                  ),
-                ),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            );
-          },
-          background: Container(
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.only(left: 24),
-            color: colorScheme.errorContainer,
-            child: Icon(
-              Icons.delete_outline_rounded,
-              color: colorScheme.error,
-              size: 28,
-            ),
+    final avatar = AnKiAvatar(
+      name: fullName,
+      image: picture != null ? MemoryImage(picture) : null,
+    );
+    final details = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          fullName,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: textTheme.titleMedium?.copyWith(color: colorScheme.onSurface),
+        ),
+        Text(
+          birthday.formattedDate(context),
+          style: textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
           ),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                stops: const [0.6, 1.0],
-                colors: [
-                  colorScheme.surfaceContainer,
-                  colorScheme.surfaceContainerHighest,
-                ],
-              ),
-            ),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () {
-                HapticFeedback.lightImpact();
-                BirthdayFormSheet.show(context, birthdayToEdit: birthday);
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                child: Row(
-                  children: [
-                    // Avatar avec bordure subtile
-                    Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: colorScheme.primary.withValues(alpha: 0.1),
-                        ),
-                      ),
-                      child: CircleAvatar(
-                        radius: 26,
-                        backgroundColor: colorScheme.primaryContainer,
-                        backgroundImage: backgroundImage,
-                        child: backgroundImage == null
-                            ? Icon(
-                                Icons.person_outline_rounded,
-                                color: colorScheme.onPrimaryContainer,
-                                size: 30,
-                              )
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    // Informations
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            "${birthday.name} ${birthday.surname}",
-                            style: textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            birthday.formattedDate(context),
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          categoriesState.when(
-                            data: (allCategories) {
-                              final activeCategories = allCategories
-                                  .where(
-                                    (c) => birthday.categories.contains(c.id),
-                                  )
-                                  .toList();
-                              if (activeCategories.isEmpty) {
-                                return const SizedBox();
-                              }
-                              return SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                physics: const BouncingScrollPhysics(),
-                                child: Row(
-                                  children: activeCategories.map((cat) {
-                                    return Container(
-                                      margin: const EdgeInsets.only(right: 8),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: colorScheme.primaryContainer
-                                            .withValues(alpha: 0.7),
-                                        borderRadius: BorderRadius.circular(28),
-                                        border: Border.all(
-                                          color: colorScheme.primary.withValues(
-                                            alpha: 0.1,
-                                          ),
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            cat.iconData,
-                                            size: 13,
-                                            color:
-                                                colorScheme.onPrimaryContainer,
-                                          ),
-                                          const SizedBox(width: 5),
-                                          Text(
-                                            cat.localizedName(context),
-                                            style: textTheme.labelSmall
-                                                ?.copyWith(
-                                                  color: colorScheme
-                                                      .onPrimaryContainer,
-                                                  fontWeight: FontWeight.w800,
-                                                  fontSize: 11,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              );
-                            },
-                            loading: () => const SizedBox(),
-                            error: (e, s) => const SizedBox(),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          birthday.ageOn(today).toString(),
-                          style: textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            color: colorScheme.primary,
-                            letterSpacing: -1,
-                          ),
-                        ),
-                        Text(
-                          context.l10n.yearsOld.toUpperCase(),
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 9,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
+        ),
+        if (categories.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.xxs,
+            runSpacing: AppSpacing.xxs,
+            children: [
+              for (final category in categories)
+                _CategoryChip(category: category),
+            ],
           ),
+        ],
+      ],
+    );
+    final age = Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '${birthday.ageOn(today)}',
+          style: textTheme.headlineSmall?.copyWith(
+            color: colorScheme.primary,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+        Text(
+          context.l10n.yearsOld,
+          style: textTheme.labelMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+    // Grand texte : avatar et âge passent au-dessus, le texte prend la largeur.
+    final reflow = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
+
+    if (reflow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [avatar, const Spacer(), age]),
+          const SizedBox(height: AppSpacing.xs),
+          details,
+        ],
+      );
+    }
+    return Row(
+      children: [
+        avatar,
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(child: details),
+        const SizedBox(width: AppSpacing.xs),
+        age,
+      ],
+    );
+  }
+}
+
+/// Puce de catégorie : icône et libellé sur la teinte tonale de la catégorie.
+class _CategoryChip extends StatelessWidget {
+  const _CategoryChip({required this.category});
+
+  final BirthdayCategory category;
+
+  @override
+  Widget build(BuildContext context) {
+    final tones = category.tones(context);
+
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: tones.container,
+        shape: const StadiumBorder(),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs,
+          vertical: AppSpacing.xxs,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(category.iconData, size: 16, color: tones.onContainer),
+            const SizedBox(width: AppSpacing.xxs),
+            Flexible(
+              child: Text(
+                category.localizedName(context),
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelMedium
+                    ?.copyWith(color: tones.onContainer),
+              ),
+            ),
+          ],
         ),
       ),
     );

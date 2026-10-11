@@ -1,3 +1,4 @@
+import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
@@ -8,10 +9,13 @@ import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -100,6 +104,27 @@ void main() {
     });
   });
 
+  testWidgets('invites to add the first birthday', (tester) async {
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        const HomeScreen(),
+        overrides: overrides(birthdays: const []),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Vos anniversaires vivront ici'), findsOneWidget);
+      expect(find.text('Prochain anniversaire'), findsNothing);
+      expect(find.text('Aucun anniversaire trouvé.'), findsNothing);
+
+      await tester.tap(
+        find.widgetWithText(FilledButton, 'Ajouter un anniversaire'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BirthdayFormSheet), findsOneWidget);
+    });
+  });
+
   testWidgets('announces a failed category write', (tester) async {
     await mockNetworkImages(() async {
       await tester.pumpHarness(
@@ -144,7 +169,7 @@ void main() {
     });
   });
 
-  testWidgets('shows a loading indicator', (tester) async {
+  testWidgets('shows skeletons while loading', (tester) async {
     await mockNetworkImages(() async {
       await tester.pumpHarness(
         const HomeScreen(),
@@ -152,7 +177,9 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(CircularProgressIndicator), findsWidgets);
+      expect(find.byType(SkeletonBox), findsWidgets);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('Vos anniversaires vivront ici'), findsNothing);
     });
   });
 
@@ -204,10 +231,10 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.widgetWithText(ActionChip, 'Ajouter'));
+        await tester.tap(find.widgetWithText(ActionChip, 'Nouvelle catégorie'));
         await tester.pumpAndSettle();
 
-        expect(find.text('Nouvelle catégorie'), findsOneWidget);
+        expect(find.byType(CategoryFormSheet), findsOneWidget);
       });
     });
 
@@ -240,9 +267,9 @@ void main() {
         expect(container.read(birthdayCategoryFilterProvider), isEmpty);
 
         // The trailing "+" chip opens the category form.
-        await tester.tap(find.widgetWithIcon(ActionChip, Icons.add));
+        await tester.tap(find.byTooltip('Nouvelle catégorie'));
         await tester.pumpAndSettle();
-        expect(find.text('Nouvelle catégorie'), findsOneWidget);
+        expect(find.byType(CategoryFormSheet), findsOneWidget);
       });
     });
   });
@@ -356,6 +383,33 @@ void main() {
 
       expect(repository.deleted, isEmpty);
       expect(find.text('Bob Builder'), findsOneWidget);
+    });
+
+    testWidgets('screen readers delete through the tile action', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      final repository = RecordingBirthdayRepository(initial: [next, listed]);
+
+      await tester.pumpHarness(
+        const HomeScreen(),
+        overrides: overridesWith(repository),
+      );
+      await tester.pumpAndSettle();
+
+      tester.semantics.customAction(
+        find.semantics.byLabel(RegExp('Bob Builder')),
+        const CustomSemanticsAction(label: 'Supprimer'),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text("Supprimer l'anniversaire"), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Supprimer'));
+      await tester.pumpAndSettle();
+
+      expect(repository.deleted, ['listed']);
+      expect(find.text("Anniversaire de Bob Builder supprimé"), findsOneWidget);
+      semantics.dispose();
     });
   });
 }

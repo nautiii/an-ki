@@ -9,6 +9,8 @@ import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/widgets/contact_tile.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -83,6 +85,64 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Alice Wonderland'), findsOneWidget);
+    });
+  });
+
+  testWidgets('shows initials, date and age without a picture', (tester) async {
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        ContactTile(birthday: birthday()),
+        overrides: overrides(),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('AW'), findsOneWidget);
+      expect(find.text('10 mai 1990'), findsOneWidget);
+      expect(find.text('ans'), findsOneWidget);
+    });
+  });
+
+  testWidgets('reads as one button that also offers deletion', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        ContactTile(birthday: birthday()),
+        overrides: overrides(),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getSemantics(find.text('Alice Wonderland')),
+        isSemantics(
+          isButton: true,
+          hasTapAction: true,
+          customActions: [const CustomSemanticsAction(label: 'Supprimer')],
+        ),
+      );
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    });
+    semantics.dispose();
+  });
+
+  testWidgets('keeps everything whole at 200 % text on a small phone', (
+    tester,
+  ) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        Center(
+          child: SizedBox(width: 312, child: ContactTile(birthday: birthday())),
+        ),
+        overrides: overrides(),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alice Wonderland'), findsOneWidget);
+      expect(find.text('Famille'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   });
 }

@@ -296,89 +296,11 @@ abstract class AppLocalizations {
   /// **'Erreur lors de l\'enregistrement de la catégorie'**
   String get errorSavingCategory;
 
-  /// No description provided for @january.
-  ///
-  /// In fr, this message translates to:
-  /// **'Janvier'**
-  String get january;
-
-  /// No description provided for @february.
-  ///
-  /// In fr, this message translates to:
-  /// **'Février'**
-  String get february;
-
-  /// No description provided for @march.
-  ///
-  /// In fr, this message translates to:
-  /// **'Mars'**
-  String get march;
-
-  /// No description provided for @april.
-  ///
-  /// In fr, this message translates to:
-  /// **'Avril'**
-  String get april;
-
-  /// No description provided for @may.
-  ///
-  /// In fr, this message translates to:
-  /// **'Mai'**
-  String get may;
-
-  /// No description provided for @june.
-  ///
-  /// In fr, this message translates to:
-  /// **'Juin'**
-  String get june;
-
-  /// No description provided for @july.
-  ///
-  /// In fr, this message translates to:
-  /// **'Juillet'**
-  String get july;
-
-  /// No description provided for @august.
-  ///
-  /// In fr, this message translates to:
-  /// **'Août'**
-  String get august;
-
-  /// No description provided for @september.
-  ///
-  /// In fr, this message translates to:
-  /// **'Septembre'**
-  String get september;
-
-  /// No description provided for @october.
-  ///
-  /// In fr, this message translates to:
-  /// **'Octobre'**
-  String get october;
-
-  /// No description provided for @november.
-  ///
-  /// In fr, this message translates to:
-  /// **'Novembre'**
-  String get november;
-
-  /// No description provided for @december.
-  ///
-  /// In fr, this message translates to:
-  /// **'Décembre'**
-  String get december;
-
   /// No description provided for @nextBirthday.
   ///
   /// In fr, this message translates to:
   /// **'Prochain anniversaire'**
   String get nextBirthday;
-
-  /// No description provided for @noBirthdayRegistered.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aucun anniversaire'**
-  String get noBirthdayRegistered;
 
   /// No description provided for @today.
   ///
@@ -577,6 +499,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Ajouter un anniversaire'**
   String get addBirthday;
+
+  /// Titre de l'accueil sans aucun anniversaire
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos anniversaires vivront ici'**
+  String get emptyBirthdaysTitle;
+
+  /// Message de l'accueil sans aucun anniversaire
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez le premier : AnKi vous préviendra au bon moment.'**
+  String get emptyBirthdaysMessage;
 
   /// No description provided for @bookScannerTitle.
   ///

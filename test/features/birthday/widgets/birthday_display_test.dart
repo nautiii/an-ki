@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../../support/test_harness.dart';
 
 void main() {
-  testWidgets('formattedDate includes or omits the year', (tester) async {
+  testWidgets('formattedDate follows the locale, with or without the year', (
+    tester,
+  ) async {
     final context = await tester.pumpLocalizedContext();
     final birthday = Birthday(
       id: '1',
@@ -14,7 +16,8 @@ void main() {
       date: DateTime(1990, 1, 10),
     );
 
-    expect(birthday.formattedDate(context), '10 Janvier 1990');
-    expect(birthday.formattedDate(context, includeYear: false), '10 Janvier');
+    // Typographie française : mois en minuscules.
+    expect(birthday.formattedDate(context), '10 janvier 1990');
+    expect(birthday.formattedDate(context, includeYear: false), '10 janvier');
   });
 }
