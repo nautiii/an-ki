@@ -102,7 +102,7 @@ Why each boundary:
 
 | You are writing… | Put it in | Name |
 |---|---|---|
-| An entity, value object or enum | `features/<f>/domain/` | `idea.dart` → `Idea` (legacy: `XModel`) |
+| An entity, value object or enum | `features/<f>/domain/` | `idea.dart` → `Idea` |
 | Form input before saving | `domain/` next to the model | `IdeaDraft`, with its validation getter |
 | A business rule (dates, ages, sorting, filtering, validation) | `domain/` as a pure function or extension taking every input, `today` included | `birthday_dates.dart` |
 | A failure the user can hit | `domain/<f>_failure.dart` | `enum XFailure implements Exception`, or `sealed class` when cases carry data |
@@ -191,9 +191,8 @@ When an import would create a cycle, in this order:
 ## 7. Naming
 
 - Files `snake_case.dart`, one public concept per file (a model and its draft may share one).
-- Domain types are named after the concept (`Idea`, `ReminderPlan`, `UserProfile`). The `Model`
-  suffix (`BirthdayModel`, `UserModel`, `BookModel`) is legacy: keep it while those types live
-  on, don't add new ones. Avoid names that clash with SDK types (`User`, `Category`).
+- Domain types are named after the concept (`Birthday`, `UserProfile`, `ReminderPlan`), never
+  with a `Model` suffix. Avoid names that clash with SDK types (`User`, `Category`).
 - Repository `XRepository` / `xRepositoryProvider`; service `XService` / `xServiceProvider`.
 - Data providers are nouns: `birthdaysProvider`, `personIdeasProvider(personId)`.
 - Notifiers are named by role: `IdeaEditor` (writes), `BirthdaySearch` (UI state); the

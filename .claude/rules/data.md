@@ -16,8 +16,8 @@ Patterns with code: architecture skill, `references/patterns.md` §1–4; decisi
   (`today` is a parameter).
 - Models: Dart 3.13 primary constructor (`class const X({required final …})`), `copyWith`
   with `clearX` flags for nullable fields, `==`/`hashCode`; no `fromFirestore`/`toJson` — mapping
-  lives in private functions of the repository. Every feature follows this since M3; the legacy
-  `XModel` names stay until M8.
+  lives in private functions of the repository. Named after the concept (`Birthday`,
+  `UserProfile`, `Book`), never with a `Model` suffix.
 - Form input is a draft (`XDraft`, e.g. `BirthdayDraft`) carrying its validation rule; a picked
   file becomes bytes, never an `XFile`.
 - Failures: `enum XFailure implements Exception`, or a `sealed class` when cases carry data. No

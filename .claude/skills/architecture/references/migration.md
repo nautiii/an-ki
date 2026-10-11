@@ -1,7 +1,7 @@
 # Migration plan — what remains between the code and the target
 
-The 2026-10-07 audit (commit `46359f3`) and steps M0–M6 and M9 (2026-10-08/11) brought the code
-to the target, except what this file lists. Keep it current: when a step lands, add a line to
+The 2026-10-07 audit (commit `46359f3`) and steps M0–M6, M8 and M9 (2026-10-08/11) brought the
+code to the target, except what this file lists. Keep it current: when a step lands, add a line to
 *Done*, delete the debt it cleared and record what you discover.
 
 ## Contents
@@ -59,6 +59,7 @@ to the target, except what this file lists. Keep it current: when a step lands, 
 | M5 | 2026-10-09 | typed failures, no `AppLocalizations` in state, optimistic category writes |
 | M6 | 2026-10-09 | `reminders` feature plans J-0/J-7; `NotificationService` only schedules |
 | M9 | 2026-10-11 | auth split: session stream, biometric lock, `AuthController`; `App` waits for both before choosing a screen |
+| M8 | 2026-10-11 | concept names (`UserProfile`, `Birthday`, `Book`); every screen and widget test mirrors `lib/`; the data move stays open (§3) |
 
 The commit messages of those days hold the details. Bugs found on the way (DST day counts,
 batches over 500 writes, books left behind by account deletion, blank names, error shown on a
@@ -80,8 +81,8 @@ ux-ui backlog (`ux-backlog.md`), not here.
 
 ## 3. Remaining steps
 
-Recommended order: M7 with the first of B3/B4/B5, M8 only on need. Local fixes (A15, A16) go
-with any change touching their files. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent +
+Recommended order: M7 with the first of B3/B4/B5, M10 only on a concrete need. Local fixes
+(A15, A16) go with any change touching their files. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent +
 review).
 
 ### M7 — go_router (A7) · M · approval, with the first of B3/B4/B5
@@ -91,13 +92,10 @@ review).
   `authAccessProvider`.
 - Commit: `FEAT(app): route with go_router` (or `REFACTOR` if invisible to users).
 
-### M8 — Optional cleanups · approval
-- Rename the `XModel` types when their feature is touched (`UserModel` → `UserProfile`,
-  `BirthdayModel` → `Birthday`, `BookModel` → `Book`).
-- Move the older screen and widget tests from the feature root to the mirror layout
-  (`test/features/<f>/screens/`, `widgets/`).
-- Move `birthday`/`books` to `user/{uid}/…` (data migration with dual read, rules update, one
-  release of overlap) — only on a concrete need (sharing, rules complexity, cost).
+### M10 — Per-user collections · L · system change, only on a concrete need
+- Left out of M8: move `birthday`/`books` to `user/{uid}/…` — data migration with dual read,
+  rules update deployed by the maintainer, one release of overlap.
+- Worth it only for a concrete need: sharing, rules complexity, cost. Brief and approval first.
 
 ## 4. How to run a step
 

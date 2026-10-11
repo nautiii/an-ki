@@ -12,8 +12,8 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
 
 - `test/` mirrors `lib/` file by file: `lib/features/<f>/<layer>/x.dart` →
   `test/features/<f>/<layer>/x_test.dart`; a flow over several screens →
-  `test/features/<f>/<flow>_flow_test.dart`. Older screen and widget tests sit at the feature
-  root (`test/features/birthday/contact_tile_test.dart`): new files follow the mirror.
+  `test/features/<f>/<flow>_flow_test.dart` (`create_birthday_flow_test.dart`). Nothing else
+  sits at a feature root.
 - Shared fakes and helpers live in `test/support/`: reuse them, don't redefine them per file
   (`tester.pumpLocalizedContext()` gives a French `BuildContext` for display extensions).
 - Never touch real Firebase, network or platform channels. Use `FakeFirebaseFirestore`,
@@ -35,8 +35,10 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
   use `overrideWith2` (`overrideWith` is deprecated since Riverpod 3.2). Shared fakes:
   `RecordingBirthdayRepository`, `RecordingBookRepository`, `RecordingCategoryRepository`,
   `RecordingUserRepository` (its `watchUser` reflects writes, like the Firestore cache),
-  `FakeAuthRepository` (its session follows its calls) and `FakeBiometricService`. A widget that
-  only needs a signed-in user gets `currentUidProvider.overrideWithValue('fake-uid')`.
+  `FakeAuthRepository` (its session follows its calls) and `FakeBiometricService`; the sign-in
+  screens start from `authOverrides`, `failingAuthOverrides` or `loadingAuthOverrides`
+  (`test/support/auth_overrides.dart`). A widget that only needs a signed-in user gets
+  `currentUidProvider.overrideWithValue('fake-uid')`.
 - **Widgets and screens**: `await tester.pumpHarness(widget, overrides: […])` (French locale,
   800×1200). A non-empty `overrides` list **replaces** `defaultTestOverrides`, it doesn't extend
   it. Pin async data with `xProvider.overrideWithValue(const AsyncData(…))`. Cover loading, empty,
