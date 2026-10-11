@@ -1,0 +1,21 @@
+# Fins de ligne LF partout, quel que soit core.autocrlf : les outils Flutter
+# (pub get, gen-l10n, dart format) écrivent en LF, git ne voit plus de faux
+# changements sous Windows.
+* text=auto eol=lf
+
+# Scripts batch Windows : CRLF obligatoire.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binaires : jamais convertis.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.jar binary
+*.jks binary
+*.keystore binary
