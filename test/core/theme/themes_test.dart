@@ -1,5 +1,8 @@
+import 'package:an_ki/core/theme/anki_colors.dart';
+import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/core/theme/themes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -74,11 +77,68 @@ void main() {
 
         expect(appBar.backgroundColor, Colors.transparent);
         expect(appBar.elevation, 0);
+        expect(appBar.scrolledUnderElevation, 0);
         expect(appBar.centerTitle, isTrue);
         expect(appBar.titleTextStyle?.fontFamily, startsWith('Outfit'));
         expect(appBar.titleTextStyle?.fontSize, 20);
         expect(appBar.titleTextStyle?.fontWeight, FontWeight.bold);
         expect(appBar.titleTextStyle?.color, theme.colorScheme.onSurface);
+      });
+
+      test('keeps status bar icons readable on the theme background', () {
+        expect(
+          theme.appBarTheme.systemOverlayStyle,
+          brightness == Brightness.dark
+              ? SystemUiOverlayStyle.light
+              : SystemUiOverlayStyle.dark,
+        );
+      });
+
+      test('installs the brand colors for its brightness', () {
+        final colors = theme.extension<AnKiColors>();
+
+        expect(colors, isNotNull);
+        expect(
+          colors!.hero.colors,
+          brightness == Brightness.dark
+              ? [
+                  theme.colorScheme.primaryContainer,
+                  theme.colorScheme.tertiaryContainer,
+                ]
+              : [theme.colorScheme.primary, theme.colorScheme.tertiary],
+        );
+      });
+
+      test('shapes the components with the design tokens', () {
+        final filled = theme.filledButtonTheme.style!;
+        final states = <WidgetState>{};
+
+        expect(filled.minimumSize?.resolve(states), const Size(64, 56));
+        expect(filled.shape?.resolve(states), const StadiumBorder());
+        expect(
+          theme.outlinedButtonTheme.style!.side?.resolve(states)?.color,
+          theme.colorScheme.outline,
+        );
+        expect(
+          theme.textButtonTheme.style!.minimumSize?.resolve(states),
+          const Size(48, 48),
+        );
+        expect(theme.cardTheme.elevation, 0);
+        expect(theme.cardTheme.shape, isA<RoundedSuperellipseBorder>());
+        expect(theme.dialogTheme.shape, isA<RoundedSuperellipseBorder>());
+        expect(theme.bottomSheetTheme.showDragHandle, isTrue);
+        expect(
+          theme.bottomSheetTheme.backgroundColor,
+          theme.colorScheme.surfaceContainerLow,
+        );
+        expect(theme.snackBarTheme.behavior, SnackBarBehavior.floating);
+        expect(theme.inputDecorationTheme.filled, isTrue);
+        expect(theme.chipTheme.shape, const StadiumBorder());
+        expect(
+          theme.segmentedButtonTheme.style!.minimumSize?.resolve(states),
+          const Size(48, 48),
+        );
+        expect(theme.listTileTheme.minVerticalPadding, AppSpacing.sm);
       });
     });
   }
