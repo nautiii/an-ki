@@ -22,7 +22,7 @@ migration step M0). When the two disagree, fix one of them in the same change.
 lib/
 ├── main.dart                 # entry point: bindings, Firebase and plugin init, runApp(ProviderScope(App))
 ├── app/                      # composition root — the only code that knows every feature
-│   ├── app.dart              # MaterialApp: theme, locale, l10n, home or router
+│   ├── app.dart              # MaterialApp.router: theme, locale, l10n
 │   ├── router/               # route table: path → screen, guards
 │   ├── shell/                # main scaffold and tabs, composing feature screens
 │   └── bootstrap/            # reactions to the app lifecycle: session start, permissions, eager providers
@@ -123,7 +123,7 @@ Why each boundary:
 | A widget used by ≥ 2 features | `core/common/`, dumb (params + callbacks) | `AnKiEmptyState` |
 | Orchestration across features triggered by a user action | the lowest feature that already depends on every participant (often `settings`), else a new feature (`account`) | `AccountDeletion` |
 | Orchestration triggered by the app lifecycle (sign-in, start) | `app/bootstrap/` | `SessionBootstrap` |
-| Tab selection, shell layout | `app/shell/` | `MainShell`, `navigationProvider` |
+| Tab selection, shell layout | `app/shell/` (tabs are branches of the router) | `MainShell`, `ShellBranches` |
 | Asset paths, fixed keys | `core/constants/` | `AppAssets` |
 | A fake shared by several test files | `test/support/` | `FakeIdeaRepository` |
 

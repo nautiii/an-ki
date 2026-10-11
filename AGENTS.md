@@ -68,7 +68,7 @@ Target: feature-first layered MVVM — `screens/ widgets/ → providers/ → dat
 each feature, features linked by a declared acyclic graph, rules enforced by
 `test/architecture/architecture_test.dart` (known debt listed there, it only shrinks). Today's
 code predates the target; the plan is `.claude/skills/architecture/references/migration.md`
-(M0–M6, M8 and M9 done; M7 and M10 wait for approval).
+(M0–M9 done; M10 waits for a concrete need and approval).
 
 - Never copy a legacy pattern into new code: session handling with `startListening`/`clear()`,
   `XState` with `isLoading`/`errorMessage` strings, `AppLocalizations` passed to notifiers,

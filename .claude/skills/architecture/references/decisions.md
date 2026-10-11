@@ -13,7 +13,7 @@ when"; changing one is a **system** change (brief + approval) and updates this f
 - D6 Typed failures + AsyncValue, no Result type
 - D7 State derives from the session
 - D8 Firestore: SDK cache as source of truth, optimistic writes, per-user paths
-- D9 Navigation: Navigator now, go_router at the first deep-link need
+- D9 Navigation: go_router, pinned to 17.x
 - D10 Executable architecture
 - D11 Scale-out path: packages only on real signals
 - Sources
@@ -152,12 +152,12 @@ by read-before-write checks in repositories (which would duplicate them and dela
 or server-side account cleanup (Cloud Function / "Delete User Data" extension) becomes available
 — then client-side deletion shrinks.
 
-## D9 — Navigation: Navigator now, go_router at the first deep-link need
+## D9 — Navigation: go_router, pinned to 17.x
 
-**Decision.** Keep `Navigator` with paths centralized in `core/routing/` and the table in
-`app/router/`. Adopt go_router (approval required) with the first of: notification actions
-opening a person or the wish flow (backlog B3), a person page addressed by id (B4), onboarding
-redirects (B5), a web build.
+**Decision.** go_router since M7 (2026-10-11), first planned for the first of B3 (notification
+actions), B4 (a person page addressed by id), B5 (onboarding redirects) or a web build, and
+brought forward by the maintainer. Paths stay plain constants in `core/routing/`; the router
+lives in `app/router/`.
 
 **Why.** Flutter's docs: small apps without complex deep linking can use Navigator, but named
 routes are not recommended once deep links matter; go_router stays the team's recommendation for
@@ -165,11 +165,16 @@ most apps and is feature-complete (bug fixes only). Notification taps that must 
 with a correct back stack — including from a cold start — are exactly where a Router helps, and
 AnKi's roadmap gets there soon.
 
-**Notes for the switch.** go_router 18 depends on the new `material_ui`/`cupertino_ui`
-packages: either schedule the Material decoupling migration first or pin the last 17.x (same
-API). Put the `GoRouter` in a provider in `app/router`, refresh it from session state (Riverpod
-3.4 exposes `provider.listenable` as a `ValueListenable`), use `StatefulShellRoute.indexedStack`
-for tabs, and keep plain path constants (go_router_builder would need build_runner).
+**How.** go_router 18 depends on the new `material_ui`/`cupertino_ui` packages, so 17.5.0 (the
+last 17.x, same API) is pinned until the Material decoupling migration. The `GoRouter` is built
+once in `appRouterProvider`; Riverpod 3.4 has no `Listenable` adapter, so a `ValueNotifier` fed
+by `ref.listen(authAccessProvider)` is its `refreshListenable`, and the pure `accessRedirect`
+decides. The tabs are a `StatefulShellRoute` whose container keeps every branch mounted and
+cross-fades the current one (as before, honouring disabled animations); go_router_builder is
+out (build_runner).
+
+**Revisit when** the Material decoupling lands (move to go_router 18+), or when a web build
+needs URL strategy and deep-link handling.
 
 ## D10 — Executable architecture
 

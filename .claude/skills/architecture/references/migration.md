@@ -1,7 +1,7 @@
 # Migration plan — what remains between the code and the target
 
-The 2026-10-07 audit (commit `46359f3`) and steps M0–M6, M8 and M9 (2026-10-08/11) brought the
-code to the target, except what this file lists. Keep it current: when a step lands, add a line to
+The 2026-10-07 audit (commit `46359f3`) and steps M0–M9 (2026-10-08/11) brought the code to
+the target, except what this file lists. Keep it current: when a step lands, add a line to
 *Done*, delete the debt it cleared and record what you discover.
 
 ## Contents
@@ -26,12 +26,14 @@ code to the target, except what this file lists. Keep it current: when a step la
 - **State**: session-scoped streams on `currentUidProvider`; one controller per family of actions
   (`BirthdayEditor`, `CategoryEditor`, `BookEditor`…) with optimistic writes whose failures a
   host screen announces; side effects (`reminderSyncProvider`) activated from `app/`.
-- **Composition**: `app/` owns the shell, the route table and the bootstrap; features navigate by
-  path (`core/routing/app_routes.dart`).
+- **Composition**: `app/` owns the router, the shell and the bootstrap. go_router (`app/router/`,
+  `appRouterProvider`) redirects on `authAccessProvider`; the tabs are branches of a
+  `StatefulShellRoute` that keep their state; features navigate by path
+  (`core/routing/app_routes.dart`) with `context.go` / `context.push`.
 - **Auth**: the session (`authUserProvider`, Firebase `userChanges`), the biometric lock
-  (`biometricLockProvider`) and the actions (`AuthController`) are separate; `App` picks its
-  screen from `authAccessProvider` (pure rule `authAccess`). The fingerprint only unlocks the
-  session of its own account. No legacy notifier is left.
+  (`biometricLockProvider`) and the actions (`AuthController`) are separate; the router picks
+  the screen from `authAccessProvider` (pure rules `authAccess`, `accessRedirect`). The
+  fingerprint only unlocks the session of its own account. No legacy notifier is left.
 
 **Not verified outside the tests yet** — delete each line once done:
 - `firestore.rules` deployed by the maintainer (owner pinned on update, M0):
@@ -46,6 +48,9 @@ code to the target, except what this file lists. Keep it current: when a step la
   refused (« Permission refusée. »), account deletion with the fingerprint on or off (birthdays,
   books and profile gone, no error), reminders at 10:00 on J-0 and J-7 without duplicates after
   the update, birthdays tab shown again after signing back in.
+- M7 on the phone: a tab keeps its scroll and search when you come back to it, the settings
+  open above the tab and back returns to it, back from the e-mail sign-in returns to the
+  sign-in choice, the system back button on a tab leaves the app.
 
 **Done**
 
@@ -60,6 +65,7 @@ code to the target, except what this file lists. Keep it current: when a step la
 | M6 | 2026-10-09 | `reminders` feature plans J-0/J-7; `NotificationService` only schedules |
 | M9 | 2026-10-11 | auth split: session stream, biometric lock, `AuthController`; `App` waits for both before choosing a screen |
 | M8 | 2026-10-11 | concept names (`UserProfile`, `Birthday`, `Book`); every screen and widget test mirrors `lib/`; the data move stays open (§3) |
+| M7 | 2026-10-11 | go_router 17.5.0: router provider with access redirects, tabs as stateful branches, paths `/auth/login`, `/birthdays`, `/scanner` |
 
 The commit messages of those days hold the details. Bugs found on the way (DST day counts,
 batches over 500 writes, books left behind by account deletion, blank names, error shown on a
@@ -71,7 +77,6 @@ account's session, a sign-out that left the session open) are fixed and tested.
 
 | # | Debt | Evidence | Consequence | Step |
 |---|------|----------|-------------|------|
-| A7 | Navigation without deep links | named routes, paths in `core/routing/app_routes.dart`; a notification tap can't open a page, no URL state | B3/B4/B5 need a router | M7 |
 | A15 | Book lookup failures flattened | `BookRepository.fetchBookByIsbn` returns `null` for every failure but the quota (HTTP error, network, parsing), as for an unknown ISBN; a volume without title gets `'Unknown Title'`, an English UI string in the data layer | offline, a scan reads « Livre non trouvé »; untranslatable text | local fix: `BookFailure.network`, empty title worded by the UI |
 | A16 | `invalid-credential` worded as unknown | with email-enumeration protection (on by default for projects created since September 2023), Firebase Auth answers a wrong email or password with `invalid-credential`; `AuthRepository` maps it to `AuthFailure.unknown` | « Une erreur est survenue. » after a typo in the password (check on the phone) | local fix: `AuthFailure.invalidCredentials` and its ARB message |
 | A17 | Yearly reminders keep a stale age | notifications repeat each year (`DateTimeComponents.dateAndTime`) with the age written when scheduled; right only because the app re-plans at launch and on every change | wrong age if the app isn't opened for a year | with B6: drop the age from repeated texts, or schedule the next occurrences one by one |
@@ -81,16 +86,14 @@ ux-ui backlog (`ux-backlog.md`), not here.
 
 ## 3. Remaining steps
 
-Recommended order: M7 with the first of B3/B4/B5, M10 only on a concrete need. Local fixes
-(A15, A16) go with any change touching their files. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent +
-review).
+Recommended order: M10 only on a concrete need. Local fixes (A15, A16) go with any change
+touching their files. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent + review).
 
-### M7 — go_router (A7) · M · approval, with the first of B3/B4/B5
-- Decision D9: go_router 18 depends on `material_ui` (or pin 17.x); a router provider;
-  `StatefulShellRoute` for the tabs of `app/shell/`; notification payload = path.
-- Paths stay in `core/routing/app_routes.dart`; `app/router/` builds the router; redirects read
-  `authAccessProvider`.
-- Commit: `FEAT(app): route with go_router` (or `REFACTOR` if invisible to users).
+### With B3/B4 — notification taps open a page · S
+- Left out of M7 until a page exists to open: the payload of a reminder is a route path
+  (`ReminderNotification`), `NotificationService` hands taps
+  (`onDidReceiveNotificationResponse`, and the launch details on a cold start) to the router,
+  which `go`es there behind the access redirects.
 
 ### M10 — Per-user collections · L · system change, only on a concrete need
 - Left out of M8: move `birthday`/`books` to `user/{uid}/…` — data migration with dual read,

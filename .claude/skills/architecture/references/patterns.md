@@ -395,24 +395,28 @@ body: switch (ref.watch(ideasProvider)) {
 
 ## 12. Navigation and composition across features
 
-Today (Navigator, no deep links): paths in `core/routing/app_routes.dart`, the table in
-`app/router/`.
+go_router (decision D9): paths in `core/routing/app_routes.dart`, the router in `app/router/`
+(`appRouterProvider`, redirects from `authAccessProvider`, tabs as branches of a
+`StatefulShellRoute`).
 
 ```dart
 // core/routing/app_routes.dart — chemins seulement, aucun écran importé.
 abstract final class AppRoutes {
   const AppRoutes._();
 
+  static const login = '/auth/login';
   static const settings = '/settings';
 }
 
 // Dans une feature :
-Navigator.of(context).pushNamed(AppRoutes.settings);
+context.go(AppRoutes.login); // sous-page : la pile suit le chemin (/auth puis /auth/login)
+context.push(AppRoutes.settings); // page au-dessus de l'onglet courant, qui reste en place
+context.pop(); // retour
 ```
 
-Inside one feature, a private sub-page or sheet may be pushed directly. Across features, always a
-path. The Flutter docs discourage named routes once deep links matter: the move to go_router is
-planned (decision D9) — keep paths centralized so that switch is mechanical.
+Sign-in and sign-out never navigate: the router redirects when the access changes. Dialogs and
+sheets stay on `Navigator` (`showDialog`, `Navigator.pop(context)`). Inside one feature, a
+private sub-page may still be pushed directly; across features, always a path.
 
 Composition with a slot, when the lower feature must show something owned by a higher one:
 
@@ -552,8 +556,9 @@ test('streams the ideas of the signed-in user', () async {
   never in `build`, or every rebuild decodes the picture again.
 - A callback reading a `StreamProvider` with `ref.read` gets nothing when no one listens to it:
   a screen watches (`select`) the session data it uses, even if `App` keeps it alive.
-- Changing `MaterialApp.home` keeps the routes pushed above it: `App` pops to the root when the
-  access changes (sign-in from a pushed screen, sign-out from the settings).
+- go_router asserts when the last page is popped: the test harness shows the widget above a
+  blank page, so a sheet that closes itself has somewhere to go. `tester.pageBack()` looks for
+  the English « Back » tooltip: in the French tests, tap `find.byType(BackButton)`.
 - Widget tests that mount the sign-in screen pump 2 s past its staggered fade-ins (`AnKiFadeIn`
   waits with `Future.delayed`), or a timer stays pending.
 - Test doubles: `fake_cloud_firestore` applies a transaction one tick late to snapshot listeners
