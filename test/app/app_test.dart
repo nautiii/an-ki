@@ -11,7 +11,7 @@ import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,7 +38,7 @@ class _PendingAuthRepository extends FakeAuthRepository {
   Stream<User?> userChanges() => const Stream.empty();
 }
 
-const _profile = UserModel(
+const _profile = UserProfile(
   id: 'fake-uid',
   name: 'Camille',
   surname: 'Durand',

@@ -3,13 +3,13 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
 
-const _user = UserModel(
+const _user = UserProfile(
   id: 'user-1',
   name: 'Quentin',
   surname: 'Maillard',

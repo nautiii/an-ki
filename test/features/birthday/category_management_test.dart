@@ -3,7 +3,7 @@ import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,7 +23,7 @@ void main() {
     List<BirthdayCategory> all = const [],
     List<String> userCategories = const [],
   }) {
-    final profile = UserModel(
+    final profile = UserProfile(
       id: 'u',
       name: 'A',
       surname: 'B',

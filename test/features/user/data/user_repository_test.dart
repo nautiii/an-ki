@@ -1,5 +1,5 @@
 import 'package:an_ki/features/user/data/user_repository.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,7 +12,7 @@ void main() {
     repository = UserRepository(firestore: firestore);
   });
 
-  const user = UserModel(
+  const user = UserProfile(
     id: 'user-1',
     name: 'Quentin',
     surname: 'Maillard',
@@ -52,7 +52,7 @@ void main() {
 
       expect(
         watched,
-        const UserModel(
+        const UserProfile(
           id: 'user-2',
           name: 'Quentin',
           surname: 'Maillard',
@@ -72,7 +72,7 @@ void main() {
 
       expect(
         watched,
-        const UserModel(
+        const UserProfile(
           id: 'user-3',
           name: '',
           surname: '',
@@ -114,7 +114,7 @@ void main() {
       await repository.createUser(user.copyWith(pseudo: 'Quentinou'));
 
       // A later (erroneous) creation with a blank default user must NOT wipe it.
-      const blank = UserModel(
+      const blank = UserProfile(
         id: 'user-1',
         name: 'guest',
         surname: '',

@@ -5,7 +5,7 @@ import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart' as fam;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,15 +16,15 @@ import '../../support/test_harness.dart';
 
 /// Dépôt dont le profil n'arrive que lorsque le test le décide.
 class _PendingUserRepository extends FakeUserRepository {
-  final profile = StreamController<UserModel?>();
+  final profile = StreamController<UserProfile?>();
 
   @override
-  Stream<UserModel?> watchUser(String uid) => profile.stream;
+  Stream<UserProfile?> watchUser(String uid) => profile.stream;
 
   Future<void> close() => profile.close();
 }
 
-const _profile = UserModel(
+const _profile = UserProfile(
   id: 'u1',
   name: 'Camille',
   surname: 'Durand',

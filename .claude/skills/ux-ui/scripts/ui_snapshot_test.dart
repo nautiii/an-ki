@@ -32,7 +32,7 @@ import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -180,7 +180,7 @@ List<Override> sampleOverrides({
     currentUidProvider.overrideWithValue('fake-uid'),
     userProfileProvider.overrideWithValue(
       AsyncData(
-        UserModel(
+        UserProfile(
           id: 'fake-uid',
           name: 'Camille',
           surname: 'Durand',

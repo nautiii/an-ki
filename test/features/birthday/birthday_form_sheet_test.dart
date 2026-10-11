@@ -7,7 +7,7 @@ import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +35,7 @@ void main() {
 
   List<dynamic> overrides(
     RecordingBirthdayRepository repository, {
-    UserModel? user,
+    UserProfile? user,
   }) => [
     currentUidProvider.overrideWithValue('fake-uid'),
     birthdayRepositoryProvider.overrideWithValue(repository),
@@ -45,7 +45,7 @@ void main() {
     userProfileProvider.overrideWithValue(
       AsyncData(
         user ??
-            const UserModel(
+            const UserProfile(
               id: 'fake-uid',
               name: 'A',
               surname: 'B',

@@ -1,11 +1,11 @@
 import 'package:an_ki/core/providers/firebase_providers.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Source de vérité du profil : `user/{uid}` dans Firestore.
 ///
-/// Convertit document ↔ [UserModel]. Ni logique métier, ni texte d'UI, ni état.
+/// Convertit document ↔ [UserProfile]. Ni logique métier, ni texte d'UI, ni état.
 class UserRepository {
   UserRepository({required this._firestore});
 
@@ -16,7 +16,7 @@ class UserRepository {
 
   /// Profil de [uid] en temps réel ; null tant que le document n'existe pas
   /// (premier lancement d'un compte).
-  Stream<UserModel?> watchUser(String uid) => _users
+  Stream<UserProfile?> watchUser(String uid) => _users
       .doc(uid)
       .snapshots()
       .map((doc) => doc.exists ? _userFromDoc(doc) : null);
@@ -29,10 +29,10 @@ class UserRepository {
   ///
   /// Renvoie l'utilisateur effectif : le document déjà stocké s'il est présent,
   /// sinon le [user] fraîchement créé.
-  Future<UserModel> createUser(UserModel user) async {
+  Future<UserProfile> createUser(UserProfile user) async {
     final DocumentReference<Map<String, dynamic>> docRef = _users.doc(user.id);
 
-    return _firestore.runTransaction<UserModel>((transaction) async {
+    return _firestore.runTransaction<UserProfile>((transaction) async {
       final DocumentSnapshot<Map<String, dynamic>> snapshot = await transaction
           .get(docRef);
 
@@ -75,9 +75,9 @@ final userRepositoryProvider = Provider<UserRepository>(
 
 // Conversion Firestore ↔ domaine : privée au data layer. Lecture tolérante
 // (champ absent → valeur par défaut) pour survivre aux anciens documents.
-UserModel _userFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
+UserProfile _userFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
   final data = doc.data() ?? const <String, dynamic>{};
-  return UserModel(
+  return UserProfile(
     id: doc.id,
     name: data['name'] as String? ?? '',
     surname: data['surname'] as String? ?? '',
@@ -91,7 +91,7 @@ UserModel _userFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
   );
 }
 
-Map<String, Object> _userToMap(UserModel user) => {
+Map<String, Object> _userToMap(UserProfile user) => {
   'name': user.name,
   'surname': user.surname,
   'pseudo': ?user.pseudo,

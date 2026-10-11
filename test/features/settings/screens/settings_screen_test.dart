@@ -6,7 +6,7 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart' as fam;
@@ -21,7 +21,7 @@ import '../../../support/test_harness.dart';
 User _user({bool anonymous = false}) =>
     fam.MockUser(uid: 'uid-1', isAnonymous: anonymous, displayName: 'T');
 
-const _userModel = UserModel(
+const _profile = UserProfile(
   id: 'uid-1',
   name: 'Quentin',
   surname: 'Maillard',
@@ -51,9 +51,9 @@ void main() {
     ),
     // Comme dans l'app : le démarrage attend le premier profil, il est donc
     // déjà là quand les réglages s'ouvrent.
-    userProfileProvider.overrideWithValue(const AsyncData(_userModel)),
+    userProfileProvider.overrideWithValue(const AsyncData(_profile)),
     userRepositoryProvider.overrideWithValue(
-      users ?? RecordingUserRepository(stored: _userModel),
+      users ?? RecordingUserRepository(stored: _profile),
     ),
     birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
     bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
@@ -80,7 +80,7 @@ void main() {
   });
 
   testWidgets('updates the pseudo', (tester) async {
-    final users = RecordingUserRepository(stored: _userModel);
+    final users = RecordingUserRepository(stored: _profile);
     await tester.pumpHarness(
       const SettingsScreen(),
       overrides: overridesWith(users: users),
@@ -117,7 +117,7 @@ void main() {
   });
 
   testWidgets('changes the language through the dropdown', (tester) async {
-    final users = RecordingUserRepository(stored: _userModel);
+    final users = RecordingUserRepository(stored: _profile);
     await tester.pumpHarness(
       const SettingsScreen(),
       overrides: overridesWith(users: users),
@@ -133,7 +133,7 @@ void main() {
   });
 
   testWidgets('toggles the theme', (tester) async {
-    final users = RecordingUserRepository(stored: _userModel);
+    final users = RecordingUserRepository(stored: _profile);
     await tester.pumpHarness(
       const SettingsScreen(),
       overrides: overridesWith(users: users),
@@ -286,7 +286,7 @@ void main() {
   });
 
   testWidgets('confirms and deletes the account', (tester) async {
-    final users = RecordingUserRepository(stored: _userModel);
+    final users = RecordingUserRepository(stored: _profile);
     await tester.pumpHarness(
       const SettingsScreen(),
       overrides: overridesWith(users: users),

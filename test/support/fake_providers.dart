@@ -10,7 +10,7 @@ import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_test/flutter_test.dart';
 
@@ -31,10 +31,10 @@ class MockUser extends Fake implements firebase_auth.User {
 
 class FakeUserRepository extends Fake implements UserRepository {
   @override
-  Stream<UserModel?> watchUser(String uid) => Stream.value(null);
+  Stream<UserProfile?> watchUser(String uid) => Stream.value(null);
 
   @override
-  Future<UserModel> createUser(UserModel user) async => user;
+  Future<UserProfile> createUser(UserProfile user) async => user;
 
   @override
   Future<void> updatePreferences(
@@ -56,22 +56,22 @@ class FakeUserRepository extends Fake implements UserRepository {
 class RecordingUserRepository extends FakeUserRepository {
   RecordingUserRepository({this._stored, this.failure});
 
-  UserModel? _stored;
+  UserProfile? _stored;
 
   /// Erreur levée par chaque écriture quand elle est définie.
   final Exception? failure;
 
-  final _changes = StreamController<UserModel?>.broadcast();
-  final created = <UserModel>[];
-  final updated = <UserModel>[];
+  final _changes = StreamController<UserProfile?>.broadcast();
+  final created = <UserProfile>[];
+  final updated = <UserProfile>[];
   final deleted = <String>[];
 
-  UserModel? get stored => _stored;
+  UserProfile? get stored => _stored;
 
   @override
-  Stream<UserModel?> watchUser(String uid) {
+  Stream<UserProfile?> watchUser(String uid) {
     // Abonnement immédiat : aucune écriture n'est perdue entre deux émissions.
-    final controller = StreamController<UserModel?>();
+    final controller = StreamController<UserProfile?>();
     final changes = _changes.stream.listen(controller.add);
     controller
       ..onCancel = () async {
@@ -83,7 +83,7 @@ class RecordingUserRepository extends FakeUserRepository {
   }
 
   @override
-  Future<UserModel> createUser(UserModel user) async {
+  Future<UserProfile> createUser(UserProfile user) async {
     _maybeFail();
     created.add(user);
     // Comme le vrai « créer si absent » : le profil existant gagne.
@@ -126,7 +126,7 @@ class RecordingUserRepository extends FakeUserRepository {
     _emit(null);
   }
 
-  void _emit(UserModel? user) {
+  void _emit(UserProfile? user) {
     _stored = user;
     _changes.add(user);
   }

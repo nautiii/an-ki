@@ -1,8 +1,8 @@
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  const base = UserModel(
+  const base = UserProfile(
     id: '1',
     name: 'Quentin',
     surname: 'Maillard',

@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 ///
 /// Modèle de domaine : Dart pur, immuable, sans Firebase ni Flutter UI. La
 /// conversion Firestore vit dans `data/user_repository.dart`.
-class const UserModel({
+class const UserProfile({
   required final String id,
   required final String name,
   required final String surname,
@@ -24,7 +24,7 @@ class const UserModel({
 
   /// Copie modifiée. Un argument null signifie « inchangé » ; `clearX` vide
   /// un champ optionnel.
-  UserModel copyWith({
+  UserProfile copyWith({
     String? name,
     String? surname,
     String? pseudo,
@@ -34,7 +34,7 @@ class const UserModel({
     String? locale,
     String? biometricToken,
     bool clearBiometricToken = false,
-  }) => UserModel(
+  }) => UserProfile(
     id: id,
     name: name ?? this.name,
     surname: surname ?? this.surname,
@@ -49,7 +49,7 @@ class const UserModel({
 
   @override
   bool operator ==(Object other) =>
-      other is UserModel &&
+      other is UserProfile &&
       other.id == id &&
       other.name == name &&
       other.surname == surname &&

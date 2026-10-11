@@ -1,6 +1,6 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/features/user/providers/theme_provider.dart';
 import 'package:an_ki/features/user/providers/user_profile_editor.dart';
@@ -11,11 +11,16 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
 
-UserModel _user({bool isDark = false, String locale = 'fr'}) =>
-    UserModel(id: 'u', name: 'A', surname: 'B', isDark: isDark, locale: locale);
+UserProfile _user({bool isDark = false, String locale = 'fr'}) => UserProfile(
+  id: 'u',
+  name: 'A',
+  surname: 'B',
+  isDark: isDark,
+  locale: locale,
+);
 
 void main() {
-  Future<ProviderContainer> makeContainer(UserModel? stored) async {
+  Future<ProviderContainer> makeContainer(UserProfile? stored) async {
     final container = ProviderContainer.test(
       retry: (_, _) => null,
       overrides: [

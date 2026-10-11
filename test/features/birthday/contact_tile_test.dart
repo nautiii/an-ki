@@ -7,7 +7,7 @@ import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/widgets/contact_tile.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -36,7 +36,7 @@ void main() {
     currentUidProvider.overrideWithValue('fake-uid'),
     userProfileProvider.overrideWithValue(
       const AsyncData(
-        UserModel(
+        UserProfile(
           id: 'fake-uid',
           name: 'A',
           surname: 'B',

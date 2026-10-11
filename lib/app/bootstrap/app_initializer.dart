@@ -5,7 +5,7 @@ import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -86,7 +86,7 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
             user.displayName ?? '',
             fallback: user.isAnonymous ? context.l10n.guest : '-',
           );
-    final profile = UserModel(
+    final profile = UserProfile(
       id: uid,
       name: name,
       surname: surname,

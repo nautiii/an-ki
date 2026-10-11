@@ -1,6 +1,6 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
-import 'package:an_ki/features/user/domain/user_model.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Profil Firestore de l'utilisateur courant, en temps réel ; null hors
@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// compte : `app/bootstrap` le crée).
 ///
 /// Dérivé de [currentUidProvider] : rien à charger ni à vider à la main.
-final userProfileProvider = StreamProvider<UserModel?>((ref) {
+final userProfileProvider = StreamProvider<UserProfile?>((ref) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return Stream.value(null);
   return ref.watch(userRepositoryProvider).watchUser(uid);
