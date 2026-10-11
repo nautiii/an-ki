@@ -23,9 +23,8 @@ class BiometricLockNotifier extends AsyncNotifier<BiometricLock> {
     return BiometricLock(enabled: canUse && hasToken);
   }
 
-  /// Ouvre l'app : connexion explicite, ou empreinte pour [uid].
-  void unlock({String? uid}) =>
-      _update((lock) => lock.copyWith(unlocked: true, unlockedUid: uid));
+  /// Ouvre l'app : connexion explicite, ou empreinte.
+  void unlock() => _update((lock) => lock.copyWith(unlocked: true));
 
   /// Referme l'app sans quitter la session Firebase.
   void lock() => _update((lock) => lock.copyWith(unlocked: false));
@@ -47,22 +46,15 @@ final biometricLockProvider =
       BiometricLockNotifier.new,
     );
 
-/// Identifiant de l'utilisateur courant, ou null hors session : celui de la
-/// session Firebase ou, à défaut, du compte ouvert par l'empreinte. Verrouillée,
-/// l'app le garde : données et rappels suivent derrière le verrou.
+/// Identifiant de l'utilisateur de la session Firebase, ou null hors session.
+/// Verrouillée, l'app le garde : données et rappels suivent derrière le verrou.
 ///
 /// Toutes les données utilisateur en dérivent : quand il change (connexion,
 /// changement de compte, déconnexion), les providers qui le `watch` se
 /// reconstruisent seuls — aucun `startListening` ni `clear` à appeler.
-final currentUidProvider = Provider<String?>((ref) {
-  final sessionUid = ref.watch(
-    authUserProvider.select((user) => user.value?.uid),
-  );
-  return sessionUid ??
-      ref.watch(
-        biometricLockProvider.select((lock) => lock.value?.unlockedUid),
-      );
-});
+final currentUidProvider = Provider<String?>(
+  (ref) => ref.watch(authUserProvider.select((user) => user.value?.uid)),
+);
 
 /// Accès à l'app ([authAccess]), null tant que la session ou le verrou ne
 /// sont pas connus (démarrage). Une erreur de lecture compte comme une

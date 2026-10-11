@@ -45,6 +45,8 @@ Riverpod 3.4 with hand-written providers. Patterns with code: architecture skill
 
 Since M9: the session is `authUserProvider` (Firebase `userChanges`), the biometric lock
 `biometricLockProvider`, the actions `AuthController` (awaited operations, failures as
-`AsyncError(AuthFailure)`); `currentUidProvider` and `authAccessProvider` derive from the first
-two. No legacy notifier is left: copy the target shapes above, e.g. `BirthdayEditor`,
-`CategoryEditor`, `ContactImport`, `AuthController`, `userProfileProvider`.
+`AsyncError(AuthFailure)`); `currentUidProvider` derives from the session, `authAccessProvider`
+from both. The fingerprint only unlocks the Firebase session of the account that enabled it:
+without a session nothing opens, and a token refused by the profile closes the session. No legacy
+notifier is left: copy the target shapes above, e.g. `BirthdayEditor`, `CategoryEditor`,
+`ContactImport`, `AuthController`, `userProfileProvider`.

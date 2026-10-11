@@ -347,23 +347,6 @@ void main() {
         expect(container.read(currentUidProvider), 'uid-1');
       },
     );
-
-    test('the fingerprint opens a locked session', () async {
-      final firestore = FakeFirebaseFirestore();
-      await firestore.collection('user').doc('uid-1').set({
-        'biometricToken': 'tok',
-      });
-      channels.storage[_tokenKey] = 'tok';
-      channels.storage[_uidKey] = 'uid-1';
-      final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
-      final container = makeContainer(auth, firestore: firestore);
-      await settle();
-
-      final ok = await controllerOf(container).unlockWithBiometrics();
-
-      expect(ok, isTrue);
-      expect(container.read(authAccessProvider), AuthAccess.granted);
-    });
   });
 
   group('linking an anonymous account to Google', () {
@@ -437,6 +420,24 @@ void main() {
       expect(container.read(authAccessProvider), AuthAccess.locked);
     });
 
+    test('closes the session when the fingerprint is unavailable', () async {
+      // Jeton resté sur l'appareil, mais plus aucune empreinte enregistrée :
+      // le verrou est désactivé, la déconnexion doit fermer la session.
+      channels.storage[_tokenKey] = 'tok';
+      channels.storage[_uidKey] = 'uid-1';
+      channels.availableBiometrics = const [];
+      final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
+      final container = makeContainer(auth);
+      await settle();
+      expect(container.read(authAccessProvider), AuthAccess.granted);
+
+      await controllerOf(container).signOut();
+      await settle();
+
+      expect(auth.currentUser, isNull);
+      expect(container.read(authAccessProvider), AuthAccess.signedOut);
+    });
+
     test('records a failure when it throws', () async {
       final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
       whenCalling(Invocation.method(#signOut, [null]))
@@ -448,6 +449,48 @@ void main() {
 
       expect(ok, isFalse);
       expect(failureOf(container), AuthFailure.signOutFailed);
+    });
+  });
+
+  group('signing in over a stored fingerprint', () {
+    Future<(ProviderContainer, MockFirebaseAuth)> signInAs(
+      String fingerprintUid,
+    ) async {
+      channels.storage[_tokenKey] = 'tok';
+      channels.storage[_uidKey] = fingerprintUid;
+      final auth = MockFirebaseAuth(mockUser: buildUser());
+      final container = makeContainer(auth);
+      await settle();
+      await controllerOf(container).signIn(email: 'a', password: 'b');
+      await settle();
+      expect(container.read(authAccessProvider), AuthAccess.granted);
+      return (container, auth);
+    }
+
+    test('the account of the fingerprint keeps it', () async {
+      final (container, _) = await signInAs('uid-1');
+
+      expect(
+        container.read(biometricLockProvider).value,
+        const BiometricLock(enabled: true, unlocked: true),
+      );
+      expect(channels.storage[_tokenKey], 'tok');
+    });
+
+    test('another account forgets it, and really signs out', () async {
+      final (container, auth) = await signInAs('uid-2');
+
+      expect(
+        container.read(biometricLockProvider).value,
+        BiometricLock.disabled,
+      );
+      expect(channels.storage[_tokenKey], isNull);
+
+      await controllerOf(container).signOut();
+      await settle();
+
+      expect(auth.currentUser, isNull);
+      expect(container.read(authAccessProvider), AuthAccess.signedOut);
     });
   });
 
@@ -479,9 +522,10 @@ void main() {
       expect(channels.storage[_tokenKey], isNull);
     });
 
-    test('disableBiometrics clears stored data', () async {
+    test('disableBiometrics clears the profile and the device', () async {
       final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
-      final container = makeContainer(auth);
+      final firestore = FakeFirebaseFirestore();
+      final container = makeContainer(auth, firestore: firestore);
       await settle();
       await controllerOf(container).enableBiometrics();
 
@@ -489,21 +533,82 @@ void main() {
 
       expect(container.read(biometricLockProvider).value?.enabled, isFalse);
       expect(channels.storage[_tokenKey], isNull);
-    });
-
-    test('disableBiometrics falls back to the stored uid', () async {
-      channels.storage[_uidKey] = 'uid-1';
-      final firestore = FakeFirebaseFirestore();
-      final container = makeContainer(MockFirebaseAuth(), firestore: firestore);
-
-      await controllerOf(container).disableBiometrics();
-
       final doc = await firestore.collection('user').doc('uid-1').get();
       expect(doc.data()?['biometricToken'], isNull);
     });
 
+    test(
+      'disableBiometrics without a session forgets the device token',
+      () async {
+        channels.storage[_tokenKey] = 'tok';
+        channels.storage[_uidKey] = 'uid-1';
+        final firestore = FakeFirebaseFirestore();
+        await firestore.collection('user').doc('uid-1').set({
+          'biometricToken': 'tok',
+        });
+        final container = makeContainer(
+          MockFirebaseAuth(),
+          firestore: firestore,
+        );
+
+        final ok = await controllerOf(container).disableBiometrics();
+
+        expect(ok, isTrue);
+        expect(channels.storage[_tokenKey], isNull);
+        // Seul le compte connecté écrit son profil.
+        final doc = await firestore.collection('user').doc('uid-1').get();
+        expect(doc.data()?['biometricToken'], 'tok');
+      },
+    );
+
     group('unlockWithBiometrics', () {
-      test('opens the account of a matching token', () async {
+      /// Session `uid-1` restaurée, verrouillée par l'empreinte : l'appareil
+      /// garde le jeton `tok` de [fingerprintUid], que son profil connaît,
+      /// sauf [revoked] (retiré, ou remplacé depuis un autre appareil).
+      Future<(ProviderContainer, MockFirebaseAuth)> lockedSession({
+        String fingerprintUid = 'uid-1',
+        bool revoked = false,
+      }) async {
+        final firestore = FakeFirebaseFirestore();
+        await firestore.collection('user').doc(fingerprintUid).set({
+          'biometricToken': revoked ? 'other-device' : 'tok',
+        });
+        channels.storage[_tokenKey] = 'tok';
+        channels.storage[_uidKey] = fingerprintUid;
+        final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
+        final container = makeContainer(auth, firestore: firestore);
+        await settle();
+        expect(container.read(authAccessProvider), AuthAccess.locked);
+        return (container, auth);
+      }
+
+      /// Déverrouillage refusé : session fermée, empreinte oubliée, et un
+      /// message qui invite à se reconnecter.
+      Future<void> expectSignedOut(
+        ProviderContainer container,
+        MockFirebaseAuth auth,
+      ) async {
+        final ok = await controllerOf(container).unlockWithBiometrics();
+        await settle();
+
+        expect(ok, isFalse);
+        expect(failureOf(container), AuthFailure.biometricRevoked);
+        expect(auth.currentUser, isNull);
+        expect(channels.storage[_tokenKey], isNull);
+        expect(container.read(authAccessProvider), AuthAccess.signedOut);
+      }
+
+      test('opens the locked session of its account', () async {
+        final (container, _) = await lockedSession();
+
+        final ok = await controllerOf(container).unlockWithBiometrics();
+
+        expect(ok, isTrue);
+        expect(container.read(authAccessProvider), AuthAccess.granted);
+        expect(container.read(currentUidProvider), 'uid-1');
+      });
+
+      test('never opens the app without a Firebase session', () async {
         final firestore = FakeFirebaseFirestore();
         await firestore.collection('user').doc('uid-1').set({
           'biometricToken': 'tok',
@@ -518,55 +623,61 @@ void main() {
 
         final ok = await controllerOf(container).unlockWithBiometrics();
 
-        expect(ok, isTrue);
-        // Sans session Firebase, le compte ouvert par l'empreinte en tient lieu.
-        expect(container.read(currentUidProvider), 'uid-1');
-        expect(container.read(authAccessProvider), AuthAccess.granted);
+        expect(ok, isFalse);
+        expect(container.read(currentUidProvider), isNull);
+        expect(container.read(authAccessProvider), AuthAccess.signedOut);
+        expect(channels.storage[_tokenKey], 'tok');
       });
 
-      test('fails quietly when the fingerprint is rejected', () async {
+      test('stays locked when the fingerprint is rejected', () async {
+        final (container, _) = await lockedSession();
         channels.authenticateResult = false;
-        final container = makeContainer(MockFirebaseAuth());
 
         final ok = await controllerOf(container).unlockWithBiometrics();
 
         expect(ok, isFalse);
         expect(failureOf(container), isNull);
+        expect(container.read(authAccessProvider), AuthAccess.locked);
       });
 
-      test('disables the lock when there is no stored token', () async {
-        final container = makeContainer(MockFirebaseAuth());
+      test('signs out when the token was revoked', () async {
+        final (container, auth) = await lockedSession(revoked: true);
 
-        final ok = await controllerOf(container).unlockWithBiometrics();
-
-        expect(ok, isFalse);
-        expect(container.read(biometricLockProvider).value?.enabled, isFalse);
+        await expectSignedOut(container, auth);
       });
 
-      test('clears data when the token is no longer valid', () async {
+      test('signs out with the token of another account', () async {
+        // Jeton valide, mais celui de `uid-2` : il n'ouvre pas `uid-1`.
+        final (container, auth) = await lockedSession(fingerprintUid: 'uid-2');
+
+        await expectSignedOut(container, auth);
+      });
+
+      test('signs out when the device lost its token', () async {
+        final (container, auth) = await lockedSession();
+        channels.storage.clear();
+
+        await expectSignedOut(container, auth);
+      });
+
+      test('stays locked when the lookup throws', () async {
         channels.storage[_tokenKey] = 'tok';
         channels.storage[_uidKey] = 'uid-1';
-        // Firestore has no matching document → token invalid.
-        final container = makeContainer(MockFirebaseAuth());
-
-        final ok = await controllerOf(container).unlockWithBiometrics();
-
-        expect(ok, isFalse);
-        expect(channels.storage[_tokenKey], isNull);
-      });
-
-      test('reports an error when the lookup throws', () async {
-        channels.storage[_tokenKey] = 'tok';
-        channels.storage[_uidKey] = 'uid-1';
+        final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
         final container = makeContainer(
-          MockFirebaseAuth(),
-          repository: _ThrowingAuthRepository(MockFirebaseAuth()),
+          auth,
+          repository: _ThrowingAuthRepository(auth),
         );
+        await settle();
 
         final ok = await controllerOf(container).unlockWithBiometrics();
 
         expect(ok, isFalse);
         expect(failureOf(container), AuthFailure.biometricFailed);
+        // Échec passager (hors ligne sans cache) : la session reste,
+        // verrouillée, sans déconnexion.
+        expect(auth.currentUser, isNotNull);
+        expect(container.read(authAccessProvider), AuthAccess.locked);
       });
     });
   });

@@ -55,15 +55,6 @@ void main() {
       await settle();
       expect(container.read(currentUidProvider), isNull);
     });
-
-    test('falls back to the account opened by the fingerprint', () async {
-      final container = makeContainer();
-      await settle();
-
-      container.read(biometricLockProvider.notifier).unlock(uid: 'bio-uid');
-
-      expect(container.read(currentUidProvider), 'bio-uid');
-    });
   });
 
   group('biometricLockProvider', () {
@@ -111,6 +102,21 @@ void main() {
       await settle();
 
       expect(container.read(authAccessProvider), AuthAccess.signedOut);
+    });
+
+    test('a fingerprint without a session opens nothing', () async {
+      biometrics = FakeBiometricService(
+        available: true,
+        token: 'tok',
+        userId: 'bio-uid',
+      );
+      final container = makeContainer();
+      await settle();
+
+      container.read(biometricLockProvider.notifier).unlock();
+
+      expect(container.read(authAccessProvider), AuthAccess.signedOut);
+      expect(container.read(currentUidProvider), isNull);
     });
 
     test('locks a restored session until it is unlocked', () async {

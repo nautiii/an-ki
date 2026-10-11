@@ -17,6 +17,7 @@ extension AuthFailureText on AuthFailure {
       AuthFailure.signInFailed => l10n.connectionError,
       AuthFailure.googleSignInFailed => l10n.errorGoogleLogin,
       AuthFailure.biometricFailed => l10n.biometricError,
+      AuthFailure.biometricRevoked => l10n.biometricRevoked,
       AuthFailure.signOutFailed => l10n.errorSignOut,
       AuthFailure.deleteAccountFailed => l10n.deleteAccountError,
     };

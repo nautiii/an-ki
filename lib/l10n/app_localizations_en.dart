@@ -374,6 +374,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get biometricError => 'Error during biometric authentication';
 
   @override
+  String get biometricRevoked =>
+      'Biometric login is no longer valid. Sign in again to continue.';
+
+  @override
   String get attention => 'Attention';
 
   @override

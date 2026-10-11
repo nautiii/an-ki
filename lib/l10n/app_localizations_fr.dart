@@ -382,6 +382,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get biometricError => 'Erreur lors de l\'authentification biométrique';
 
   @override
+  String get biometricRevoked =>
+      'La connexion biométrique n\'est plus valide. Reconnectez-vous pour continuer.';
+
+  @override
   String get attention => 'Attention';
 
   @override

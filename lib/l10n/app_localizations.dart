@@ -806,6 +806,12 @@ abstract class AppLocalizations {
   /// **'Erreur lors de l\'authentification biométrique'**
   String get biometricError;
 
+  /// No description provided for @biometricRevoked.
+  ///
+  /// In fr, this message translates to:
+  /// **'La connexion biométrique n\'est plus valide. Reconnectez-vous pour continuer.'**
+  String get biometricRevoked;
+
   /// No description provided for @attention.
   ///
   /// In fr, this message translates to:

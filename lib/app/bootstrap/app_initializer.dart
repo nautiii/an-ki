@@ -72,13 +72,12 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
   /// à l'inscription, sinon tirés du compte Google, sinon « Invité ».
   Future<void> _createMissingProfile() async {
     if (!mounted) return;
-    final uid = ref.read(currentUidProvider);
     final user = ref.read(authUserProvider).value;
-    // Sans compte Firebase (session biométrique seule), rien à créer.
-    if (uid == null || user == null || uid == _creatingProfileFor) return;
+    if (user == null || user.uid == _creatingProfileFor) return;
     // Le profil a pu arriver entre-temps.
     if (ref.read(userProfileProvider).value != null) return;
 
+    final uid = user.uid;
     _creatingProfileFor = uid;
     final typed = ref.read(signUpNamesProvider);
     final (name, surname) = typed != null

@@ -30,14 +30,17 @@ to the target, except what this file lists. Keep it current: when a step lands, 
   path (`core/routing/app_routes.dart`).
 - **Auth**: the session (`authUserProvider`, Firebase `userChanges`), the biometric lock
   (`biometricLockProvider`) and the actions (`AuthController`) are separate; `App` picks its
-  screen from `authAccessProvider` (pure rule `authAccess`). No legacy notifier is left.
+  screen from `authAccessProvider` (pure rule `authAccess`). The fingerprint only unlocks the
+  session of its own account. No legacy notifier is left.
 
 **Not verified outside the tests yet** — delete each line once done:
 - `firestore.rules` deployed by the maintainer (owner pinned on update, M0):
   `firebase deploy --only firestore:rules`.
 - M2–M6 and M9 on the phone: sign-in (email and sign-up land on the app, not on the form; Google,
   where a cancel stays silent; anonymous), a restored session locked behind the fingerprint
-  without the app flashing first, unlock, sign-out with the fingerprint on (lock only) and off,
+  without the app flashing first, unlock, a revoked fingerprint (`biometricToken` changed in the
+  console) signing out with « La connexion biométrique n'est plus valide… », sign-out with the
+  fingerprint on (lock only) and off,
   enabling and disabling the fingerprint in the settings, birthday with a photo (kept when editing
   without a new one), category created offline (the sheet closes at once), contacts import
   refused (« Permission refusée. »), account deletion with the fingerprint on or off (birthdays,
@@ -60,7 +63,8 @@ to the target, except what this file lists. Keep it current: when a step lands, 
 The commit messages of those days hold the details. Bugs found on the way (DST day counts,
 batches over 500 writes, books left behind by account deletion, blank names, error shown on a
 cancelled Google sign-in, sign-in screens left on top of the app, account deletion failing with
-the fingerprint on) are fixed and tested.
+the fingerprint on, a fingerprint opening the app without a Firebase session or on another
+account's session, a sign-out that left the session open) are fixed and tested.
 
 ## 2. Open debt
 

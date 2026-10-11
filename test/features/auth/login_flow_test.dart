@@ -1,3 +1,4 @@
+import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,11 @@ void main() {
 
     await tester.pumpHarness(
       const LoginScreen(),
-      overrides: [authRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        authRepositoryProvider.overrideWithValue(repository),
+        // La connexion regarde si l'empreinte de l'appareil est la sienne.
+        biometricServiceProvider.overrideWithValue(FakeBiometricService()),
+      ],
     );
     await tester.pumpAndSettle();
 

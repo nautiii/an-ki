@@ -18,33 +18,22 @@ void main() {
       const locked = BiometricLock(enabled: true);
 
       expect(authAccess(sessionUid: 'u1', lock: locked), AuthAccess.locked);
-      expect(authAccess(sessionUid: null, lock: locked), AuthAccess.locked);
       expect(
         authAccess(sessionUid: 'u1', lock: locked.copyWith(unlocked: true)),
         AuthAccess.granted,
       );
     });
 
-    test('an account opened by the fingerprint stands in for the session', () {
-      const lock = BiometricLock(
-        enabled: true,
-        unlocked: true,
-        unlockedUid: 'bio',
-      );
+    test('the lock never opens the app without a session', () {
+      const locks = [
+        BiometricLock(enabled: true),
+        BiometricLock(enabled: true, unlocked: true),
+        BiometricLock(enabled: false, unlocked: true),
+      ];
 
-      expect(authAccess(sessionUid: null, lock: lock), AuthAccess.granted);
-    });
-
-    test('an unlocked app without any account is signed out', () {
-      const lock = BiometricLock(enabled: true, unlocked: true);
-
-      expect(authAccess(sessionUid: null, lock: lock), AuthAccess.signedOut);
-    });
-
-    test('a leftover fingerprint account no longer counts once disabled', () {
-      const lock = BiometricLock(enabled: false, unlockedUid: 'bio');
-
-      expect(authAccess(sessionUid: null, lock: lock), AuthAccess.signedOut);
+      for (final lock in locks) {
+        expect(authAccess(sessionUid: null, lock: lock), AuthAccess.signedOut);
+      }
     });
   });
 
@@ -53,27 +42,27 @@ void main() {
       expect(const BiometricLock(enabled: true).unlocked, isFalse);
     });
 
-    test('copyWith keeps or clears the unlocked account', () {
-      const lock = BiometricLock(
-        enabled: true,
-        unlocked: true,
-        unlockedUid: 'bio',
-      );
+    test('copyWith changes only what it is given', () {
+      const lock = BiometricLock(enabled: true);
 
-      expect(lock.copyWith(unlocked: false).unlockedUid, 'bio');
-      expect(lock.copyWith(clearUnlockedUid: true).unlockedUid, isNull);
+      expect(
+        lock.copyWith(unlocked: true),
+        const BiometricLock(enabled: true, unlocked: true),
+      );
+      expect(lock.copyWith(enabled: false), BiometricLock.disabled);
       expect(lock.copyWith(), lock);
     });
 
     test('compares by value', () {
-      const lock = BiometricLock(enabled: true, unlockedUid: 'bio');
+      const lock = BiometricLock(enabled: true, unlocked: true);
 
-      expect(lock, const BiometricLock(enabled: true, unlockedUid: 'bio'));
+      expect(lock, const BiometricLock(enabled: true, unlocked: true));
       expect(
         lock.hashCode,
-        const BiometricLock(enabled: true, unlockedUid: 'bio').hashCode,
+        const BiometricLock(enabled: true, unlocked: true).hashCode,
       );
-      expect(lock, isNot(lock.copyWith(unlocked: true)));
+      expect(lock, isNot(lock.copyWith(unlocked: false)));
+      expect(lock, isNot(lock.copyWith(enabled: false)));
     });
   });
 }

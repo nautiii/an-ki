@@ -16,6 +16,9 @@ import 'package:google_sign_in/google_sign_in.dart';
 /// réaction immédiate de l'écran (vibration, message) ; un écran annonce
 /// l'échec en écoutant ce provider. Une annulation par l'utilisateur
 /// (sélecteur Google, invite d'empreinte) n'est pas un échec.
+///
+/// L'empreinte ne vaut que pour le compte qui l'a activée : elle déverrouille
+/// sa session Firebase, jamais une autre, et ne remplace pas une connexion.
 class AuthController extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
@@ -70,28 +73,32 @@ class AuthController extends AsyncNotifier<void> {
     });
   }
 
-  /// Ouvre l'app par l'empreinte : le jeton de l'appareil doit correspondre
-  /// à celui du profil. Sans jeton, ou avec un jeton périmé, la connexion par
-  /// empreinte est retirée.
+  /// Déverrouille la session Firebase par l'empreinte ; sans session, rien à
+  /// ouvrir. Le jeton de l'appareil doit appartenir au compte de la session
+  /// et correspondre à celui de son profil. Sinon (empreinte retirée ou
+  /// réactivée sur un autre appareil, jeton d'un autre compte), la session se
+  /// ferme et [AuthFailure.biometricRevoked] invite à se reconnecter.
   Future<bool> unlockWithBiometrics() {
     final biometrics = _biometrics;
     final repository = _repository;
     final lock = _lock;
     return _run(AuthFailure.biometricFailed, () async {
-      if (!await biometrics.authenticate()) return false;
+      final user = repository.currentUser;
+      if (user == null || !await biometrics.authenticate()) return false;
       final token = await biometrics.getStoredToken();
-      final uid = await biometrics.getStoredUserId();
-      if (token == null || uid == null) {
-        lock.disable();
-        return false;
-      }
-      if (!await repository.isBiometricTokenValid(uid, token)) {
-        // Jeton expiré ou invalide en base.
+      final valid =
+          token != null &&
+          await biometrics.getStoredUserId() == user.uid &&
+          await repository.isBiometricTokenValid(user.uid, token);
+      if (!valid) {
+        // Session fermée d'abord : si la suite échoue, rien ne s'ouvre.
+        await repository.signOutFirebase();
+        await repository.signOutGoogle();
         await biometrics.clearBiometricData();
         lock.disable();
-        return false;
+        throw AuthFailure.biometricRevoked;
       }
-      lock.unlock(uid: uid);
+      lock.unlock();
       return true;
     });
   }
@@ -113,14 +120,16 @@ class AuthController extends AsyncNotifier<void> {
     });
   }
 
-  /// Retire la connexion par empreinte : jeton effacé du profil et de
-  /// l'appareil.
+  /// Retire la connexion par empreinte : jeton effacé du profil du compte
+  /// connecté, seul à pouvoir l'écrire, puis de l'appareil.
   Future<bool> disableBiometrics() {
     final biometrics = _biometrics;
     final repository = _repository;
     final lock = _lock;
     return _run(AuthFailure.biometricFailed, () async {
-      await _clearBiometrics(repository, biometrics);
+      final user = repository.currentUser;
+      if (user != null) await repository.setBiometricToken(user.uid, null);
+      await biometrics.clearBiometricData();
       lock.disable();
       return true;
     });
@@ -128,13 +137,15 @@ class AuthController extends AsyncNotifier<void> {
 
   /// Déconnexion. Avec la connexion par empreinte, l'app se verrouille
   /// seulement : la session Firebase reste, pour garder les droits Firestore
-  /// jusqu'au déverrouillage.
+  /// jusqu'au déverrouillage. Sans elle (jamais activée, ou capteur devenu
+  /// indisponible), la session se ferme.
   Future<bool> signOut() {
-    final biometrics = _biometrics;
     final repository = _repository;
     final lock = _lock;
+    final fingerprintOn =
+        ref.read(biometricLockProvider).value?.enabled ?? false;
     return _run(AuthFailure.signOutFailed, () async {
-      if (await biometrics.getStoredToken() != null) {
+      if (fingerprintOn) {
         // Force le choix du compte à la prochaine connexion Google.
         await repository.signOutGoogle();
         lock.lock();
@@ -166,12 +177,22 @@ class AuthController extends AsyncNotifier<void> {
     });
   }
 
-  /// Connexion explicite : elle passe aussi le verrou biométrique.
+  /// Connexion explicite : elle passe aussi le verrou biométrique. L'empreinte
+  /// d'un autre compte est oubliée : sa session vient d'être remplacée.
   Future<bool> _signIn(AuthFailure fallback, Future<Object?> Function() call) {
+    final biometrics = _biometrics;
+    final repository = _repository;
     final lock = _lock;
     return _run(fallback, () async {
       await call();
-      lock.unlock();
+      final fingerprintUid = await biometrics.getStoredUserId();
+      if (fingerprintUid != null &&
+          fingerprintUid != repository.currentUser?.uid) {
+        await biometrics.clearBiometricData();
+        lock.disable();
+      } else {
+        lock.unlock();
+      }
       return true;
     });
   }
@@ -204,17 +225,6 @@ class AuthController extends AsyncNotifier<void> {
       return false;
     }
   }
-}
-
-/// Efface le jeton d'empreinte du profil (compte connecté, sinon celui du
-/// jeton) puis de l'appareil.
-Future<void> _clearBiometrics(
-  AuthRepository repository,
-  BiometricService biometrics,
-) async {
-  final uid = repository.currentUser?.uid ?? await biometrics.getStoredUserId();
-  if (uid != null) await repository.setBiometricToken(uid, null);
-  await biometrics.clearBiometricData();
 }
 
 final authControllerProvider = AsyncNotifierProvider<AuthController, void>(

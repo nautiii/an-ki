@@ -16,6 +16,10 @@ enum AuthFailure implements Exception {
   signInFailed,
   googleSignInFailed,
   biometricFailed,
+
+  /// Jeton d'empreinte refusé (retiré, remplacé ou d'un autre compte) : la
+  /// session est fermée, il faut se reconnecter.
+  biometricRevoked,
   signOutFailed,
   deleteAccountFailed,
 }

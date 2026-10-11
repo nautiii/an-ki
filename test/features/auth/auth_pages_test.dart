@@ -42,10 +42,17 @@ List<Object> loadingOverrides() => [
 ];
 
 /// App verrouillée par l'empreinte, comme au démarrage d'une session
-/// restaurée : le jeton de l'appareil est celui du profil `uid-1`.
-List<Object> lockedOverrides(FakeAuthRepository repository) => [
+/// restaurée : session `uid-1`, dont le profil connaît le jeton de
+/// l'appareil, sauf [revoked].
+List<Object> lockedOverrides({
+  bool revoked = false,
+  Exception? tokenCheckFailure,
+}) => [
   ...withRepository(
-    repository..biometricTokens['uid-1'] = 'tok',
+    FakeAuthRepository(
+      user: MockUser(uid: 'uid-1'),
+      tokenCheckFailure: tokenCheckFailure,
+    )..biometricTokens['uid-1'] = revoked ? 'other-device' : 'tok',
     biometrics: FakeBiometricService(
       available: true,
       token: 'tok',
@@ -147,7 +154,7 @@ void main() {
     testWidgets('unlocks with the fingerprint on startup', (tester) async {
       await tester.pumpHarness(
         const AuthChoiceScreen(),
-        overrides: lockedOverrides(FakeAuthRepository()),
+        overrides: lockedOverrides(),
       );
       await tester.pumpAndSettle();
       final container = ProviderScope.containerOf(
@@ -161,7 +168,7 @@ void main() {
       await tester.pumpHarness(
         const AuthChoiceScreen(),
         overrides: lockedOverrides(
-          FakeAuthRepository(tokenCheckFailure: Exception('lookup failed')),
+          tokenCheckFailure: Exception('lookup failed'),
         ),
       );
       await tester.pumpAndSettle();
@@ -170,6 +177,30 @@ void main() {
         find.text("Erreur lors de l'authentification biométrique"),
         findsOneWidget,
       );
+    });
+
+    testWidgets('signs out and says why when the fingerprint is revoked', (
+      tester,
+    ) async {
+      await tester.pumpHarness(
+        const AuthChoiceScreen(),
+        overrides: lockedOverrides(revoked: true),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(AuthChoiceScreen)),
+      );
+
+      expect(
+        find.text(
+          "La connexion biométrique n'est plus valide. "
+          'Reconnectez-vous pour continuer.',
+        ),
+        findsOneWidget,
+      );
+      final repository =
+          container.read(authRepositoryProvider) as FakeAuthRepository;
+      expect(repository.calls, contains('signOutFirebase'));
     });
 
     testWidgets('disables the buttons while loading', (tester) async {

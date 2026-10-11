@@ -223,7 +223,8 @@ final ideasProvider = StreamProvider<List<Idea>>((ref) {
   the provider, which cancels the old Firestore listener and opens the new one. Riverpod's docs:
   providers initialize themselves; there is no "reset all", so user data must depend on the user.
 - `currentUidProvider` (`features/auth/providers/session_providers.dart`) derives from the
-  session stream (`authUserProvider`), or from the account opened by the fingerprint.
+  session stream (`authUserProvider`) only: the fingerprint unlocks a session, never replaces
+  one.
 - A single document: `StreamProvider<UserProfile?>` the same way.
 - Use a `StreamNotifier` only if the same object must also expose methods; usually actions go to
   a separate controller (section 9).

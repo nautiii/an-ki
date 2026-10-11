@@ -209,14 +209,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentLocale = ref.watch(localeProvider);
-    // Compte de la session : anonyme (on propose de sauvegarder ses données
-    // avant de partir) ou absent (session biométrique seule : rien à
-    // supprimer).
+    // Compte anonyme : on propose de sauvegarder ses données avant de partir.
     final isAnonymous = ref.watch(
       authUserProvider.select((user) => user.value?.isAnonymous ?? false),
-    );
-    final hasAccount = ref.watch(
-      authUserProvider.select((user) => user.value != null),
     );
     final biometricsEnabled = ref.watch(
       biometricLockProvider.select((lock) => lock.value?.enabled ?? false),
@@ -357,7 +352,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Icons.chevron_right_rounded,
               color: colorScheme.onSurfaceVariant,
             ),
-            onTap: hasAccount ? () => _handleDeleteAccount(context) : null,
+            onTap: () => _handleDeleteAccount(context),
           ),
         ],
       ),
