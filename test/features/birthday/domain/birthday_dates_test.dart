@@ -52,6 +52,22 @@ void main() {
     });
   });
 
+  group('occurrenceIn', () {
+    test('is the same day and month in the given year', () {
+      expect(
+        _born(DateTime(1990, 10, 14)).occurrenceIn(2027),
+        DateTime(2027, 10, 14),
+      );
+    });
+
+    test('moves a 29 February birthday to 1 March in common years', () {
+      final leapling = _born(DateTime(2000, 2, 29));
+
+      expect(leapling.occurrenceIn(2027), DateTime(2027, 3)); // 1er mars
+      expect(leapling.occurrenceIn(2028), DateTime(2028, 2, 29));
+    });
+  });
+
   group('ageOn', () {
     test('counts the birthday from its day', () {
       expect(_born(DateTime(1990, 6, 15)).ageOn(today), 36);

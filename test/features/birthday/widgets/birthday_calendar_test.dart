@@ -120,6 +120,23 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('shows a 29 February birthday on 1 March in common years', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpCalendar(
+      tester,
+      birthdays: [born(DateTime(2000, 2, 29), name: 'Leap')],
+      on: DateTime(2027, 3, 10),
+    );
+
+    expect(
+      find.bySemanticsLabel('lundi 1 mars, Leap Wonderland'),
+      findsOneWidget,
+    );
+    semantics.dispose();
+  });
+
   testWidgets('tapping a day with birthdays opens the detail sheet', (
     tester,
   ) async {

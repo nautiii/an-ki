@@ -6,14 +6,17 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 /// widgets) : rien ici ne lit l'horloge, les tests fixent le jour. Seuls
 /// l'année, le mois et le jour de [today] comptent.
 extension BirthdayDates on Birthday {
-  /// Prochain anniversaire à partir de [today], ce jour compris.
+  /// Jour de l'anniversaire l'année [year].
   ///
   /// Né un 29 février : le 1er mars les années non bissextiles.
+  DateTime occurrenceIn(int year) => DateTime(year, date.month, date.day);
+
+  /// Prochain anniversaire à partir de [today], ce jour compris.
   DateTime nextOccurrence(DateTime today) {
     final day = _dayOf(today);
-    final thisYear = DateTime(day.year, date.month, date.day);
+    final thisYear = occurrenceIn(day.year);
     if (!thisYear.isBefore(day)) return thisYear;
-    return DateTime(day.year + 1, date.month, date.day);
+    return occurrenceIn(day.year + 1);
   }
 
   /// Jours avant le prochain anniversaire : 0 le jour même.

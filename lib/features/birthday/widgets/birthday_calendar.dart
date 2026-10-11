@@ -189,7 +189,7 @@ class _CalendarGrid extends StatelessWidget {
 
         final date = DateTime(year, month, index - leadingDays + 1);
         final dayBirthdays = birthdays
-            .where((b) => b.date.day == date.day && b.date.month == month)
+            .where((b) => DateUtils.isSameDay(b.occurrenceIn(year), date))
             .toList();
 
         return _CalendarDayCell(
