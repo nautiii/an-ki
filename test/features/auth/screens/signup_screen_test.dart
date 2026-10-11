@@ -1,3 +1,4 @@
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/auth/screens/signup_screen.dart';
 import 'package:flutter/material.dart';
@@ -113,7 +114,9 @@ void main() {
     testWidgets('navigates to the login route', (tester) async {
       await tester.pumpHarness(
         const SignUpScreen(),
-        routes: {'/login': (_) => const Scaffold(body: Text('Login Route'))},
+        routes: {
+          AppRoutes.login: (_) => const Scaffold(body: Text('Login Route')),
+        },
       );
       await tester.pumpAndSettle();
 

@@ -10,6 +10,7 @@ import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -109,7 +110,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
         ),
       ),
@@ -274,9 +275,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     TextButton(
                       onPressed: isLoading
                           ? null
-                          : () =>
-                                Navigator.of(context)
-                                    .pushReplacementNamed(AppRoutes.login),
+                          : () => context.go(AppRoutes.login),
                       child: Text(
                         context.l10n.signIn,
                         style: TextStyle(

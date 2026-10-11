@@ -21,8 +21,10 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:an_ki/app/shell/main_shell.dart';
+import 'package:an_ki/app/router/app_router.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/themes.dart';
+import 'package:an_ki/features/auth/domain/biometric_lock.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
@@ -54,6 +56,7 @@ import '../../../test/support/network_image_mock.dart';
 // UiVariant.compact (360×640) pour traquer les débordements.
 //
 // Recettes (ajouter l'import de l'écran) :
+//   onglet      → build: () => const AppAt(AppRoutes.scanner)   // l'app routée, barre comprise
 //   calendrier  → act: (t) => t.tap(find.byIcon(Icons.calendar_month_rounded))
 //   chargement  → overrides: sampleOverrides(isLoading: true)
 //   paramètres  → build: () => const SettingsScreen(),   // features/settings/screens/
@@ -65,17 +68,17 @@ import '../../../test/support/network_image_mock.dart';
 final List<UiScene> scenes = [
   UiScene(
     name: 'home',
-    build: () => const MainShell(),
+    build: () => const AppAt(AppRoutes.birthdays),
     overrides: sampleOverrides(),
   ),
   UiScene(
     name: 'home_empty',
-    build: () => const MainShell(),
+    build: () => const AppAt(AppRoutes.birthdays),
     overrides: sampleOverrides(birthdays: const []),
   ),
   UiScene(
     name: 'birthday_form',
-    build: () => const MainShell(),
+    build: () => const AppAt(AppRoutes.birthdays),
     overrides: sampleOverrides(),
     act: (tester) => tester.tap(find.byIcon(Icons.add_rounded).first),
   ),
@@ -177,6 +180,7 @@ List<Override> sampleOverrides({
 }) {
   final cats = categories ?? sampleCategories;
   return [
+    authAccessProvider.overrideWithValue(AuthAccess.granted),
     currentUidProvider.overrideWithValue('fake-uid'),
     userProfileProvider.overrideWithValue(
       AsyncData(
@@ -207,6 +211,29 @@ List<Override> sampleOverrides({
 }
 
 // ═══ MOTEUR — inutile de modifier en dessous ══════════════════════════════════
+
+/// L'app routée (onglets, barre du bas), ouverte sur [location] ; l'accès est
+/// accordé par [sampleOverrides].
+class AppAt extends ConsumerStatefulWidget {
+  const AppAt(this.location, {super.key});
+
+  final String location;
+
+  @override
+  ConsumerState<AppAt> createState() => _AppAtState();
+}
+
+class _AppAtState extends ConsumerState<AppAt> {
+  @override
+  void initState() {
+    super.initState();
+    ref.read(appRouterProvider).go(widget.location);
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      Router.withConfig(config: ref.watch(appRouterProvider));
+}
 
 /// Un état d'écran à capturer.
 class UiScene {

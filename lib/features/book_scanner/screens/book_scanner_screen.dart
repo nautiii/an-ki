@@ -13,6 +13,7 @@ import 'package:an_ki/features/book_scanner/widgets/book_info_sheet.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class BookScannerScreen extends ConsumerStatefulWidget {
@@ -129,8 +130,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                     (profile) => profile.value?.displayName,
                   ),
                 ),
-                onOpenSettings: () =>
-                    Navigator.of(context).pushNamed(AppRoutes.settings),
+                onOpenSettings: () => context.push(AppRoutes.settings),
               ),
               const SizedBox(height: 24),
 

@@ -1,36 +1,15 @@
-import 'package:an_ki/app/app.dart';
 import 'package:an_ki/app/shell/main_shell.dart';
-import 'package:an_ki/core/services/biometric_service.dart';
-import 'package:an_ki/core/services/notification_service.dart';
-import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
 import 'package:an_ki/features/auth/screens/signup_screen.dart';
-import 'package:an_ki/features/birthday/data/birthday_repository.dart';
-import 'package:an_ki/features/birthday/data/category_repository.dart';
-import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
-import 'package:an_ki/features/user/data/user_repository.dart';
-import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/app_harness.dart';
 import '../support/fake_providers.dart';
 import '../support/network_image_mock.dart';
-
-/// Notifications sans plugin.
-class _SilentNotificationService extends Fake implements NotificationService {
-  @override
-  void configure(NotificationStrings strings) {}
-
-  @override
-  Future<bool> requestPermissions() async => true;
-
-  @override
-  Future<void> scheduleAll(List<ReminderNotification> reminders) async {}
-}
 
 /// Session qui n'arrive jamais : le démarrage reste en attente.
 class _PendingAuthRepository extends FakeAuthRepository {
@@ -38,62 +17,9 @@ class _PendingAuthRepository extends FakeAuthRepository {
   Stream<User?> userChanges() => const Stream.empty();
 }
 
-const _profile = UserProfile(
-  id: 'fake-uid',
-  name: 'Camille',
-  surname: 'Durand',
-  isDark: false,
-  locale: 'fr',
-);
-
 void main() {
-  /// Laisse la porte d'entrée choisir l'écran, puis écoule les fondus
-  /// décalés de l'écran de connexion (jusqu'à 1,2 s).
-  Future<void> settle(WidgetTester tester) async {
-    await tester.pumpAndSettle();
-    await tester.pump(const Duration(seconds: 2));
-    await tester.pumpAndSettle();
-  }
-
-  /// L'app entière, sur un écran de la taille du harnais (800×1200).
-  Future<void> pumpApp(
-    WidgetTester tester, {
-    required FakeAuthRepository auth,
-    FakeBiometricService? biometrics,
-  }) {
-    tester.view.physicalSize = const Size(800, 1200);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    return tester.pumpWidget(
-      ProviderScope(
-        retry: (_, _) => null,
-        overrides: [
-          authRepositoryProvider.overrideWithValue(auth),
-          biometricServiceProvider.overrideWithValue(
-            biometrics ?? FakeBiometricService(),
-          ),
-          notificationServiceProvider.overrideWithValue(
-            _SilentNotificationService(),
-          ),
-          userRepositoryProvider.overrideWithValue(
-            RecordingUserRepository(stored: _profile),
-          ),
-          birthdayRepositoryProvider.overrideWithValue(
-            FakeBirthdayRepository(),
-          ),
-          categoryRepositoryProvider.overrideWithValue(
-            RecordingCategoryRepository(const []),
-          ),
-          bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
-        ],
-        child: const App(),
-      ),
-    );
-  }
-
   testWidgets('waits for the session before choosing a screen', (tester) async {
-    await pumpApp(tester, auth: _PendingAuthRepository());
+    await tester.pumpApp(auth: _PendingAuthRepository());
     await tester.pump();
 
     expect(find.byType(AuthChoiceScreen), findsNothing);
@@ -103,16 +29,16 @@ void main() {
   testWidgets('shows the sign-in screen when nobody is signed in', (
     tester,
   ) async {
-    await pumpApp(tester, auth: FakeAuthRepository());
-    await settle(tester);
+    await tester.pumpApp(auth: FakeAuthRepository());
+    await tester.settleApp();
 
     expect(find.byType(AuthChoiceScreen), findsOneWidget);
   });
 
   testWidgets('opens the app for a restored session', (tester) async {
     await mockNetworkImages(() async {
-      await pumpApp(tester, auth: FakeAuthRepository(user: MockUser()));
-      await settle(tester);
+      await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
+      await tester.settleApp();
 
       expect(find.byType(MainShell), findsOneWidget);
       expect(find.byType(AuthChoiceScreen), findsNothing);
@@ -122,8 +48,7 @@ void main() {
   testWidgets('keeps a restored session locked behind the fingerprint', (
     tester,
   ) async {
-    await pumpApp(
-      tester,
+    await tester.pumpApp(
       auth: FakeAuthRepository(user: MockUser()),
       // Empreinte configurée, mais l'utilisateur annule l'invite.
       biometrics: FakeBiometricService(
@@ -133,7 +58,7 @@ void main() {
         authenticates: false,
       ),
     );
-    await settle(tester);
+    await tester.settleApp();
 
     expect(find.byType(AuthChoiceScreen), findsOneWidget);
     expect(find.byType(MainShell), findsNothing);
@@ -143,8 +68,7 @@ void main() {
     await mockNetworkImages(() async {
       final auth = FakeAuthRepository(user: MockUser())
         ..biometricTokens['fake-uid'] = 'tok';
-      await pumpApp(
-        tester,
+      await tester.pumpApp(
         auth: auth,
         biometrics: FakeBiometricService(
           available: true,
@@ -152,7 +76,7 @@ void main() {
           userId: 'fake-uid',
         ),
       );
-      await settle(tester);
+      await tester.settleApp();
 
       expect(find.byType(MainShell), findsOneWidget);
     });
@@ -160,15 +84,15 @@ void main() {
 
   testWidgets('signing in by email lands on the app', (tester) async {
     await mockNetworkImages(() async {
-      await pumpApp(tester, auth: FakeAuthRepository());
-      await settle(tester);
+      await tester.pumpApp(auth: FakeAuthRepository());
+      await tester.settleApp();
 
       await tester.tap(find.text('Connexion Email'));
-      await settle(tester);
+      await tester.settleApp();
       await tester.enterText(find.byType(TextField).at(0), 'a@b.com');
       await tester.enterText(find.byType(TextField).at(1), 'password');
       await tester.tap(find.text('Se connecter').last);
-      await settle(tester);
+      await tester.settleApp();
 
       expect(find.byType(LoginScreen), findsNothing);
       expect(find.byType(MainShell), findsOneWidget);
@@ -177,18 +101,18 @@ void main() {
 
   testWidgets('signing up lands on the app', (tester) async {
     await mockNetworkImages(() async {
-      await pumpApp(tester, auth: FakeAuthRepository());
-      await settle(tester);
+      await tester.pumpApp(auth: FakeAuthRepository());
+      await tester.settleApp();
 
       await tester.tap(find.text("S'inscrire"));
-      await settle(tester);
+      await tester.settleApp();
       await tester.enterText(find.byType(TextField).at(0), 'John');
       await tester.enterText(find.byType(TextField).at(1), 'Doe');
       await tester.enterText(find.byType(TextField).at(2), 'a@b.com');
       await tester.enterText(find.byType(TextField).at(3), 'secret');
       await tester.enterText(find.byType(TextField).at(4), 'secret');
       await tester.tap(find.text("S'inscrire").last);
-      await settle(tester);
+      await tester.settleApp();
 
       expect(find.byType(SignUpScreen), findsNothing);
       expect(find.byType(MainShell), findsOneWidget);
@@ -199,15 +123,15 @@ void main() {
     tester,
   ) async {
     await mockNetworkImages(() async {
-      await pumpApp(tester, auth: FakeAuthRepository(user: MockUser()));
-      await settle(tester);
+      await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
+      await tester.settleApp();
 
       await tester.tap(find.byIcon(Icons.settings_rounded));
-      await settle(tester);
+      await tester.settleApp();
       await tester.tap(find.text('Se déconnecter'));
-      await settle(tester);
+      await tester.settleApp();
       await tester.tap(find.text('Se déconnecter').last);
-      await settle(tester);
+      await tester.settleApp();
 
       expect(find.byType(SettingsScreen), findsNothing);
       expect(find.byType(AuthChoiceScreen), findsOneWidget);

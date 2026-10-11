@@ -1,3 +1,4 @@
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
@@ -38,7 +39,8 @@ List<Object> lockedOverrides({
 
 void main() {
   final signupRoute = {
-    '/signup': (BuildContext _) => const Scaffold(body: Text('SignUp Route')),
+    AppRoutes.signup: (BuildContext _) =>
+        const Scaffold(body: Text('SignUp Route')),
   };
 
   group('AuthChoiceScreen', () {

@@ -11,6 +11,7 @@ import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class AuthChoiceScreen extends ConsumerStatefulWidget {
   const AuthChoiceScreen({super.key});
@@ -125,9 +126,7 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
                       icon: Icons.email_outlined,
                       onPressed: isLoading
                           ? null
-                          : () =>
-                                Navigator.of(context)
-                                    .pushNamed(AppRoutes.login),
+                          : () => context.go(AppRoutes.login),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -155,9 +154,7 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
                         TextButton(
                           onPressed: isLoading
                               ? null
-                              : () =>
-                                    Navigator.of(context)
-                                        .pushNamed(AppRoutes.signup),
+                              : () => context.go(AppRoutes.signup),
                           child: Text(
                             context.l10n.signUp,
                             style: TextStyle(

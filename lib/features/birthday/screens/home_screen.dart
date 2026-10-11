@@ -15,6 +15,7 @@ import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:an_ki/features/birthday/widgets/contact_sections.dart';
@@ -64,8 +65,7 @@ class HomeScreen extends ConsumerWidget {
                 isListView: viewType == HomeViewType.list,
                 onToggleView: () =>
                     ref.read(homeViewProvider.notifier).toggle(),
-                onOpenSettings: () =>
-                    Navigator.of(context).pushNamed(AppRoutes.settings),
+                onOpenSettings: () => context.push(AppRoutes.settings),
               ),
               const SizedBox(height: 24),
               const NextBirthdayCard(),
