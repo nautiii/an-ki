@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:an_ki/core/services/notification_service.dart';
+import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -149,9 +152,28 @@ void main() {
 
       final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
       expect(day.title, '🎂 John Doe');
-      expect(day.body, "C'est l'anniversaire de John (36 ans) !");
+      // Sans âge : le texte se répète tel quel chaque année.
+      expect(day.body, "C'est l'anniversaire de John aujourd'hui !");
       expect(weekBefore.title, '🎉 Anniversaire bientôt');
-      expect(weekBefore.body, 'John Doe aura 36 ans dans 7 jours.');
+      expect(weekBefore.body, 'John Doe fête son anniversaire dans 7 jours.');
+    });
+
+    test('words reminders with the configured localized texts', () async {
+      service.configure(
+        NotificationStrings.fromL10n(
+          lookupAppLocalizations(const Locale('en')),
+        ),
+      );
+
+      await service.scheduleAll([
+        reminder(ReminderType.birthday),
+        reminder(ReminderType.weekBefore, id: 2),
+      ]);
+
+      final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
+      expect(day.body, "It's John's birthday today!");
+      expect(weekBefore.title, '🎉 Birthday soon');
+      expect(weekBefore.body, "John Doe's birthday is in 7 days.");
     });
 
     test('an empty list cancels every pending notification', () async {

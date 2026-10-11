@@ -434,12 +434,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationReminderTitle => '🎉 Birthday soon';
 
   @override
-  String notificationBirthdayBody(String name, int age) {
-    return 'It\'s $name\'s birthday ($age)!';
+  String notificationBirthdayBody(String name) {
+    return 'It\'s $name\'s birthday today!';
   }
 
   @override
-  String notificationReminderBody(String name, String surname, int age) {
-    return '$name $surname turns $age in 7 days.';
+  String notificationReminderBody(String name, String surname) {
+    return '$name $surname\'s birthday is in 7 days.';
   }
 }

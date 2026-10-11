@@ -222,19 +222,19 @@
   "notificationChannelName": "Anniversaires",
   "notificationChannelDescription": "Rappels d'anniversaire du jour",
   "notificationReminderTitle": "🎉 Anniversaire bientôt",
-  "notificationBirthdayBody": "C'est l'anniversaire de {name} ({age} ans) !",
+  "notificationBirthdayBody": "C'est l'anniversaire de {name} aujourd'hui !",
   "@notificationBirthdayBody": {
+    "description": "Sans âge : la notification se répète chaque année avec le même texte.",
     "placeholders": {
-      "name": { "type": "String" },
-      "age": { "type": "int" }
+      "name": { "type": "String" }
     }
   },
-  "notificationReminderBody": "{name} {surname} aura {age} ans dans 7 jours.",
+  "notificationReminderBody": "{name} {surname} fête son anniversaire dans 7 jours.",
   "@notificationReminderBody": {
+    "description": "Sans âge : la notification se répète chaque année avec le même texte.",
     "placeholders": {
       "name": { "type": "String" },
-      "surname": { "type": "String" },
-      "age": { "type": "int" }
+      "surname": { "type": "String" }
     }
   }
 }

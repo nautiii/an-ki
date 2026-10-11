@@ -15,8 +15,11 @@ class NotificationStrings {
   final String channelName;
   final String channelDescription;
   final String reminderTitle;
-  final String Function(String name, int age) birthdayBody;
-  final String Function(String name, String surname, int age) reminderBody;
+  // Pas d'âge dans les textes : la notification se répète chaque année avec
+  // le texte écrit à la planification, l'âge serait faux l'année suivante si
+  // l'app n'est pas rouverte.
+  final String Function(String name) birthdayBody;
+  final String Function(String name, String surname) reminderBody;
 
   const NotificationStrings({
     required this.channelName,
@@ -30,9 +33,9 @@ class NotificationStrings {
     channelName: 'Anniversaires',
     channelDescription: 'Rappels d\'anniversaire du jour',
     reminderTitle: '🎉 Anniversaire bientôt',
-    birthdayBody: (name, age) => 'C\'est l\'anniversaire de $name ($age ans) !',
-    reminderBody: (name, surname, age) =>
-        '$name $surname aura $age ans dans 7 jours.',
+    birthdayBody: (name) => 'C\'est l\'anniversaire de $name aujourd\'hui !',
+    reminderBody: (name, surname) =>
+        '$name $surname fête son anniversaire dans 7 jours.',
   );
 
   factory NotificationStrings.fromL10n(AppLocalizations l10n) =>
@@ -60,7 +63,9 @@ class const ReminderNotification({
   required final String name,
   required final String surname,
 
-  /// Âge atteint le jour de l'anniversaire.
+  /// Âge atteint le jour de l'anniversaire. Pas affiché tant que les
+  /// notifications se répètent chaque année ; gardé pour le
+  /// réafficher quand chaque occurrence sera planifiée à part.
   required final int age,
 
   /// Moment du rappel, heure locale ; il se répète chaque année.
@@ -209,14 +214,10 @@ class NotificationService {
           ReminderType.weekBefore => _strings.reminderTitle,
         },
         body: switch (reminder.type) {
-          ReminderType.birthday => _strings.birthdayBody(
-            reminder.name,
-            reminder.age,
-          ),
+          ReminderType.birthday => _strings.birthdayBody(reminder.name),
           ReminderType.weekBefore => _strings.reminderBody(
             reminder.name,
             reminder.surname,
-            reminder.age,
           ),
         },
         scheduledDate: tz.TZDateTime(

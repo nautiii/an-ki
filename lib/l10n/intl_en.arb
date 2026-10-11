@@ -162,19 +162,17 @@
   "notificationChannelName": "Birthdays",
   "notificationChannelDescription": "Daily birthday reminders",
   "notificationReminderTitle": "🎉 Birthday soon",
-  "notificationBirthdayBody": "It's {name}'s birthday ({age})!",
+  "notificationBirthdayBody": "It's {name}'s birthday today!",
   "@notificationBirthdayBody": {
     "placeholders": {
-      "name": { "type": "String" },
-      "age": { "type": "int" }
+      "name": { "type": "String" }
     }
   },
-  "notificationReminderBody": "{name} {surname} turns {age} in 7 days.",
+  "notificationReminderBody": "{name} {surname}'s birthday is in 7 days.",
   "@notificationReminderBody": {
     "placeholders": {
       "name": { "type": "String" },
-      "surname": { "type": "String" },
-      "age": { "type": "int" }
+      "surname": { "type": "String" }
     }
   }
 }

@@ -896,17 +896,17 @@ abstract class AppLocalizations {
   /// **'🎉 Anniversaire bientôt'**
   String get notificationReminderTitle;
 
-  /// No description provided for @notificationBirthdayBody.
+  /// Sans âge : la notification se répète chaque année avec le même texte.
   ///
   /// In fr, this message translates to:
-  /// **'C\'est l\'anniversaire de {name} ({age} ans) !'**
-  String notificationBirthdayBody(String name, int age);
+  /// **'C\'est l\'anniversaire de {name} aujourd\'hui !'**
+  String notificationBirthdayBody(String name);
 
-  /// No description provided for @notificationReminderBody.
+  /// Sans âge : la notification se répète chaque année avec le même texte.
   ///
   /// In fr, this message translates to:
-  /// **'{name} {surname} aura {age} ans dans 7 jours.'**
-  String notificationReminderBody(String name, String surname, int age);
+  /// **'{name} {surname} fête son anniversaire dans 7 jours.'**
+  String notificationReminderBody(String name, String surname);
 }
 
 class _AppLocalizationsDelegate

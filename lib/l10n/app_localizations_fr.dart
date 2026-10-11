@@ -443,12 +443,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get notificationReminderTitle => '🎉 Anniversaire bientôt';
 
   @override
-  String notificationBirthdayBody(String name, int age) {
-    return 'C\'est l\'anniversaire de $name ($age ans) !';
+  String notificationBirthdayBody(String name) {
+    return 'C\'est l\'anniversaire de $name aujourd\'hui !';
   }
 
   @override
-  String notificationReminderBody(String name, String surname, int age) {
-    return '$name $surname aura $age ans dans 7 jours.';
+  String notificationReminderBody(String name, String surname) {
+    return '$name $surname fête son anniversaire dans 7 jours.';
   }
 }
