@@ -4,8 +4,9 @@ Living list of what to improve, from a full audit with the snapshot tool (light,
 360×640) and the palette audit. The current UI is a **draft, not a constraint**: the "big bets"
 below deliberately question structure, not just polish.
 
-Evidence: `build/ui_snapshots/audit-2026-10-07/` (home, home_empty, birthday_form, calendar,
-loading, settings, auth — regenerate with the snapshot tool if `build/` was cleaned).
+Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, calendar, loading,
+scanner, settings, auth). Roadmap step 1 (F2, F3, A1–A8) shipped on 2026-10-12: those eight scenes
+now pass the audit with no finding; the items it fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
@@ -13,10 +14,10 @@ auth or dependencies → design brief + maintainer approval first.
 
 ## Contents
 - Big bets (B1–B7) — structural redesigns with the highest impact
-- Foundation (F1–F4) — design system, prerequisite for consistency
-- P0 — accessibility & correctness (A1–A8)
-- P1 — friction & states (Q1–Q7)
-- P2 — polish (D1–D6)
+- Foundation (F1, F4, F5) — design system, prerequisite for consistency
+- P0 — accessibility & correctness (A9)
+- P1 — friction & states (Q1, Q2, Q4–Q7)
+- P2 — polish (D1, D3, D4, D6–D8)
 - Suggested roadmap
 
 ---
@@ -91,52 +92,39 @@ auth or dependencies → design brief + maintainer approval first.
 
 ### B7 — Groups, simplified
 - **Problem**: categories need a separate sheet (suggested + custom + icon grid) with quirky
-  defaults (OG's, GOAT, Doggo, Internet…), filter chips always on the home, colors not
-  theme-aware.
+  defaults (OG's, GOAT, Doggo, Internet…) and filter chips always on the home. Colors are now
+  tonal per theme (`LabelTones`), but tied to those 14 names: custom groups all share the neutral
+  tone.
 - **Proposal**: « Groupes » with 4 sensible defaults (Famille, Amis, Travail, Autres); create
   inline from the form's chip row (« + Nouveau groupe »); filters only when ≥ 2 groups are used;
-  tonal colors per group (identity §3.4).
+  a tone picked per group (`LabelTones` seeds, identity §3.4).
 - **Cost**: low-medium.
 
 ## Foundation
 
 - **F1 — Bundle Outfit** (recipes §3): offline-correct typography, real weights (today
   `copyWith(fontWeight:)` fakes bold), deterministic snapshots. Needs font download approval.
-- **F2 — Tokens + brand extension + component themes** (assets + recipes §1–2): ends the 11
-  radii / off-grid spacing / per-widget `styleFrom` drift; hero becomes dusk/night per theme.
-- **F3 — Shared states**: `AnKiEmptyState`, `SkeletonBox`, `AnKiAvatar`, `MoonPhase` (assets)
-  adopted on home, calendar, scanner.
 - **F4 — Theme mode « Système »** as default (today a binary switch derived from the user doc).
+- **F5 — Finish the token migration** in the screens step 1 didn't touch: `login_screen`,
+  `signup_screen` (ad-hoc `fontSize`, faux bold, raw radii), `AnKiTextField` (own radii and
+  sizes instead of the input theme), `BookCard` (`BorderRadius.circular(24/12)`, faux bold),
+  `settings_screen.dart:260` (radius 16).
 
 ## P0 — accessibility & correctness
 
-- **A1 Unlabelled controls** (TalkBack silent): header calendar/settings buttons (no tooltip),
-  the « + » add button (GestureDetector), the unselected nav tab (label hidden), sheet close
-  buttons, photo picker. — `core/common/header.dart`, `search_bar.dart`, `bottom_bar.dart`,
-  `birthday_form_sheet.dart`, `category_form_sheet.dart`.
-- **A2 200 % text breaks layouts**: hero fixed `height: 110` + rows (`next_birthday.dart:233`,
-  `:274`), sheet title row (`birthday_form_sheet.dart:190`), search field fixed 48 dp; auth screen
-  overflows at 360×640 even at 1.3× (`auth_choice_screen.dart:68`, not scrollable).
-- **A3 Contrast**: hero overline/secondary text at `onPrimary` 70 % = 4.1 (L) / 3.9 (D); text at
-  9–11 sp (« ANS » 9 sp, countdown badge 10 sp, chip labels 11 sp) → ≥ 12 sp, ≥ 85 %.
-- **A4 Tap targets**: search `TextField` is 32 dp tall inside its 48 dp box (the box padding
-  isn't tappable); nav items 44 dp tall.
-- **A5 Calendar grid ignores weekdays**: no weekday header, the 1st is always in column 1
-  (`birthday_calendar.dart`) → wrong reading of dates. Use `firstDayOfWeekIndex`.
-- **A6 Category colors** are raw `Colors.*` (1.2–3.0:1 on light surface, same in dark) →
-  tonal pairs.
-- **A7 Hardcoded strings/colors**: nav labels « Anniversaires »/« Scanner », `userName ?? "..."`,
-  `Colors.red` (settings), `Colors.white` spinner (form), `Colors.black54` barrier, white nav fill,
-  black shadows.
-- **A8 Swipe-to-delete is invisible to TalkBack** (no custom semantics action).
+- **A9 Calendar cells under 48 dp on small phones**: 7 columns of a 312 dp content width give
+  41 dp cells (48 dp from a 392 dp-wide screen). Every cell announces its full date and who is
+  celebrated, but the touch target stays small → B1's agenda as the default view, or a week list
+  on narrow screens.
 
 ## P1 — friction & states
 
 - **Q1 Delete**: swipe + confirm dialog → undo snackbar (recipes §4); keep a dialog only for
   account deletion.
-- **Q2 Empty states**: home shows « Aucun anniversaire trouvé. » with a blank area and an empty
-  hero; distinguish first run (moon + add + import contacts) from no-results (reset/create).
-- **Q3 Loading**: spinners in hero/home → skeletons shaped like the content.
+- **Q2 Empty states**: first run now shows the moon + « Ajouter un anniversaire »; still missing:
+  « Importer mes contacts » as its secondary action, a real no-results state (search or filters:
+  reset / create), and the case where every birthday sits in the hero — the list then says
+  « Aucun anniversaire trouvé. » with no search nor filter active (`home_screen.dart`).
 - **Q4 Settings**: flat list; binary theme switch; dropdown for 2 languages; separate « Mettre à
   jour le pseudo » button; destructive actions mixed with preferences → grouped sections, segmented
   controls, instant apply, danger zone (patterns J).
@@ -148,20 +136,22 @@ auth or dependencies → design brief + maintainer approval first.
 
 ## P2 — polish
 
-- **D1 French typography**: months capitalised (« 9 Octobre ») and manual date building →
-  `DateFormat` (recipes §7); narrow no-break space before `?`/`!`/`:` in ARB strings.
-- **D2 Avatars**: generic person icon → initials on stable tones (`AnKiAvatar`).
-- **D3 Motion**: no reduce-motion handling anywhere (`AnKiFadeIn`, nav bounce, switches) →
-  `context.motion(...)`; bottom-nav bounce tween → spring.
+- **D1 French typography**: dates now go through `DateFormat`; the ARB strings still use a plain
+  space before `?`/`!` (« Pas encore de compte ? », « … supprimer l'anniversaire de {name} ? »,
+  « … avec succès ! ») → narrow no-break space (U+202F).
+- **D3 Motion**: `AnKiFadeIn` (auth, login, signup) ignores reduce motion → `context.motion(...)`.
 - **D4 Haptics**: ad hoc (selection/light/medium mixed) → identity §9 map.
-- **D5 ALL-CAPS overlines** (« PROCHAIN ANNIVERSAIRE », « ANS ») → sentence case labels.
 - **D6 Predictive back**: manifest flag missing (recipes §10).
+- **D7 Age unit**: hero and tiles split the number from « ans » → « 1 » + « ans » for a
+  one-year-old; reuse the `ageInYears` plural when B1 reworks the rows (« aura 2 ans »).
+- **D8 Scanner tab**: the « Roman / BD / Cuisine / Tech » chips look like filters but do nothing;
+  empty-state title ends with a period (« Aucun livre trouvé. ») → remove or make them real (B4).
 
 ## Suggested roadmap
 
-1. **F2 + F3 + A1–A8** — foundation and accessibility debt (low risk, visible everywhere).
-2. **B1 + Q1–Q3** — the home everyone sees daily.
+1. ~~**F2 + F3 + A1–A8** — foundation and accessibility debt~~ — shipped 2026-10-12.
+2. **B1 + Q1–Q2** — the home everyone sees daily (A9 with it).
 3. **B2** — capture without friction or invented ages (model change).
 4. **B3** — the birthday moment and the wish loop (new dependency).
 5. **B5** — onboarding that lands on a populated agenda.
-6. **B4, B6, B7, F1, F4, Q4–Q7, D1–D6** — depth and polish (F1 any time once approved).
+6. **B4, B6, B7, F1, F4, F5, Q4–Q7, D1–D8** — depth and polish (F1 any time once approved).

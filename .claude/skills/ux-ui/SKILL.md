@@ -97,7 +97,8 @@ Impact (fichiers, l10n, modèle, paquets, migration, tests) · Découpage en ét
 ### 4. Build
 Order: tokens/theme → shared components (`core/common`, dumb) → screen → every state → motion and
 haptics → semantics → l10n FR + EN (`flutter gen-l10n`) → tests.
-- Reuse the validated components in `assets/` (recipes §1) before writing new ones.
+- Reuse the shared components and tokens in `lib/core/common` and `lib/core/theme` (recipes §1)
+  before writing new ones.
 - No hardcoded color, size, duration or string in widgets.
 - New behaviour (undo, grouping, sorting) lives in Notifiers and derived providers.
 - Migrate ad-hoc values to tokens in what you touch; don't refactor unrelated screens.
@@ -200,3 +201,10 @@ flutter test build/ui_snapshots/_src/palette_audit_test.dart
   platforms differ, but iOS must stay correct.
 - If unrelated tests fail, run the touched feature's tests and report the unrelated failures
   instead of silently fixing them.
+- Signed-in screens live in a go_router shell branch: `showModalBottomSheet` needs
+  `useRootNavigator: true`, or the sheet opens inside the tab, under the floating bar (its CTA
+  hidden, the bar still tappable). Dialogs already default to the root navigator.
+- `Header` shows a skeleton while `userName` is null and `SkeletonBox` pulses forever: a widget
+  test that `pumpAndSettle`s a screen with one needs a loaded `userProfileProvider`.
+- `containsSemantics` is deprecated since Flutter 3.40: assert with `isSemantics`; custom
+  semantics actions run with `tester.semantics.customAction(...)`.

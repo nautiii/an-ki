@@ -30,12 +30,12 @@ ready-made components and the snapshot tool live there.
 
 ## Style
 
-- Colors only from `Theme.of(context).colorScheme` (and `context.ankiColors` once installed from
-  the ux-ui assets): no `Colors.*`, no hex, no `isDark ? a : b` in widgets.
+- Colors only from `Theme.of(context).colorScheme`, `context.ankiColors` (brand) and
+  `LabelTones` (user labels): no `Colors.*`, no hex, no `isDark ? a : b` in widgets.
 - Text styles from `Theme.of(context).textTheme`; 12 sp minimum; sentence case, no all-caps.
 - Layout spacing on the 8 dp grid (4, 8, 12 inside a component); never 2, 6, 10, 14 or 20.
-  Use `AppSpacing`, `AppRadii` and `AppMotion` once installed; migrate ad-hoc values only in what
-  you touch.
+  Use `AppSpacing`, `AppRadii` and `AppMotion` (`lib/core/theme/app_tokens.dart`); migrate
+  ad-hoc values only in what you touch.
 - Icons `Icons.*_rounded`; outlined = inactive, filled = selected.
 - Every string from `context.l10n`; dates with `DateFormat` and the locale, never by hand.
 - Past ~300 lines, extract private widget classes (`_Section`), not methods returning widgets.

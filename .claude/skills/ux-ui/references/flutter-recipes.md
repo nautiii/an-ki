@@ -4,7 +4,7 @@ Every snippet here was compiled and exercised against Flutter 3.47.6 (and 3.44.9
 rendering checked in light, dark and 200 % text). Adapt names, keep the shapes.
 
 ## Contents
-1. Ready-made components (`assets/`)
+1. Shared components (`lib/core`)
 2. Wire the brand into `AppTheme`
 3. Typography foundation — bundle Outfit
 4. Delete with « Annuler » (undo)
@@ -18,26 +18,21 @@ rendering checked in light, dark and 200 % text). Adapt names, keep the shapes.
 
 ---
 
-## 1. Ready-made components
+## 1. Shared components
 
-Validated files mirroring their target paths (23 tests included). Copy a component **with its
-test** the first time a screen needs it; never fork them per feature.
+Installed in `lib/` since roadmap step 1 (2026-10-12), each with its test under `test/core/`:
+import them from `package:an_ki/core/...`, extend them there, never fork them per feature.
 
-| Asset → copy to the same path under the repo root | Provides |
-|---------------------------------------------------|----------|
-| `assets/lib/core/theme/app_tokens.dart` | `AppSpacing`, `AppRadii`, `AppMotion`, `context.reduceMotion`, `context.motion(d)` |
-| `assets/lib/core/theme/anki_colors.dart` | `AnKiColors` ThemeExtension (hero, celebration, blossom, success, moonlight, glass, shadow), `TonalColors.fromSeed/of`, `context.ankiColors` (safe fallback when the extension is missing) |
-| `assets/lib/core/common/moon_phase.dart` | `MoonPhase(daysLeft:)` — signature S3 |
-| `assets/lib/core/common/anki_empty_state.dart` | `AnKiEmptyState` — illustration, title, message, primary/secondary CTA |
-| `assets/lib/core/common/skeleton_box.dart` | `SkeletonBox` — pulsing placeholder, static under reduce-motion |
-| `assets/lib/core/common/anki_avatar.dart` | `AnKiAvatar(name:, image:)` — photo or initials on a stable tonal color |
-| `assets/test/core/**` | Matching tests (contrast guarantees, reduce-motion, semantics, painting) |
-
-```bash
-S=.claude/skills/ux-ui/assets
-mkdir -p lib/core/theme lib/core/common test/core/theme test/core/common
-cp $S/lib/core/theme/anki_colors.dart lib/core/theme/ && cp $S/test/core/theme/anki_colors_test.dart test/core/theme/
-```
+| File | Provides |
+|------|----------|
+| `lib/core/theme/app_tokens.dart` | `AppSpacing`, `AppRadii`, `AppMotion`, `context.reduceMotion`, `context.motion(d)` |
+| `lib/core/theme/anki_colors.dart` | `AnKiColors` ThemeExtension (hero, celebration, blossom, success, moonlight, glass, shadow), `TonalColors.fromSeed/of`, `context.ankiColors` (safe fallback when the extension is missing) |
+| `lib/core/theme/label_tones.dart` | `LabelTones.of(index, brightness)` — accessible tonal pair per user label (categories: `category.tones(context)`) |
+| `lib/core/common/moon_phase.dart` | `MoonPhase(daysLeft:)` — signature S3 |
+| `lib/core/common/anki_empty_state.dart` | `AnKiEmptyState` — illustration, title, message, primary/secondary CTA |
+| `lib/core/common/skeleton_box.dart` | `SkeletonBox` — pulsing placeholder, static under reduce-motion |
+| `lib/core/common/anki_avatar.dart` | `AnKiAvatar(name:, image:)` — photo or initials on a stable tonal color |
+| `lib/core/common/bottom_bar.dart` | `BottomBar` (signature S5) and `BottomBar.overlap`, the bottom padding of lists that scroll under it |
 
 `anki_colors_test.dart` locks the identity's promise: every brand text/background pair stays
 ≥ 4.5:1 in both themes. If a seed change breaks it, the test fails — fix the color, not the test.
