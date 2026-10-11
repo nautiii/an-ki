@@ -249,10 +249,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add the first one: AnKi will remind you at the right moment.';
 
   @override
+  String get noBooksMessage => 'Scan a book\'s barcode to keep a gift idea.';
+
+  @override
   String get bookScannerTitle => 'Book Scanner';
 
   @override
   String get bookTitle => 'Title';
+
+  @override
+  String isbnLabel(String isbn) {
+    return 'ISBN: $isbn';
+  }
 
   @override
   String get bookNotFound => 'Book not found';

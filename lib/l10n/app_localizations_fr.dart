@@ -252,10 +252,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajoutez le premier : AnKi vous préviendra au bon moment.';
 
   @override
+  String get noBooksMessage =>
+      'Scannez le code-barres d\'un livre pour garder une idée de cadeau.';
+
+  @override
   String get bookScannerTitle => 'Scanner de livres';
 
   @override
   String get bookTitle => 'Titre';
+
+  @override
+  String isbnLabel(String isbn) {
+    return 'ISBN : $isbn';
+  }
 
   @override
   String get bookNotFound => 'Livre non trouvé';

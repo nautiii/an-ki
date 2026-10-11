@@ -39,7 +39,7 @@ void main() {
         expect(find.text('1984'), findsOneWidget);
         expect(find.text('Orwell'), findsOneWidget);
         expect(find.text('1949'), findsOneWidget);
-        expect(find.text('ISBN: 123'), findsOneWidget);
+        expect(find.text('ISBN : 123'), findsOneWidget);
 
         await tester.tap(find.text('Ajouter'));
         await tester.pumpAndSettle();

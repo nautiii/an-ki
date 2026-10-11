@@ -1,3 +1,4 @@
+import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
@@ -54,13 +55,20 @@ void main() {
 
       expect(find.text('Scanner de livres'), findsOneWidget);
       expect(find.text('Aucun livre trouvé.'), findsOneWidget);
+      expect(
+        find.text(
+          "Scannez le code-barres d'un livre pour garder une idée de cadeau.",
+        ),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('shows a loading indicator while loading', (tester) async {
+    testWidgets('shows a skeleton while loading', (tester) async {
       await pumpScreen(tester, const AsyncLoading());
       await tester.pump();
 
-      expect(find.byType(CircularProgressIndicator), findsWidgets);
+      expect(find.byType(SkeletonBox), findsWidgets);
+      expect(find.text('Aucun livre trouvé.'), findsNothing);
     });
 
     testWidgets('the settings button opens the settings route', (tester) async {

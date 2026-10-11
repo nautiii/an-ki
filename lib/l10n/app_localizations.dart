@@ -542,6 +542,12 @@ abstract class AppLocalizations {
   /// **'Ajoutez le premier : AnKi vous préviendra au bon moment.'**
   String get emptyBirthdaysMessage;
 
+  /// Message de la liste de livres vide
+  ///
+  /// In fr, this message translates to:
+  /// **'Scannez le code-barres d\'un livre pour garder une idée de cadeau.'**
+  String get noBooksMessage;
+
   /// No description provided for @bookScannerTitle.
   ///
   /// In fr, this message translates to:
@@ -553,6 +559,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Titre'**
   String get bookTitle;
+
+  /// Numéro ISBN d'un livre scanné
+  ///
+  /// In fr, this message translates to:
+  /// **'ISBN : {isbn}'**
+  String isbnLabel(String isbn);
 
   /// No description provided for @bookNotFound.
   ///

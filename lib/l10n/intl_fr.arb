@@ -145,8 +145,21 @@
   "@emptyBirthdaysMessage": {
     "description": "Message de l'accueil sans aucun anniversaire"
   },
+  "noBooksMessage": "Scannez le code-barres d'un livre pour garder une idée de cadeau.",
+  "@noBooksMessage": {
+    "description": "Message de la liste de livres vide"
+  },
   "bookScannerTitle": "Scanner de livres",
   "bookTitle": "Titre",
+  "isbnLabel": "ISBN : {isbn}",
+  "@isbnLabel": {
+    "description": "Numéro ISBN d'un livre scanné",
+    "placeholders": {
+      "isbn": {
+        "type": "String"
+      }
+    }
+  },
   "bookNotFound": "Livre non trouvé",
   "noBooksFound": "Aucun livre trouvé.",
   "deleteAccount": "Supprimer mon compte",

@@ -1,8 +1,13 @@
 import 'dart:async';
 
+import 'package:an_ki/core/common/anki_empty_state.dart';
+import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/common/header.dart';
+import 'package:an_ki/core/common/skeleton_box.dart';
+import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
 import 'package:an_ki/features/book_scanner/providers/book_editor.dart';
@@ -24,12 +29,19 @@ class BookScannerScreen extends ConsumerStatefulWidget {
 }
 
 class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
+  /// Hauteur du carrousel de livres, reprise par son squelette.
+  static const double _bookCardHeight = 180;
+
   final MobileScannerController controller = MobileScannerController();
+  final PageController _booksController = PageController(
+    viewportFraction: 0.85,
+  );
   bool _isProcessing = false;
 
   @override
   void dispose() {
     controller.dispose();
+    _booksController.dispose();
     super.dispose();
   }
 
@@ -87,16 +99,15 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      useSafeArea: true,
       builder: (context) => BookInfoSheet(book: book),
     );
     if (mounted) await _resetScanning();
   }
 
   void _showErrorSnippet(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -116,11 +127,11 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               Header(
                 showViewToggle: false,
                 userName: ref.watch(
@@ -130,10 +141,12 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                 ),
                 onOpenSettings: () => context.push(AppRoutes.settings),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
 
-              ClipRRect(
-                borderRadius: BorderRadius.circular(24),
+              ClipRSuperellipse(
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(AppRadii.lg),
+                ),
                 child: SizedBox(
                   height: 220,
                   child: Stack(
@@ -142,30 +155,45 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                         controller: controller,
                         onDetect: _onDetect,
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: colorScheme.primary.withValues(alpha: 0.5),
-                            width: 2,
+                      DecoratedBox(
+                        decoration: ShapeDecoration(
+                          shape: RoundedSuperellipseBorder(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(AppRadii.lg),
+                            ),
+                            side: BorderSide(
+                              color: colorScheme.primary.withValues(alpha: 0.5),
+                              width: 2,
+                            ),
                           ),
-                          borderRadius: BorderRadius.circular(24),
                         ),
+                        child: const SizedBox.expand(),
                       ),
+                      // Viseur clair sur l'image de la caméra, quel que soit
+                      // le thème : les rôles « fixed » ne changent pas en sombre.
                       Center(
-                        child: Container(
-                          width: 200,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.white, width: 2),
-                            borderRadius: BorderRadius.circular(12),
+                        child: DecoratedBox(
+                          decoration: ShapeDecoration(
+                            shape: RoundedSuperellipseBorder(
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(AppRadii.sm),
+                              ),
+                              side: BorderSide(
+                                color: colorScheme.primaryFixed,
+                                width: 2,
+                              ),
+                            ),
                           ),
+                          child: const SizedBox(width: 200, height: 120),
                         ),
                       ),
                       if (_isProcessing || isScanning)
-                        Container(
-                          color: Colors.black45,
-                          child: const Center(
-                            child: CircularProgressIndicator(),
+                        ColoredBox(
+                          color: colorScheme.scrim.withValues(alpha: 0.45),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: colorScheme.primaryFixed,
+                            ),
                           ),
                         ),
                     ],
@@ -173,11 +201,11 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
 
               const _CategoryPlaceholders(),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
 
               Expanded(
                 child: Column(
@@ -185,29 +213,37 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                   children: [
                     Text(
                       context.l10n.bookScannerTitle,
-                      style: Theme.of(context).textTheme.titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.md),
                     Expanded(
                       child: isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : books.isEmpty
-                          ? Center(
-                              child: Text(
-                                context.l10n.noBooksFound,
-                                style: TextStyle(
-                                  color: colorScheme.onSurfaceVariant,
+                          ? const Align(
+                              alignment: Alignment.topLeft,
+                              child: FractionallySizedBox(
+                                widthFactor: 0.85,
+                                child: SkeletonBox(
+                                  height: _bookCardHeight,
+                                  radius: AppRadii.lg,
                                 ),
                               ),
                             )
+                          : books.isEmpty
+                          ? SingleChildScrollView(
+                              padding: const EdgeInsets.only(
+                                bottom: BottomBar.overlap,
+                              ),
+                              child: AnKiEmptyState(
+                                illustration: Image.asset(AppAssets.moon),
+                                title: context.l10n.noBooksFound,
+                                message: context.l10n.noBooksMessage,
+                              ),
+                            )
                           : SizedBox(
-                              height: 180,
+                              height: _bookCardHeight,
                               child: PageView.builder(
                                 itemCount: books.length,
-                                controller: PageController(
-                                  viewportFraction: 0.85,
-                                ),
+                                controller: _booksController,
                                 padEnds: false,
                                 itemBuilder: (context, index) {
                                   return BookCard(book: books[index]);
@@ -264,13 +300,12 @@ class _CategoryPlaceholders extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.only(right: AppSpacing.xs),
       child: Chip(
         label: Text(label),
         avatar: Icon(icon, size: 16, color: colorScheme.primary),
         backgroundColor: colorScheme.surfaceContainerHigh,
         side: BorderSide.none,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       ),
     );
   }
