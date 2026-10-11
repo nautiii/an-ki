@@ -11,9 +11,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../../support/fake_mobile_scanner_platform.dart';
-import '../../support/fake_providers.dart';
-import '../../support/test_harness.dart';
+import '../../../support/fake_mobile_scanner_platform.dart';
+import '../../../support/fake_providers.dart';
+import '../../../support/test_harness.dart';
 
 Book _book({String id = '1', String? imageUrl}) => Book(
   id: id,
