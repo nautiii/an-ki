@@ -1,6 +1,8 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:flutter/material.dart';
 
+/// Champ de recherche en pilule et bouton d'ajout de l'accueil.
 class SearchBarWidget extends StatefulWidget {
   final ValueChanged<String>? onSearchChanged;
   final VoidCallback? onAddPressed;
@@ -12,14 +14,8 @@ class SearchBarWidget extends StatefulWidget {
 }
 
 class _SearchBarWidgetState extends State<SearchBarWidget> {
-  late TextEditingController _controller;
+  final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController();
-  }
 
   @override
   void dispose() {
@@ -28,10 +24,13 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
     super.dispose();
   }
 
+  void _clear() {
+    _controller.clear();
+    widget.onSearchChanged?.call('');
+  }
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return TapRegion(
       onTapOutside: (event) {
         if (_focusNode.hasFocus) {
@@ -41,68 +40,48 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       child: Row(
         children: [
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              height: 48,
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHigh,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.search, color: colorScheme.onSurfaceVariant),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      onChanged: (value) {
-                        widget.onSearchChanged?.call(value);
-                      },
-                      decoration: InputDecoration(
-                        hintText: context.l10n.search,
-                        hintStyle: TextStyle(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        border: InputBorder.none,
-                        isDense: true,
-                      ),
-                      style: TextStyle(color: colorScheme.onSurface),
-                    ),
+            // Reconstruit sur chaque frappe : le bouton d'effacement apparaît
+            // dès qu'il y a du texte, sans attendre une reconstruction du parent.
+            child: ListenableBuilder(
+              listenable: _controller,
+              builder: (context, _) => TextField(
+                controller: _controller,
+                focusNode: _focusNode,
+                onChanged: widget.onSearchChanged,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: context.l10n.search,
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  // Pilule : toute la hauteur du champ (≥ 48 dp) est tactile.
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadii.xl),
+                    borderSide: BorderSide.none,
                   ),
-                  if (_controller.text.isNotEmpty)
-                    IconButton(
-                      icon: Icon(
-                        Icons.clear,
-                        color: colorScheme.onSurfaceVariant,
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        _controller.clear();
-                        widget.onSearchChanged?.call('');
-                      },
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                ],
+                  suffixIcon: _controller.text.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: context.l10n.clearSearch,
+                          onPressed: _clear,
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                ),
               ),
             ),
           ),
-          const SizedBox(width: 10),
-          GestureDetector(
-            onTap: () {
+          const SizedBox(width: AppSpacing.sm),
+          IconButton.filled(
+            tooltip: context.l10n.addBirthday,
+            onPressed: () {
               _focusNode.unfocus();
               widget.onAddPressed?.call();
             },
-            child: Container(
-              height: 48,
-              width: 48,
-              decoration: BoxDecoration(
-                color: colorScheme.primary,
-                borderRadius: BorderRadius.circular(14),
+            style: IconButton.styleFrom(
+              minimumSize: const Size.square(56),
+              shape: RoundedSuperellipseBorder(
+                borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: Icon(Icons.add_rounded, color: colorScheme.onPrimary),
             ),
+            icon: const Icon(Icons.add_rounded),
           ),
         ],
       ),

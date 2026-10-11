@@ -247,6 +247,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tabScanner => 'Scanner';
 
   @override
+  String get showCalendar => 'Afficher le calendrier';
+
+  @override
+  String get showList => 'Afficher la liste';
+
+  @override
+  String get clearSearch => 'Effacer la recherche';
+
+  @override
+  String get addBirthday => 'Ajouter un anniversaire';
+
+  @override
   String get bookScannerTitle => 'Scanner de livres';
 
   @override

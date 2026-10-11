@@ -244,6 +244,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabScanner => 'Scanner';
 
   @override
+  String get showCalendar => 'Show calendar';
+
+  @override
+  String get showList => 'Show list';
+
+  @override
+  String get clearSearch => 'Clear search';
+
+  @override
+  String get addBirthday => 'Add a birthday';
+
+  @override
   String get bookScannerTitle => 'Book Scanner';
 
   @override

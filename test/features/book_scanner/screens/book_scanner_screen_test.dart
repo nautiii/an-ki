@@ -6,6 +6,8 @@ import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_info_sheet.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
+import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,6 +26,15 @@ Book _book({String id = '1', String? imageUrl}) => Book(
   imageUrl: imageUrl,
 );
 
+/// Profil chargé : l'en-tête affiche le nom, pas son squelette.
+const _profile = UserProfile(
+  id: 'fake-uid',
+  name: 'Camille',
+  surname: 'Durand',
+  isDark: false,
+  locale: 'fr',
+);
+
 void main() {
   group('BookScannerScreen rendering', () {
     Future<void> pumpScreen(
@@ -31,7 +42,10 @@ void main() {
       AsyncValue<List<Book>> books,
     ) => tester.pumpHarness(
       const BookScannerScreen(),
-      overrides: [savedBooksProvider.overrideWithValue(books)],
+      overrides: [
+        savedBooksProvider.overrideWithValue(books),
+        userProfileProvider.overrideWithValue(const AsyncData(_profile)),
+      ],
     );
 
     testWidgets('shows the title and empty state', (tester) async {
@@ -52,7 +66,10 @@ void main() {
     testWidgets('the settings button opens the settings route', (tester) async {
       await tester.pumpHarness(
         const BookScannerScreen(),
-        overrides: [savedBooksProvider.overrideWithValue(const AsyncData([]))],
+        overrides: [
+          savedBooksProvider.overrideWithValue(const AsyncData([])),
+          userProfileProvider.overrideWithValue(const AsyncData(_profile)),
+        ],
         routes: {AppRoutes.settings: (_) => const Text('Settings route')},
       );
       await tester.pumpAndSettle();
@@ -84,6 +101,7 @@ void main() {
       overrides: [
         bookRepositoryProvider.overrideWithValue(repo),
         currentUidProvider.overrideWithValue('fake-uid'),
+        userProfileProvider.overrideWithValue(const AsyncData(_profile)),
       ],
     );
 

@@ -1,4 +1,6 @@
+import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// En-tête de salutation partagé entre les écrans des features.
@@ -8,7 +10,7 @@ import 'package:flutter/material.dart';
 /// providers et les passent en paramètres — c'est ce qui permet à ce widget de
 /// résider légitimement dans `core/common`.
 class Header extends StatelessWidget {
-  /// Nom à afficher déjà résolu, ou null pour afficher un placeholder.
+  /// Nom à afficher déjà résolu, ou null pendant son chargement (squelette).
   final String? userName;
 
   /// Indique s'il faut afficher le bouton de bascule liste/calendrier.
@@ -36,54 +38,54 @@ class Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final actionStyle = IconButton.styleFrom(
+      backgroundColor: colorScheme.surfaceContainerHighest,
+      foregroundColor: colorScheme.onSurface,
+    );
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.hello,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            Text(
-              userName ?? "...",
-              style: textTheme.headlineMedium?.copyWith(fontSize: 26),
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            if (showViewToggle) ...[
-              IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: colorScheme.surfaceContainerHighest,
-                  shape: const CircleBorder(),
-                  padding: const EdgeInsets.all(10),
-                ),
-                onPressed: onToggleView,
-                icon: Icon(
-                  isListView
-                      ? Icons.calendar_month_rounded
-                      : Icons.view_list_rounded,
-                  color: colorScheme.onSurface,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.hello,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(width: 8),
+              if (userName case final name?)
+                Text(name, style: textTheme.headlineMedium)
+              else
+                // Nom pas encore chargé : un squelette plutôt qu'un texte factice.
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+                  child: SkeletonBox(height: 28, width: 120),
+                ),
             ],
-            IconButton(
-              style: IconButton.styleFrom(
-                backgroundColor: colorScheme.surfaceContainerHighest,
-                shape: const CircleBorder(),
-                padding: const EdgeInsets.all(10),
-              ),
-              onPressed: onOpenSettings,
-              icon: Icon(Icons.settings_rounded, color: colorScheme.onSurface),
+          ),
+        ),
+        if (showViewToggle) ...[
+          IconButton(
+            style: actionStyle,
+            tooltip: isListView
+                ? context.l10n.showCalendar
+                : context.l10n.showList,
+            onPressed: onToggleView,
+            icon: Icon(
+              isListView
+                  ? Icons.calendar_month_rounded
+                  : Icons.view_list_rounded,
             ),
-          ],
+          ),
+          const SizedBox(width: AppSpacing.xs),
+        ],
+        IconButton(
+          style: actionStyle,
+          tooltip: context.l10n.settings,
+          onPressed: onOpenSettings,
+          icon: const Icon(Icons.settings_rounded),
         ),
       ],
     );

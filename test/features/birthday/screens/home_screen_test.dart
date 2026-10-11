@@ -257,7 +257,17 @@ void main() {
 
     List<dynamic> overridesWith(RecordingBirthdayRepository repository) => [
       currentUidProvider.overrideWithValue('fake-uid'),
-      userProfileProvider.overrideWithValue(const AsyncData(null)),
+      userProfileProvider.overrideWithValue(
+        const AsyncData(
+          UserProfile(
+            id: 'fake-uid',
+            name: 'A',
+            surname: 'B',
+            isDark: false,
+            locale: 'fr',
+          ),
+        ),
+      ),
       birthdayRepositoryProvider.overrideWithValue(repository),
       categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),
     ];

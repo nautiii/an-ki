@@ -554,6 +554,30 @@ abstract class AppLocalizations {
   /// **'Scanner'**
   String get tabScanner;
 
+  /// Infobulle du bouton qui passe l'accueil en vue calendrier
+  ///
+  /// In fr, this message translates to:
+  /// **'Afficher le calendrier'**
+  String get showCalendar;
+
+  /// Infobulle du bouton qui repasse l'accueil en vue liste
+  ///
+  /// In fr, this message translates to:
+  /// **'Afficher la liste'**
+  String get showList;
+
+  /// Infobulle du bouton qui vide le champ de recherche
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer la recherche'**
+  String get clearSearch;
+
+  /// Bouton ou infobulle d'ajout d'un anniversaire
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un anniversaire'**
+  String get addBirthday;
+
   /// No description provided for @bookScannerTitle.
   ///
   /// In fr, this message translates to:

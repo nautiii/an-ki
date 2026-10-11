@@ -104,6 +104,22 @@
   "@tabScanner": {
     "description": "Libellé de l'onglet du scanner de livres (barre du bas)"
   },
+  "showCalendar": "Afficher le calendrier",
+  "@showCalendar": {
+    "description": "Infobulle du bouton qui passe l'accueil en vue calendrier"
+  },
+  "showList": "Afficher la liste",
+  "@showList": {
+    "description": "Infobulle du bouton qui repasse l'accueil en vue liste"
+  },
+  "clearSearch": "Effacer la recherche",
+  "@clearSearch": {
+    "description": "Infobulle du bouton qui vide le champ de recherche"
+  },
+  "addBirthday": "Ajouter un anniversaire",
+  "@addBirthday": {
+    "description": "Bouton ou infobulle d'ajout d'un anniversaire"
+  },
   "bookScannerTitle": "Scanner de livres",
   "bookTitle": "Titre",
   "bookNotFound": "Livre non trouvé",

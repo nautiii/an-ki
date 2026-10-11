@@ -1,20 +1,22 @@
 import 'dart:ui';
 
+import 'package:an_ki/core/theme/anki_colors.dart';
+import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Destination de la [BottomBar] : icônes au repos et sélectionnée, libellé
-/// affiché quand elle est sélectionnée.
+/// Destination de la [BottomBar] : icônes au repos et sélectionnée, libellé.
 class const BottomBarDestination({
   required final IconData icon,
   required final IconData selectedIcon,
   required final String label,
 });
 
-/// Barre de navigation flottante et floutée.
+/// Barre de navigation flottante en verre dépoli (signature S5).
 ///
 /// Sans état : l'appelant fournit les destinations et l'index sélectionné, et
 /// reçoit l'index choisi dans [onSelected] (jamais l'index déjà sélectionné).
+/// Chaque destination garde son libellé visible et lu par les lecteurs d'écran.
 class BottomBar extends StatelessWidget {
   const BottomBar({
     super.key,
@@ -27,60 +29,72 @@ class BottomBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelected;
 
+  /// Espace que la barre recouvre au-dessus de la zone sûre, respiration
+  /// comprise : une liste qui défile dessous le réserve en bas pour que son
+  /// dernier élément reste visible.
+  static const double overlap = 96;
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = context.ankiColors;
+    const radius = BorderRadius.all(Radius.circular(AppRadii.xl));
+    // Grand texte : icône au-dessus du libellé, pour garder les libellés entiers.
+    final stacked = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
 
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.only(left: 32, right: 32, bottom: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(32),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          0,
+          AppSpacing.lg,
+          AppSpacing.md,
+        ),
+        child: DecoratedBox(
+          decoration: ShapeDecoration(
+            shape: const RoundedSuperellipseBorder(borderRadius: radius),
+            shadows: colors.floatingShadow,
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(32),
+          child: ClipRSuperellipse(
+            borderRadius: radius,
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-              child: Container(
-                height: 68,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? colorScheme.surface.withValues(alpha: 0.6)
-                      : Colors.white.withValues(alpha: 0.7),
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : colorScheme.primary.withValues(alpha: 0.1),
-                    width: 1.5,
+              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+              child: DecoratedBox(
+                decoration: ShapeDecoration(
+                  color: colors.glass,
+                  shape: RoundedSuperellipseBorder(
+                    borderRadius: radius,
+                    side: BorderSide(color: colors.glassBorder),
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    for (final (index, destination) in destinations.indexed)
-                      _BottomBarItem(
-                        isSelected: index == selectedIndex,
-                        icon: destination.icon,
-                        activeIcon: destination.selectedIcon,
-                        label: destination.label,
-                        onTap: () {
-                          if (index == selectedIndex) return;
-                          HapticFeedback.selectionClick();
-                          onSelected(index);
-                        },
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.xs),
+                    child: MediaQuery.withClampedTextScaling(
+                      maxScaleFactor: 1.3,
+                      child: Row(
+                        children: [
+                          for (final (index, destination)
+                              in destinations.indexed) ...[
+                            if (index > 0) const SizedBox(width: AppSpacing.xs),
+                            Expanded(
+                              child: _BottomBarItem(
+                                destination: destination,
+                                isSelected: index == selectedIndex,
+                                stacked: stacked,
+                                onTap: () {
+                                  if (index == selectedIndex) return;
+                                  HapticFeedback.selectionClick();
+                                  onSelected(index);
+                                },
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                  ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -91,115 +105,82 @@ class BottomBar extends StatelessWidget {
   }
 }
 
-class _BottomBarItem extends StatefulWidget {
-  final bool isSelected;
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final VoidCallback onTap;
-
+class _BottomBarItem extends StatelessWidget {
   const _BottomBarItem({
+    required this.destination,
     required this.isSelected,
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
+    required this.stacked,
     required this.onTap,
   });
 
-  @override
-  State<_BottomBarItem> createState() => _BottomBarItemState();
-}
+  final BottomBarDestination destination;
+  final bool isSelected;
 
-class _BottomBarItemState extends State<_BottomBarItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.9), weight: 50),
-      TweenSequenceItem(tween: Tween(begin: 0.9, end: 1.1), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: 1.1, end: 1.0), weight: 20),
-    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void didUpdateWidget(_BottomBarItem oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isSelected && !oldWidget.isSelected) {
-      _controller.forward(from: 0.0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  /// Icône au-dessus du libellé (grand texte) plutôt qu'à côté.
+  final bool stacked;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final color = isSelected
+        ? colorScheme.onSecondaryContainer
+        : colorScheme.onSurfaceVariant;
+    final children = [
+      Icon(
+        isSelected ? destination.selectedIcon : destination.icon,
+        color: color,
+      ),
+      SizedBox(
+        width: stacked ? 0 : AppSpacing.xs,
+        height: stacked ? AppSpacing.xxs : 0,
+      ),
+      Flexible(
+        child: Text(
+          destination.label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            color: color,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
+      ),
+    ];
 
-    return GestureDetector(
-      onTap: widget.onTap,
-      behavior: HitTestBehavior.opaque,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.fastOutSlowIn,
-          padding: EdgeInsets.symmetric(
-            horizontal: widget.isSelected ? 20 : 16,
-            vertical: 10,
-          ),
-          decoration: BoxDecoration(
-            color: widget.isSelected
-                ? colorScheme.primary.withValues(alpha: 0.12)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: Icon(
-                  widget.isSelected ? widget.activeIcon : widget.icon,
-                  key: ValueKey(widget.isSelected),
-                  color: widget.isSelected
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                  size: 24,
-                ),
+    return MergeSemantics(
+      child: Semantics(
+        button: true,
+        selected: isSelected,
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const StadiumBorder(),
+          child: AnimatedContainer(
+            duration: context.motion(AppMotion.tap),
+            curve: AppMotion.standard,
+            constraints: const BoxConstraints(minHeight: 48),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xxs,
+            ),
+            decoration: ShapeDecoration(
+              color: colorScheme.secondaryContainer.withValues(
+                alpha: isSelected ? 1 : 0,
               ),
-              ClipRect(
-                child: AnimatedSize(
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.fastOutSlowIn,
-                  child: widget.isSelected
-                      ? Padding(
-                          padding: const EdgeInsets.only(left: 8.0),
-                          child: Text(
-                            widget.label,
-                            style: TextStyle(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              letterSpacing: -0.2,
-                            ),
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ),
-            ],
+              shape: stacked
+                  ? const RoundedSuperellipseBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(AppRadii.lg),
+                      ),
+                    )
+                  : const StadiumBorder(),
+            ),
+            child: stacked
+                ? Column(mainAxisSize: MainAxisSize.min, children: children)
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: children,
+                  ),
           ),
         ),
       ),

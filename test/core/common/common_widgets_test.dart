@@ -3,32 +3,11 @@ import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/search_bar.dart';
+import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/test_harness.dart';
-
-/// Mirrors how `HomeScreen` rebuilds its subtree when the search query changes,
-/// which is what makes the [SearchBarWidget] clear button appear.
-class _RebuildingSearchHost extends StatefulWidget {
-  const _RebuildingSearchHost({required this.onChanged});
-  final ValueChanged<String> onChanged;
-
-  @override
-  State<_RebuildingSearchHost> createState() => _RebuildingSearchHostState();
-}
-
-class _RebuildingSearchHostState extends State<_RebuildingSearchHost> {
-  @override
-  Widget build(BuildContext context) {
-    return SearchBarWidget(
-      onSearchChanged: (value) {
-        widget.onChanged(value);
-        setState(() {});
-      },
-    );
-  }
-}
 
 void main() {
   group('Header', () {
@@ -50,11 +29,11 @@ void main() {
       expect(find.text('Bonjour'), findsOneWidget);
       expect(find.text('Q'), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.calendar_month_rounded));
+      await tester.tap(find.byTooltip('Afficher le calendrier'));
       await tester.pumpAndSettle();
       expect(toggles, 1);
 
-      await tester.tap(find.byIcon(Icons.settings_rounded));
+      await tester.tap(find.byTooltip('Paramètres'));
       await tester.pumpAndSettle();
       expect(settingsOpened, 1);
     });
@@ -66,27 +45,38 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.view_list_rounded), findsOneWidget);
+      expect(find.byTooltip('Afficher la liste'), findsOneWidget);
       expect(find.byIcon(Icons.calendar_month_rounded), findsNothing);
     });
 
-    testWidgets('shows a placeholder and hides the view toggle', (
+    testWidgets('shows a skeleton while the name loads and hides the toggle', (
       tester,
     ) async {
       await tester.pumpHarness(
         Header(userName: null, showViewToggle: false, onOpenSettings: () {}),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
 
-      expect(find.text('...'), findsOneWidget);
+      expect(find.byType(SkeletonBox), findsOneWidget);
       expect(find.byIcon(Icons.calendar_month_rounded), findsNothing);
       expect(find.byIcon(Icons.view_list_rounded), findsNothing);
+    });
+
+    testWidgets('labels its buttons for screen readers', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpHarness(
+        Header(userName: 'Q', onToggleView: () {}, onOpenSettings: () {}),
+      );
+      await tester.pumpAndSettle();
+
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
     });
   });
 
   group('SearchBarWidget', () {
-    testWidgets('reports changes, shows a clear button and triggers add', (
-      tester,
-    ) async {
+    testWidgets('reports changes and triggers add', (tester) async {
       final queries = <String>[];
       var addPressed = 0;
 
@@ -102,29 +92,43 @@ void main() {
       await tester.pump();
       expect(queries.last, 'Alice');
 
-      await tester.tap(find.byIcon(Icons.add_rounded));
+      await tester.tap(find.byTooltip('Ajouter un anniversaire'));
       expect(addPressed, 1);
     });
 
-    testWidgets(
-      'clear button appears on a parent rebuild and resets the text',
-      (tester) async {
-        final queries = <String>[];
+    testWidgets('shows a clear button as soon as there is text', (
+      tester,
+    ) async {
+      final queries = <String>[];
 
-        await tester.pumpHarness(_RebuildingSearchHost(onChanged: queries.add));
-        await tester.pumpAndSettle();
+      await tester.pumpHarness(SearchBarWidget(onSearchChanged: queries.add));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Effacer la recherche'), findsNothing);
 
-        await tester.enterText(find.byType(TextField), 'Alice');
-        await tester.pumpAndSettle();
-        expect(find.byIcon(Icons.clear), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'Alice');
+      await tester.pump();
+      expect(find.byTooltip('Effacer la recherche'), findsOneWidget);
 
-        await tester.tap(find.byIcon(Icons.clear));
-        await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Effacer la recherche'));
+      await tester.pump();
 
-        expect(queries.last, '');
-        expect(find.byIcon(Icons.clear), findsNothing);
-      },
-    );
+      expect(queries.last, '');
+      expect(find.widgetWithText(TextField, 'Alice'), findsNothing);
+      expect(find.byTooltip('Effacer la recherche'), findsNothing);
+    });
+
+    testWidgets('meets tap target and label guidelines', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpHarness(
+        SearchBarWidget(onSearchChanged: (_) {}, onAddPressed: () {}),
+      );
+      await tester.enterText(find.byType(TextField), 'Alice');
+      await tester.pump();
+
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
+    });
   });
 
   group('AnKiTextField', () {
@@ -200,14 +204,46 @@ void main() {
       return picked;
     }
 
-    testWidgets('shows the label of the selected destination only', (
-      tester,
-    ) async {
+    testWidgets('shows every destination with its label', (tester) async {
       await pumpBar(tester);
 
       expect(find.byIcon(Icons.cake_rounded), findsOneWidget);
       expect(find.text('Birthdays'), findsOneWidget);
-      expect(find.text('Scanner'), findsNothing);
+      expect(find.text('Scanner'), findsOneWidget);
+    });
+
+    testWidgets('announces each destination and the selected one', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpBar(tester);
+
+      expect(
+        tester.getSemantics(find.text('Birthdays')),
+        isSemantics(
+          label: 'Birthdays',
+          isButton: true,
+          isSelected: true,
+          hasTapAction: true,
+        ),
+      );
+      expect(
+        tester.getSemantics(find.text('Scanner')),
+        isSemantics(label: 'Scanner', isSelected: false),
+      );
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
+    });
+
+    testWidgets('keeps both labels whole at 200 % text', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await pumpBar(tester);
+
+      expect(find.text('Birthdays'), findsOneWidget);
+      expect(find.text('Scanner'), findsOneWidget);
     });
 
     testWidgets('reports the destination tapped', (tester) async {

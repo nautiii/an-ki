@@ -20,7 +20,17 @@ void main() {
         const HomeScreen(),
         overrides: [
           currentUidProvider.overrideWithValue('fake-uid'),
-          userProfileProvider.overrideWithValue(const AsyncData(null)),
+          userProfileProvider.overrideWithValue(
+            const AsyncData(
+              UserProfile(
+                id: '1',
+                name: 'Marie',
+                surname: 'Martin',
+                isDark: false,
+                locale: 'fr',
+              ),
+            ),
+          ),
           birthdayRepositoryProvider.overrideWithValue(
             RecordingBirthdayRepository(),
           ),
@@ -28,9 +38,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.add_rounded), findsOneWidget);
+      expect(find.byTooltip('Ajouter un anniversaire'), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.add_rounded));
+      await tester.tap(find.byTooltip('Ajouter un anniversaire'));
       await tester.pumpAndSettle();
 
       expect(find.text('Nouvel anniversaire'), findsOneWidget);
@@ -62,7 +72,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.add_rounded));
+    await tester.tap(find.byTooltip('Ajouter un anniversaire'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextFormField).at(0), 'Thomas');
