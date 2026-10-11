@@ -34,8 +34,9 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
   exercise the real logic. Start a notifier in a given state with `overrideWithBuild`; families
   use `overrideWith2` (`overrideWith` is deprecated since Riverpod 3.2). Shared fakes:
   `RecordingBirthdayRepository`, `RecordingBookRepository`, `RecordingCategoryRepository`,
-  `RecordingUserRepository` (its `watchUser` reflects writes, like the Firestore cache);
-  `FakeAuthNotifier` is the last legacy fake notifier.
+  `RecordingUserRepository` (its `watchUser` reflects writes, like the Firestore cache),
+  `FakeAuthRepository` (its session follows its calls) and `FakeBiometricService`. A widget that
+  only needs a signed-in user gets `currentUidProvider.overrideWithValue('fake-uid')`.
 - **Widgets and screens**: `await tester.pumpHarness(widget, overrides: […])` (French locale,
   800×1200). A non-empty `overrides` list **replaces** `defaultTestOverrides`, it doesn't extend
   it. Pin async data with `xProvider.overrideWithValue(const AsyncData(…))`. Cover loading, empty,
@@ -43,8 +44,6 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
   `meetsGuideline(labeledTapTargetGuideline)` and `find.bySemanticsLabel`.
 - The harness disables Riverpod's automatic retry (`retry: (_, _) => null`): a provider in error
   renders its error at once, with no retry timer left pending.
-- Test fakes may keep public spy fields on legacy notifiers with
-  `// ignore: riverpod_lint/avoid_public_notifier_properties` (both analyzers accept it).
 - `test/architecture/` runs with the suite: a new feature is declared in `featureDependencies`,
   fixed debt is removed from `knownViolations`, a new violation is fixed in the code.
 - `TestHarness` doesn't apply `AppTheme`: widget tests check behaviour; look and contrast are

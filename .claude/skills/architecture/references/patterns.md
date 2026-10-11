@@ -222,8 +222,8 @@ final ideasProvider = StreamProvider<List<Idea>>((ref) {
 - This replaces `startListening(uid)` + `clear()`: sign-in, account switch and sign-out rebuild
   the provider, which cancels the old Firestore listener and opens the new one. Riverpod's docs:
   providers initialize themselves; there is no "reset all", so user data must depend on the user.
-- `currentUidProvider` (`assets/foundation/lib/features/auth/providers/session_providers.dart`)
-  derives from today's `authProvider`, so this pattern works before auth is refactored.
+- `currentUidProvider` (`features/auth/providers/session_providers.dart`) derives from the
+  session stream (`authUserProvider`), or from the account opened by the fingerprint.
 - A single document: `StreamProvider<UserProfile?>` the same way.
 - Use a `StreamNotifier` only if the same object must also expose methods; usually actions go to
   a separate controller (section 9).
@@ -549,6 +549,12 @@ test('streams the ideas of the signed-in user', () async {
   `Duration(days: n)`.
 - Images: `MemoryImage` is keyed by its bytes instance; decode base64 once (in the repository),
   never in `build`, or every rebuild decodes the picture again.
+- A callback reading a `StreamProvider` with `ref.read` gets nothing when no one listens to it:
+  a screen watches (`select`) the session data it uses, even if `App` keeps it alive.
+- Changing `MaterialApp.home` keeps the routes pushed above it: `App` pops to the root when the
+  access changes (sign-in from a pushed screen, sign-out from the settings).
+- Widget tests that mount the sign-in screen pump 2 s past its staggered fade-ins (`AnKiFadeIn`
+  waits with `Future.delayed`), or a timer stays pending.
 - Test doubles: `fake_cloud_firestore` applies a transaction one tick late to snapshot listeners
   and enforces the 500-operation batch limit (a 501-document test proves batching);
   `firebase_auth_mocks` asserts that `signInAnonymously` gets an anonymous mock user.

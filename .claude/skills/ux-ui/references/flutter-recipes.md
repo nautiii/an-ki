@@ -225,7 +225,7 @@ final birthdaysListProvider = Provider<List<BirthdayModel>>((ref) {
 ```dart
 // Widget (ex. ContactTile) — déclenché par Dismissible.onDismissed ou un menu.
 void _deleteWithUndo(BuildContext context, WidgetRef ref, BirthdayModel b) {
-  final uid = ref.read(authProvider).uid;
+  final uid = ref.read(currentUidProvider);
   if (uid == null) return;
   // Lu avant l'async : le notifier survit à ce widget, pas `ref`.
   final notifier = ref.read(birthdayProvider.notifier);

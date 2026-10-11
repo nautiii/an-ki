@@ -115,8 +115,8 @@ implementing `Exception`); controllers expose them through `AsyncValue`; widgets
 
 **Why.** Under Riverpod a `Result` returned by repositories is unwrapped and rethrown inside
 notifiers anyway; `AsyncValue` is already the data-or-error type at the UI boundary. Typed
-failures give the explicitness `Result` aims for, and moving words to the UI fixes today's
-`AuthNotifier` methods that take `l10n`.
+failures give the explicitness `Result` aims for, and moving words to the UI fixed the former
+`AuthNotifier` methods that took `l10n` (M5).
 
 **Revisit when** a pure-Dart flow outside Riverpod needs explicit error values (background
 isolate, CLI tool).

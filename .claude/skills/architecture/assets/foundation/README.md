@@ -13,7 +13,7 @@ Validated on 2026-10-07 in a copy of the repo: `flutter analyze` clean, full sui
 | `test/architecture/architecture_test.dart` | import, layer and feature-graph rules, debt ratchet (`knownViolations` = today's 25) | itself |
 | `lib/core/providers/clock_provider.dart` | `clockProvider` (injectable now), `todayProvider` (midnight, rolls over, DST-safe) | `test/core/providers/clock_provider_test.dart` |
 | `lib/core/providers/firebase_providers.dart` | `firestoreProvider`, `firebaseAuthProvider` | none: they only expose SDK singletons, and every test overrides them |
-| `lib/features/auth/providers/session_providers.dart` | `currentUidProvider`, derived from today's `authProvider` | `test/features/auth/providers/session_providers_test.dart` (uses `FakeAuthNotifier` from `test/support`) |
+| `lib/features/auth/providers/session_providers.dart` | installed by M1, rebuilt by M9 (session, biometric lock, access, `currentUidProvider`): the repo copy is the source of truth, no asset copy | `test/features/auth/providers/session_providers_test.dart` |
 
 ```bash
 S=.claude/skills/architecture/assets/foundation

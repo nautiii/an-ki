@@ -41,11 +41,10 @@ Riverpod 3.4 with hand-written providers. Patterns with code: architecture skill
 - Lifecycle reactions (profile creation, permission requests) belong to `app/bootstrap`, never
   to a screen.
 
-## Legacy, until migrated
+## Auth state
 
-`AuthNotifier` is the last legacy notifier: one `Notifier<AuthState>` for the session, the
-biometric lock and every auth action (`isLoading` flag, methods returning `bool`, typed
-`AuthFailure` read from the state since M5). In a bug fix, keep its local pattern; don't extend
-it to new code; its split is debt A14 (`migration.md`). Every other piece of state already
-follows the target shapes above — copy those, e.g. `BirthdayEditor`, `CategoryEditor`,
-`ContactImport`, `userProfileProvider`.
+Since M9: the session is `authUserProvider` (Firebase `userChanges`), the biometric lock
+`biometricLockProvider`, the actions `AuthController` (awaited operations, failures as
+`AsyncError(AuthFailure)`); `currentUidProvider` and `authAccessProvider` derive from the first
+two. No legacy notifier is left: copy the target shapes above, e.g. `BirthdayEditor`,
+`CategoryEditor`, `ContactImport`, `AuthController`, `userProfileProvider`.
