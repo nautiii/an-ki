@@ -66,8 +66,10 @@ flutter:
   generate: true
 
   # To add assets to your application, add an assets section, like this:
+  # icon.png et brand.png ne servent qu'aux générateurs d'icône et de splash
+  # (configurés plus bas) : seules les images affichées sont embarquées.
   assets:
-    - lib/assets/
+    - lib/assets/lune.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
