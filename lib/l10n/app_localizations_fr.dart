@@ -112,12 +112,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Erreur lors de l\'enregistrement de la catégorie';
 
   @override
-  String get login => 'Connexion';
-
-  @override
-  String get registration => 'Inscription';
-
-  @override
   String get january => 'Janvier';
 
   @override
@@ -171,12 +165,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get viewAll => 'Voir tout';
-
-  @override
-  String get showLess => 'Réduire';
-
-  @override
   String get search => 'Rechercher...';
 
   @override
@@ -202,9 +190,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get signInText => 'Connectez-vous';
-
-  @override
-  String get name => 'Nom';
 
   @override
   String get haveAccount => 'Vous avez déjà un compte ? ';
@@ -262,28 +247,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tabScanner => 'Scanner';
 
   @override
-  String get bookScanner => 'Scanner un livre';
-
-  @override
   String get bookScannerTitle => 'Scanner de livres';
 
   @override
   String get bookTitle => 'Titre';
 
   @override
-  String get bookPrice => 'Prix';
-
-  @override
   String get bookNotFound => 'Livre non trouvé';
 
   @override
   String get noBooksFound => 'Aucun livre trouvé.';
-
-  @override
-  String get scanning => 'Scan en cours...';
-
-  @override
-  String get noInfoFound => 'Aucune information trouvée';
 
   @override
   String get deleteAccount => 'Supprimer mon compte';
@@ -367,16 +340,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Utiliser votre empreinte digitale pour vous connecter';
 
   @override
-  String get reconnectToEnableBiometrics =>
-      'Veuillez vous reconnecter une fois pour activer la biométrie';
-
-  @override
   String get biometricReason =>
       'Veuillez scanner votre empreinte pour vous connecter';
-
-  @override
-  String get noBiometricCredentials =>
-      'Aucun identifiant sauvegardé pour la biométrie';
 
   @override
   String get biometricError => 'Erreur lors de l\'authentification biométrique';

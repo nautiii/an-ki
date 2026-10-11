@@ -109,12 +109,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorSavingCategory => 'Error saving category';
 
   @override
-  String get login => 'Login';
-
-  @override
-  String get registration => 'Registration';
-
-  @override
   String get january => 'January';
 
   @override
@@ -168,12 +162,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get viewAll => 'View all';
-
-  @override
-  String get showLess => 'Show less';
-
-  @override
   String get search => 'Search...';
 
   @override
@@ -199,9 +187,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signInText => 'Sign in';
-
-  @override
-  String get name => 'Name';
 
   @override
   String get haveAccount => 'Already have an account? ';
@@ -259,28 +244,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabScanner => 'Scanner';
 
   @override
-  String get bookScanner => 'Scan a book';
-
-  @override
   String get bookScannerTitle => 'Book Scanner';
 
   @override
   String get bookTitle => 'Title';
 
   @override
-  String get bookPrice => 'Price';
-
-  @override
   String get bookNotFound => 'Book not found';
 
   @override
   String get noBooksFound => 'No books found.';
-
-  @override
-  String get scanning => 'Scanning...';
-
-  @override
-  String get noInfoFound => 'No information found';
 
   @override
   String get deleteAccount => 'Delete my account';
@@ -361,14 +334,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get biometricConnexionDescription => 'Use your fingerprint to sign in';
 
   @override
-  String get reconnectToEnableBiometrics =>
-      'Please sign in again once to enable biometrics';
-
-  @override
   String get biometricReason => 'Scan your fingerprint to sign in';
-
-  @override
-  String get noBiometricCredentials => 'No credentials saved for biometrics';
 
   @override
   String get biometricError => 'Error during biometric authentication';

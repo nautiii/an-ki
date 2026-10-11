@@ -296,18 +296,6 @@ abstract class AppLocalizations {
   /// **'Erreur lors de l\'enregistrement de la catégorie'**
   String get errorSavingCategory;
 
-  /// No description provided for @login.
-  ///
-  /// In fr, this message translates to:
-  /// **'Connexion'**
-  String get login;
-
-  /// No description provided for @registration.
-  ///
-  /// In fr, this message translates to:
-  /// **'Inscription'**
-  String get registration;
-
   /// No description provided for @january.
   ///
   /// In fr, this message translates to:
@@ -410,18 +398,6 @@ abstract class AppLocalizations {
   /// **'Dans {days} jours'**
   String inDays(int days);
 
-  /// No description provided for @viewAll.
-  ///
-  /// In fr, this message translates to:
-  /// **'Voir tout'**
-  String get viewAll;
-
-  /// No description provided for @showLess.
-  ///
-  /// In fr, this message translates to:
-  /// **'Réduire'**
-  String get showLess;
-
   /// No description provided for @search.
   ///
   /// In fr, this message translates to:
@@ -475,12 +451,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Connectez-vous'**
   String get signInText;
-
-  /// No description provided for @name.
-  ///
-  /// In fr, this message translates to:
-  /// **'Nom'**
-  String get name;
 
   /// No description provided for @haveAccount.
   ///
@@ -584,12 +554,6 @@ abstract class AppLocalizations {
   /// **'Scanner'**
   String get tabScanner;
 
-  /// No description provided for @bookScanner.
-  ///
-  /// In fr, this message translates to:
-  /// **'Scanner un livre'**
-  String get bookScanner;
-
   /// No description provided for @bookScannerTitle.
   ///
   /// In fr, this message translates to:
@@ -602,12 +566,6 @@ abstract class AppLocalizations {
   /// **'Titre'**
   String get bookTitle;
 
-  /// No description provided for @bookPrice.
-  ///
-  /// In fr, this message translates to:
-  /// **'Prix'**
-  String get bookPrice;
-
   /// No description provided for @bookNotFound.
   ///
   /// In fr, this message translates to:
@@ -619,18 +577,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Aucun livre trouvé.'**
   String get noBooksFound;
-
-  /// No description provided for @scanning.
-  ///
-  /// In fr, this message translates to:
-  /// **'Scan en cours...'**
-  String get scanning;
-
-  /// No description provided for @noInfoFound.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aucune information trouvée'**
-  String get noInfoFound;
 
   /// No description provided for @deleteAccount.
   ///
@@ -782,23 +728,11 @@ abstract class AppLocalizations {
   /// **'Utiliser votre empreinte digitale pour vous connecter'**
   String get biometricConnexionDescription;
 
-  /// No description provided for @reconnectToEnableBiometrics.
-  ///
-  /// In fr, this message translates to:
-  /// **'Veuillez vous reconnecter une fois pour activer la biométrie'**
-  String get reconnectToEnableBiometrics;
-
   /// No description provided for @biometricReason.
   ///
   /// In fr, this message translates to:
   /// **'Veuillez scanner votre empreinte pour vous connecter'**
   String get biometricReason;
-
-  /// No description provided for @noBiometricCredentials.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aucun identifiant sauvegardé pour la biométrie'**
-  String get noBiometricCredentials;
 
   /// No description provided for @biometricError.
   ///
