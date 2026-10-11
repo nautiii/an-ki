@@ -1,8 +1,8 @@
-import 'package:an_ki/features/book_scanner/domain/book_model.dart';
+import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:flutter/material.dart';
 
 class BookCard extends StatelessWidget {
-  final BookModel book;
+  final Book book;
 
   const BookCard({super.key, required this.book});
 

@@ -1,6 +1,6 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
-import 'package:an_ki/features/book_scanner/domain/book_model.dart';
+import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_card.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_info_sheet.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +11,8 @@ import '../../support/network_image_mock.dart';
 import '../../support/test_harness.dart';
 
 void main() {
-  BookModel book({String? imageUrl, List<String> authors = const ['Orwell']}) =>
-      BookModel(
+  Book book({String? imageUrl, List<String> authors = const ['Orwell']}) =>
+      Book(
         id: '1',
         isbn: '123',
         title: '1984',

@@ -1,8 +1,8 @@
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
-import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_info_sheet.dart';
@@ -15,7 +15,7 @@ import '../../support/fake_mobile_scanner_platform.dart';
 import '../../support/fake_providers.dart';
 import '../../support/test_harness.dart';
 
-BookModel _book({String id = '1', String? imageUrl}) => BookModel(
+Book _book({String id = '1', String? imageUrl}) => Book(
   id: id,
   isbn: '987654321',
   title: '1984',
@@ -28,7 +28,7 @@ void main() {
   group('BookScannerScreen rendering', () {
     Future<void> pumpScreen(
       WidgetTester tester,
-      AsyncValue<List<BookModel>> books,
+      AsyncValue<List<Book>> books,
     ) => tester.pumpHarness(
       const BookScannerScreen(),
       overrides: [savedBooksProvider.overrideWithValue(books)],

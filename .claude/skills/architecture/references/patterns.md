@@ -323,9 +323,9 @@ UI):
 
 ```dart
 /// Recherche d'un livre par ISBN : réseau requis, le résultat pilote l'UI.
-class IsbnLookup extends AsyncNotifier<BookModel?> {
+class IsbnLookup extends AsyncNotifier<Book?> {
   @override
-  FutureOr<BookModel?> build() => null;
+  FutureOr<Book?> build() => null;
 
   Future<void> lookUp(String isbn) async {
     if (state.isLoading) return; // anti double scan
@@ -338,7 +338,7 @@ class IsbnLookup extends AsyncNotifier<BookModel?> {
 }
 
 final isbnLookupProvider =
-    AsyncNotifierProvider.autoDispose<IsbnLookup, BookModel?>(IsbnLookup.new);
+    AsyncNotifierProvider.autoDispose<IsbnLookup, Book?>(IsbnLookup.new);
 ```
 
 The button is disabled while `isLoading`; `ref.listen` reports success or failure. A method may

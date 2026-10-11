@@ -8,7 +8,7 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
-import 'package:an_ki/features/book_scanner/domain/book_model.dart';
+import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -269,15 +269,15 @@ class RecordingCategoryRepository extends Fake implements CategoryRepository {
 
 class FakeBookRepository extends Fake implements BookRepository {
   @override
-  Future<BookModel?> fetchBookByIsbn(String isbn) async => null;
+  Future<Book?> fetchBookByIsbn(String isbn) async => null;
 
   @override
-  Stream<List<BookModel>> watchBooks(String uid) => Stream.value([]);
+  Stream<List<Book>> watchBooks(String uid) => Stream.value([]);
 
   @override
   Future<void> saveBook(
     String uid,
-    BookModel book, {
+    Book book, {
     required DateTime scannedAt,
   }) async {}
 
@@ -297,27 +297,27 @@ class RecordingBookRepository extends FakeBookRepository {
     this.failure,
   });
 
-  final BookModel? bookByIsbn;
+  final Book? bookByIsbn;
   final Exception? throwOnScan;
 
   /// Livres servis par [watchBooks].
-  final List<BookModel> books;
+  final List<Book> books;
 
   /// Erreur levée par chaque écriture quand elle est définie.
   final Exception? failure;
 
   final watchedUids = <String>[];
-  final saved = <BookModel>[];
+  final saved = <Book>[];
   final erasedUids = <String>[];
 
   @override
-  Future<BookModel?> fetchBookByIsbn(String isbn) async {
+  Future<Book?> fetchBookByIsbn(String isbn) async {
     if (throwOnScan case final error?) throw error;
     return bookByIsbn;
   }
 
   @override
-  Stream<List<BookModel>> watchBooks(String uid) {
+  Stream<List<Book>> watchBooks(String uid) {
     watchedUids.add(uid);
     return Stream.value(books);
   }
@@ -326,7 +326,7 @@ class RecordingBookRepository extends FakeBookRepository {
   @override
   Future<void> saveBook(
     String uid,
-    BookModel book, {
+    Book book, {
     required DateTime scannedAt,
   }) async {
     if (failure case final error?) throw error;

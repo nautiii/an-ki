@@ -4,8 +4,8 @@ import 'package:an_ki/core/config/app_config.dart';
 import 'package:an_ki/core/extensions/firestore_extensions.dart';
 import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/core/providers/http_client_provider.dart';
+import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
-import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,7 +22,7 @@ final bookRepositoryProvider = Provider<BookRepository>(
 /// Livres : recherche par ISBN sur Google Books, liste de l'utilisateur dans
 /// la collection Firestore `books` (documents portant leur `uid`).
 ///
-/// Convertit documents et réponses ↔ [BookModel]. Ni logique métier, ni texte
+/// Convertit documents et réponses ↔ [Book]. Ni logique métier, ni texte
 /// d'UI, ni état.
 class BookRepository {
   BookRepository({
@@ -43,7 +43,7 @@ class BookRepository {
   /// Livre de Google Books pour [isbn] ; null s'il est inconnu ou si la
   /// recherche échoue. Lève [BookFailure.quotaExceeded] quand le quota de
   /// l'API est dépassé.
-  Future<BookModel?> fetchBookByIsbn(String isbn) async {
+  Future<Book?> fetchBookByIsbn(String isbn) async {
     final url = Uri.parse(
       'https://www.googleapis.com/books/v1/volumes?q=isbn:$isbn&key=$_apiKey',
     );
@@ -70,7 +70,7 @@ class BookRepository {
     return null;
   }
 
-  Stream<List<BookModel>> watchBooks(String uid) {
+  Stream<List<Book>> watchBooks(String uid) {
     return _books
         .where('uid', isEqualTo: uid)
         .orderBy('scannedAt', descending: true)
@@ -82,7 +82,7 @@ class BookRepository {
   /// l'app : la liste est triée sur ce champ).
   Future<void> saveBook(
     String uid,
-    BookModel book, {
+    Book book, {
     required DateTime scannedAt,
   }) async {
     await _books.add(_bookToMap(book, uid: uid, scannedAt: scannedAt));
@@ -105,9 +105,9 @@ class BookRepository {
 
 // Conversions vers le domaine : privées au data layer. Lecture tolérante
 // (champ absent → valeur par défaut) pour survivre aux anciens documents.
-BookModel _bookFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
+Book _bookFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
   final data = doc.data() ?? const <String, dynamic>{};
-  return BookModel(
+  return Book(
     id: doc.id,
     title: data['title'] as String? ?? '',
     authors: List<String>.from(data['authors'] as List<dynamic>? ?? const []),
@@ -121,7 +121,7 @@ BookModel _bookFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
 }
 
 Map<String, Object> _bookToMap(
-  BookModel book, {
+  Book book, {
   required String uid,
   required DateTime scannedAt,
 }) => {
@@ -137,11 +137,11 @@ Map<String, Object> _bookToMap(
 };
 
 /// Volume Google Books (`items[n]`) → livre pas encore ajouté à la liste.
-BookModel _bookFromVolume(Map<String, dynamic> item, String isbn) {
+Book _bookFromVolume(Map<String, dynamic> item, String isbn) {
   final volumeInfo = item['volumeInfo'] as Map<String, dynamic>?;
   final imageLinks = volumeInfo?['imageLinks'] as Map<String, dynamic>?;
 
-  return BookModel(
+  return Book(
     id: '',
     title: volumeInfo?['title'] as String? ?? 'Unknown Title',
     authors: List<String>.from(

@@ -1,8 +1,8 @@
-import 'package:an_ki/features/book_scanner/domain/book_model.dart';
+import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  const base = BookModel(
+  const base = Book(
     id: '1',
     title: 'T',
     authors: ['A'],

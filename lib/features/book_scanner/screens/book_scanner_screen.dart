@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
-import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:an_ki/features/book_scanner/providers/book_editor.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/book_scanner/providers/isbn_lookup.dart';
@@ -80,7 +80,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
     }
   }
 
-  void _showBookInfo(BookModel book) {
+  void _showBookInfo(Book book) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -112,7 +112,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
     final isLoading =
         savedBooks.isLoading && !savedBooks.hasValue && !savedBooks.hasError;
     final isScanning = ref.watch(isbnLookupProvider.select((s) => s.isLoading));
-    final books = savedBooks.value ?? const <BookModel>[];
+    final books = savedBooks.value ?? const <Book>[];
 
     return Scaffold(
       body: SafeArea(

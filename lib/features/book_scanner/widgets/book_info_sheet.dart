@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/features/book_scanner/domain/book_model.dart';
+import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:an_ki/features/book_scanner/providers/book_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class BookInfoSheet extends ConsumerWidget {
   const BookInfoSheet({super.key, required this.book, required this.onClosed});
 
-  final BookModel book;
+  final Book book;
   final VoidCallback onClosed;
 
   @override

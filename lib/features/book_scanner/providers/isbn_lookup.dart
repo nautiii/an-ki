@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
-import 'package:an_ki/features/book_scanner/domain/book_model.dart';
+import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Recherche d'un livre par ISBN (Google Books) : réseau requis, le résultat
@@ -10,13 +10,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// État : `AsyncLoading` pendant la recherche, puis le livre trouvé (null
 /// s'il est inconnu) ou l'erreur. L'écran filtre lui-même les scans qui
 /// arrivent pendant une recherche.
-class IsbnLookup extends AsyncNotifier<BookModel?> {
+class IsbnLookup extends AsyncNotifier<Book?> {
   @override
-  FutureOr<BookModel?> build() => null;
+  FutureOr<Book?> build() => null;
 
   /// Renvoie le livre trouvé, null s'il est inconnu ; relance l'erreur (quota
   /// dépassé, réseau) pour que l'écran choisisse son message.
-  Future<BookModel?> lookUp(String isbn) async {
+  Future<Book?> lookUp(String isbn) async {
     final repository = ref.read(bookRepositoryProvider);
     state = const AsyncLoading();
     try {
@@ -30,5 +30,6 @@ class IsbnLookup extends AsyncNotifier<BookModel?> {
   }
 }
 
-final isbnLookupProvider =
-    AsyncNotifierProvider.autoDispose<IsbnLookup, BookModel?>(IsbnLookup.new);
+final isbnLookupProvider = AsyncNotifierProvider.autoDispose<IsbnLookup, Book?>(
+  IsbnLookup.new,
+);

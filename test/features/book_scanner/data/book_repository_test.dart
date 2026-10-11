@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
-import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,7 +44,7 @@ void main() {
 
       expect(
         book,
-        const BookModel(
+        const Book(
           id: '',
           title: '1984',
           authors: ['George Orwell'],
@@ -68,12 +68,7 @@ void main() {
 
       expect(
         book,
-        const BookModel(
-          id: '',
-          title: 'Unknown Title',
-          authors: [],
-          isbn: '123',
-        ),
+        const Book(id: '', title: 'Unknown Title', authors: [], isbn: '123'),
       );
     });
 
@@ -153,7 +148,7 @@ void main() {
       final books = await repository.watchBooks('user-1').first;
 
       expect(books, [
-        BookModel(
+        Book(
           id: ref.id,
           title: 'Dune',
           authors: const ['Frank Herbert'],
@@ -183,7 +178,7 @@ void main() {
     });
 
     test('saveBook stores the book with its owner and date', () async {
-      const book = BookModel(
+      const book = Book(
         id: '',
         title: 'Dune',
         authors: ['Frank Herbert'],
