@@ -330,6 +330,10 @@ void runUiSnapshots(List<UiScene> scenes) {
       final originalOnError = FlutterError.onError;
       // Les erreurs de rendu sont collectées pour le rapport au lieu de faire échouer la capture.
       FlutterError.onError = errors.add;
+      // En test, Flutter dessine les ombres Material comme un contour noir :
+      // on les rend réalistes le temps de la capture, puis on restaure.
+      final disableShadows = debugDisableShadows;
+      debugDisableShadows = false;
       try {
         scene.prepare?.call();
         await mockNetworkImages(() async {
@@ -340,6 +344,7 @@ void runUiSnapshots(List<UiScene> scenes) {
         });
       } finally {
         FlutterError.onError = originalOnError;
+        debugDisableShadows = disableShadows;
       }
 
       final sheet = await _write(tester, scene, shots, report);
