@@ -22,15 +22,13 @@ void main() {
       );
 
   group('BookInfoSheet', () {
-    testWidgets('renders details with a cover image and saves', (tester) async {
-      var closed = false;
+    testWidgets('renders details with a cover image, saves and closes', (
+      tester,
+    ) async {
       final repository = RecordingBookRepository();
       await mockNetworkImages(() async {
         await tester.pumpHarness(
-          BookInfoSheet(
-            book: book(imageUrl: 'https://example.com/cover.jpg'),
-            onClosed: () => closed = true,
-          ),
+          BookInfoSheet(book: book(imageUrl: 'https://example.com/cover.jpg')),
           overrides: [
             bookRepositoryProvider.overrideWithValue(repository),
             currentUidProvider.overrideWithValue('u'),
@@ -44,10 +42,9 @@ void main() {
         expect(find.text('ISBN: 123'), findsOneWidget);
 
         await tester.tap(find.text('Ajouter'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pumpAndSettle();
 
-        expect(closed, isTrue);
+        expect(find.byType(BookInfoSheet), findsNothing);
         expect(repository.saved.single.title, '1984');
       });
     });
@@ -57,10 +54,7 @@ void main() {
     ) async {
       await mockNetworkImages(() async {
         await tester.pumpHarness(
-          BookInfoSheet(
-            book: book(authors: const []),
-            onClosed: () {},
-          ),
+          BookInfoSheet(book: book(authors: const [])),
           overrides: [
             bookRepositoryProvider.overrideWithValue(RecordingBookRepository()),
             currentUidProvider.overrideWithValue('u'),

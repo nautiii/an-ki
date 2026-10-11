@@ -11,6 +11,7 @@ class FakeMobileScannerPlatform extends MobileScannerPlatform {
   final StreamController<BarcodeCapture?> _barcodes =
       StreamController<BarcodeCapture?>.broadcast();
 
+  int startCalls = 0;
   int stopCalls = 0;
 
   /// Installs this fake as the active platform implementation.
@@ -34,6 +35,7 @@ class FakeMobileScannerPlatform extends MobileScannerPlatform {
 
   @override
   Future<MobileScannerViewAttributes> start(StartOptions startOptions) async {
+    startCalls++;
     return const MobileScannerViewAttributes(
       cameraDirection: CameraFacing.back,
       currentTorchMode: TorchState.off,

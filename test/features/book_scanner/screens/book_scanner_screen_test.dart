@@ -138,6 +138,28 @@ void main() {
       expect(find.byType(BookInfoSheet), findsNothing);
     });
 
+    testWidgets('closing the sheet without adding resumes scanning', (
+      tester,
+    ) async {
+      final repo = RecordingBookRepository(bookByIsbn: _book());
+      await pumpScreen(tester, repo);
+      await tester.pump();
+      final startsBefore = platform.startCalls;
+
+      detect(tester, '987654321');
+      await settleScan(tester);
+      expect(find.byType(BookInfoSheet), findsOneWidget);
+
+      // Toucher hors de la feuille la ferme sans rien ajouter.
+      await tester.tapAt(const Offset(400, 20));
+      await settleScan(tester);
+
+      expect(find.byType(BookInfoSheet), findsNothing);
+      expect(repo.saved, isEmpty);
+      expect(platform.startCalls, greaterThan(startsBefore));
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
+
     testWidgets('a failed save is announced by the screen', (tester) async {
       final repo = RecordingBookRepository(
         bookByIsbn: _book(),

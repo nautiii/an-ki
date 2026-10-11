@@ -55,7 +55,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
       final book = await ref.read(isbnLookupProvider.notifier).lookUp(isbn);
       if (mounted) {
         if (book != null) {
-          _showBookInfo(book);
+          unawaited(_showBookInfo(book));
         } else {
           _showErrorSnippet(context.l10n.bookNotFound);
           unawaited(_resetScanning());
@@ -81,18 +81,16 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
     }
   }
 
-  void _showBookInfo(Book book) {
-    showModalBottomSheet<void>(
+  /// Le scan reprend à la fermeture de la fiche, livre ajouté ou non
+  /// (glissée vers le bas, toucher hors de la feuille, retour).
+  Future<void> _showBookInfo(Book book) async {
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => BookInfoSheet(
-        book: book,
-        onClosed: () async {
-          await _resetScanning();
-        },
-      ),
+      builder: (context) => BookInfoSheet(book: book),
     );
+    if (mounted) await _resetScanning();
   }
 
   void _showErrorSnippet(String message) {

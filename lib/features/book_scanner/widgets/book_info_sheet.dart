@@ -7,10 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class BookInfoSheet extends ConsumerWidget {
-  const BookInfoSheet({super.key, required this.book, required this.onClosed});
+  const BookInfoSheet({super.key, required this.book});
 
   final Book book;
-  final VoidCallback onClosed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -141,7 +140,6 @@ class BookInfoSheet extends ConsumerWidget {
               onPressed: () {
                 unawaited(ref.read(bookEditorProvider.notifier).save(book));
                 Navigator.pop(context);
-                onClosed();
               },
               child: Text(context.l10n.add),
             ),
