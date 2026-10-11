@@ -53,6 +53,35 @@ void main() {
       expect(find.text('Continuer sans compte'), findsOneWidget);
     });
 
+    testWidgets('scrolls instead of overflowing on a small phone at 200 %', (
+      tester,
+    ) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await tester.pumpHarness(const AuthChoiceScreen());
+      tester.view.physicalSize = const Size(360, 640);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      await tester.scrollUntilVisible(
+        find.text("S'inscrire"),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text("S'inscrire"), findsOneWidget);
+    });
+
+    testWidgets('meets tap target and label guidelines', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpHarness(const AuthChoiceScreen());
+      await tester.pumpAndSettle();
+
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
+    });
+
     testWidgets('navigates to the signup route', (tester) async {
       await tester.pumpHarness(const AuthChoiceScreen(), routes: signupRoute);
       await tester.pumpAndSettle();
