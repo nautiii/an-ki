@@ -1,5 +1,11 @@
+import 'dart:async';
+
+import 'package:an_ki/core/services/biometric_service.dart';
+import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/domain/biometric_lock.dart';
+import 'package:an_ki/features/auth/providers/auth_controller.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
@@ -11,50 +17,47 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../support/fake_providers.dart';
 import '../../support/test_harness.dart';
 
-/// Always fails authentication and exposes a failure.
-class FailingAuthNotifier extends FakeAuthNotifier {
-  FailingAuthNotifier()
-    : super(initialState: AuthState(failure: AuthFailure.unknown));
+/// Overrides autour d'un faux dépôt d'authentification (qui enregistre les
+/// appels) et d'un faux service biométrique.
+List<Object> withRepository(
+  FakeAuthRepository repository, {
+  FakeBiometricService? biometrics,
+}) => [
+  authRepositoryProvider.overrideWithValue(repository),
+  biometricServiceProvider.overrideWithValue(
+    biometrics ?? FakeBiometricService(),
+  ),
+];
 
-  @override
-  Future<bool> signInWithGoogle() async => false;
-  @override
-  Future<bool> signInAnonymously() async => false;
-  @override
-  Future<bool> signIn({
-    required String email,
-    required String password,
-  }) async => false;
-  @override
-  Future<bool> signUp({
-    required String email,
-    required String password,
-    required String name,
-    required String surname,
-  }) async => false;
-}
+/// Toutes les connexions échouent.
+List<Object> failingOverrides() =>
+    withRepository(FakeAuthRepository(failure: AuthFailure.unknown));
 
-/// Triggers the automatic biometric sign-in on startup.
-class BiometricStartAuthNotifier extends FakeAuthNotifier {
-  BiometricStartAuthNotifier(this.succeed)
-    : super(
-        initialState: AuthState(
-          canUseBiometrics: true,
-          failure: succeed ? null : AuthFailure.biometricFailed,
-        ),
-      );
+/// Une opération est en cours.
+List<Object> loadingOverrides() => [
+  ...withRepository(FakeAuthRepository()),
+  authControllerProvider.overrideWithBuild(
+    (ref, notifier) => Completer<void>().future,
+  ),
+];
 
-  final bool succeed;
-  // Espion du test : champ public voulu sur ce faux notifier.
-  // ignore: riverpod_lint/avoid_public_notifier_properties
-  bool called = false;
-
-  @override
-  Future<bool> signInWithBiometricToken() async {
-    called = true;
-    return succeed;
-  }
-}
+/// App verrouillée par l'empreinte, comme au démarrage d'une session
+/// restaurée : le jeton de l'appareil est celui du profil `uid-1`.
+List<Object> lockedOverrides(FakeAuthRepository repository) => [
+  ...withRepository(
+    repository..biometricTokens['uid-1'] = 'tok',
+    biometrics: FakeBiometricService(
+      available: true,
+      token: 'tok',
+      userId: 'uid-1',
+    ),
+  ),
+  // `App` attend la session et le verrou avant de monter cet écran.
+  authUserProvider.overrideWithValue(AsyncData(MockUser(uid: 'uid-1'))),
+  biometricLockProvider.overrideWithBuild(
+    (ref, notifier) => const BiometricLock(enabled: true),
+  ),
+];
 
 void main() {
   final signupRoute = {
@@ -86,7 +89,7 @@ void main() {
     ) async {
       await tester.pumpHarness(
         const AuthChoiceScreen(),
-        overrides: [authProvider.overrideWith(FailingAuthNotifier.new)],
+        overrides: failingOverrides(),
       );
       await tester.pumpAndSettle();
 
@@ -97,31 +100,33 @@ void main() {
     });
 
     testWidgets('anonymous sign-in success path', (tester) async {
-      final notifier = FakeAuthNotifier();
+      final repository = FakeAuthRepository();
       await tester.pumpHarness(
         const AuthChoiceScreen(),
-        overrides: [authProvider.overrideWith(() => notifier)],
+        overrides: withRepository(repository),
       );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Continuer sans compte'));
       await tester.pumpAndSettle();
 
-      expect(notifier.state.user, isNotNull);
+      expect(repository.calls, ['signInAnonymously']);
+      expect(repository.currentUser?.isAnonymous, isTrue);
     });
 
     testWidgets('Google sign-in success path', (tester) async {
-      final notifier = FakeAuthNotifier();
+      final repository = FakeAuthRepository();
       await tester.pumpHarness(
         const AuthChoiceScreen(),
-        overrides: [authProvider.overrideWith(() => notifier)],
+        overrides: withRepository(repository),
       );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Connexion Google'));
       await tester.pumpAndSettle();
 
-      expect(notifier.state.user, isNotNull);
+      expect(repository.calls, ['signInWithGoogle']);
+      expect(repository.currentUser, isNotNull);
     });
 
     testWidgets('shows an error SnackBar when anonymous sign-in fails', (
@@ -129,7 +134,7 @@ void main() {
     ) async {
       await tester.pumpHarness(
         const AuthChoiceScreen(),
-        overrides: [authProvider.overrideWith(FailingAuthNotifier.new)],
+        overrides: failingOverrides(),
       );
       await tester.pumpAndSettle();
 
@@ -139,23 +144,25 @@ void main() {
       expect(find.text('Une erreur est survenue.'), findsOneWidget);
     });
 
-    testWidgets('runs biometric sign-in on startup (success)', (tester) async {
-      final notifier = BiometricStartAuthNotifier(true);
+    testWidgets('unlocks with the fingerprint on startup', (tester) async {
       await tester.pumpHarness(
         const AuthChoiceScreen(),
-        overrides: [authProvider.overrideWith(() => notifier)],
+        overrides: lockedOverrides(FakeAuthRepository()),
       );
       await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(AuthChoiceScreen)),
+      );
 
-      expect(notifier.called, isTrue);
+      expect(container.read(authAccessProvider), AuthAccess.granted);
     });
 
     testWidgets('shows the biometric error on startup failure', (tester) async {
       await tester.pumpHarness(
         const AuthChoiceScreen(),
-        overrides: [
-          authProvider.overrideWith(() => BiometricStartAuthNotifier(false)),
-        ],
+        overrides: lockedOverrides(
+          FakeAuthRepository(tokenCheckFailure: Exception('lookup failed')),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -168,11 +175,7 @@ void main() {
     testWidgets('disables the buttons while loading', (tester) async {
       await tester.pumpHarness(
         const AuthChoiceScreen(),
-        overrides: [
-          authProvider.overrideWith(
-            () => FakeAuthNotifier(initialState: AuthState(isLoading: true)),
-          ),
-        ],
+        overrides: loadingOverrides(),
       );
       // Advance past the staggered fade-in delays to flush their timers
       // (cannot pumpAndSettle: the loading spinner animates indefinitely).
@@ -184,10 +187,10 @@ void main() {
 
   group('LoginScreen', () {
     testWidgets('signs in successfully', (tester) async {
-      final notifier = FakeAuthNotifier();
+      final repository = FakeAuthRepository();
       await tester.pumpHarness(
         const LoginScreen(),
-        overrides: [authProvider.overrideWith(() => notifier)],
+        overrides: withRepository(repository),
       );
       await tester.pumpAndSettle();
 
@@ -196,27 +199,28 @@ void main() {
       await tester.tap(find.text('Se connecter').last);
       await tester.pumpAndSettle();
 
-      expect(notifier.state.user, isNotNull);
+      expect(repository.calls, ['signInWithEmail']);
+      expect(repository.currentUser, isNotNull);
     });
 
     testWidgets('does nothing when fields are empty', (tester) async {
-      final notifier = FakeAuthNotifier();
+      final repository = FakeAuthRepository();
       await tester.pumpHarness(
         const LoginScreen(),
-        overrides: [authProvider.overrideWith(() => notifier)],
+        overrides: withRepository(repository),
       );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Se connecter').last);
       await tester.pumpAndSettle();
 
-      expect(notifier.state.user, isNull);
+      expect(repository.calls, isEmpty);
     });
 
     testWidgets('shows an error SnackBar on failure', (tester) async {
       await tester.pumpHarness(
         const LoginScreen(),
-        overrides: [authProvider.overrideWith(FailingAuthNotifier.new)],
+        overrides: failingOverrides(),
       );
       await tester.pumpAndSettle();
 
@@ -264,11 +268,7 @@ void main() {
     ) async {
       await tester.pumpHarness(
         const LoginScreen(),
-        overrides: [
-          authProvider.overrideWith(
-            () => FakeAuthNotifier(initialState: AuthState(isLoading: true)),
-          ),
-        ],
+        overrides: loadingOverrides(),
       );
       await tester.pump(const Duration(seconds: 2));
 
@@ -327,7 +327,7 @@ void main() {
     ) async {
       await tester.pumpHarness(
         const SignUpScreen(),
-        overrides: [authProvider.overrideWith(FakeAuthNotifier.new)],
+        overrides: withRepository(FakeAuthRepository()),
       );
       await tester.pumpAndSettle();
       final container = ProviderScope.containerOf(
@@ -353,7 +353,7 @@ void main() {
     testWidgets('shows an error SnackBar on failure', (tester) async {
       await tester.pumpHarness(
         const SignUpScreen(),
-        overrides: [authProvider.overrideWith(FailingAuthNotifier.new)],
+        overrides: failingOverrides(),
       );
       await tester.pumpAndSettle();
       final container = ProviderScope.containerOf(
@@ -390,17 +390,17 @@ void main() {
     });
 
     testWidgets('does nothing when mandatory fields are empty', (tester) async {
-      final notifier = FakeAuthNotifier();
+      final repository = FakeAuthRepository();
       await tester.pumpHarness(
         const SignUpScreen(),
-        overrides: [authProvider.overrideWith(() => notifier)],
+        overrides: withRepository(repository),
       );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text("S'inscrire").last);
       await tester.pumpAndSettle();
 
-      expect(notifier.state.user, isNull);
+      expect(repository.calls, isEmpty);
     });
 
     testWidgets('navigates to the login route', (tester) async {
@@ -445,11 +445,7 @@ void main() {
     testWidgets('disables inputs while loading', (tester) async {
       await tester.pumpHarness(
         const SignUpScreen(),
-        overrides: [
-          authProvider.overrideWith(
-            () => FakeAuthNotifier(initialState: AuthState(isLoading: true)),
-          ),
-        ],
+        overrides: loadingOverrides(),
       );
       await tester.pump(const Duration(seconds: 2));
 

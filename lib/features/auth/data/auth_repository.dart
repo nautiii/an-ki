@@ -26,7 +26,9 @@ class AuthRepository {
   CollectionReference<Map<String, dynamic>> get _users =>
       _firestore.collection('user');
 
-  Stream<User?> authStateChanges() => _auth.authStateChanges();
+  /// Utilisateur de la session en temps réel : connexion, déconnexion et
+  /// changements du compte (liaison d'un compte anonyme, nom affiché).
+  Stream<User?> userChanges() => _auth.userChanges();
 
   User? get currentUser => _auth.currentUser;
 

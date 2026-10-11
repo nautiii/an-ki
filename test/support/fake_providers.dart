@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/core/services/biometric_service.dart';
+import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
@@ -14,14 +15,16 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_test/flutter_test.dart';
 
 class MockUser extends Fake implements firebase_auth.User {
+  MockUser({this.uid = 'fake-uid', this.isAnonymous = false});
+
   @override
-  String get uid => 'fake-uid';
+  final String uid;
 
   @override
   String? get displayName => 'Fake User';
 
   @override
-  bool get isAnonymous => false;
+  final bool isAnonymous;
 }
 
 // --- Repositories ---
@@ -339,63 +342,166 @@ class RecordingBookRepository extends FakeBookRepository {
 
 // --- Notifiers ---
 
-class FakeAuthNotifier extends AuthNotifier {
-  final AuthState? _initialState;
+/// Dépôt d'authentification en mémoire. La session suit les appels
+/// (connexions, déconnexion, suppression) et [userChanges] la diffuse, comme
+/// Firebase. [failure] fait échouer les connexions et la liaison,
+/// [deleteFailure] la suppression, [tokenCheckFailure] la vérification du
+/// jeton d'empreinte.
+class FakeAuthRepository extends Fake implements AuthRepository {
+  FakeAuthRepository({
+    this._user,
+    this.failure,
+    this.deleteFailure,
+    this.tokenCheckFailure,
+  });
 
-  FakeAuthNotifier({this._initialState});
+  firebase_auth.User? _user;
+  final Exception? failure;
+  final Exception? deleteFailure;
+  final Exception? tokenCheckFailure;
+
+  /// Méthodes appelées, dans l'ordre.
+  final calls = <String>[];
+
+  /// Jetons d'empreinte enregistrés sur les profils, par uid.
+  final biometricTokens = <String, String?>{};
+
+  final _changes = StreamController<firebase_auth.User?>.broadcast();
 
   @override
-  AuthState build() {
-    return _initialState ?? AuthState();
+  firebase_auth.User? get currentUser => _user;
+
+  @override
+  Stream<firebase_auth.User?> userChanges() {
+    // Abonnement immédiat : aucun changement n'est perdu entre deux émissions.
+    final controller = StreamController<firebase_auth.User?>();
+    final changes = _changes.stream.listen(controller.add);
+    controller
+      ..onCancel = () async {
+        await changes.cancel();
+        await controller.close();
+      }
+      ..add(_user);
+    return controller.stream;
   }
 
   @override
-  void initializeAuth() {}
-
-  @override
-  Future<bool> signIn({required String email, required String password}) async {
-    state = state.copyWith(user: MockUser());
-    return true;
-  }
-
-  @override
-  Future<bool> signInAnonymously() async {
-    state = state.copyWith(user: MockUser());
-    return true;
-  }
-
-  @override
-  Future<bool> signInWithGoogle() async {
-    state = state.copyWith(user: MockUser());
-    return true;
-  }
-
-  @override
-  Future<bool> signUp({
+  Future<firebase_auth.User?> signUp({
     required String email,
     required String password,
-    required String name,
-    required String surname,
-  }) async {
-    state = state.copyWith(user: MockUser());
-    return true;
+    required String displayName,
+  }) => _signIn('signUp', MockUser());
+
+  @override
+  Future<firebase_auth.User?> signInWithEmail({
+    required String email,
+    required String password,
+  }) => _signIn('signInWithEmail', MockUser());
+
+  @override
+  Future<firebase_auth.User?> signInWithGoogle() =>
+      _signIn('signInWithGoogle', MockUser());
+
+  @override
+  Future<firebase_auth.User?> signInAnonymously() =>
+      _signIn('signInAnonymously', MockUser(isAnonymous: true));
+
+  @override
+  Future<firebase_auth.User?> linkCurrentUserWithGoogle() =>
+      _signIn('linkCurrentUserWithGoogle', MockUser());
+
+  @override
+  Future<void> signOutFirebase() async {
+    calls.add('signOutFirebase');
+    _emit(null);
   }
 
   @override
-  Future<bool> linkWithGoogle() async {
-    return true;
+  Future<void> signOutGoogle() async => calls.add('signOutGoogle');
+
+  @override
+  Future<void> deleteCurrentUser() async {
+    calls.add('deleteCurrentUser');
+    if (deleteFailure case final error?) throw error;
+    _emit(null);
   }
 
   @override
-  Future<void> signOut() async {
-    state = AuthState();
+  Future<void> setBiometricToken(String uid, String? token) async =>
+      biometricTokens[uid] = token;
+
+  @override
+  Future<bool> isBiometricTokenValid(String uid, String token) async {
+    if (tokenCheckFailure case final error?) throw error;
+    return biometricTokens[uid] == token;
+  }
+
+  Future<firebase_auth.User?> _signIn(
+    String call,
+    firebase_auth.User user,
+  ) async {
+    calls.add(call);
+    if (failure case final error?) throw error;
+    _emit(user);
+    return user;
+  }
+
+  void _emit(firebase_auth.User? user) {
+    _user = user;
+    _changes.add(user);
   }
 }
 
-final defaultTestOverrides = [
+/// Service biométrique en mémoire : capteur [available] ou non, jeton et
+/// compte enregistrés sur l'appareil, empreinte acceptée si [authenticates].
+class FakeBiometricService extends Fake implements BiometricService {
+  FakeBiometricService({
+    this.available = false,
+    this.token,
+    this.userId,
+    this.authenticates = true,
+  });
+
+  bool available;
+  String? token;
+  String? userId;
+  bool authenticates;
+
+  @override
+  Future<bool> canUseFingerprint() async => available;
+
+  @override
+  Future<bool> authenticate() async => authenticates;
+
+  @override
+  String generateToken() => 'generated-token';
+
+  @override
+  Future<void> saveBiometricData(String userId, String token) async {
+    this.userId = userId;
+    this.token = token;
+  }
+
+  @override
+  Future<String?> getStoredToken() async => token;
+
+  @override
+  Future<String?> getStoredUserId() async => userId;
+
+  @override
+  Future<void> clearBiometricData() async {
+    token = null;
+    userId = null;
+  }
+}
+
+/// Overrides du harnais : dépôts factices, personne de connecté, pas
+/// d'empreinte. Une nouvelle liste (et de nouveaux faux) à chaque lecture.
+List<Object> get defaultTestOverrides => [
   userRepositoryProvider.overrideWithValue(FakeUserRepository()),
   birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
   categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),
   bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
-  authProvider.overrideWith(FakeAuthNotifier.new),
+  authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
+  biometricServiceProvider.overrideWithValue(FakeBiometricService()),
 ];

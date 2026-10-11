@@ -18,19 +18,16 @@ void main() {
   );
 
   group('session', () {
-    test(
-      'currentUser and authStateChanges reflect the signed-in user',
-      () async {
-        final auth = MockFirebaseAuth(
-          signedIn: true,
-          mockUser: MockUser(uid: 'u1'),
-        );
-        final repo = build(auth, FakeFirebaseFirestore());
+    test('currentUser and userChanges reflect the signed-in user', () async {
+      final auth = MockFirebaseAuth(
+        signedIn: true,
+        mockUser: MockUser(uid: 'u1'),
+      );
+      final repo = build(auth, FakeFirebaseFirestore());
 
-        expect(repo.currentUser?.uid, 'u1');
-        expect(await repo.authStateChanges().first, isNotNull);
-      },
-    );
+      expect(repo.currentUser?.uid, 'u1');
+      expect((await repo.userChanges().first)?.uid, 'u1');
+    });
   });
 
   group('sign-in / sign-up', () {

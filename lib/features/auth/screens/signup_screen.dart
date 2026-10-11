@@ -4,7 +4,7 @@ import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
 import 'package:flutter/material.dart';
@@ -66,35 +66,30 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     }
 
     unawaited(HapticFeedback.lightImpact());
-    final authNotifier = ref.read(authProvider.notifier);
-    final signUpNames = ref.read(signUpNamesProvider.notifier);
+    final controller = ref.read(authControllerProvider.notifier);
     // Le profil sera créé par app/bootstrap avec ces noms tels que saisis.
-    signUpNames.remember(
-      _nameController.text.trim(),
-      _surnameController.text.trim(),
-    );
+    ref
+        .read(signUpNamesProvider.notifier)
+        .remember(_nameController.text.trim(), _surnameController.text.trim());
 
-    final success = await authNotifier.signUp(
+    final success = await controller.signUp(
       email: _emailController.text.trim(),
       password: _passwordController.text,
       name: _nameController.text.trim(),
       surname: _surnameController.text.trim(),
     );
+    if (success && mounted) unawaited(HapticFeedback.mediumImpact());
+  }
 
-    if (!mounted) return;
-
-    final authState = ref.read(authProvider);
-    if (success && authState.user != null) {
-      unawaited(HapticFeedback.mediumImpact());
-    } else if (!success) {
-      signUpNames.clear();
+  /// Inscription ratée : rien ne doit rester pour une connexion suivante.
+  void _onAuthResult(AsyncValue<void>? _, AsyncValue<void> next) {
+    if (next case AsyncError(:final error)) {
+      if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+      ref.read(signUpNamesProvider.notifier).clear();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          content: Text(
-            authState.failure?.message(context) ??
-                context.l10n.registrationError,
-          ),
+          content: Text(authErrorMessage(context, error)),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -103,7 +98,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(authProvider.select((s) => s.isLoading));
+    ref.listen(authControllerProvider, _onAuthResult);
+    final isLoading = ref.watch(
+      authControllerProvider.select((s) => s.isLoading),
+    );
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 

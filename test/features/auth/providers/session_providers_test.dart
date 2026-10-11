@@ -1,4 +1,6 @@
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/core/services/biometric_service.dart';
+import 'package:an_ki/features/auth/data/auth_repository.dart';
+import 'package:an_ki/features/auth/domain/biometric_lock.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,34 +8,127 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../../support/fake_providers.dart';
 
 void main() {
-  ProviderContainer makeContainer(AuthState initial) => ProviderContainer.test(
-    overrides: [
-      authProvider.overrideWith(() => FakeAuthNotifier(initialState: initial)),
-    ],
-  );
+  late FakeAuthRepository repository;
+  late FakeBiometricService biometrics;
 
-  test('exposes the signed-in user id', () {
-    final container = makeContainer(AuthState(user: MockUser()));
-
-    expect(container.read(currentUidProvider), 'fake-uid');
+  setUp(() {
+    repository = FakeAuthRepository();
+    biometrics = FakeBiometricService();
   });
 
-  test('falls back to the biometric session id', () {
-    final container = makeContainer(AuthState(biometricUid: 'bio-uid'));
-
-    expect(container.read(currentUidProvider), 'bio-uid');
-  });
-
-  test('follows sign-in and sign-out', () {
-    final container = makeContainer(AuthState());
+  ProviderContainer makeContainer() {
+    final container = ProviderContainer.test(
+      retry: (_, _) => null,
+      overrides: [
+        authRepositoryProvider.overrideWithValue(repository),
+        biometricServiceProvider.overrideWithValue(biometrics),
+      ],
+    );
+    // Riverpod met en pause un provider sans écouteur.
     container.listen(currentUidProvider, (_, _) {});
-    final auth = container.read(authProvider.notifier);
+    container.listen(authAccessProvider, (_, _) {});
+    return container;
+  }
 
-    // Les dépendants sont notifiés en différé : on relit après chaque changement.
-    auth.state = AuthState(user: MockUser());
-    expect(container.read(currentUidProvider), 'fake-uid');
+  /// Laisse arriver la session et le verrou.
+  Future<void> settle() => Future<void>.delayed(Duration.zero);
 
-    auth.state = AuthState();
-    expect(container.read(currentUidProvider), isNull);
+  group('currentUidProvider', () {
+    test('exposes the signed-in user id', () async {
+      repository = FakeAuthRepository(user: MockUser());
+      final container = makeContainer();
+      await settle();
+
+      expect(container.read(currentUidProvider), 'fake-uid');
+    });
+
+    test('follows sign-in and sign-out', () async {
+      final container = makeContainer();
+      await settle();
+      expect(container.read(currentUidProvider), isNull);
+
+      await repository.signInWithEmail(email: 'a', password: 'b');
+      await settle();
+      expect(container.read(currentUidProvider), 'fake-uid');
+
+      await repository.signOutFirebase();
+      await settle();
+      expect(container.read(currentUidProvider), isNull);
+    });
+
+    test('falls back to the account opened by the fingerprint', () async {
+      final container = makeContainer();
+      await settle();
+
+      container.read(biometricLockProvider.notifier).unlock(uid: 'bio-uid');
+
+      expect(container.read(currentUidProvider), 'bio-uid');
+    });
+  });
+
+  group('biometricLockProvider', () {
+    Future<BiometricLock> lockFor(FakeBiometricService service) {
+      biometrics = service;
+      return makeContainer().read(biometricLockProvider.future);
+    }
+
+    test('is enabled and locked with a fingerprint and a token', () async {
+      expect(
+        await lockFor(FakeBiometricService(available: true, token: 'tok')),
+        const BiometricLock(enabled: true),
+      );
+    });
+
+    test('is disabled without a token or without a sensor', () async {
+      expect(
+        await lockFor(FakeBiometricService(available: true)),
+        BiometricLock.disabled,
+      );
+      expect(
+        await lockFor(FakeBiometricService(token: 'tok')),
+        BiometricLock.disabled,
+      );
+    });
+  });
+
+  group('authAccessProvider', () {
+    test('is unknown until the session and the lock are read', () {
+      final container = makeContainer();
+
+      expect(container.read(authAccessProvider), isNull);
+    });
+
+    test('grants a session without biometrics', () async {
+      repository = FakeAuthRepository(user: MockUser());
+      final container = makeContainer();
+      await settle();
+
+      expect(container.read(authAccessProvider), AuthAccess.granted);
+    });
+
+    test('is signed out without a session', () async {
+      final container = makeContainer();
+      await settle();
+
+      expect(container.read(authAccessProvider), AuthAccess.signedOut);
+    });
+
+    test('locks a restored session until it is unlocked', () async {
+      repository = FakeAuthRepository(user: MockUser());
+      biometrics = FakeBiometricService(available: true, token: 'tok');
+      final container = makeContainer();
+      await settle();
+
+      expect(container.read(authAccessProvider), AuthAccess.locked);
+      // Verrouillée, l'app garde la session : données et rappels suivent.
+      expect(container.read(currentUidProvider), 'fake-uid');
+
+      container.read(biometricLockProvider.notifier).unlock();
+      expect(container.read(authAccessProvider), AuthAccess.granted);
+
+      container.read(biometricLockProvider.notifier).lock();
+      expect(container.read(authAccessProvider), AuthAccess.locked);
+      expect(container.read(currentUidProvider), 'fake-uid');
+    });
   });
 }

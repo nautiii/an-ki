@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/domain/biometric_lock.dart';
+import 'package:an_ki/features/auth/providers/auth_controller.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/domain/contact_import_failure.dart';
 import 'package:an_ki/features/birthday/providers/contact_import.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
@@ -51,8 +53,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _handleSignOut(BuildContext context) async {
-    final authState = ref.read(authProvider);
-    final isAnonymous = authState.isAnonymous;
+    final isAnonymous = ref.read(authUserProvider).value?.isAnonymous ?? false;
 
     await showDialog<void>(
       context: context,
@@ -77,7 +78,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 final success = await ref
-                    .read(authProvider.notifier)
+                    .read(authControllerProvider.notifier)
                     .linkWithGoogle();
                 if (success && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -89,7 +90,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           TextButton(
             onPressed: () async {
-              final authNotifier = ref.read(authProvider.notifier);
+              final authController = ref.read(authControllerProvider.notifier);
 
               // Fermer le dialogue de confirmation
               Navigator.of(dialogContext).pop();
@@ -112,7 +113,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Déconnexion : les données suivent la session et se vident
               // seules.
 
-              await authNotifier.signOut();
+              await authController.signOut();
             },
             child: Text(
               isAnonymous
@@ -127,10 +128,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _handleDeleteAccount(BuildContext context) async {
-    final authState = ref.read(authProvider);
-    final uid = authState.user?.uid;
-
-    if (uid == null) return;
+    // Seul un compte Firebase se supprime (pas une session biométrique seule).
+    if (ref.read(authUserProvider).value == null) return;
 
     await showDialog<void>(
       context: context,
@@ -144,7 +143,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           TextButton(
             onPressed: () async {
-              final authNotifier = ref.read(authProvider.notifier);
+              final authController = ref.read(authControllerProvider.notifier);
               final accountDeletion = ref.read(
                 accountDeletionProvider.notifier,
               );
@@ -152,17 +151,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               Navigator.of(dialogContext).pop();
 
+              var deleted = false;
               try {
                 // 1. Supprimer les données Firestore
                 await accountDeletion.eraseData();
                 // 2. Supprimer le compte Auth
-                await authNotifier.deleteAccount();
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.deleteAccountError)),
-                  );
-                }
+                deleted = await authController.deleteAccount();
+              } catch (_) {
+                // Effacement des données refusé : le compte reste.
+              }
+              if (!deleted && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.deleteAccountError)),
+                );
               }
             },
             child: Text(
@@ -207,8 +208,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         );
       }
     });
-    ref.listen(authProvider, (previous, next) {
-      if (!next.isAuthenticated && previous?.isAuthenticated == true) {
+    // Déconnexion ou verrouillage : retour à l'écran de connexion.
+    ref.listen(authAccessProvider, (previous, next) {
+      if (previous == AuthAccess.granted && next != AuthAccess.granted) {
         if (context.mounted) {
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
@@ -218,8 +220,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentLocale = ref.watch(localeProvider);
-    final canUseBiometrics = ref.watch(
-      authProvider.select((s) => s.canUseBiometrics),
+    final biometricsEnabled = ref.watch(
+      biometricLockProvider.select((lock) => lock.value?.enabled ?? false),
     );
 
     return Scaffold(
@@ -270,22 +272,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               title: Text(context.l10n.biometricConnexion),
               subtitle: Text(context.l10n.biometricConnexionDescription),
               secondary: const Icon(Icons.fingerprint_rounded),
-              value: canUseBiometrics,
+              value: biometricsEnabled,
               onChanged: (bool value) async {
-                if (value) {
-                  await ref.read(authProvider.notifier).enableBiometrics();
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(context.l10n.biometricEnabled)),
-                    );
-                  }
-                } else {
-                  await ref.read(authProvider.notifier).disableBiometrics();
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(context.l10n.biometricDisabled)),
-                    );
-                  }
+                final controller = ref.read(authControllerProvider.notifier);
+                final done = value
+                    ? await controller.enableBiometrics()
+                    : await controller.disableBiometrics();
+                if (done && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        value
+                            ? context.l10n.biometricEnabled
+                            : context.l10n.biometricDisabled,
+                      ),
+                    ),
+                  );
                 }
               },
             ),

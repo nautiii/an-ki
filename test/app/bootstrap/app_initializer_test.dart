@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:an_ki/app/bootstrap/app_initializer.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/core/services/biometric_service.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
@@ -41,17 +42,16 @@ void main() {
   }) => tester.pumpHarness(
     const AppInitializer(child: _Child()),
     overrides: [
-      authProvider.overrideWith(
-        () => FakeAuthNotifier(
-          initialState: AuthState(
-            user: fam.MockUser(
-              uid: 'u1',
-              isAnonymous: anonymous,
-              displayName: displayName,
-            ),
+      authUserProvider.overrideWithValue(
+        AsyncData(
+          fam.MockUser(
+            uid: 'u1',
+            isAnonymous: anonymous,
+            displayName: displayName,
           ),
         ),
       ),
+      biometricServiceProvider.overrideWithValue(FakeBiometricService()),
       userRepositoryProvider.overrideWithValue(users),
       if (typedNames != null)
         signUpNamesProvider.overrideWithBuild((ref, notifier) => typedNames),

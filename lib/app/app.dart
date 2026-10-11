@@ -2,7 +2,8 @@ import 'package:an_ki/app/bootstrap/app_initializer.dart';
 import 'package:an_ki/app/router/app_router.dart';
 import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/theme/themes.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/domain/biometric_lock.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/reminders/providers/reminder_sync_provider.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
@@ -20,9 +21,7 @@ class App extends ConsumerWidget {
     // que personne n'écoute est mis en pause.
     ref.watch(reminderSyncProvider);
     final themeMode = ref.watch(themeProvider);
-    final isAuthenticated = ref.watch(
-      authProvider.select((s) => s.isAuthenticated),
-    );
+    final access = ref.watch(authAccessProvider);
     final locale = ref.watch(localeProvider);
 
     return MaterialApp(
@@ -33,10 +32,22 @@ class App extends ConsumerWidget {
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: isAuthenticated
-          ? const AppInitializer(child: MainShell())
-          : const AuthChoiceScreen(),
+      home: switch (access) {
+        AuthAccess.granted => const AppInitializer(child: MainShell()),
+        AuthAccess.signedOut || AuthAccess.locked => const AuthChoiceScreen(),
+        null => const _StartupScreen(),
+      },
       routes: AppRouter.routes,
     );
   }
+}
+
+/// Démarrage : session et verrou biométrique pas encore connus (quelques
+/// millisecondes). Un fond neutre, plutôt que l'écran de connexion qui
+/// clignoterait avant l'app ou le verrou.
+class _StartupScreen extends StatelessWidget {
+  const _StartupScreen();
+
+  @override
+  Widget build(BuildContext context) => const Scaffold();
 }

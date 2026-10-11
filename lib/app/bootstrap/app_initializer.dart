@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/services/notification_service.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
@@ -74,9 +73,9 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
   Future<void> _createMissingProfile() async {
     if (!mounted) return;
     final uid = ref.read(currentUidProvider);
-    final auth = ref.read(authProvider);
+    final user = ref.read(authUserProvider).value;
     // Sans compte Firebase (session biométrique seule), rien à créer.
-    if (uid == null || auth.user == null || uid == _creatingProfileFor) return;
+    if (uid == null || user == null || uid == _creatingProfileFor) return;
     // Le profil a pu arriver entre-temps.
     if (ref.read(userProfileProvider).value != null) return;
 
@@ -85,8 +84,8 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
     final (name, surname) = typed != null
         ? (typed.name, typed.surname)
         : _namesFromDisplayName(
-            auth.user!.displayName ?? '',
-            fallback: auth.isAnonymous ? context.l10n.guest : '-',
+            user.displayName ?? '',
+            fallback: user.isAnonymous ? context.l10n.guest : '-',
           );
     final profile = UserModel(
       id: uid,

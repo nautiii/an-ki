@@ -1,6 +1,7 @@
 import 'package:an_ki/core/common/header.dart';
+import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/contacts_service.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
@@ -15,37 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
-import '../../../support/platform_mocks.dart';
 import '../../../support/test_harness.dart';
-
-class SettingsAuthNotifier extends FakeAuthNotifier {
-  SettingsAuthNotifier({super.initialState, this.throwOnDelete = false});
-
-  final bool throwOnDelete;
-  // Espion du test : champ public voulu sur ce faux notifier.
-  // ignore: riverpod_lint/avoid_public_notifier_properties
-  bool signedOut = false;
-
-  @override
-  Future<void> enableBiometrics() async =>
-      state = state.copyWith(canUseBiometrics: true);
-  @override
-  Future<void> disableBiometrics() async =>
-      state = state.copyWith(canUseBiometrics: false);
-  @override
-  Future<bool> linkWithGoogle() async => true;
-  @override
-  Future<void> signOut() async {
-    signedOut = true;
-    state = AuthState();
-  }
-
-  @override
-  Future<void> deleteAccount() async {
-    if (throwOnDelete) throw Exception('delete failed');
-    state = AuthState();
-  }
-}
 
 User _user({bool anonymous = false}) =>
     fam.MockUser(uid: 'uid-1', isAnonymous: anonymous, displayName: 'T');
@@ -66,18 +37,17 @@ class _DeniedContactsService extends ContactsService {
 }
 
 void main() {
-  late FakeBiometricChannels channels;
-
-  setUp(() => channels = FakeBiometricChannels()..install());
-  tearDown(() => channels.uninstall());
-
+  /// Réglages d'une session ouverte (`uid-1`) sur un appareil à empreinte.
   List<dynamic> overridesWith({
-    SettingsAuthNotifier? auth,
+    FakeAuthRepository? auth,
     RecordingUserRepository? users,
+    FakeBiometricService? biometrics,
   }) => [
-    authProvider.overrideWith(
-      () =>
-          auth ?? SettingsAuthNotifier(initialState: AuthState(user: _user())),
+    authRepositoryProvider.overrideWithValue(
+      auth ?? FakeAuthRepository(user: _user()),
+    ),
+    biometricServiceProvider.overrideWithValue(
+      biometrics ?? FakeBiometricService(available: true),
     ),
     // Comme dans l'app : le démarrage attend le premier profil, il est donc
     // déjà là quand les réglages s'ouvrent.
@@ -127,10 +97,10 @@ void main() {
   });
 
   testWidgets('toggles the biometric switch on and off', (tester) async {
-    final auth = SettingsAuthNotifier(initialState: AuthState(user: _user()));
+    final biometrics = FakeBiometricService(available: true);
     await tester.pumpHarness(
       const SettingsScreen(),
-      overrides: overridesWith(auth: auth),
+      overrides: overridesWith(biometrics: biometrics),
     );
     await tester.pumpAndSettle();
 
@@ -138,11 +108,12 @@ void main() {
 
     await tester.tap(find.text('Connexion biométrique'));
     await tester.pumpAndSettle();
-    expect(auth.state.canUseBiometrics, isTrue);
+    expect(biometrics.token, isNotNull);
+    expect(find.text('Connexion biométrique activée !'), findsOneWidget);
 
     await tester.tap(find.text('Connexion biométrique'));
     await tester.pumpAndSettle();
-    expect(auth.state.canUseBiometrics, isFalse);
+    expect(biometrics.token, isNull);
   });
 
   testWidgets('changes the language through the dropdown', (tester) async {
@@ -224,7 +195,7 @@ void main() {
 
   group('sign out', () {
     testWidgets('confirms and signs out a regular account', (tester) async {
-      final auth = SettingsAuthNotifier(initialState: AuthState(user: _user()));
+      final auth = FakeAuthRepository(user: _user());
       await tester.pumpHarness(
         const SettingsScreen(),
         overrides: overridesWith(auth: auth),
@@ -243,13 +214,11 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
-      expect(auth.signedOut, isTrue);
+      expect(auth.calls, contains('signOutFirebase'));
     });
 
     testWidgets('offers to save data for anonymous accounts', (tester) async {
-      final auth = SettingsAuthNotifier(
-        initialState: AuthState(user: _user(anonymous: true)),
-      );
+      final auth = FakeAuthRepository(user: _user(anonymous: true));
       await tester.pumpHarness(
         const SettingsScreen(),
         overrides: overridesWith(auth: auth),
@@ -267,9 +236,7 @@ void main() {
     });
 
     testWidgets('an anonymous account can delete and leave', (tester) async {
-      final auth = SettingsAuthNotifier(
-        initialState: AuthState(user: _user(anonymous: true)),
-      );
+      final auth = FakeAuthRepository(user: _user(anonymous: true));
       await tester.pumpHarness(
         const SettingsScreen(),
         overrides: overridesWith(auth: auth),
@@ -283,11 +250,11 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
-      expect(auth.signedOut, isTrue);
+      expect(auth.calls, contains('signOutFirebase'));
     });
 
     testWidgets('cancelling the sign-out dialog does nothing', (tester) async {
-      final auth = SettingsAuthNotifier(initialState: AuthState(user: _user()));
+      final auth = FakeAuthRepository(user: _user());
       await tester.pumpHarness(
         const SettingsScreen(),
         overrides: overridesWith(auth: auth),
@@ -299,7 +266,7 @@ void main() {
       await tester.tap(find.text('Annuler'));
       await tester.pumpAndSettle();
 
-      expect(auth.signedOut, isFalse);
+      expect(auth.calls, isEmpty);
     });
   });
 
@@ -340,9 +307,9 @@ void main() {
   });
 
   testWidgets('shows an error when account deletion fails', (tester) async {
-    final auth = SettingsAuthNotifier(
-      initialState: AuthState(user: _user()),
-      throwOnDelete: true,
+    final auth = FakeAuthRepository(
+      user: _user(),
+      deleteFailure: Exception('delete failed'),
     );
     await tester.pumpHarness(
       const SettingsScreen(),

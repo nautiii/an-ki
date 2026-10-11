@@ -1,5 +1,5 @@
 import 'package:an_ki/core/routing/app_routes.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_model.dart';
@@ -43,9 +43,7 @@ void main() {
     List<String> userCategories = const [],
     List<BirthdayCategory> repoCategories = const [],
   }) => [
-    authProvider.overrideWith(
-      () => FakeAuthNotifier(initialState: AuthState(user: MockUser())),
-    ),
+    currentUidProvider.overrideWithValue('fake-uid'),
     userProfileProvider.overrideWithValue(
       AsyncData(
         UserModel(

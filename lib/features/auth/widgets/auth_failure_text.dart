@@ -22,3 +22,8 @@ extension AuthFailureText on AuthFailure {
     };
   }
 }
+
+/// Message d'une erreur publiée par `AuthController` : un [AuthFailure],
+/// sinon le message générique.
+String authErrorMessage(BuildContext context, Object error) =>
+    (error is AuthFailure ? error : AuthFailure.unknown).message(context);

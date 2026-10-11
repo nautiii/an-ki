@@ -4,7 +4,9 @@ import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/domain/biometric_lock.dart';
+import 'package:an_ki/features/auth/providers/auth_controller.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,45 +23,43 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
   @override
   void initState() {
     super.initState();
-    // Lancement automatique de la biométrie au démarrage si disponible.
+    // App verrouillée par l'empreinte : l'invite s'ouvre d'elle-même.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final authState = ref.read(authProvider);
-      if (authState.canUseBiometrics) {
+      if (ref.read(authAccessProvider) == AuthAccess.locked) {
         _handleBiometricSignIn();
       }
     });
   }
 
   void _handleBiometricSignIn() async {
-    final authNotifier = ref.read(authProvider.notifier);
-    final success = await authNotifier.signInWithBiometricToken();
+    final unlocked = await ref
+        .read(authControllerProvider.notifier)
+        .unlockWithBiometrics();
+    if (unlocked && mounted) unawaited(HapticFeedback.mediumImpact());
+  }
 
-    if (!mounted) return;
-
-    if (!success) {
-      // Rien à signaler pour une annulation manuelle : pas d'échec publié.
-      final failure = ref.read(authProvider).failure;
-      if (failure != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            content: Text(failure.message(context)),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } else {
-      unawaited(HapticFeedback.mediumImpact());
+  /// Échec d'une connexion lancée ici ; un écran poussé au-dessus (connexion
+  /// par e-mail) annonce les siens.
+  void _onAuthResult(AsyncValue<void>? _, AsyncValue<void> next) {
+    if (next case AsyncError(:final error)) {
+      if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text(authErrorMessage(context, error)),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(authProvider.select((s) => s.isLoading));
+    ref.listen(authControllerProvider, _onAuthResult);
+    final isLoading = ref.watch(
+      authControllerProvider.select((s) => s.isLoading),
+    );
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -190,44 +190,20 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
 
   void _handleGoogleSignIn(BuildContext context, WidgetRef ref) async {
     unawaited(HapticFeedback.lightImpact());
-    final authNotifier = ref.read(authProvider.notifier);
-    final success = await authNotifier.signInWithGoogle();
-    if (!context.mounted) return;
-
-    if (!success) {
-      final failure = ref.read(authProvider).failure;
-      if (failure != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text(failure.message(context)),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } else {
+    final success = await ref
+        .read(authControllerProvider.notifier)
+        .signInWithGoogle();
+    if (success && context.mounted) {
       unawaited(HapticFeedback.mediumImpact());
     }
   }
 
   void _handleAnonymousSignIn(BuildContext context, WidgetRef ref) async {
     unawaited(HapticFeedback.lightImpact());
-    final authNotifier = ref.read(authProvider.notifier);
-    final success = await authNotifier.signInAnonymously();
-    if (!context.mounted) return;
-
-    if (!success) {
-      final failure = ref.read(authProvider).failure;
-      if (failure != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text(failure.message(context)),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } else {
+    final success = await ref
+        .read(authControllerProvider.notifier)
+        .signInAnonymously();
+    if (success && context.mounted) {
       unawaited(HapticFeedback.mediumImpact());
     }
   }

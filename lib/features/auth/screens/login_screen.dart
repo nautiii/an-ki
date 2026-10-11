@@ -4,7 +4,7 @@ import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -42,36 +42,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     unawaited(HapticFeedback.lightImpact());
-    final authNotifier = ref.read(authProvider.notifier);
-    final success = await authNotifier.signIn(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
+    final success = await ref
+        .read(authControllerProvider.notifier)
+        .signIn(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+    if (success && mounted) unawaited(HapticFeedback.mediumImpact());
+  }
 
-    if (!mounted) return;
-
-    if (!success) {
-      final authState = ref.read(authProvider);
+  void _onAuthResult(AsyncValue<void>? _, AsyncValue<void> next) {
+    if (next case AsyncError(:final error)) {
+      if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          content: Text(
-            authState.failure?.message(context) ?? context.l10n.connectionError,
-          ),
+          content: Text(authErrorMessage(context, error)),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
-    } else {
-      unawaited(HapticFeedback.mediumImpact());
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(authProvider.select((s) => s.isLoading));
+    ref.listen(authControllerProvider, _onAuthResult);
+    final isLoading = ref.watch(
+      authControllerProvider.select((s) => s.isLoading),
+    );
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 

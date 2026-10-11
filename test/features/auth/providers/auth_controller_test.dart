@@ -1,6 +1,8 @@
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
-import 'package:an_ki/features/auth/providers/auth_provider.dart';
+import 'package:an_ki/features/auth/domain/biometric_lock.dart';
+import 'package:an_ki/features/auth/providers/auth_controller.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
@@ -10,7 +12,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:mock_exceptions/mock_exceptions.dart';
 
-import '../../support/platform_mocks.dart';
+import '../../../support/platform_mocks.dart';
 
 /// AuthRepository whose biometric lookup always throws, to drive the error path.
 class _ThrowingAuthRepository extends AuthRepository {
@@ -87,12 +89,16 @@ void main() {
         isAnonymous: anonymous,
       );
 
+  /// Conteneur sur le vrai dépôt (Firebase simulé) et le vrai service
+  /// biométrique (canaux simulés). On écoute l'accès et l'uid : Riverpod met
+  /// en pause un provider sans écouteur.
   ProviderContainer makeContainer(
     MockFirebaseAuth auth, {
     FakeFirebaseFirestore? firestore,
     AuthRepository? repository,
   }) {
-    final container = ProviderContainer(
+    final container = ProviderContainer.test(
+      retry: (_, _) => null,
       overrides: [
         authRepositoryProvider.overrideWithValue(
           repository ??
@@ -104,90 +110,81 @@ void main() {
         ),
       ],
     );
-    addTearDown(container.dispose);
+    container.listen(authAccessProvider, (_, _) {});
+    container.listen(currentUidProvider, (_, _) {});
     return container;
   }
 
-  group('AuthState', () {
-    test('isAuthenticated relies on biometrics when configured', () {
-      final state = AuthState(canUseBiometrics: true);
-      expect(state.isAuthenticated, isFalse);
-      expect(
-        state.copyWith(isBiometricallyAuthenticated: true).isAuthenticated,
-        isTrue,
-      );
-    });
+  AuthController controllerOf(ProviderContainer container) =>
+      container.read(authControllerProvider.notifier);
 
-    test('isAuthenticated falls back to the Firebase session', () {
-      expect(AuthState(user: buildUser()).isAuthenticated, isTrue);
-      expect(AuthState().isAuthenticated, isFalse);
-    });
+  Object? failureOf(ProviderContainer container) =>
+      container.read(authControllerProvider).error;
 
-    test('isAnonymous and uid expose the user details', () {
-      expect(AuthState(user: buildUser(anonymous: true)).isAnonymous, isTrue);
-      expect(AuthState(user: buildUser()).uid, 'uid-1');
-      expect(AuthState(biometricUid: 'bio').uid, 'bio');
-    });
-  });
+  /// Laisse arriver la session Firebase et la lecture du verrou biométrique.
+  Future<void> settle() async {
+    for (var i = 0; i < 5; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+  }
 
   group('email/password', () {
-    test('signIn succeeds and stores the user', () async {
+    test('signIn opens the session', () async {
       final auth = MockFirebaseAuth(mockUser: buildUser());
       final container = makeContainer(auth);
 
-      final ok = await container
-          .read(authProvider.notifier)
+      final ok = await controllerOf(container)
           .signIn(email: 'test@example.com', password: 'pwd');
+      await settle();
 
       expect(ok, isTrue);
-      expect(container.read(authProvider).user?.uid, 'uid-1');
+      expect(container.read(currentUidProvider), 'uid-1');
+      expect(container.read(authAccessProvider), AuthAccess.granted);
+      expect(container.read(authControllerProvider), isA<AsyncData<void>>());
     });
 
-    test('signIn maps FirebaseAuthException codes to messages', () async {
+    test('signIn maps FirebaseAuthException codes to failures', () async {
       final auth = MockFirebaseAuth(mockUser: buildUser());
       whenCalling(Invocation.method(#signInWithEmailAndPassword, []))
           .on(auth)
           .thenThrow(FirebaseAuthException(code: 'wrong-password'));
       final container = makeContainer(auth);
 
-      final ok = await container
-          .read(authProvider.notifier)
+      final ok = await controllerOf(container)
           .signIn(email: 'test@example.com', password: 'bad');
 
       expect(ok, isFalse);
-      expect(container.read(authProvider).failure, AuthFailure.wrongPassword);
+      expect(failureOf(container), AuthFailure.wrongPassword);
     });
 
-    test('signIn maps unexpected errors to a generic message', () async {
+    test('signIn maps unexpected errors to a generic failure', () async {
       final auth = MockFirebaseAuth(mockUser: buildUser());
       whenCalling(Invocation.method(#signInWithEmailAndPassword, []))
           .on(auth)
           .thenThrow(Exception('network'));
       final container = makeContainer(auth);
 
-      final ok = await container
-          .read(authProvider.notifier)
+      final ok = await controllerOf(container)
           .signIn(email: 'x', password: 'y');
 
       expect(ok, isFalse);
-      expect(container.read(authProvider).failure, AuthFailure.signInFailed);
+      expect(failureOf(container), AuthFailure.signInFailed);
     });
 
-    test('signUp succeeds', () async {
+    test('signUp opens the session', () async {
       final auth = MockFirebaseAuth();
       final container = makeContainer(auth);
 
-      final ok = await container
-          .read(authProvider.notifier)
-          .signUp(
-            email: 'new@example.com',
-            password: 'pwd',
-            name: 'New',
-            surname: 'User',
-          );
+      final ok = await controllerOf(container).signUp(
+        email: 'new@example.com',
+        password: 'pwd',
+        name: 'New',
+        surname: 'User',
+      );
+      await settle();
 
       expect(ok, isTrue);
-      expect(container.read(authProvider).user, isNotNull);
+      expect(container.read(currentUidProvider), isNotNull);
     });
 
     test('signUp maps the weak-password code', () async {
@@ -197,27 +194,25 @@ void main() {
           .thenThrow(FirebaseAuthException(code: 'weak-password'));
       final container = makeContainer(auth);
 
-      final ok = await container
-          .read(authProvider.notifier)
+      final ok = await controllerOf(container)
           .signUp(email: 'x', password: 'y', name: 'N', surname: 'S');
 
       expect(ok, isFalse);
-      expect(container.read(authProvider).failure, AuthFailure.weakPassword);
+      expect(failureOf(container), AuthFailure.weakPassword);
     });
 
-    test('signUp maps unexpected errors to the registration message', () async {
+    test('signUp maps unexpected errors to the registration failure', () async {
       final auth = MockFirebaseAuth();
       whenCalling(Invocation.method(#createUserWithEmailAndPassword, []))
           .on(auth)
           .thenThrow(Exception('boom'));
       final container = makeContainer(auth);
 
-      final ok = await container
-          .read(authProvider.notifier)
+      final ok = await controllerOf(container)
           .signUp(email: 'x', password: 'y', name: 'N', surname: 'S');
 
       expect(ok, isFalse);
-      expect(container.read(authProvider).failure, AuthFailure.signUpFailed);
+      expect(failureOf(container), AuthFailure.signUpFailed);
     });
 
     test('a new operation clears the previous failure', () async {
@@ -226,26 +221,24 @@ void main() {
           .on(auth)
           .thenThrow(FirebaseAuthException(code: 'wrong-password'));
       final container = makeContainer(auth);
-      final notifier = container.read(authProvider.notifier);
-      await notifier.signIn(email: 'a', password: 'bad');
-      expect(container.read(authProvider).failure, AuthFailure.wrongPassword);
+      final controller = controllerOf(container);
+      await controller.signIn(email: 'a', password: 'bad');
+      expect(failureOf(container), AuthFailure.wrongPassword);
 
-      await notifier.signInAnonymously();
+      await controller.signInAnonymously();
 
-      expect(container.read(authProvider).failure, isNull);
+      expect(container.read(authControllerProvider), isA<AsyncData<void>>());
     });
 
     test('maps the documented Firebase codes to failures', () async {
-      Future<AuthFailure?> failureFor(String code) async {
+      Future<Object?> failureFor(String code) async {
         final auth = MockFirebaseAuth(mockUser: buildUser());
         whenCalling(Invocation.method(#signInWithEmailAndPassword, []))
             .on(auth)
             .thenThrow(FirebaseAuthException(code: code));
         final container = makeContainer(auth);
-        await container
-            .read(authProvider.notifier)
-            .signIn(email: 'a', password: 'b');
-        return container.read(authProvider).failure;
+        await controllerOf(container).signIn(email: 'a', password: 'b');
+        return failureOf(container);
       }
 
       expect(await failureFor('invalid-email'), AuthFailure.invalidEmail);
@@ -255,6 +248,17 @@ void main() {
         AuthFailure.emailAlreadyInUse,
       );
       expect(await failureFor('something-else'), AuthFailure.unknown);
+    });
+
+    test('ignores a second call while one is running', () async {
+      final auth = MockFirebaseAuth(mockUser: buildUser());
+      final controller = controllerOf(makeContainer(auth));
+
+      final first = controller.signIn(email: 'a', password: 'b');
+      final second = await controller.signIn(email: 'a', password: 'b');
+
+      expect(second, isFalse);
+      expect(await first, isTrue);
     });
   });
 
@@ -268,7 +272,7 @@ void main() {
           GoogleSignInException(code: code),
         ),
       );
-      final ok = await container.read(authProvider.notifier).signInWithGoogle();
+      final ok = await controllerOf(container).signInWithGoogle();
       expect(ok, isFalse);
       return container;
     }
@@ -278,8 +282,7 @@ void main() {
         GoogleSignInExceptionCode.canceled,
       );
 
-      expect(container.read(authProvider).failure, isNull);
-      expect(container.read(authProvider).isLoading, isFalse);
+      expect(container.read(authControllerProvider), isA<AsyncData<void>>());
     });
 
     test('a Google plugin error is reported', () async {
@@ -287,24 +290,20 @@ void main() {
         GoogleSignInExceptionCode.unknownError,
       );
 
-      expect(
-        container.read(authProvider).failure,
-        AuthFailure.googleSignInFailed,
-      );
+      expect(failureOf(container), AuthFailure.googleSignInFailed);
     });
   });
 
   group('anonymous', () {
-    test('signInAnonymously succeeds', () async {
+    test('signInAnonymously opens a session', () async {
       final auth = MockFirebaseAuth(mockUser: buildUser(anonymous: true));
       final container = makeContainer(auth);
 
-      final ok = await container
-          .read(authProvider.notifier)
-          .signInAnonymously();
+      final ok = await controllerOf(container).signInAnonymously();
+      await settle();
 
       expect(ok, isTrue);
-      expect(container.read(authProvider).user, isNotNull);
+      expect(container.read(authUserProvider).value?.isAnonymous, isTrue);
     });
 
     test('signInAnonymously reports failures', () async {
@@ -314,31 +313,21 @@ void main() {
           .thenThrow(FirebaseAuthException(code: 'operation-not-allowed'));
       final container = makeContainer(auth);
 
-      final ok = await container
-          .read(authProvider.notifier)
-          .signInAnonymously();
+      final ok = await controllerOf(container).signInAnonymously();
 
       expect(ok, isFalse);
-      expect(container.read(authProvider).failure, AuthFailure.unknown);
+      expect(failureOf(container), AuthFailure.unknown);
     });
   });
 
   group('startup', () {
-    /// Laisse la session Firebase et la vérification biométrique aboutir.
-    Future<void> settle() async {
-      for (var i = 0; i < 5; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-    }
-
     test('a restored session opens the app without biometrics', () async {
       final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
       final container = makeContainer(auth);
-      container.listen(authProvider, (_, _) {});
       await settle();
 
-      expect(container.read(authProvider).isAuthenticated, isTrue);
-      expect(container.read(authProvider).uid, 'uid-1');
+      expect(container.read(authAccessProvider), AuthAccess.granted);
+      expect(container.read(currentUidProvider), 'uid-1');
     });
 
     test(
@@ -348,12 +337,11 @@ void main() {
         channels.storage[_uidKey] = 'uid-1';
         final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
         final container = makeContainer(auth);
-        container.listen(authProvider, (_, _) {});
         await settle();
 
         // Verrouillée, l'app garde la session : les données suivent derrière.
-        expect(container.read(authProvider).isAuthenticated, isFalse);
-        expect(container.read(authProvider).uid, 'uid-1');
+        expect(container.read(authAccessProvider), AuthAccess.locked);
+        expect(container.read(currentUidProvider), 'uid-1');
       },
     );
 
@@ -366,26 +354,23 @@ void main() {
       channels.storage[_uidKey] = 'uid-1';
       final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
       final container = makeContainer(auth, firestore: firestore);
-      container.listen(authProvider, (_, _) {});
       await settle();
 
-      final ok = await container
-          .read(authProvider.notifier)
-          .signInWithBiometricToken();
+      final ok = await controllerOf(container).unlockWithBiometrics();
 
       expect(ok, isTrue);
-      expect(container.read(authProvider).isAuthenticated, isTrue);
+      expect(container.read(authAccessProvider), AuthAccess.granted);
     });
   });
 
   group('linking an anonymous account to Google', () {
-    Future<(bool, AuthFailure?)> link(_LinkingAuthRepository repository) async {
+    Future<(bool, Object?)> link(_LinkingAuthRepository repository) async {
       final container = makeContainer(
         MockFirebaseAuth(),
         repository: repository,
       );
-      final ok = await container.read(authProvider.notifier).linkWithGoogle();
-      return (ok, container.read(authProvider).failure);
+      final ok = await controllerOf(container).linkWithGoogle();
+      return (ok, failureOf(container));
     }
 
     test('succeeds', () async {
@@ -422,72 +407,100 @@ void main() {
   });
 
   group('signOut', () {
-    test('a full sign-out clears the Firebase user', () async {
+    test('a full sign-out closes the Firebase session', () async {
       final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
       final container = makeContainer(auth);
-      await container
-          .read(authProvider.notifier)
-          .signIn(email: 'a', password: 'b');
+      await controllerOf(container).signIn(email: 'a', password: 'b');
 
-      await container.read(authProvider.notifier).signOut();
+      await controllerOf(container).signOut();
+      await settle();
 
-      expect(container.read(authProvider).user, isNull);
+      expect(auth.currentUser, isNull);
+      expect(container.read(currentUidProvider), isNull);
+      expect(container.read(authAccessProvider), AuthAccess.signedOut);
     });
 
-    test('a biometric lock keeps the Firebase session', () async {
-      final auth = MockFirebaseAuth(mockUser: buildUser());
+    test('with biometrics, signing out only locks the app', () async {
+      final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
       final container = makeContainer(auth);
-      await container
-          .read(authProvider.notifier)
-          .signIn(email: 'a', password: 'b');
-      channels.storage[_tokenKey] = 'tok'; // biometric configured
+      await settle();
+      await controllerOf(container).enableBiometrics();
 
-      await container.read(authProvider.notifier).signOut();
+      await controllerOf(container).signOut();
+      await settle();
 
-      expect(container.read(authProvider).user, isNotNull);
-      expect(
-        container.read(authProvider).isBiometricallyAuthenticated,
-        isFalse,
-      );
+      expect(auth.currentUser, isNotNull);
+      expect(container.read(currentUidProvider), 'uid-1');
+      expect(container.read(authAccessProvider), AuthAccess.locked);
+    });
+
+    test('records a failure when it throws', () async {
+      final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
+      whenCalling(Invocation.method(#signOut, [null]))
+          .on(auth)
+          .thenThrow(FirebaseAuthException(code: 'fail'));
+      final container = makeContainer(auth);
+
+      final ok = await controllerOf(container).signOut();
+
+      expect(ok, isFalse);
+      expect(failureOf(container), AuthFailure.signOutFailed);
     });
   });
 
   group('biometrics', () {
-    test('enableBiometrics stores a token and flips the flag', () async {
+    test('enableBiometrics stores a token and enables the lock', () async {
       final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
       final firestore = FakeFirebaseFirestore();
       final container = makeContainer(auth, firestore: firestore);
+      await settle();
 
-      await container.read(authProvider.notifier).enableBiometrics();
+      final ok = await controllerOf(container).enableBiometrics();
 
-      expect(container.read(authProvider).canUseBiometrics, isTrue);
+      expect(ok, isTrue);
+      expect(
+        container.read(biometricLockProvider).value,
+        const BiometricLock(enabled: true, unlocked: true),
+      );
       expect(channels.storage[_tokenKey], isNotNull);
       final doc = await firestore.collection('user').doc('uid-1').get();
       expect(doc.data()?['biometricToken'], isNotNull);
     });
 
     test('enableBiometrics is a no-op without a signed-in user', () async {
-      final auth = MockFirebaseAuth();
-      final container = makeContainer(auth);
+      final container = makeContainer(MockFirebaseAuth());
 
-      await container.read(authProvider.notifier).enableBiometrics();
+      final ok = await controllerOf(container).enableBiometrics();
 
+      expect(ok, isFalse);
       expect(channels.storage[_tokenKey], isNull);
     });
 
     test('disableBiometrics clears stored data', () async {
       final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
       final container = makeContainer(auth);
-      await container.read(authProvider.notifier).enableBiometrics();
+      await settle();
+      await controllerOf(container).enableBiometrics();
 
-      await container.read(authProvider.notifier).disableBiometrics();
+      await controllerOf(container).disableBiometrics();
 
-      expect(container.read(authProvider).canUseBiometrics, isFalse);
+      expect(container.read(biometricLockProvider).value?.enabled, isFalse);
       expect(channels.storage[_tokenKey], isNull);
     });
 
-    group('signInWithBiometricToken', () {
-      test('succeeds when the stored token matches', () async {
+    test('disableBiometrics falls back to the stored uid', () async {
+      channels.storage[_uidKey] = 'uid-1';
+      final firestore = FakeFirebaseFirestore();
+      final container = makeContainer(MockFirebaseAuth(), firestore: firestore);
+
+      await controllerOf(container).disableBiometrics();
+
+      final doc = await firestore.collection('user').doc('uid-1').get();
+      expect(doc.data()?['biometricToken'], isNull);
+    });
+
+    group('unlockWithBiometrics', () {
+      test('opens the account of a matching token', () async {
         final firestore = FakeFirebaseFirestore();
         await firestore.collection('user').doc('uid-1').set({
           'biometricToken': 'tok',
@@ -498,36 +511,33 @@ void main() {
           MockFirebaseAuth(),
           firestore: firestore,
         );
+        await settle();
 
-        final ok = await container
-            .read(authProvider.notifier)
-            .signInWithBiometricToken();
+        final ok = await controllerOf(container).unlockWithBiometrics();
 
         expect(ok, isTrue);
-        expect(container.read(authProvider).isBiometricallyAuthenticated, true);
-        expect(container.read(authProvider).biometricUid, 'uid-1');
+        // Sans session Firebase, le compte ouvert par l'empreinte en tient lieu.
+        expect(container.read(currentUidProvider), 'uid-1');
+        expect(container.read(authAccessProvider), AuthAccess.granted);
       });
 
-      test('fails when the biometric check is rejected', () async {
+      test('fails quietly when the fingerprint is rejected', () async {
         channels.authenticateResult = false;
         final container = makeContainer(MockFirebaseAuth());
 
-        final ok = await container
-            .read(authProvider.notifier)
-            .signInWithBiometricToken();
+        final ok = await controllerOf(container).unlockWithBiometrics();
 
         expect(ok, isFalse);
+        expect(failureOf(container), isNull);
       });
 
-      test('fails when there is no stored token', () async {
+      test('disables the lock when there is no stored token', () async {
         final container = makeContainer(MockFirebaseAuth());
 
-        final ok = await container
-            .read(authProvider.notifier)
-            .signInWithBiometricToken();
+        final ok = await controllerOf(container).unlockWithBiometrics();
 
         expect(ok, isFalse);
-        expect(container.read(authProvider).canUseBiometrics, isFalse);
+        expect(container.read(biometricLockProvider).value?.enabled, isFalse);
       });
 
       test('clears data when the token is no longer valid', () async {
@@ -536,9 +546,7 @@ void main() {
         // Firestore has no matching document → token invalid.
         final container = makeContainer(MockFirebaseAuth());
 
-        final ok = await container
-            .read(authProvider.notifier)
-            .signInWithBiometricToken();
+        final ok = await controllerOf(container).unlockWithBiometrics();
 
         expect(ok, isFalse);
         expect(channels.storage[_tokenKey], isNull);
@@ -552,92 +560,56 @@ void main() {
           repository: _ThrowingAuthRepository(MockFirebaseAuth()),
         );
 
-        final ok = await container
-            .read(authProvider.notifier)
-            .signInWithBiometricToken();
+        final ok = await controllerOf(container).unlockWithBiometrics();
 
         expect(ok, isFalse);
-        expect(
-          container.read(authProvider).failure,
-          AuthFailure.biometricFailed,
-        );
+        expect(failureOf(container), AuthFailure.biometricFailed);
       });
     });
-
-    test('disableBiometrics falls back to the stored uid', () async {
-      channels.storage[_uidKey] = 'uid-1';
-      final firestore = FakeFirebaseFirestore();
-      final container = makeContainer(MockFirebaseAuth(), firestore: firestore);
-
-      await container.read(authProvider.notifier).disableBiometrics();
-
-      final doc = await firestore.collection('user').doc('uid-1').get();
-      expect(doc.data()?['biometricToken'], isNull);
-    });
-  });
-
-  test('signOut records an error when it throws', () async {
-    final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
-    whenCalling(Invocation.method(#signOut, [null]))
-        .on(auth)
-        .thenThrow(FirebaseAuthException(code: 'fail'));
-    final container = makeContainer(auth);
-
-    await container.read(authProvider.notifier).signOut();
-
-    expect(container.read(authProvider).failure, AuthFailure.signOutFailed);
   });
 
   group('deleteAccount', () {
-    test('signs out and resets the state on success', () async {
+    test('closes the session on success', () async {
       final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
       final container = makeContainer(auth);
-      await container
-          .read(authProvider.notifier)
-          .signIn(email: 'a', password: 'b');
+      await controllerOf(container).signIn(email: 'a', password: 'b');
 
-      await container.read(authProvider.notifier).deleteAccount();
+      final ok = await controllerOf(container).deleteAccount();
+      await settle();
 
-      expect(container.read(authProvider).user, isNull);
+      expect(ok, isTrue);
+      expect(auth.currentUser, isNull);
+      expect(container.read(authAccessProvider), AuthAccess.signedOut);
     });
 
-    test('rethrows and records the error on failure', () async {
+    test('reports a Firebase refusal', () async {
       final user = buildUser(uid: 'del-fb');
       final auth = MockFirebaseAuth(signedIn: true, mockUser: user);
       whenCalling(Invocation.method(#delete, []))
           .on(user)
           .thenThrow(FirebaseAuthException(code: 'requires-recent-login'));
       final container = makeContainer(auth);
-      await container
-          .read(authProvider.notifier)
-          .signIn(email: 'a', password: 'b');
+      await controllerOf(container).signIn(email: 'a', password: 'b');
 
-      await expectLater(
-        container.read(authProvider.notifier).deleteAccount(),
-        throwsA(AuthFailure.unknown),
-      );
-      expect(container.read(authProvider).failure, AuthFailure.unknown);
+      final ok = await controllerOf(container).deleteAccount();
+
+      expect(ok, isFalse);
+      expect(failureOf(container), AuthFailure.unknown);
     });
 
-    test('maps unexpected errors to the generic delete message', () async {
+    test('maps unexpected errors to the deletion failure', () async {
       final user = buildUser(uid: 'del-generic');
       final auth = MockFirebaseAuth(signedIn: true, mockUser: user);
       whenCalling(Invocation.method(#delete, []))
           .on(user)
           .thenThrow(Exception('boom'));
       final container = makeContainer(auth);
-      await container
-          .read(authProvider.notifier)
-          .signIn(email: 'a', password: 'b');
+      await controllerOf(container).signIn(email: 'a', password: 'b');
 
-      await expectLater(
-        container.read(authProvider.notifier).deleteAccount(),
-        throwsA(isA<Exception>()),
-      );
-      expect(
-        container.read(authProvider).failure,
-        AuthFailure.deleteAccountFailed,
-      );
+      final ok = await controllerOf(container).deleteAccount();
+
+      expect(ok, isFalse);
+      expect(failureOf(container), AuthFailure.deleteAccountFailed);
     });
   });
 }
