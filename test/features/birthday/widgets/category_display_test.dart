@@ -1,4 +1,5 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/theme/label_tones.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
@@ -17,11 +18,42 @@ void main() {
     expect(iconData.fontFamily, 'MaterialIcons');
   });
 
-  test('color maps known categories and falls back to grey', () {
-    expect(_category('family').color, Colors.blue);
-    expect(_category('FRIEND').color, Colors.green); // insensible à la casse
-    expect(_category('unknown').color, Colors.grey);
-    expect(_category('other').color, Colors.grey);
+  test('toneIndex gives each known category its own tone', () {
+    const known = [
+      'family',
+      'friend',
+      'colleague',
+      'sport',
+      'school',
+      'ogs',
+      'gaming',
+      'goat',
+      'doggo',
+      'internet',
+      'bff',
+      'celebrity',
+      'favorite',
+      'couple',
+    ];
+    final tones = {for (final name in known) _category(name).toneIndex};
+
+    expect(tones, hasLength(known.length));
+    expect(tones, isNot(contains(LabelTones.neutral)));
+    expect(_category('FRIEND').toneIndex, _category('friend').toneIndex);
+  });
+
+  test('toneIndex falls back to the neutral tone', () {
+    expect(_category('unknown').toneIndex, LabelTones.neutral);
+    expect(_category('other').toneIndex, LabelTones.neutral);
+  });
+
+  testWidgets('tones follow the theme brightness', (tester) async {
+    final context = await tester.pumpLocalizedContext();
+
+    expect(
+      _category('family').tones(context),
+      LabelTones.of(0, Theme.of(context).brightness),
+    );
   });
 
   testWidgets('localizedName translates known keys and echoes custom names', (

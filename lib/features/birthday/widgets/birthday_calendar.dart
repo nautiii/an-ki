@@ -332,11 +332,15 @@ class _CalendarDayCell extends StatelessWidget {
                       height: 5,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: category?.color ?? colorScheme.primary,
+                        color:
+                            category?.tones(context).color ??
+                            colorScheme.primary,
                         boxShadow: [
                           BoxShadow(
-                            color: (category?.color ?? colorScheme.primary)
-                                .withValues(alpha: 0.3),
+                            color:
+                                (category?.tones(context).color ??
+                                        colorScheme.primary)
+                                    .withValues(alpha: 0.3),
                             blurRadius: 2,
                             spreadRadius: 0.5,
                           ),

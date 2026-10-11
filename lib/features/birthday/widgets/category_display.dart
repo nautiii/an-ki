@@ -1,8 +1,10 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/theme/anki_colors.dart';
+import 'package:an_ki/core/theme/label_tones.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:flutter/material.dart';
 
-/// Rendu d'une [BirthdayCategory] : icône, couleur et libellé traduit.
+/// Rendu d'une [BirthdayCategory] : icône, teinte et libellé traduit.
 extension CategoryDisplay on BirthdayCategory {
   /// Icône Material de la catégorie.
   // ignore: non_const_argument_for_const_parameter
@@ -29,23 +31,26 @@ extension CategoryDisplay on BirthdayCategory {
     return name;
   }
 
-  /// Couleur d'accent des catégories prédéfinies ; gris sinon.
-  Color get color {
-    final n = name.toLowerCase();
-    if (n == 'family') return Colors.blue;
-    if (n == 'friend') return Colors.green;
-    if (n == 'colleague') return Colors.orange;
-    if (n == 'sport') return Colors.red;
-    if (n == 'school') return Colors.purple;
-    if (n == 'ogs') return Colors.cyan;
-    if (n == 'gaming') return Colors.indigo;
-    if (n == 'goat') return Colors.amber;
-    if (n == 'doggo') return Colors.brown;
-    if (n == 'internet') return Colors.teal;
-    if (n == 'bff') return Colors.pink;
-    if (n == 'celebrity') return Colors.deepPurple;
-    if (n == 'favorite') return Colors.yellow;
-    if (n == 'couple') return Colors.deepOrange;
-    return Colors.grey;
-  }
+  /// Teinte des catégories prédéfinies ; neutre pour les catégories créées.
+  int get toneIndex => switch (name.toLowerCase()) {
+    'family' => 0,
+    'friend' => 1,
+    'colleague' => 2,
+    'sport' => 3,
+    'school' => 4,
+    'ogs' => 5,
+    'gaming' => 6,
+    'goat' => 7,
+    'doggo' => 8,
+    'internet' => 9,
+    'bff' => 10,
+    'celebrity' => 11,
+    'favorite' => 12,
+    'couple' => 13,
+    _ => LabelTones.neutral,
+  };
+
+  /// Paire tonale (pastille, puce) de la catégorie pour le thème courant.
+  TonalColors tones(BuildContext context) =>
+      LabelTones.of(toneIndex, Theme.of(context).brightness);
 }
