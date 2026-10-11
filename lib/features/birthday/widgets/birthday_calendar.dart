@@ -321,6 +321,8 @@ class _DayBirthdaysSheet extends StatelessWidget {
   }) {
     return showModalBottomSheet<void>(
       context: context,
+      // Au-dessus de la barre flottante, pas dans l'onglet.
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) =>

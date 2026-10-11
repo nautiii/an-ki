@@ -25,6 +25,8 @@ class BirthdayFormSheet extends ConsumerStatefulWidget {
   static Future<bool?> show(BuildContext context, {Birthday? birthdayToEdit}) {
     return showModalBottomSheet<bool>(
       context: context,
+      // Au-dessus de la barre flottante, pas dans l'onglet.
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (context) => BirthdayFormSheet(birthdayToEdit: birthdayToEdit),
@@ -142,6 +144,8 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
   void _showDatePicker(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
+      // Au-dessus de la barre flottante, pas dans l'onglet.
+      useRootNavigator: true,
       useSafeArea: true,
       builder: (_) => _DateSheet(
         initialDate: _selectedDate,

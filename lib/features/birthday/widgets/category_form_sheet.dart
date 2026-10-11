@@ -17,6 +17,8 @@ class CategoryFormSheet extends ConsumerStatefulWidget {
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet(
       context: context,
+      // Au-dessus de la barre flottante, pas dans l'onglet.
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (context) => const CategoryFormSheet(),

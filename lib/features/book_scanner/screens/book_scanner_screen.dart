@@ -98,6 +98,8 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
   Future<void> _showBookInfo(Book book) async {
     await showModalBottomSheet<void>(
       context: context,
+      // Au-dessus de la barre flottante, pas dans l'onglet.
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (context) => BookInfoSheet(book: book),

@@ -2,6 +2,7 @@ import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -39,6 +40,27 @@ void main() {
       expect(find.byType(BookScannerScreen), findsOneWidget);
       expect(find.byType(HomeScreen), findsNothing);
       expect(tester.appRouter.state.matchedLocation, AppRoutes.scanner);
+    });
+  });
+
+  testWidgets('a sheet covers the floating bar instead of opening under it', (
+    tester,
+  ) async {
+    await mockNetworkImages(() async {
+      await pumpSignedIn(tester);
+
+      await tester.tap(find.byTooltip('Ajouter un anniversaire'));
+      await tester.pumpAndSettle();
+      expect(find.byType(BirthdayFormSheet), findsOneWidget);
+
+      // Rien de la barre ne reçoit plus les touchers : la feuille et son voile
+      // passent devant.
+      final bar = tester.renderObject(find.byType(BottomBar));
+      final hits = tester
+          .hitTestOnBinding(tester.getCenter(find.byType(BottomBar)))
+          .path
+          .map((entry) => entry.target);
+      expect(hits, isNot(contains(bar)));
     });
   });
 
