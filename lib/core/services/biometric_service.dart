@@ -36,10 +36,11 @@ class BiometricService {
   }
 
   /// Lance l'authentification biométrique (Empreinte uniquement, pas de PIN).
-  Future<bool> authenticate() async {
+  /// [reason] : texte de l'invite, choisi et traduit par l'UI.
+  Future<bool> authenticate({required String reason}) async {
     try {
       return await _auth.authenticate(
-        localizedReason: 'Veuillez scanner votre empreinte pour vous connecter',
+        localizedReason: reason,
         biometricOnly: true,
       );
     } on PlatformException {

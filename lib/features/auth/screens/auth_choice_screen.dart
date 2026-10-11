@@ -35,7 +35,7 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
   void _handleBiometricSignIn() async {
     final unlocked = await ref
         .read(authControllerProvider.notifier)
-        .unlockWithBiometrics();
+        .unlockWithBiometrics(reason: context.l10n.biometricReason);
     if (unlocked && mounted) unawaited(HapticFeedback.mediumImpact());
   }
 

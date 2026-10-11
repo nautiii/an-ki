@@ -78,13 +78,16 @@ class AuthController extends AsyncNotifier<void> {
   /// et correspondre à celui de son profil. Sinon (empreinte retirée ou
   /// réactivée sur un autre appareil, jeton d'un autre compte), la session se
   /// ferme et [AuthFailure.biometricRevoked] invite à se reconnecter.
-  Future<bool> unlockWithBiometrics() {
+  /// [reason] : texte de l'invite d'empreinte, choisi par l'écran.
+  Future<bool> unlockWithBiometrics({required String reason}) {
     final biometrics = _biometrics;
     final repository = _repository;
     final lock = _lock;
     return _run(AuthFailure.biometricFailed, () async {
       final user = repository.currentUser;
-      if (user == null || !await biometrics.authenticate()) return false;
+      if (user == null || !await biometrics.authenticate(reason: reason)) {
+        return false;
+      }
       final token = await biometrics.getStoredToken();
       final valid =
           token != null &&

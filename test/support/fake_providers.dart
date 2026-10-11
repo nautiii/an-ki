@@ -473,8 +473,14 @@ class FakeBiometricService extends Fake implements BiometricService {
   @override
   Future<bool> canUseFingerprint() async => available;
 
+  /// Texte de la dernière invite d'empreinte.
+  String? lastReason;
+
   @override
-  Future<bool> authenticate() async => authenticates;
+  Future<bool> authenticate({required String reason}) async {
+    lastReason = reason;
+    return authenticates;
+  }
 
   @override
   String generateToken() => 'generated-token';

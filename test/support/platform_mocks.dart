@@ -10,6 +10,9 @@ class FakeBiometricChannels {
   bool deviceSupported = true;
   List<String> availableBiometrics = const ['fingerprint'];
   bool authenticateResult = true;
+
+  /// Arguments du dernier appel `authenticate` reçu par le plugin.
+  Object? authenticateArguments;
   bool throwPlatformException = false;
 
   static const _localAuth = MethodChannel('plugins.flutter.io/local_auth');
@@ -31,6 +34,7 @@ class FakeBiometricChannels {
         case 'getAvailableBiometrics':
           return availableBiometrics;
         case 'authenticate':
+          authenticateArguments = call.arguments;
           return authenticateResult;
       }
       return null;

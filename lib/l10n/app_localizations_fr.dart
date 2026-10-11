@@ -372,7 +372,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get biometricReason =>
-      'Veuillez utiliser votre empreinte digitale pour vous authentifier';
+      'Veuillez scanner votre empreinte pour vous connecter';
 
   @override
   String get noBiometricCredentials =>

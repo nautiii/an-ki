@@ -65,6 +65,7 @@ class _LinkingAuthRepository extends AuthRepository {
   }
 }
 
+const _reason = 'Empreinte ?';
 const _tokenKey = 'biometric_auth_token';
 const _uidKey = 'biometric_user_id';
 
@@ -588,7 +589,8 @@ void main() {
         ProviderContainer container,
         MockFirebaseAuth auth,
       ) async {
-        final ok = await controllerOf(container).unlockWithBiometrics();
+        final ok = await controllerOf(container)
+            .unlockWithBiometrics(reason: _reason);
         await settle();
 
         expect(ok, isFalse);
@@ -601,7 +603,8 @@ void main() {
       test('opens the locked session of its account', () async {
         final (container, _) = await lockedSession();
 
-        final ok = await controllerOf(container).unlockWithBiometrics();
+        final ok = await controllerOf(container)
+            .unlockWithBiometrics(reason: _reason);
 
         expect(ok, isTrue);
         expect(container.read(authAccessProvider), AuthAccess.granted);
@@ -621,7 +624,8 @@ void main() {
         );
         await settle();
 
-        final ok = await controllerOf(container).unlockWithBiometrics();
+        final ok = await controllerOf(container)
+            .unlockWithBiometrics(reason: _reason);
 
         expect(ok, isFalse);
         expect(container.read(currentUidProvider), isNull);
@@ -633,7 +637,8 @@ void main() {
         final (container, _) = await lockedSession();
         channels.authenticateResult = false;
 
-        final ok = await controllerOf(container).unlockWithBiometrics();
+        final ok = await controllerOf(container)
+            .unlockWithBiometrics(reason: _reason);
 
         expect(ok, isFalse);
         expect(failureOf(container), isNull);
@@ -670,7 +675,8 @@ void main() {
         );
         await settle();
 
-        final ok = await controllerOf(container).unlockWithBiometrics();
+        final ok = await controllerOf(container)
+            .unlockWithBiometrics(reason: _reason);
 
         expect(ok, isFalse);
         expect(failureOf(container), AuthFailure.biometricFailed);

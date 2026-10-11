@@ -791,7 +791,7 @@ abstract class AppLocalizations {
   /// No description provided for @biometricReason.
   ///
   /// In fr, this message translates to:
-  /// **'Veuillez utiliser votre empreinte digitale pour vous authentifier'**
+  /// **'Veuillez scanner votre empreinte pour vous connecter'**
   String get biometricReason;
 
   /// No description provided for @noBiometricCredentials.

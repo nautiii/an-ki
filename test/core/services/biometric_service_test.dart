@@ -51,18 +51,27 @@ void main() {
   });
 
   group('authenticate', () {
+    test('shows the reason chosen by the UI', () async {
+      await service.authenticate(reason: 'Empreinte ?');
+
+      expect(
+        (channels.authenticateArguments! as Map)['localizedReason'],
+        'Empreinte ?',
+      );
+    });
+
     test('returns the platform result', () async {
       channels.authenticateResult = true;
-      expect(await service.authenticate(), isTrue);
+      expect(await service.authenticate(reason: 'Empreinte ?'), isTrue);
 
       channels.authenticateResult = false;
-      expect(await service.authenticate(), isFalse);
+      expect(await service.authenticate(reason: 'Empreinte ?'), isFalse);
     });
 
     test('returns false when the platform throws', () async {
       channels.throwPlatformException = true;
 
-      expect(await service.authenticate(), isFalse);
+      expect(await service.authenticate(reason: 'Empreinte ?'), isFalse);
     });
   });
 

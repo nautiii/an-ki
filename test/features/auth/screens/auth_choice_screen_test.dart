@@ -1,3 +1,4 @@
+import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
@@ -131,6 +132,12 @@ void main() {
       );
 
       expect(container.read(authAccessProvider), AuthAccess.granted);
+      final biometrics =
+          container.read(biometricServiceProvider) as FakeBiometricService;
+      expect(
+        biometrics.lastReason,
+        'Veuillez scanner votre empreinte pour vous connecter',
+      );
     });
 
     testWidgets('shows the biometric error on startup failure', (tester) async {

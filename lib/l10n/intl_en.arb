@@ -144,7 +144,7 @@
   "biometricConnexion": "Biometric connexion",
   "biometricConnexionDescription": "Use your fingerprint to sign in",
   "reconnectToEnableBiometrics": "Please sign in again once to enable biometrics",
-  "biometricReason": "Please use your fingerprint to authenticate",
+  "biometricReason": "Scan your fingerprint to sign in",
   "noBiometricCredentials": "No credentials saved for biometrics",
   "biometricError": "Error during biometric authentication",
   "biometricRevoked": "Biometric login is no longer valid. Sign in again to continue.",

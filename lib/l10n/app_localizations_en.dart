@@ -365,7 +365,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please sign in again once to enable biometrics';
 
   @override
-  String get biometricReason => 'Please use your fingerprint to authenticate';
+  String get biometricReason => 'Scan your fingerprint to sign in';
 
   @override
   String get noBiometricCredentials => 'No credentials saved for biometrics';
