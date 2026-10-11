@@ -9,22 +9,6 @@ class const Idea({
   final String? note,
   required final DateTime createdAt,
 }) {
-  /// Copie modifiée. Un argument null signifie « inchangé » ; `clearX` vide
-  /// un champ optionnel.
-  Idea copyWith({
-    String? title,
-    String? personId,
-    bool clearPersonId = false,
-    String? note,
-    bool clearNote = false,
-  }) => Idea(
-    id: id,
-    title: title ?? this.title,
-    personId: clearPersonId ? null : personId ?? this.personId,
-    note: clearNote ? null : note ?? this.note,
-    createdAt: createdAt,
-  );
-
   @override
   bool operator ==(Object other) =>
       other is Idea &&

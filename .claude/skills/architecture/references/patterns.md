@@ -34,14 +34,6 @@ class const Idea({
   final String? personId,
   required final DateTime createdAt,
 }) {
-  Idea copyWith({String? title, String? personId, bool clearPersonId = false}) =>
-      Idea(
-        id: id,
-        title: title ?? this.title,
-        personId: clearPersonId ? null : personId ?? this.personId,
-        createdAt: createdAt,
-      );
-
   @override
   bool operator ==(Object other) =>
       other is Idea &&
@@ -58,7 +50,10 @@ class const Idea({
 - `class const X({required final …})` is a Dart 3.13 primary constructor: fields and `const`
   constructor declared once. Use it for new types; convert an existing model when you rework it,
   not in a sweep.
-- `copyWith`: `null` means "unchanged"; a `clearX` flag resets a nullable field.
+- No `copyWith` by default. Write one when code builds a modified copy — a state its notifier
+  replaces (`BiometricLock`), a value edited in memory; then `null` means "unchanged" and a
+  `clearX` flag resets a nullable field. Tests build their variants with a local factory
+  (`Birthday birthday({List<String> categories = const ['family']})`).
 - `==`/`hashCode` on every model and state that flows through providers: Riverpod 3 filters
   updates with `==`, and tests compare values. Lists: `listEquals(a, b)` and `Object.hashAll`
   from `package:flutter/foundation.dart`.

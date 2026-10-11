@@ -82,12 +82,15 @@ build_runner for another reason (then riverpod_generator becomes cheap).
 ## D4 — Hand-written immutable models with primary constructors
 
 **Decision.** No freezed/json_serializable. Models use Dart 3.13 primary constructors
-(`class const X({required final …})`), hand-written `copyWith` (`clearX` flags), `==`/`hashCode`;
-Firestore mapping in `data/`.
+(`class const X({required final …})`) and hand-written `==`/`hashCode`, plus a `copyWith`
+(`clearX` flags) only where code copies the object; Firestore mapping in `data/`.
 
 **Why.** Dart 3.13 removed the field/constructor duplication (Effective Dart now prefers the
-concise syntax); what remains (`==`, `copyWith`, mapping) is small for ~10 models, explicit, and
-free of build steps. The Flutter guide only "recommends" freezed; immutability is what it
+concise syntax); what remains (`==`, mapping, the odd `copyWith`) is small for ~10 models,
+explicit, and free of build steps. A hand-written `copyWith` that nobody calls is upkeep without
+payoff: every new field must be copied too, and `null` can't clear a field without a flag. Models
+come from Firestore and from drafts, they are not edited in memory: on 2026-10-11 five of the six
+`copyWith` were called by their own tests only, and were removed. The Flutter guide only "recommends" freezed; immutability is what it
 strongly recommends, and we have it.
 
 **Revisit when** models pass ~20 or carry deep nesting, `copyWith`/`==` bugs appear in review,

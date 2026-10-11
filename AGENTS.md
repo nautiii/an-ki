@@ -87,7 +87,8 @@ code predates the target; the plan is `.claude/skills/architecture/references/mi
 - Riverpod 3 only: never `StateNotifier` or `legacy.dart`; after any `await` in a notifier, check
   `ref.mounted` before touching `state`.
 - No code generation (freezed, json_serializable, riverpod_generator, build_runner). Models are
-  immutable: `final` fields, `const` constructor, `copyWith`, `==`/`hashCode`.
+  immutable: `final` fields, `const` constructor, `==`/`hashCode`; a `copyWith` only where code
+  copies the object, never by default.
 - Strong typing: no `dynamic` in app code (analyzer strict modes are on); `const` wherever
   possible; past ~300 lines, split a widget into private widget classes.
 - Every Firestore read and write is scoped to the signed-in user (path or `uid` filter);

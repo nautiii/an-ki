@@ -1,9 +1,10 @@
 # Reference feature: gift ideas (`ideas`)
 
 A complete, minimal feature written to the target architecture: 9 source files, 5 test files,
-21 tests. It is **not part of the app** — it is the model to copy and adapt when building a
+19 tests. It is **not part of the app** — it is the model to copy and adapt when building a
 brick. It was compiled, analyzed (`flutter analyze`: no issues) and tested against the repo on
-2026-10-07 with `assets/foundation/` installed and the architecture test passing.
+2026-10-07, and again on 2026-10-11 after M7–M9, installed as below with the architecture test
+passing.
 
 It also happens to be a first slice of backlog B4 (gift ideas per person): when that work starts,
 it can be the starting point after a design pass with the ux-ui skill.
@@ -12,7 +13,7 @@ it can be the starting point after a design pass with the ux-ui skill.
 
 | File | Pattern |
 |------|---------|
-| `lib/features/ideas/domain/idea.dart` | primary-constructor model, `copyWith` with `clearX`, `==`/`hashCode`, a draft with its validation rule, a pure query extension |
+| `lib/features/ideas/domain/idea.dart` | primary-constructor model, `==`/`hashCode` (no `copyWith`: nothing copies an idea), a draft with its validation rule, a pure query extension |
 | `lib/features/ideas/domain/idea_failure.dart` | failures as an `enum implements Exception` |
 | `lib/features/ideas/data/idea_repository.dart` | per-user path `user/{uid}/ideas`, injected Firestore, private mappers, tolerant reads, client timestamps, error translation, provider next to the class |
 | `lib/features/ideas/providers/ideas_providers.dart` | session-scoped `StreamProvider`, derived `autoDispose.family` provider |

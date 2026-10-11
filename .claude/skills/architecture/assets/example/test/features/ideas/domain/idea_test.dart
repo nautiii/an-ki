@@ -3,33 +3,21 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   final createdAt = DateTime(2026, 3, 12);
-  final idea = Idea(
+
+  /// Idée de référence ; chaque argument en change un champ.
+  Idea idea({String title = 'Livre'}) => Idea(
     id: 'i1',
-    title: 'Livre',
+    title: title,
     personId: 'p1',
     note: 'Poche',
     createdAt: createdAt,
   );
 
   group('Idea', () {
-    test('copyWith keeps unspecified fields and changes the given ones', () {
-      final copy = idea.copyWith(title: 'Vinyle');
-
-      expect(copy.title, 'Vinyle');
-      expect(copy.personId, 'p1');
-      expect(copy.note, 'Poche');
-      expect(copy.createdAt, createdAt);
-    });
-
-    test('copyWith clears optional fields only when asked', () {
-      expect(idea.copyWith(clearNote: true).note, isNull);
-      expect(idea.copyWith(clearPersonId: true).personId, isNull);
-    });
-
     test('compares by value', () {
-      expect(idea, idea.copyWith());
-      expect(idea.hashCode, idea.copyWith().hashCode);
-      expect(idea, isNot(idea.copyWith(title: 'Autre')));
+      expect(idea(), idea());
+      expect(idea().hashCode, idea().hashCode);
+      expect(idea(), isNot(idea(title: 'Autre')));
     });
   });
 
@@ -52,7 +40,7 @@ void main() {
 
   group('IdeaQueries.forPerson', () {
     test('keeps the ideas of one person, newest first', () {
-      final older = idea.copyWith(title: 'Ancienne');
+      final older = idea(title: 'Ancienne');
       final newer = Idea(
         id: 'i2',
         title: 'Récente',

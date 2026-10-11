@@ -14,9 +14,11 @@ Patterns with code: architecture skill, `references/patterns.md` §1–4; decisi
 
 - Pure Dart: no Flutter UI, Firebase, Riverpod, plugin or `l10n` import; never reads the clock
   (`today` is a parameter).
-- Models: Dart 3.13 primary constructor (`class const X({required final …})`), `copyWith`
-  with `clearX` flags for nullable fields, `==`/`hashCode`; no `fromFirestore`/`toJson` — mapping
-  lives in private functions of the repository. Named after the concept (`Birthday`,
+- Models: Dart 3.13 primary constructor (`class const X({required final …})`), `==`/`hashCode`;
+  no `fromFirestore`/`toJson` — mapping lives in private functions of the repository. A
+  `copyWith` only when code builds a modified copy (a state its notifier replaces, a value
+  edited in memory), with `clearX` flags for nullable fields; tests build their variants with a
+  local factory instead. Named after the concept (`Birthday`,
   `UserProfile`, `Book`), never with a `Model` suffix.
 - Form input is a draft (`XDraft`, e.g. `BirthdayDraft`) carrying its validation rule; a picked
   file becomes bytes, never an `XFile`.
