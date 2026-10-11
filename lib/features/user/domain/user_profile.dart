@@ -22,31 +22,6 @@ class const UserProfile({
     return '$surname $name';
   }
 
-  /// Copie modifiée. Un argument null signifie « inchangé » ; `clearX` vide
-  /// un champ optionnel.
-  UserProfile copyWith({
-    String? name,
-    String? surname,
-    String? pseudo,
-    bool clearPseudo = false,
-    List<String>? categories,
-    bool? isDark,
-    String? locale,
-    String? biometricToken,
-    bool clearBiometricToken = false,
-  }) => UserProfile(
-    id: id,
-    name: name ?? this.name,
-    surname: surname ?? this.surname,
-    pseudo: clearPseudo ? null : pseudo ?? this.pseudo,
-    categories: categories ?? this.categories,
-    isDark: isDark ?? this.isDark,
-    locale: locale ?? this.locale,
-    biometricToken: clearBiometricToken
-        ? null
-        : biometricToken ?? this.biometricToken,
-  );
-
   @override
   bool operator ==(Object other) =>
       other is UserProfile &&

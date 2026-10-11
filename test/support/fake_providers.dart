@@ -51,6 +51,25 @@ class FakeUserRepository extends Fake implements UserRepository {
   Future<void> deleteUser(String uid) async {}
 }
 
+/// [user] après une mise à jour partielle, comme Firestore fusionne les
+/// champs écrits : un argument null laisse le champ tel quel.
+UserProfile _merged(
+  UserProfile user, {
+  String? pseudo,
+  bool? isDark,
+  String? locale,
+  List<String>? categories,
+}) => UserProfile(
+  id: user.id,
+  name: user.name,
+  surname: user.surname,
+  pseudo: pseudo ?? user.pseudo,
+  categories: categories ?? user.categories,
+  isDark: isDark ?? user.isDark,
+  locale: locale ?? user.locale,
+  biometricToken: user.biometricToken,
+);
+
 /// Dépôt de profils en mémoire : [watchUser] reflète chaque écriture, comme
 /// le cache local de Firestore, pour tester les écritures optimistes.
 class RecordingUserRepository extends FakeUserRepository {
@@ -100,7 +119,8 @@ class RecordingUserRepository extends FakeUserRepository {
     String? locale,
   }) async {
     _maybeFail();
-    final user = _stored!.copyWith(
+    final user = _merged(
+      _stored!,
       pseudo: pseudo,
       isDark: isDark,
       locale: locale,
@@ -112,7 +132,8 @@ class RecordingUserRepository extends FakeUserRepository {
   @override
   Future<void> addCategories(String uid, List<String> categoryIds) async {
     _maybeFail();
-    final user = _stored!.copyWith(
+    final user = _merged(
+      _stored!,
       categories: {..._stored!.categories, ...categoryIds}.toList(),
     );
     updated.add(user);
@@ -321,7 +342,19 @@ class RecordingBookRepository extends FakeBookRepository {
     required DateTime scannedAt,
   }) async {
     if (failure case final error?) throw error;
-    saved.add(book.copyWith(scannedAt: scannedAt));
+    saved.add(
+      Book(
+        id: book.id,
+        title: book.title,
+        authors: book.authors,
+        isbn: book.isbn,
+        imageUrl: book.imageUrl,
+        publishedDate: book.publishedDate,
+        description: book.description,
+        pageCount: book.pageCount,
+        scannedAt: scannedAt,
+      ),
+    );
   }
 
   @override

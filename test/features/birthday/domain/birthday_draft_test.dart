@@ -4,11 +4,17 @@ import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final base = BirthdayDraft(
+  /// Brouillon de référence ; chaque argument en change un champ.
+  BirthdayDraft draft({
+    String surname = 'Wonderland',
+    List<String> categories = const ['family'],
+    List<int>? picture,
+  }) => BirthdayDraft(
     name: 'Alice',
-    surname: 'Wonderland',
+    surname: surname,
     date: DateTime(1990, 5, 10),
-    categories: const ['family'],
+    categories: categories,
+    picture: picture == null ? null : Uint8List.fromList(picture),
   );
 
   test('has no category and no picture by default', () {
@@ -27,39 +33,14 @@ void main() {
     });
   });
 
-  group('copyWith', () {
-    test('overrides only the provided fields', () {
-      final picture = Uint8List.fromList([1, 2]);
-
-      final copy = base.copyWith(
-        name: 'Bob',
-        categories: ['friend'],
-        picture: picture,
-      );
-
-      expect(copy.name, 'Bob');
-      expect(copy.categories, ['friend']);
-      expect(copy.picture, picture);
-      expect(copy.surname, base.surname);
-      expect(copy.date, base.date);
-    });
-
-    test('keeps every field when called with no argument', () {
-      expect(base.copyWith(), base);
-    });
-
-    test('removes the picture on request', () {
-      final withPicture = base.copyWith(picture: Uint8List.fromList([1]));
-
-      expect(withPicture.copyWith(clearPicture: true), base);
-    });
-  });
-
-  test('equality compares by value', () {
-    final same = base.copyWith(categories: ['family']);
+  test('equality compares by value, picture bytes included', () {
+    final base = draft(picture: [1]);
+    // Listes et octets distincts, de même contenu.
+    final same = draft(categories: ['family'], picture: [1]);
 
     expect(same, base);
     expect(same.hashCode, base.hashCode);
-    expect(base.copyWith(surname: 'Other'), isNot(base));
+    expect(draft(surname: 'Other', picture: [1]), isNot(base));
+    expect(draft(), isNot(base));
   });
 }

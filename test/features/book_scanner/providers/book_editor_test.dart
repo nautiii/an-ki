@@ -39,7 +39,15 @@ void main() {
 
     await container.read(bookEditorProvider.notifier).save(_book);
 
-    expect(repo.saved, [_book.copyWith(scannedAt: _now)]);
+    expect(repo.saved, [
+      Book(
+        id: '',
+        isbn: '987654321',
+        title: '1984',
+        authors: const ['George Orwell'],
+        scannedAt: _now,
+      ),
+    ]);
     expect(container.read(bookEditorProvider), isA<AsyncData<void>>());
   });
 

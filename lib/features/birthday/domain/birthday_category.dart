@@ -12,13 +12,6 @@ class const BirthdayCategory({
   required final String name,
   required final int icon,
 }) {
-  /// Copie modifiée. Un argument null signifie « inchangé ».
-  BirthdayCategory copyWith({String? name, int? icon}) => BirthdayCategory(
-    id: id,
-    name: name ?? this.name,
-    icon: icon ?? this.icon,
-  );
-
   @override
   bool operator ==(Object other) =>
       other is BirthdayCategory &&

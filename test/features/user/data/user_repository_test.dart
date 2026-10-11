@@ -21,6 +21,22 @@ void main() {
     biometricToken: 'token-abc',
   );
 
+  /// [user] avec d'autres valeurs pour les champs donnés.
+  UserProfile userWith({
+    String? pseudo,
+    List<String> categories = const [],
+    String? biometricToken = 'token-abc',
+  }) => UserProfile(
+    id: 'user-1',
+    name: 'Quentin',
+    surname: 'Maillard',
+    pseudo: pseudo,
+    categories: categories,
+    isDark: false,
+    locale: 'fr',
+    biometricToken: biometricToken,
+  );
+
   group('watchUser', () {
     test('emits null while the document does not exist', () async {
       expect(await repository.watchUser('missing').first, isNull);
@@ -99,7 +115,7 @@ void main() {
     });
 
     test('omits the absent pseudo and biometric token', () async {
-      await repository.createUser(user.copyWith(clearBiometricToken: true));
+      await repository.createUser(userWith(biometricToken: null));
 
       final data = (await firestore.collection('user').doc('user-1').get())
           .data()!;
@@ -111,7 +127,7 @@ void main() {
   group('createUser is non-destructive (crash safety)', () {
     test('never overwrites an existing profile and returns it', () async {
       // Existing rich profile in Firestore.
-      await repository.createUser(user.copyWith(pseudo: 'Quentinou'));
+      await repository.createUser(userWith(pseudo: 'Quentinou'));
 
       // A later (erroneous) creation with a blank default user must NOT wipe it.
       const blank = UserProfile(
@@ -172,7 +188,7 @@ void main() {
   });
 
   test('addCategories adds ids without duplicates', () async {
-    await repository.createUser(user.copyWith(categories: ['fam']));
+    await repository.createUser(userWith(categories: ['fam']));
 
     await repository.addCategories('user-1', ['fam', 'friend']);
 

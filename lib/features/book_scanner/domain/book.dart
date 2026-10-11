@@ -16,27 +16,6 @@ class const Book({
   final int? pageCount,
   final DateTime? scannedAt,
 }) {
-  /// Copie modifiée. Un argument null signifie « inchangé ».
-  Book copyWith({
-    String? title,
-    List<String>? authors,
-    String? imageUrl,
-    String? publishedDate,
-    String? description,
-    int? pageCount,
-    DateTime? scannedAt,
-  }) => Book(
-    id: id,
-    title: title ?? this.title,
-    authors: authors ?? this.authors,
-    isbn: isbn,
-    imageUrl: imageUrl ?? this.imageUrl,
-    publishedDate: publishedDate ?? this.publishedDate,
-    description: description ?? this.description,
-    pageCount: pageCount ?? this.pageCount,
-    scannedAt: scannedAt ?? this.scannedAt,
-  );
-
   @override
   bool operator ==(Object other) =>
       other is Book &&

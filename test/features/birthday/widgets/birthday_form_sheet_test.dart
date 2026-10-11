@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
@@ -25,12 +26,14 @@ final _png = base64Decode(
 void main() {
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
 
-  final editable = Birthday(
+  /// Anniversaire à modifier, avec ou sans photo.
+  Birthday editable({Uint8List? picture}) => Birthday(
     id: 'edit-1',
     name: 'Alice',
     surname: 'Wonderland',
     date: DateTime(1990, 5, 10),
     categories: const ['fam'],
+    picture: picture,
   );
 
   List<dynamic> overrides(
@@ -125,7 +128,7 @@ void main() {
     final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
-        BirthdayFormSheet(birthdayToEdit: editable.copyWith(picture: _png)),
+        BirthdayFormSheet(birthdayToEdit: editable(picture: _png)),
         overrides: overrides(repository),
       );
       await tester.pumpAndSettle();
@@ -149,7 +152,7 @@ void main() {
     final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
-        BirthdayFormSheet(birthdayToEdit: editable),
+        BirthdayFormSheet(birthdayToEdit: editable()),
         overrides: overrides(repository),
       );
       await tester.pumpAndSettle();
@@ -205,7 +208,7 @@ void main() {
     final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
-        BirthdayFormSheet(birthdayToEdit: editable),
+        BirthdayFormSheet(birthdayToEdit: editable()),
         overrides: overrides(repository),
       );
       await tester.pumpAndSettle();
@@ -225,7 +228,7 @@ void main() {
     );
     await mockNetworkImages(() async {
       await tester.pumpHarness(
-        BirthdayFormSheet(birthdayToEdit: editable),
+        BirthdayFormSheet(birthdayToEdit: editable()),
         overrides: overrides(repository),
       );
       await tester.pumpAndSettle();

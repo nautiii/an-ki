@@ -16,24 +16,6 @@ class const Birthday({
   /// Photo compressée (octets JPEG ou PNG), null sans photo.
   final Uint8List? picture,
 }) {
-  /// Copie modifiée. Un argument null signifie « inchangé » ; `clearPicture`
-  /// retire la photo.
-  Birthday copyWith({
-    String? name,
-    String? surname,
-    DateTime? date,
-    List<String>? categories,
-    Uint8List? picture,
-    bool clearPicture = false,
-  }) => Birthday(
-    id: id,
-    name: name ?? this.name,
-    surname: surname ?? this.surname,
-    date: date ?? this.date,
-    categories: categories ?? this.categories,
-    picture: clearPicture ? null : picture ?? this.picture,
-  );
-
   @override
   bool operator ==(Object other) =>
       other is Birthday &&

@@ -17,14 +17,17 @@ void main() {
     repository = BirthdayRepository(firestore: firestore);
   });
 
-  BirthdayDraft draft({String name = 'Alice', Uint8List? picture}) =>
-      BirthdayDraft(
-        name: name,
-        surname: 'Wonderland',
-        date: DateTime(1990, 5, 10),
-        categories: const ['family'],
-        picture: picture,
-      );
+  BirthdayDraft draft({
+    String name = 'Alice',
+    String surname = 'Wonderland',
+    Uint8List? picture,
+  }) => BirthdayDraft(
+    name: name,
+    surname: surname,
+    date: DateTime(1990, 5, 10),
+    categories: const ['family'],
+    picture: picture,
+  );
 
   Future<DocumentReference<Map<String, dynamic>>> seed(
     Map<String, dynamic> data,
@@ -124,7 +127,7 @@ void main() {
     test('stores the trimmed draft with the uid', () async {
       await repository.createBirthday(
         'user-1',
-        draft(name: '  Alice  ').copyWith(surname: ' Wonderland '),
+        draft(name: '  Alice  ', surname: ' Wonderland '),
       );
 
       final doc = (await firestore.collection('birthday').get()).docs.single;
