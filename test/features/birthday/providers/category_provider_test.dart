@@ -8,7 +8,7 @@ import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../support/fake_providers.dart';
+import '../../../support/fake_providers.dart';
 
 const _user = UserProfile(
   id: 'u',

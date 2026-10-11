@@ -9,8 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../support/fake_providers.dart';
-import '../../support/test_harness.dart';
+import '../../../support/fake_providers.dart';
+import '../../../support/test_harness.dart';
 
 void main() {
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);

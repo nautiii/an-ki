@@ -11,9 +11,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../support/fake_providers.dart';
-import '../../support/network_image_mock.dart';
-import '../../support/test_harness.dart';
+import '../../../support/fake_providers.dart';
+import '../../../support/network_image_mock.dart';
+import '../../../support/test_harness.dart';
 
 // 1x1 transparent PNG.
 final _png = base64Decode(
