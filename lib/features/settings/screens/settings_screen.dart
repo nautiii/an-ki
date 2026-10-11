@@ -119,7 +119,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               isAnonymous
                   ? dialogContext.l10n.deleteAndLeave
                   : dialogContext.l10n.signOut,
-              style: const TextStyle(color: Colors.red),
+              style: TextStyle(
+                color: Theme.of(dialogContext).colorScheme.error,
+              ),
             ),
           ),
         ],
@@ -165,7 +167,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
             child: Text(
               dialogContext.l10n.delete,
-              style: const TextStyle(color: Colors.red),
+              style: TextStyle(
+                color: Theme.of(dialogContext).colorScheme.error,
+              ),
             ),
           ),
         ],
