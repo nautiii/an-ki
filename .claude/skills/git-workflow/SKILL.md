@@ -135,6 +135,9 @@ run scripts/migrate_categories.ps1 once per environment.
 - Branch from an up-to-date `main`: `<type>/<kebab-case-summary>`, all lowercase —
   `feat/gift-wishlist`, `fix/notification-timezone`, `build/agp-9`. Short, no ticket noise, no
   personal prefixes.
+- Integrate a branch by rebasing it onto `main`, never with a merge commit: `main` stays linear.
+  Rebase the branch (or cherry-pick its commits, skipping any merge commit inside it), check the
+  result, then fast-forward `main` (`git merge --ff-only`).
 - A PR title follows the commit format (it becomes the squash-merge commit):
   `FEAT(book_scanner): suggest gifts from scanned books`.
 - PR body, same terse spirit: **Why** (one or two lines), **What** (bullets), **How to test**
