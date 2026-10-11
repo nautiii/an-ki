@@ -17,7 +17,7 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
 - Shared fakes and helpers live in `test/support/`: reuse them, don't redefine them per file
   (`tester.pumpLocalizedContext()` gives a French `BuildContext` for display extensions).
 - Never touch real Firebase, network or platform channels. Use `FakeFirebaseFirestore`,
-  `MockFirebaseAuth` (firebase_auth_mocks), `MockClient` (http), `mock_exceptions`, `mocktail`,
+  `MockFirebaseAuth` (firebase_auth_mocks), `MockClient` (http), `mock_exceptions`,
   and the doubles in `test/support/`: `FakeBiometricChannels`, `FakeGoogleSignInPlatform`,
   `FakeMobileScannerPlatform.install()`, `mockNetworkImages`.
 
