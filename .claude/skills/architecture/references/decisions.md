@@ -158,8 +158,8 @@ or server-side account cleanup (Cloud Function / "Delete User Data" extension) b
 ## D9 — Navigation: go_router, pinned to 17.x
 
 **Decision.** go_router since M7 (2026-10-11), first planned for the first of B3 (notification
-actions), B4 (a person page addressed by id), B5 (onboarding redirects) or a web build, and
-brought forward by the maintainer. Paths stay plain constants in `core/routing/`; the router
+actions), B4 (a person page addressed by id) or B5 (onboarding redirects), and brought forward
+by the maintainer. Paths stay plain constants in `core/routing/`; the router
 lives in `app/router/`.
 
 **Why.** Flutter's docs: small apps without complex deep linking can use Navigator, but named
@@ -176,8 +176,7 @@ decides. The tabs are a `StatefulShellRoute` whose container keeps every branch 
 cross-fades the current one (as before, honouring disabled animations); go_router_builder is
 out (build_runner).
 
-**Revisit when** the Material decoupling lands (move to go_router 18+), or when a web build
-needs URL strategy and deep-link handling.
+**Revisit when** the Material decoupling lands (move to go_router 18+).
 
 ## D10 — Executable architecture
 

@@ -37,6 +37,12 @@ Never built on the current setup: deployment target 12.0 and no Podfile, while F
 iOS 15 and flutter_secure_storage iOS 13. Keep the Dart code platform-correct; don't touch `ios/`
 without a plan to build it.
 
+## Web
+
+No web target since 2026-10-12 (`web/` removed). `lib/core/firebase_options.dart` and
+`firebase.json` still describe the Firebase web app until the maintainer reruns
+`flutterfire configure --platforms=android,ios` (then move the file back to `lib/core/`).
+
 ## Plugin wrappers (`lib/core/services/`)
 
 - A service is a thin, stateless door to a plugin: no business rule, no policy (*when* to remind

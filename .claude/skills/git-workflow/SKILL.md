@@ -74,7 +74,7 @@ several areas (better no scope than a misleading one; never comma-separated list
 | `lib/app/` (router, bootstrap, `MaterialApp`) | `app` |
 | `lib/l10n/`, `*.arb` | `l10n` |
 | `pubspec.yaml`, `pubspec.lock` | `deps` |
-| `android/`, `ios/`, `web/` | `android`, `ios`, `web` |
+| `android/`, `ios/` | `android`, `ios` |
 | `firestore.rules`, `firebase.json`, Firebase config | `firebase` |
 | `lib/assets/`, launcher icons, splash | `assets` |
 | `scripts/` | `scripts` |
