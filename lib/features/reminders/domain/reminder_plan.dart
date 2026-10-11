@@ -1,5 +1,5 @@
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 
 /// Moment d'un rappel par rapport à l'anniversaire.
 enum ReminderKind {
@@ -51,14 +51,14 @@ class const PlannedReminder({
 /// à venir après [now] : un créneau déjà passé cette année glisse à l'année
 /// suivante.
 List<PlannedReminder> planReminders(
-  Iterable<BirthdayModel> birthdays, {
+  Iterable<Birthday> birthdays, {
   required DateTime now,
 }) => [
   for (final birthday in birthdays)
     for (final kind in ReminderKind.values) _plan(birthday, kind, now),
 ];
 
-PlannedReminder _plan(BirthdayModel birthday, ReminderKind kind, DateTime now) {
+PlannedReminder _plan(Birthday birthday, ReminderKind kind, DateTime now) {
   final daysBefore = switch (kind) {
     ReminderKind.birthday => 0,
     ReminderKind.weekBefore => ReminderPolicy.daysBefore,

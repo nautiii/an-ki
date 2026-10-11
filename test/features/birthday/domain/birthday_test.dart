@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final base = BirthdayModel(
+  final base = Birthday(
     id: '1',
     name: 'Alice',
     surname: 'Wonderland',

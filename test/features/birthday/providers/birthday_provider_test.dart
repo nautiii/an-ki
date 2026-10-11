@@ -1,6 +1,6 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,13 +19,13 @@ class _Session extends Notifier<String?> {
 
 class _ErroringBirthdayRepository extends FakeBirthdayRepository {
   @override
-  Stream<List<BirthdayModel>> watchBirthdays(String uid) =>
+  Stream<List<Birthday>> watchBirthdays(String uid) =>
       Stream.error(Exception('stream failed'));
 }
 
 /// Anniversaire dont la date tombe dans [daysAhead] jours, quel que soit le
 /// jour d'exécution du test.
-BirthdayModel _relative(
+Birthday _relative(
   int daysAhead, {
   required String id,
   required String name,
@@ -38,7 +38,7 @@ BirthdayModel _relative(
     today.month,
     today.day,
   ).add(Duration(days: daysAhead));
-  return BirthdayModel(
+  return Birthday(
     id: id,
     name: name,
     surname: surname,
@@ -111,11 +111,11 @@ void main() {
   });
 
   group('Derived providers', () {
-    late BirthdayModel near;
-    late BirthdayModel mid;
-    late BirthdayModel far;
+    late Birthday near;
+    late Birthday mid;
+    late Birthday far;
 
-    ProviderContainer containerWith(List<BirthdayModel> birthdays) =>
+    ProviderContainer containerWith(List<Birthday> birthdays) =>
         ProviderContainer.test(
           overrides: [
             birthdaysProvider.overrideWithValue(AsyncData(birthdays)),

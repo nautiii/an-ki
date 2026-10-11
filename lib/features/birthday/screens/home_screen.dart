@@ -3,7 +3,7 @@ import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/search_bar.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
@@ -107,7 +107,7 @@ class _HomeContent extends StatelessWidget {
   });
 
   final bool isLoading;
-  final List<BirthdayModel> birthdays;
+  final List<Birthday> birthdays;
   final HomeViewType viewType;
 
   @override

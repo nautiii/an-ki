@@ -4,9 +4,9 @@ import 'dart:typed_data';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
@@ -16,14 +16,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 class BirthdayFormSheet extends ConsumerStatefulWidget {
-  final BirthdayModel? birthdayToEdit;
+  final Birthday? birthdayToEdit;
 
   const BirthdayFormSheet({super.key, this.birthdayToEdit});
 
-  static Future<bool?> show(
-    BuildContext context, {
-    BirthdayModel? birthdayToEdit,
-  }) {
+  static Future<bool?> show(BuildContext context, {Birthday? birthdayToEdit}) {
     return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,

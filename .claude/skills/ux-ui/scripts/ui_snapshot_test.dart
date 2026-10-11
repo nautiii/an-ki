@@ -26,8 +26,8 @@ import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
@@ -104,9 +104,9 @@ final List<BirthdayCategory> sampleCategories = [
 ];
 
 /// Anniversaires répartis dans le temps : aujourd'hui, cette semaine, ce mois, plus tard.
-List<BirthdayModel> sampleBirthdays() {
+List<Birthday> sampleBirthdays() {
   final today = DateUtils.dateOnly(DateTime.now());
-  BirthdayModel person(
+  Birthday person(
     String id,
     String name,
     String surname, {
@@ -115,7 +115,7 @@ List<BirthdayModel> sampleBirthdays() {
     List<String> categories = const [],
   }) {
     final next = today.add(Duration(days: inDays));
-    return BirthdayModel(
+    return Birthday(
       id: id,
       name: name,
       surname: surname,
@@ -171,7 +171,7 @@ List<BirthdayModel> sampleBirthdays() {
 
 /// Overrides Riverpod complets : utilisateur connecté, catégories, anniversaires.
 List<Override> sampleOverrides({
-  List<BirthdayModel>? birthdays,
+  List<Birthday>? birthdays,
   bool isLoading = false,
   List<BirthdayCategory>? categories,
 }) {

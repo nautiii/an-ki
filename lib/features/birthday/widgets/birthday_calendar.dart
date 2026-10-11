@@ -1,8 +1,8 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
@@ -114,7 +114,7 @@ extension StringExtension on String {
 class _CalendarGrid extends StatelessWidget {
   final DateTime focusedDate;
   final DateTime today;
-  final List<BirthdayModel> birthdays;
+  final List<Birthday> birthdays;
   final List<BirthdayCategory> categories;
 
   const _CalendarGrid({
@@ -169,7 +169,7 @@ class _CalendarGrid extends StatelessWidget {
   void _showDayBirthdays(
     BuildContext context,
     DateTime date,
-    List<BirthdayModel> birthdays,
+    List<Birthday> birthdays,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -265,7 +265,7 @@ class _CalendarGrid extends StatelessWidget {
 class _CalendarDayCell extends StatelessWidget {
   final int day;
   final bool isToday;
-  final List<BirthdayModel> birthdays;
+  final List<Birthday> birthdays;
   final List<BirthdayCategory> categories;
   final VoidCallback? onTap;
 

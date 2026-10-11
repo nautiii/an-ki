@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/services/notification_service.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/reminders/providers/reminder_sync_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,7 +19,7 @@ class _RecordingNotificationService extends Fake
 }
 
 void main() {
-  final lea = BirthdayModel(
+  final lea = Birthday(
     id: 'lea',
     name: 'Léa',
     surname: 'Martin',
@@ -27,11 +27,11 @@ void main() {
   );
 
   late _RecordingNotificationService notifications;
-  late StreamController<List<BirthdayModel>> birthdays;
+  late StreamController<List<Birthday>> birthdays;
 
   setUp(() {
     notifications = _RecordingNotificationService();
-    birthdays = StreamController<List<BirthdayModel>>();
+    birthdays = StreamController<List<Birthday>>();
     addTearDown(birthdays.close);
   });
 

@@ -44,7 +44,7 @@ auth or dependencies → design brief + maintainer approval first.
 - **Proposal**: quick-add sheet — Name (one field) + day/month (+ « Je connais l'année ») →
   « Plus d'options » (photo, groups, notes); CTA enabled when valid; keyboard flow; success
   snackbar. Ages and « aura N ans » only when the year is known. Later: « Léa 12 mars » parsing.
-- **Model**: `BirthdayModel.date` → day/month + `int? year` (or `hasYear`), backward-compatible
+- **Model**: `Birthday.date` → day/month + `int? year` (or `hasYear`), backward-compatible
   `fromFirestore`, notifications keyed on day/month, age guards.
 - **Refs**: Google Contacts (year optional), Todoist Quick Add, Google Calendar quick event.
 - **Impact**: add in < 10 s instead of ~25 s; no false information.

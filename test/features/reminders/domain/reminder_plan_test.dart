@@ -1,13 +1,13 @@
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/reminders/domain/reminder_plan.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-BirthdayModel _born(DateTime date, {String id = 'lea'}) =>
-    BirthdayModel(id: id, name: 'Léa', surname: 'Martin', date: date);
+Birthday _born(DateTime date, {String id = 'lea'}) =>
+    Birthday(id: id, name: 'Léa', surname: 'Martin', date: date);
 
 /// Rappel de [kind] dans le plan d'un seul anniversaire.
 PlannedReminder _reminder(
-  BirthdayModel birthday,
+  Birthday birthday,
   ReminderKind kind, {
   required DateTime now,
 }) => planReminders([birthday], now: now).singleWhere((r) => r.kind == kind);

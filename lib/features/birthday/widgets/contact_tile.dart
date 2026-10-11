@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_display.dart';
@@ -14,7 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ContactTile extends ConsumerWidget {
-  final BirthdayModel birthday;
+  final Birthday birthday;
 
   const ContactTile({super.key, required this.birthday});
 

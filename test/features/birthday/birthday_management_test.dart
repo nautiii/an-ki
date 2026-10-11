@@ -1,7 +1,7 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +11,7 @@ import '../../support/fake_providers.dart';
 import '../../support/test_harness.dart';
 
 /// A birthday whose anniversary is [daysAhead] days from today.
-BirthdayModel _relative(
+Birthday _relative(
   int daysAhead, {
   required String id,
   required String name,
@@ -23,7 +23,7 @@ BirthdayModel _relative(
     today.month,
     today.day,
   ).add(Duration(days: daysAhead));
-  return BirthdayModel(
+  return Birthday(
     id: id,
     name: name,
     surname: surname,

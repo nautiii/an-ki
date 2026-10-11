@@ -1,8 +1,8 @@
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
@@ -22,13 +22,13 @@ void main() {
   final now = DateTime.now();
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
 
-  BirthdayModel onDay(int daysAhead, {required String id, String? cat}) {
+  Birthday onDay(int daysAhead, {required String id, String? cat}) {
     final target = DateTime(
       now.year,
       now.month,
       now.day,
     ).add(Duration(days: daysAhead));
-    return BirthdayModel(
+    return Birthday(
       id: id,
       name: 'Person$id',
       surname: 'X',
@@ -38,7 +38,7 @@ void main() {
   }
 
   List<dynamic> overrides({
-    required List<BirthdayModel> birthdays,
+    required List<Birthday> birthdays,
     bool isLoading = false,
     List<String> userCategories = const [],
     List<BirthdayCategory> repoCategories = const [],

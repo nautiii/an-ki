@@ -1,9 +1,9 @@
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-BirthdayModel _born(DateTime date, {String id = '1'}) =>
-    BirthdayModel(id: id, name: 'A', surname: 'B', date: date);
+Birthday _born(DateTime date, {String id = '1'}) =>
+    Birthday(id: id, name: 'A', surname: 'B', date: date);
 
 void main() {
   final today = DateTime(2026, 6, 15);
@@ -82,7 +82,7 @@ void main() {
 
   group('nextBirthdays', () {
     test('is empty for an empty list', () {
-      expect(<BirthdayModel>[].nextBirthdays(today), isEmpty);
+      expect(<Birthday>[].nextBirthdays(today), isEmpty);
     });
 
     test('returns the single closest birthday', () {

@@ -214,7 +214,7 @@ Future<bool> commitDeletion(String uid, String birthdayId) async {
 }
 
 // Provider dérivé : les listes visibles excluent les suppressions en attente.
-final birthdaysListProvider = Provider<List<BirthdayModel>>((ref) {
+final birthdaysListProvider = Provider<List<Birthday>>((ref) {
   final state = ref.watch(birthdayProvider);
   return state.birthdays
       .where((b) => !state.pendingDeletionIds.contains(b.id))
@@ -224,7 +224,7 @@ final birthdaysListProvider = Provider<List<BirthdayModel>>((ref) {
 
 ```dart
 // Widget (ex. ContactTile) — déclenché par Dismissible.onDismissed ou un menu.
-void _deleteWithUndo(BuildContext context, WidgetRef ref, BirthdayModel b) {
+void _deleteWithUndo(BuildContext context, WidgetRef ref, Birthday b) {
   final uid = ref.read(currentUidProvider);
   if (uid == null) return;
   // Lu avant l'async : le notifier survit à ce widget, pas `ref`.
@@ -271,10 +271,10 @@ AgendaBucket bucketFor(int daysUntilNext) => switch (daysUntilNext) {
 };
 
 /// Anniversaires visibles groupés par période, dans l'ordre chronologique.
-final agendaProvider = Provider<Map<AgendaBucket, List<BirthdayModel>>>((ref) {
+final agendaProvider = Provider<Map<AgendaBucket, List<Birthday>>>((ref) {
   final birthdays = [...ref.watch(filteredBirthdaysProvider)]
     ..sort((a, b) => a.daysUntilNext.compareTo(b.daysUntilNext));
-  final agenda = <AgendaBucket, List<BirthdayModel>>{};
+  final agenda = <AgendaBucket, List<Birthday>>{};
   for (final birthday in birthdays) {
     (agenda[bucketFor(birthday.daysUntilNext)] ??= []).add(birthday);
   }

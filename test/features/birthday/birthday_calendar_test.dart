@@ -3,8 +3,8 @@ import 'dart:typed_data';
 
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:flutter/material.dart';
@@ -24,19 +24,18 @@ void main() {
   final now = DateTime.now();
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
 
-  BirthdayModel onDay(int day, {String id = '1', Uint8List? picture}) =>
-      BirthdayModel(
-        id: id,
-        name: 'Alice',
-        surname: 'Wonderland',
-        date: DateTime(1990, now.month, day),
-        categories: const ['fam'],
-        picture: picture,
-      );
+  Birthday onDay(int day, {String id = '1', Uint8List? picture}) => Birthday(
+    id: id,
+    name: 'Alice',
+    surname: 'Wonderland',
+    date: DateTime(1990, now.month, day),
+    categories: const ['fam'],
+    picture: picture,
+  );
 
   Future<void> pumpCalendar(
     WidgetTester tester, {
-    required List<BirthdayModel> birthdays,
+    required List<Birthday> birthdays,
   }) async {
     await tester.pumpHarness(
       const BirthdayCalendar(),

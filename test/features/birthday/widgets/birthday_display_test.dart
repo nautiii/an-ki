@@ -1,4 +1,4 @@
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_display.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -7,7 +7,7 @@ import '../../../support/test_harness.dart';
 void main() {
   testWidgets('formattedDate includes or omits the year', (tester) async {
     final context = await tester.pumpLocalizedContext();
-    final birthday = BirthdayModel(
+    final birthday = Birthday(
       id: '1',
       name: 'A',
       surname: 'B',

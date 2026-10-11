@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 /// Modèle de domaine : Dart pur, immuable, sans Firebase ni Flutter UI. La
 /// conversion Firestore (photo en base64 comprise) vit dans
 /// `data/birthday_repository.dart`.
-class const BirthdayModel({
+class const Birthday({
   required final String id,
   required final String name,
   required final String surname,
@@ -18,14 +18,14 @@ class const BirthdayModel({
 }) {
   /// Copie modifiée. Un argument null signifie « inchangé » ; `clearPicture`
   /// retire la photo.
-  BirthdayModel copyWith({
+  Birthday copyWith({
     String? name,
     String? surname,
     DateTime? date,
     List<String>? categories,
     Uint8List? picture,
     bool clearPicture = false,
-  }) => BirthdayModel(
+  }) => Birthday(
     id: id,
     name: name ?? this.name,
     surname: surname ?? this.surname,
@@ -36,7 +36,7 @@ class const BirthdayModel({
 
   @override
   bool operator ==(Object other) =>
-      other is BirthdayModel &&
+      other is Birthday &&
       other.id == id &&
       other.name == name &&
       other.surname == surname &&

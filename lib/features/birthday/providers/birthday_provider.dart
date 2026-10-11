@@ -1,8 +1,8 @@
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Anniversaires de l'utilisateur courant, en temps réel ; liste vide hors
@@ -11,7 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Dérivé de [currentUidProvider] : connexion, changement de compte et
 /// déconnexion relancent ou coupent l'abonnement Firestore sans code
 /// d'initialisation ni remise à zéro manuelle.
-final birthdaysProvider = StreamProvider<List<BirthdayModel>>((ref) {
+final birthdaysProvider = StreamProvider<List<Birthday>>((ref) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return Stream.value(const []);
   return ref.watch(birthdayRepositoryProvider).watchBirthdays(uid);
@@ -25,13 +25,13 @@ final birthdaysLoadingProvider = Provider<bool>((ref) {
 
 /// Liste courante des anniversaires : vide pendant le premier chargement ou
 /// en cas d'erreur, la précédente pendant un rechargement.
-final birthdaysListProvider = Provider<List<BirthdayModel>>(
+final birthdaysListProvider = Provider<List<Birthday>>(
   (ref) => ref.watch(birthdaysProvider).value ?? const [],
 );
 
 /// Le ou les prochains anniversaires (plusieurs s'ils tombent le même jour),
 /// recalculés quand le jour change.
-final nextBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
+final nextBirthdaysProvider = Provider<List<Birthday>>((ref) {
   final birthdays = ref.watch(birthdaysListProvider);
   return birthdays.nextBirthdays(ref.watch(todayProvider));
 });
@@ -68,7 +68,7 @@ final birthdayCategoryFilterProvider =
     );
 
 /// Provider pour filtrer les anniversaires (recherche + exclusion des prochains + catégories)
-final filteredBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
+final filteredBirthdaysProvider = Provider<List<Birthday>>((ref) {
   final allBirthdays = ref.watch(birthdaysListProvider);
   final nextBirthdays = ref.watch(nextBirthdaysProvider);
   final nextIds = nextBirthdays.map((b) => b.id).toSet();
@@ -101,7 +101,7 @@ final filteredBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
 
 /// Provider pour filtrer les anniversaires par catégories et recherche (SANS exclusion du prochain)
 /// Utile pour la vue calendrier
-final categoryFilteredBirthdaysProvider = Provider<List<BirthdayModel>>((ref) {
+final categoryFilteredBirthdaysProvider = Provider<List<Birthday>>((ref) {
   final allBirthdays = ref.watch(birthdaysListProvider);
   final searchQuery = ref.watch(birthdaySearchProvider).toLowerCase();
   final categoryFilters = ref.watch(birthdayCategoryFilterProvider);

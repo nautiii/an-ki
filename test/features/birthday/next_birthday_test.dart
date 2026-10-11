@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -22,13 +22,13 @@ final _png = base64Decode(
 void main() {
   final now = DateTime.now();
 
-  BirthdayModel relative(int daysAhead, {String id = '1', Uint8List? picture}) {
+  Birthday relative(int daysAhead, {String id = '1', Uint8List? picture}) {
     final target = DateTime(
       now.year,
       now.month,
       now.day,
     ).add(Duration(days: daysAhead));
-    return BirthdayModel(
+    return Birthday(
       id: id,
       name: 'Alice',
       surname: 'Wonderland',
@@ -39,7 +39,7 @@ void main() {
 
   Future<void> pumpCard(
     WidgetTester tester, {
-    required List<BirthdayModel> birthdays,
+    required List<Birthday> birthdays,
     bool isLoading = false,
   }) async {
     await tester.pumpHarness(

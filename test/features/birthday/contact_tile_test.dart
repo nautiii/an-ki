@@ -4,8 +4,8 @@ import 'dart:typed_data';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/widgets/contact_tile.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -23,7 +23,7 @@ final _png = base64Decode(
 void main() {
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
 
-  BirthdayModel birthday({Uint8List? picture}) => BirthdayModel(
+  Birthday birthday({Uint8List? picture}) => Birthday(
     id: '1',
     name: 'Alice',
     surname: 'Wonderland',

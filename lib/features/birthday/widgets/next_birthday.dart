@@ -1,7 +1,7 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_display.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
@@ -142,7 +142,7 @@ class _BaseCard extends StatelessWidget {
 }
 
 class _BirthdayItem extends StatelessWidget {
-  final BirthdayModel birthday;
+  final Birthday birthday;
   final DateTime today;
 
   const _BirthdayItem({required this.birthday, required this.today});
@@ -225,7 +225,7 @@ class _BirthdayContent extends StatelessWidget {
     required this.isLoading,
   });
 
-  final BirthdayModel? birthday;
+  final Birthday? birthday;
 
   /// Jour courant, requis pour afficher un [birthday].
   final DateTime? today;

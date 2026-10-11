@@ -3,8 +3,8 @@ import 'dart:typed_data';
 
 import 'package:an_ki/core/extensions/firestore_extensions.dart';
 import 'package:an_ki/core/providers/firebase_providers.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,7 +23,7 @@ class BirthdayRepository {
 
   /// Anniversaires de [uid] en temps réel. Un document sans date, illisible,
   /// est ignoré plutôt que de faire échouer toute la liste.
-  Stream<List<BirthdayModel>> watchBirthdays(String uid) => _birthdays
+  Stream<List<Birthday>> watchBirthdays(String uid) => _birthdays
       .where('uid', isEqualTo: uid)
       .snapshots()
       .map((snapshot) => snapshot.docs.map(_birthdayFromDoc).nonNulls.toList());
@@ -71,11 +71,11 @@ final birthdayRepositoryProvider = Provider<BirthdayRepository>(
 
 // Conversion Firestore ↔ domaine : privée au data layer. Lecture tolérante
 // (champ absent → valeur par défaut) pour survivre aux anciens documents.
-BirthdayModel? _birthdayFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
+Birthday? _birthdayFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
   final data = doc.data() ?? const <String, dynamic>{};
   final date = (data['date'] as Timestamp?)?.toDate();
   if (date == null) return null;
-  return BirthdayModel(
+  return Birthday(
     id: doc.id,
     name: data['name'] as String? ?? '',
     surname: data['surname'] as String? ?? '',

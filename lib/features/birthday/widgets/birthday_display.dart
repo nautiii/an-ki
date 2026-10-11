@@ -1,9 +1,9 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:flutter/widgets.dart';
 
-/// Rendu d'un [BirthdayModel] : textes affichés.
-extension BirthdayDisplay on BirthdayModel {
+/// Rendu d'un [Birthday] : textes affichés.
+extension BirthdayDisplay on Birthday {
   /// Date de naissance « 10 Janvier 1990 », ou « 10 Janvier » sans l'année.
   String formattedDate(BuildContext context, {bool includeYear = true}) {
     final monthKeys = [

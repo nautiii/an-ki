@@ -75,7 +75,7 @@ current date included. Providers supply the date from `clockProvider`.
 
 ```dart
 // domain/birthday_dates.dart
-extension BirthdayDates on BirthdayModel {
+extension BirthdayDates on Birthday {
   /// Prochaine occurrence à partir de [today] (inclus).
   DateTime nextOccurrence(DateTime today) {
     final thisYear = DateTime(today.year, date.month, date.day);

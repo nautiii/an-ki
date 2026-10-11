@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -69,7 +69,7 @@ void main() {
       final birthdays = await repository.watchBirthdays('user-1').first;
 
       expect(birthdays, [
-        BirthdayModel(
+        Birthday(
           id: ref.id,
           name: 'Alice',
           surname: 'Wonderland',
@@ -89,7 +89,7 @@ void main() {
       final birthdays = await repository.watchBirthdays('user-1').first;
 
       expect(birthdays, [
-        BirthdayModel(id: ref.id, name: '', surname: '', date: DateTime(1985)),
+        Birthday(id: ref.id, name: '', surname: '', date: DateTime(1985)),
       ]);
     });
 

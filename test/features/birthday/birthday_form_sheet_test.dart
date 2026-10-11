@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -25,7 +25,7 @@ final _png = base64Decode(
 void main() {
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
 
-  final editable = BirthdayModel(
+  final editable = Birthday(
     id: 'edit-1',
     name: 'Alice',
     surname: 'Wonderland',

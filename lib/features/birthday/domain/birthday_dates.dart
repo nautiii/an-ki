@@ -1,11 +1,11 @@
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 
 /// Règles de dates d'un anniversaire.
 ///
 /// [today] est toujours passé en paramètre (`todayProvider` côté providers et
 /// widgets) : rien ici ne lit l'horloge, les tests fixent le jour. Seuls
 /// l'année, le mois et le jour de [today] comptent.
-extension BirthdayDates on BirthdayModel {
+extension BirthdayDates on Birthday {
   /// Prochain anniversaire à partir de [today], ce jour compris.
   ///
   /// Né un 29 février : le 1er mars les années non bissextiles.
@@ -33,14 +33,14 @@ extension BirthdayDates on BirthdayModel {
 }
 
 /// Règles de dates sur une liste d'anniversaires.
-extension BirthdayListDates on Iterable<BirthdayModel> {
+extension BirthdayListDates on Iterable<Birthday> {
   /// Anniversaires du plus proche au plus lointain à partir de [today].
-  List<BirthdayModel> sortedByNext(DateTime today) => toList()
+  List<Birthday> sortedByNext(DateTime today) => toList()
     ..sort((a, b) => a.daysUntilNext(today).compareTo(b.daysUntilNext(today)));
 
   /// Le ou les prochains anniversaires à partir de [today] : plusieurs s'ils
   /// tombent le même jour, aucun pour une liste vide.
-  List<BirthdayModel> nextBirthdays(DateTime today) {
+  List<Birthday> nextBirthdays(DateTime today) {
     if (isEmpty) return const [];
     final soonest = map((b) => b.daysUntilNext(today))
         .reduce((a, b) => a < b ? a : b);

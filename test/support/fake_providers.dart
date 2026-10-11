@@ -4,9 +4,9 @@ import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
-import 'package:an_ki/features/birthday/domain/birthday_model.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/book_scanner/domain/book_model.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
@@ -138,7 +138,7 @@ class RecordingUserRepository extends FakeUserRepository {
 
 class FakeBirthdayRepository extends Fake implements BirthdayRepository {
   @override
-  Stream<List<BirthdayModel>> watchBirthdays(String uid) => Stream.value([]);
+  Stream<List<Birthday>> watchBirthdays(String uid) => Stream.value([]);
 
   @override
   Future<void> createBirthday(String uid, BirthdayDraft draft) async {}
@@ -165,7 +165,7 @@ class FakeBirthdayRepository extends Fake implements BirthdayRepository {
 class RecordingBirthdayRepository extends FakeBirthdayRepository {
   RecordingBirthdayRepository({this.initial = const [], this.failure});
 
-  final List<BirthdayModel> initial;
+  final List<Birthday> initial;
 
   /// Erreur levée par chaque écriture quand elle est définie.
   final Exception? failure;
@@ -177,7 +177,7 @@ class RecordingBirthdayRepository extends FakeBirthdayRepository {
   final erasedUids = <String>[];
 
   @override
-  Stream<List<BirthdayModel>> watchBirthdays(String uid) {
+  Stream<List<Birthday>> watchBirthdays(String uid) {
     watchedUids.add(uid);
     return Stream.value(initial);
   }
