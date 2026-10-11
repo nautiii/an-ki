@@ -25,12 +25,6 @@ void main() {
       expect(BirthdayDraft.isValidName(''), isFalse);
       expect(BirthdayDraft.isValidName('   '), isFalse);
     });
-
-    test('a draft needs a first name and a name', () {
-      expect(base.isValid, isTrue);
-      expect(base.copyWith(name: ' ').isValid, isFalse);
-      expect(base.copyWith(surname: '').isValid, isFalse);
-    });
   });
 
   group('copyWith', () {

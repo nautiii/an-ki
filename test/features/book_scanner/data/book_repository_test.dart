@@ -214,14 +214,5 @@ void main() {
       final remaining = (await firestore.collection('books').get()).docs;
       expect(remaining.map((d) => d.data()['title']), ['Keep']);
     });
-
-    test('deleteBook removes the document', () async {
-      final ref = await firestore.collection('books').add({'title': 'X'});
-
-      await repository.deleteBook(ref.id);
-
-      final doc = await firestore.collection('books').doc(ref.id).get();
-      expect(doc.exists, isFalse);
-    });
   });
 }

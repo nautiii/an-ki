@@ -9,7 +9,6 @@ class AnKiTextField extends StatefulWidget {
   final TextInputType keyboardType;
   final bool enabled;
   final String? Function(String?)? validator;
-  final ValueChanged<String>? onChanged;
 
   const AnKiTextField({
     super.key,
@@ -21,7 +20,6 @@ class AnKiTextField extends StatefulWidget {
     this.keyboardType = TextInputType.text,
     this.enabled = true,
     this.validator,
-    this.onChanged,
   });
 
   @override
@@ -64,7 +62,6 @@ class _AnKiTextFieldState extends State<AnKiTextField> {
           keyboardType: widget.keyboardType,
           enabled: widget.enabled,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          onChanged: widget.onChanged,
           validator: (value) {
             final result = widget.validator?.call(value);
             // On utilise WidgetsBinding pour éviter les erreurs de setState pendant le build

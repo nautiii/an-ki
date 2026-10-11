@@ -5,14 +5,12 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 /// A test double for [MobileScannerPlatform] that never touches the camera.
 ///
-/// It renders an empty placeholder instead of a live preview and lets tests
-/// push barcode captures through [emit] without going through platform
-/// channels (which are unavailable in unit tests).
+/// It renders an empty placeholder instead of a live preview; its barcode
+/// stream stays silent: tests call the scanner's `onDetect` themselves.
 class FakeMobileScannerPlatform extends MobileScannerPlatform {
   final StreamController<BarcodeCapture?> _barcodes =
       StreamController<BarcodeCapture?>.broadcast();
 
-  int startCalls = 0;
   int stopCalls = 0;
 
   /// Installs this fake as the active platform implementation.
@@ -21,8 +19,6 @@ class FakeMobileScannerPlatform extends MobileScannerPlatform {
     MobileScannerPlatform.instance = fake;
     return fake;
   }
-
-  void emit(BarcodeCapture capture) => _barcodes.add(capture);
 
   @override
   Stream<BarcodeCapture?> get barcodesStream => _barcodes.stream;
@@ -38,7 +34,6 @@ class FakeMobileScannerPlatform extends MobileScannerPlatform {
 
   @override
   Future<MobileScannerViewAttributes> start(StartOptions startOptions) async {
-    startCalls++;
     return const MobileScannerViewAttributes(
       cameraDirection: CameraFacing.back,
       currentTorchMode: TorchState.off,

@@ -88,10 +88,6 @@ class BookRepository {
     await _books.add(_bookToMap(book, uid: uid, scannedAt: scannedAt));
   }
 
-  Future<void> deleteBook(String bookId) async {
-    await _books.doc(bookId).delete();
-  }
-
   /// Efface tous les livres de [uid] (suppression du compte), par lots
   /// d'écritures.
   Future<void> deleteAllUserBooks(String uid) async {

@@ -223,15 +223,9 @@ class RecordingBirthdayRepository extends FakeBirthdayRepository {
 }
 
 class FakeCategoryRepository extends Fake implements CategoryRepository {
-  final _categoriesController =
-      StreamController<List<BirthdayCategory>>.broadcast();
-
-  void emit(List<BirthdayCategory> categories) =>
-      _categoriesController.add(categories);
-
+  /// Ne publie jamais : les catégories restent en chargement.
   @override
-  Stream<List<BirthdayCategory>> watchCategories() =>
-      _categoriesController.stream;
+  Stream<List<BirthdayCategory>> watchCategories() => Stream.multi((_) {});
 
   @override
   String newCategoryId() => 'new-cat-id';
@@ -280,9 +274,6 @@ class FakeBookRepository extends Fake implements BookRepository {
     Book book, {
     required DateTime scannedAt,
   }) async {}
-
-  @override
-  Future<void> deleteBook(String bookId) async {}
 
   @override
   Future<void> deleteAllUserBooks(String uid) async {}

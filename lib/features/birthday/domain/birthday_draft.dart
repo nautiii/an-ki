@@ -16,9 +16,6 @@ class const BirthdayDraft({
   /// espaces. Le formulaire s'en sert pour valider ses champs.
   static bool isValidName(String value) => value.trim().isNotEmpty;
 
-  /// Brouillon enregistrable : prénom et nom renseignés.
-  bool get isValid => isValidName(name) && isValidName(surname);
-
   /// Copie modifiée. Un argument null signifie « inchangé » ; `clearPicture`
   /// retire la photo.
   BirthdayDraft copyWith({

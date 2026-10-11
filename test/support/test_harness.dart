@@ -10,7 +10,6 @@ class TestHarness extends StatelessWidget {
   final Widget child;
   final List<dynamic> overrides;
   final Widget? home;
-  final String? initialRoute;
   final Map<String, WidgetBuilder>? routes;
 
   const TestHarness({
@@ -18,7 +17,6 @@ class TestHarness extends StatelessWidget {
     required this.child,
     this.overrides = const [],
     this.home,
-    this.initialRoute,
     this.routes,
   });
 
@@ -40,7 +38,6 @@ class TestHarness extends StatelessWidget {
         supportedLocales: AppLocalizations.supportedLocales,
         locale: const Locale('fr'),
         home: Scaffold(body: home ?? child),
-        initialRoute: home == null ? initialRoute : null,
         routes: routes ?? const {},
       ),
     );
@@ -52,11 +49,9 @@ extension WidgetTesterExt on WidgetTester {
     Widget widget, {
     List<dynamic> overrides = const [],
     Widget? home,
-    String? initialRoute,
     Map<String, WidgetBuilder>? routes,
-    Size size = const Size(800, 1200),
   }) async {
-    view.physicalSize = size;
+    view.physicalSize = const Size(800, 1200);
     view.devicePixelRatio = 1.0;
     addTearDown(view.resetPhysicalSize);
     addTearDown(view.resetDevicePixelRatio);
@@ -65,7 +60,6 @@ extension WidgetTesterExt on WidgetTester {
       TestHarness(
         overrides: overrides,
         home: home,
-        initialRoute: initialRoute,
         routes: routes,
         child: widget,
       ),
