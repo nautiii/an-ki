@@ -12,20 +12,36 @@ import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class App extends ConsumerWidget {
+class App extends ConsumerStatefulWidget {
   const App({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<App> createState() => _AppState();
+}
+
+class _AppState extends ConsumerState<App> {
+  final _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  Widget build(BuildContext context) {
     // Active la synchro des rappels pour toute la vie de l'app : un provider
     // que personne n'écoute est mis en pause.
     ref.watch(reminderSyncProvider);
+    // L'accès change (connexion, déconnexion, verrouillage) : l'écran racine
+    // aussi. Les écrans poussés par-dessus (connexion par e-mail,
+    // inscription, réglages) n'ont plus lieu d'être.
+    ref.listen(authAccessProvider, (previous, next) {
+      if (previous != null && previous != next) {
+        _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+      }
+    });
     final themeMode = ref.watch(themeProvider);
     final access = ref.watch(authAccessProvider);
     final locale = ref.watch(localeProvider);
 
     return MaterialApp(
       title: 'AnKi',
+      navigatorKey: _navigatorKey,
       themeMode: themeMode,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

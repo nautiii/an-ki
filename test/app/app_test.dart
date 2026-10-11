@@ -4,9 +4,12 @@ import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
+import 'package:an_ki/features/auth/screens/login_screen.dart';
+import 'package:an_ki/features/auth/screens/signup_screen.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -152,6 +155,62 @@ void main() {
       await settle(tester);
 
       expect(find.byType(MainShell), findsOneWidget);
+    });
+  });
+
+  testWidgets('signing in by email lands on the app', (tester) async {
+    await mockNetworkImages(() async {
+      await pumpApp(tester, auth: FakeAuthRepository());
+      await settle(tester);
+
+      await tester.tap(find.text('Connexion Email'));
+      await settle(tester);
+      await tester.enterText(find.byType(TextField).at(0), 'a@b.com');
+      await tester.enterText(find.byType(TextField).at(1), 'password');
+      await tester.tap(find.text('Se connecter').last);
+      await settle(tester);
+
+      expect(find.byType(LoginScreen), findsNothing);
+      expect(find.byType(MainShell), findsOneWidget);
+    });
+  });
+
+  testWidgets('signing up lands on the app', (tester) async {
+    await mockNetworkImages(() async {
+      await pumpApp(tester, auth: FakeAuthRepository());
+      await settle(tester);
+
+      await tester.tap(find.text("S'inscrire"));
+      await settle(tester);
+      await tester.enterText(find.byType(TextField).at(0), 'John');
+      await tester.enterText(find.byType(TextField).at(1), 'Doe');
+      await tester.enterText(find.byType(TextField).at(2), 'a@b.com');
+      await tester.enterText(find.byType(TextField).at(3), 'secret');
+      await tester.enterText(find.byType(TextField).at(4), 'secret');
+      await tester.tap(find.text("S'inscrire").last);
+      await settle(tester);
+
+      expect(find.byType(SignUpScreen), findsNothing);
+      expect(find.byType(MainShell), findsOneWidget);
+    });
+  });
+
+  testWidgets('signing out from the settings goes back to the sign-in', (
+    tester,
+  ) async {
+    await mockNetworkImages(() async {
+      await pumpApp(tester, auth: FakeAuthRepository(user: MockUser()));
+      await settle(tester);
+
+      await tester.tap(find.byIcon(Icons.settings_rounded));
+      await settle(tester);
+      await tester.tap(find.text('Se déconnecter'));
+      await settle(tester);
+      await tester.tap(find.text('Se déconnecter').last);
+      await settle(tester);
+
+      expect(find.byType(SettingsScreen), findsNothing);
+      expect(find.byType(AuthChoiceScreen), findsOneWidget);
     });
   });
 }

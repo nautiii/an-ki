@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
-import 'package:an_ki/features/auth/domain/biometric_lock.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/domain/contact_import_failure.dart';
@@ -52,9 +51,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     super.dispose();
   }
 
-  Future<void> _handleSignOut(BuildContext context) async {
-    final isAnonymous = ref.read(authUserProvider).value?.isAnonymous ?? false;
-
+  Future<void> _handleSignOut(
+    BuildContext context, {
+    required bool isAnonymous,
+  }) async {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -128,9 +128,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _handleDeleteAccount(BuildContext context) async {
-    // Seul un compte Firebase se supprime (pas une session biométrique seule).
-    if (ref.read(authUserProvider).value == null) return;
-
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -208,18 +205,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         );
       }
     });
-    // Déconnexion ou verrouillage : retour à l'écran de connexion.
-    ref.listen(authAccessProvider, (previous, next) {
-      if (previous == AuthAccess.granted && next != AuthAccess.granted) {
-        if (context.mounted) {
-          Navigator.of(context).popUntil((route) => route.isFirst);
-        }
-      }
-    });
 
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentLocale = ref.watch(localeProvider);
+    // Compte de la session : anonyme (on propose de sauvegarder ses données
+    // avant de partir) ou absent (session biométrique seule : rien à
+    // supprimer).
+    final isAnonymous = ref.watch(
+      authUserProvider.select((user) => user.value?.isAnonymous ?? false),
+    );
+    final hasAccount = ref.watch(
+      authUserProvider.select((user) => user.value != null),
+    );
     final biometricsEnabled = ref.watch(
       biometricLockProvider.select((lock) => lock.value?.enabled ?? false),
     );
@@ -343,7 +341,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Icons.chevron_right_rounded,
               color: colorScheme.onSurfaceVariant,
             ),
-            onTap: () => _handleSignOut(context),
+            onTap: () => _handleSignOut(context, isAnonymous: isAnonymous),
           ),
           const Divider(),
           ListTile(
@@ -359,7 +357,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Icons.chevron_right_rounded,
               color: colorScheme.onSurfaceVariant,
             ),
-            onTap: () => _handleDeleteAccount(context),
+            onTap: hasAccount ? () => _handleDeleteAccount(context) : null,
           ),
         ],
       ),
