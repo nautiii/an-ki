@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 class BirthdayFormSheet extends ConsumerStatefulWidget {
   final Birthday? birthdayToEdit;
@@ -25,8 +27,6 @@ class BirthdayFormSheet extends ConsumerStatefulWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black54,
       builder: (context) => BirthdayFormSheet(birthdayToEdit: birthdayToEdit),
     );
   }
@@ -139,220 +139,152 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colorScheme.outlineVariant,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          widget.birthdayToEdit != null
-                              ? context.l10n.editBirthday
-                              : context.l10n.newBirthday,
-                          style: textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Spacer(),
-                        IconButton.filledTonal(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.close),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    Center(
-                      child: _ImagePickerButton(
-                        picture: _picture ?? widget.birthdayToEdit?.picture,
-                        onTap: _pickImage,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    AnKiTextField(
-                      controller: _nameController,
-                      label: context.l10n.firstName,
-                      prefixIcon: Icons.person_outline_rounded,
-                      validator: (v) => BirthdayDraft.isValidName(v ?? '')
-                          ? null
-                          : context.l10n.requiredField,
-                    ),
-                    const SizedBox(height: 16),
-                    AnKiTextField(
-                      controller: _surnameController,
-                      label: context.l10n.lastName,
-                      prefixIcon: Icons.badge_outlined,
-                      validator: (v) => BirthdayDraft.isValidName(v ?? '')
-                          ? null
-                          : context.l10n.requiredField,
-                    ),
-                    const SizedBox(height: 24),
-
-                    Text(
-                      context.l10n.category,
-                      style: textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _CategorySelector(
-                      categories: ref.watch(userCategoriesProvider),
-                      selectedIds: _selectedCategories,
-                      onChanged: (id) {
-                        setState(() {
-                          if (_selectedCategories.contains(id)) {
-                            _selectedCategories.remove(id);
-                          } else {
-                            _selectedCategories.add(id);
-                          }
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 24),
-
-                    _DatePickerField(
-                      label: context.l10n.birthDate,
-                      date: _selectedDate,
-                      onTap: () => _showDatePicker(context),
-                    ),
-
-                    const SizedBox(height: 40),
-                    Row(
-                      children: [
-                        if (widget.birthdayToEdit != null) ...[
-                          IconButton.filledTonal(
-                            onPressed: _delete,
-                            style: IconButton.styleFrom(
-                              foregroundColor: colorScheme.error,
-                              backgroundColor: colorScheme.errorContainer
-                                  .withValues(alpha: 0.3),
-                              padding: const EdgeInsets.all(16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            icon: const Icon(Icons.delete_outline_rounded),
-                          ),
-                          const SizedBox(width: 12),
-                        ],
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: _save,
-                            style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            icon: Icon(
-                              widget.birthdayToEdit != null
-                                  ? Icons.check_rounded
-                                  : Icons.add_rounded,
-                            ),
-                            label: Text(
-                              widget.birthdayToEdit != null
-                                  ? context.l10n.save
-                                  : context.l10n.add,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+  void _showDatePicker(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      builder: (_) => _DateSheet(
+        initialDate: _selectedDate,
+        maximumDate: ref.read(clockProvider)(),
+        onChanged: (date) => setState(() => _selectedDate = date),
       ),
     );
   }
 
-  void _showDatePicker(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final now = ref.read(clockProvider)();
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (_) => Container(
-        height: 350,
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  context.l10n.birthDate,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
+    final textTheme = Theme.of(context).textTheme;
+    final isEditing = widget.birthdayToEdit != null;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.xs,
+          AppSpacing.lg,
+          AppSpacing.lg,
+        ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      isEditing
+                          ? context.l10n.editBirthday
+                          : context.l10n.newBirthday,
+                      style: textTheme.headlineSmall,
+                    ),
                   ),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(context.l10n.add),
-                ),
-              ],
-            ),
-            const Divider(),
-            Expanded(
-              child: CupertinoDatePicker(
-                mode: CupertinoDatePickerMode.date,
-                initialDateTime: _selectedDate,
-                maximumDate: now,
-                onDateTimeChanged: (date) =>
-                    setState(() => _selectedDate = date),
+                  const SizedBox(width: AppSpacing.xs),
+                  IconButton.filledTonal(
+                    onPressed: () => Navigator.pop(context),
+                    tooltip: context.l10n.close,
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: AppSpacing.lg),
+              Center(
+                child: _ImagePickerButton(
+                  picture: _picture ?? widget.birthdayToEdit?.picture,
+                  onTap: _pickImage,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              AnKiTextField(
+                controller: _nameController,
+                label: context.l10n.firstName,
+                prefixIcon: Icons.person_outline_rounded,
+                validator: (v) => BirthdayDraft.isValidName(v ?? '')
+                    ? null
+                    : context.l10n.requiredField,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AnKiTextField(
+                controller: _surnameController,
+                label: context.l10n.lastName,
+                prefixIcon: Icons.badge_outlined,
+                validator: (v) => BirthdayDraft.isValidName(v ?? '')
+                    ? null
+                    : context.l10n.requiredField,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                context.l10n.category,
+                style: textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _CategorySelector(
+                categories: ref.watch(userCategoriesProvider),
+                selectedIds: _selectedCategories,
+                onChanged: (id) {
+                  setState(() {
+                    if (_selectedCategories.contains(id)) {
+                      _selectedCategories.remove(id);
+                    } else {
+                      _selectedCategories.add(id);
+                    }
+                  });
+                },
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              _DatePickerField(
+                label: context.l10n.birthDate,
+                date: _selectedDate,
+                onTap: () => _showDatePicker(context),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Row(
+                children: [
+                  if (isEditing) ...[
+                    IconButton.filledTonal(
+                      onPressed: _delete,
+                      tooltip: context.l10n.delete,
+                      style: IconButton.styleFrom(
+                        foregroundColor: colorScheme.onErrorContainer,
+                        backgroundColor: colorScheme.errorContainer,
+                        minimumSize: const Size.square(56),
+                        shape: const RoundedSuperellipseBorder(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(AppRadii.md),
+                          ),
+                        ),
+                      ),
+                      icon: const Icon(Icons.delete_outline_rounded),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                  ],
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _save,
+                      icon: Icon(
+                        isEditing ? Icons.check_rounded : Icons.add_rounded,
+                      ),
+                      label: Text(
+                        isEditing ? context.l10n.save : context.l10n.add,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
+/// Choix de la photo : avatar touchable, annoncé comme un bouton.
 class _ImagePickerButton extends StatelessWidget {
   const _ImagePickerButton({this.picture, required this.onTap});
 
@@ -365,37 +297,52 @@ class _ImagePickerButton extends StatelessWidget {
     final picture = this.picture;
     final ImageProvider? image = picture != null ? MemoryImage(picture) : null;
 
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      label: context.l10n.choosePhoto,
+      excludeSemantics: true,
       onTap: onTap,
       child: Stack(
         children: [
           CircleAvatar(
-            radius: 50,
+            radius: 48,
             backgroundColor: colorScheme.surfaceContainerHigh,
-            backgroundImage: image,
-            child: image == null
-                ? Icon(
-                    Icons.person_rounded,
-                    size: 40,
-                    color: colorScheme.onSurfaceVariant,
-                  )
-                : null,
+            foregroundImage: image,
+            child: Icon(
+              Icons.person_rounded,
+              size: 40,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           Positioned(
             right: 0,
             bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.all(8),
+            child: DecoratedBox(
               decoration: BoxDecoration(
                 color: colorScheme.primary,
                 shape: BoxShape.circle,
-                border: Border.all(color: colorScheme.surface, width: 2),
+                border: Border.all(
+                  color: colorScheme.surfaceContainerLow,
+                  width: 2,
+                ),
               ),
-              child: Icon(
-                Icons.camera_alt_rounded,
-                size: 18,
-                color: colorScheme.onPrimary,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.xs),
+                child: Icon(
+                  Icons.photo_camera_rounded,
+                  size: 18,
+                  color: colorScheme.onPrimary,
+                ),
               ),
+            ),
+          ),
+          // Au-dessus de l'avatar, pour que l'onde du toucher reste visible.
+          Positioned.fill(
+            child: Material(
+              type: MaterialType.transparency,
+              shape: const CircleBorder(),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(onTap: onTap),
             ),
           ),
         ],
@@ -417,35 +364,23 @@ class _CategorySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: categories.map((cat) {
-          final isSelected = selectedIds.contains(cat.id);
-          final colorScheme = Theme.of(context).colorScheme;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(cat.localizedName(context)),
-              avatar: Icon(
-                cat.iconData,
-                size: 18,
-                color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
-              ),
-              selected: isSelected,
-              onSelected: (_) => onChanged(cat.id),
-              showCheckmark: false,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+    return Wrap(
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
+      children: [
+        for (final category in categories)
+          ChoiceChip(
+            avatar: Icon(category.iconData),
+            label: Text(category.localizedName(context)),
+            selected: selectedIds.contains(category.id),
+            onSelected: (_) => onChanged(category.id),
+          ),
+      ],
     );
   }
 }
 
+/// Champ de date : ouvre le sélecteur, affiche la date dans la langue de l'app.
 class _DatePickerField extends StatelessWidget {
   const _DatePickerField({
     required this.label,
@@ -460,46 +395,111 @@ class _DatePickerField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.calendar_today_rounded, color: colorScheme.primary),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
+    final textTheme = Theme.of(context).textTheme;
+    final locale = Localizations.localeOf(context).languageCode;
+
+    return MergeSemantics(
+      child: Semantics(
+        button: true,
+        child: Material(
+          color: colorScheme.surfaceContainerHigh,
+          shape: const RoundedSuperellipseBorder(
+            borderRadius: BorderRadius.all(Radius.circular(AppRadii.md)),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.calendar_today_rounded,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          label,
+                          style: textTheme.labelMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        Text(
+                          DateFormat.yMMMMd(locale).format(date),
+                          style: textTheme.titleMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Icon(
+                    Icons.edit_calendar_rounded,
+                    size: 20,
                     color: colorScheme.onSurfaceVariant,
-                    fontSize: 12,
                   ),
-                ),
-                Text(
-                  '${date.day}/${date.month}/${date.year}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-            const Spacer(),
-            Icon(
-              Icons.edit_calendar_rounded,
-              size: 20,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+/// Feuille du sélecteur de date : la roue suit la date, « Valider » ferme.
+class _DateSheet extends StatelessWidget {
+  const _DateSheet({
+    required this.initialDate,
+    required this.maximumDate,
+    required this.onChanged,
+  });
+
+  final DateTime initialDate;
+  final DateTime maximumDate;
+  final ValueChanged<DateTime> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.xs,
+        AppSpacing.lg,
+        AppSpacing.lg,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  context.l10n.birthDate,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(context.l10n.confirm),
+              ),
+            ],
+          ),
+          const Divider(),
+          SizedBox(
+            height: 216,
+            child: CupertinoDatePicker(
+              mode: CupertinoDatePickerMode.date,
+              initialDateTime: initialDate,
+              maximumDate: maximumDate,
+              onDateTimeChanged: onChanged,
+            ),
+          ),
+        ],
       ),
     );
   }

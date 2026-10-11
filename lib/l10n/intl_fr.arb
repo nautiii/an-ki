@@ -26,6 +26,15 @@
   "editBirthday": "Modifier",
   "noBirthdaysFound": "Aucun anniversaire trouvé.",
   "yearsOld": "ans",
+  "ageInYears": "{age, plural, one{{age} an} other{{age} ans}}",
+  "@ageInYears": {
+    "description": "Âge accordé (« 1 an », « 34 ans »)",
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
   "requiredField": "Champ obligatoire",
   "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
   "signOut": "Se déconnecter",
@@ -83,6 +92,15 @@
   "newCategory": "Nouvelle catégorie",
   "categoryName": "Nom de la catégorie",
   "chooseIcon": "Choisir une icône",
+  "iconOption": "Icône {number}",
+  "@iconOption": {
+    "description": "Nom lu par les lecteurs d'écran pour une icône de catégorie (numéro dans la grille)",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "tabBirthdays": "Anniversaires",
   "@tabBirthdays": {
     "description": "Libellé de l'onglet des anniversaires (barre du bas)"
@@ -106,6 +124,18 @@
   "addBirthday": "Ajouter un anniversaire",
   "@addBirthday": {
     "description": "Bouton ou infobulle d'ajout d'un anniversaire"
+  },
+  "close": "Fermer",
+  "@close": {
+    "description": "Infobulle du bouton qui ferme une feuille"
+  },
+  "choosePhoto": "Choisir une photo",
+  "@choosePhoto": {
+    "description": "Libellé du sélecteur de photo du formulaire"
+  },
+  "confirm": "Valider",
+  "@confirm": {
+    "description": "Bouton qui valide un choix (date)"
   },
   "emptyBirthdaysTitle": "Vos anniversaires vivront ici",
   "@emptyBirthdaysTitle": {

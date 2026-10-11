@@ -1,5 +1,7 @@
+import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
@@ -11,6 +13,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+/// Calendrier mensuel des anniversaires : une pastille par personne fêtée,
+/// la liste du jour en touchant la case.
 class BirthdayCalendar extends ConsumerStatefulWidget {
   const BirthdayCalendar({super.key});
 
@@ -21,39 +25,42 @@ class BirthdayCalendar extends ConsumerStatefulWidget {
 class _BirthdayCalendarState extends ConsumerState<BirthdayCalendar> {
   late DateTime _focusedDate = ref.read(todayProvider);
 
+  void _moveMonth(int delta) {
+    setState(() {
+      _focusedDate = DateTime(_focusedDate.year, _focusedDate.month + delta);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final birthdays = ref.watch(categoryFilteredBirthdaysProvider);
-    final categories = ref.watch(categoriesProvider).value ?? [];
+    final categories = ref.watch(categoriesProvider).value ?? const [];
     final today = ref.watch(todayProvider);
 
     return Column(
       children: [
         _CalendarHeader(
           focusedDate: _focusedDate,
-          onLeftArrowTap: () {
-            setState(() {
-              _focusedDate = DateTime(
-                _focusedDate.year,
-                _focusedDate.month - 1,
-              );
-            });
-          },
-          onRightArrowTap: () {
-            setState(() {
-              _focusedDate = DateTime(
-                _focusedDate.year,
-                _focusedDate.month + 1,
-              );
-            });
-          },
+          onPrevious: () => _moveMonth(-1),
+          onNext: () => _moveMonth(1),
         ),
-        const SizedBox(height: 16),
-        _CalendarGrid(
-          focusedDate: _focusedDate,
-          today: today,
-          birthdays: birthdays,
-          categories: categories,
+        const SizedBox(height: AppSpacing.md),
+        // Taille de texte bornée dans la grille, comme le sélecteur de date
+        // Material : les numéros restent dans leurs cases en grand texte.
+        MediaQuery.withClampedTextScaling(
+          maxScaleFactor: 1.3,
+          child: Column(
+            children: [
+              const _WeekdayHeader(),
+              const SizedBox(height: AppSpacing.xs),
+              _CalendarGrid(
+                focusedDate: _focusedDate,
+                today: today,
+                birthdays: birthdays,
+                categories: categories,
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -61,43 +68,44 @@ class _BirthdayCalendarState extends ConsumerState<BirthdayCalendar> {
 }
 
 class _CalendarHeader extends StatelessWidget {
-  final DateTime focusedDate;
-  final VoidCallback onLeftArrowTap;
-  final VoidCallback onRightArrowTap;
-
   const _CalendarHeader({
     required this.focusedDate,
-    required this.onLeftArrowTap,
-    required this.onRightArrowTap,
+    required this.onPrevious,
+    required this.onNext,
   });
+
+  final DateTime focusedDate;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final monthFormat = DateFormat.MMMM(
-      Localizations.localeOf(context).languageCode,
-    );
-    final yearFormat = DateFormat.y(
-      Localizations.localeOf(context).languageCode,
+    final localizations = MaterialLocalizations.of(context);
+    final locale = Localizations.localeOf(context).languageCode;
+    // « octobre 2026 » prend une majuscule en tête de calendrier.
+    final title = toBeginningOfSentenceCase(
+      DateFormat.yMMMM(locale).format(focusedDate),
+      locale,
     );
 
     return Row(
       children: [
-        const SizedBox(width: 8),
-        Text(
-          '${monthFormat.format(focusedDate).capitalize()} ${yearFormat.format(focusedDate)}',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: Semantics(
+            header: true,
+            liveRegion: true,
+            child: Text(title, style: Theme.of(context).textTheme.titleLarge),
           ),
         ),
-        const Spacer(),
         IconButton(
-          onPressed: onLeftArrowTap,
+          onPressed: onPrevious,
+          tooltip: localizations.previousMonthTooltip,
           icon: const Icon(Icons.chevron_left_rounded),
         ),
         IconButton(
-          onPressed: onRightArrowTap,
+          onPressed: onNext,
+          tooltip: localizations.nextMonthTooltip,
           icon: const Icon(Icons.chevron_right_rounded),
         ),
       ],
@@ -105,18 +113,41 @@ class _CalendarHeader extends StatelessWidget {
   }
 }
 
-extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
+/// Initiales des jours, à partir du premier jour de la semaine local.
+class _WeekdayHeader extends StatelessWidget {
+  const _WeekdayHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = MaterialLocalizations.of(context);
+    final theme = Theme.of(context);
+    final style = theme.textTheme.labelMedium?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final first = localizations.firstDayOfWeekIndex;
+
+    // Initiales ambiguës (« M » : mardi ou mercredi) : chaque case annonce
+    // déjà sa date complète.
+    return ExcludeSemantics(
+      child: Row(
+        spacing: _CalendarGrid.spacing,
+        children: [
+          for (var i = 0; i < DateTime.daysPerWeek; i++)
+            Expanded(
+              child: Text(
+                localizations.narrowWeekdays[(first + i) %
+                    DateTime.daysPerWeek],
+                textAlign: TextAlign.center,
+                style: style,
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
 class _CalendarGrid extends StatelessWidget {
-  final DateTime focusedDate;
-  final DateTime today;
-  final List<Birthday> birthdays;
-  final List<BirthdayCategory> categories;
-
   const _CalendarGrid({
     required this.focusedDate,
     required this.today,
@@ -124,34 +155,45 @@ class _CalendarGrid extends StatelessWidget {
     required this.categories,
   });
 
+  /// Écart entre les cases, repris par l'en-tête des jours pour s'aligner.
+  static const double spacing = AppSpacing.xxs;
+
+  final DateTime focusedDate;
+  final DateTime today;
+  final List<Birthday> birthdays;
+  final List<BirthdayCategory> categories;
+
   @override
   Widget build(BuildContext context) {
-    final daysInMonth = DateUtils.getDaysInMonth(
-      focusedDate.year,
-      focusedDate.month,
+    final year = focusedDate.year;
+    final month = focusedDate.month;
+    final daysInMonth = DateUtils.getDaysInMonth(year, month);
+    // Cases vides avant le 1er, selon le premier jour de la semaine local.
+    final leadingDays = DateUtils.firstDayOffset(
+      year,
+      month,
+      MaterialLocalizations.of(context),
     );
 
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
+        crossAxisCount: DateTime.daysPerWeek,
+        mainAxisSpacing: spacing,
+        crossAxisSpacing: spacing,
       ),
-      itemCount: daysInMonth,
+      itemCount: leadingDays + daysInMonth,
       itemBuilder: (context, index) {
-        final day = index + 1;
+        if (index < leadingDays) return const SizedBox.shrink();
 
-        final date = DateTime(focusedDate.year, focusedDate.month, day);
+        final date = DateTime(year, month, index - leadingDays + 1);
         final dayBirthdays = birthdays
-            .where(
-              (b) => b.date.day == day && b.date.month == focusedDate.month,
-            )
+            .where((b) => b.date.day == date.day && b.date.month == month)
             .toList();
 
         return _CalendarDayCell(
-          day: day,
+          date: date,
           isToday: DateUtils.isSameDay(date, today),
           birthdays: dayBirthdays,
           categories: categories,
@@ -159,197 +201,205 @@ class _CalendarGrid extends StatelessWidget {
               ? null
               : () {
                   HapticFeedback.lightImpact();
-                  _showDayBirthdays(context, date, dayBirthdays);
+                  _DayBirthdaysSheet.show(
+                    context,
+                    date: date,
+                    birthdays: dayBirthdays,
+                    today: today,
+                  );
                 },
         );
       },
     );
   }
-
-  void _showDayBirthdays(
-    BuildContext context,
-    DateTime date,
-    List<Birthday> birthdays,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final dateFormat = DateFormat.yMMMMd(
-      Localizations.localeOf(context).languageCode,
-    );
-
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              dateFormat.format(date),
-              style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Flexible(
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: birthdays.length,
-                separatorBuilder: (context, index) => const Divider(height: 24),
-                itemBuilder: (context, index) {
-                  final birthday = birthdays[index];
-                  final picture = birthday.picture;
-                  return Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: colorScheme.primaryContainer,
-                        backgroundImage: picture != null
-                            ? MemoryImage(picture)
-                            : null,
-                        child: picture == null
-                            ? Icon(
-                                Icons.cake_rounded,
-                                color: colorScheme.primary,
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "${birthday.name} ${birthday.surname}",
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              "${birthday.ageOn(today)} ${context.l10n.yearsOld}",
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _CalendarDayCell extends StatelessWidget {
-  final int day;
-  final bool isToday;
-  final List<Birthday> birthdays;
-  final List<BirthdayCategory> categories;
-  final VoidCallback? onTap;
-
   const _CalendarDayCell({
-    required this.day,
+    required this.date,
     required this.isToday,
     required this.birthdays,
     required this.categories,
     this.onTap,
   });
 
+  final DateTime date;
+  final bool isToday;
+  final List<Birthday> birthdays;
+  final List<BirthdayCategory> categories;
+  final VoidCallback? onTap;
+
+  /// Pastilles affichées au plus : la feuille du jour liste tout le monde.
+  static const _maxDots = 3;
+  static const double _dotSize = 6;
+
+  BirthdayCategory? _categoryOf(Birthday birthday) {
+    final id = birthday.categories.firstOrNull;
+    return categories.where((category) => category.id == id).firstOrNull;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final locale = Localizations.localeOf(context).languageCode;
+    // Lu par TalkBack : la date complète et les personnes fêtées.
+    final label = [
+      DateFormat.MMMMEEEEd(locale).format(date),
+      for (final birthday in birthdays) '${birthday.name} ${birthday.surname}',
+    ].join(', ');
 
-    return InkWell(
+    return Semantics(
+      label: label,
+      button: onTap != null,
+      excludeSemantics: true,
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isToday
-              ? colorScheme.primaryContainer
-              : colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(12),
-          border: isToday
-              ? Border.all(
-                  color: colorScheme.primary.withValues(alpha: 0.5),
-                  width: 1.5,
-                )
-              : null,
+      child: Material(
+        color: isToday
+            ? colorScheme.primaryContainer
+            : colorScheme.surfaceContainerLow,
+        shape: RoundedSuperellipseBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(AppRadii.sm)),
+          side: isToday
+              ? BorderSide(color: colorScheme.primary, width: 1.5)
+              : BorderSide.none,
         ),
-        child: Stack(
-          alignment: Alignment.center,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '${date.day}',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: isToday
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              SizedBox(
+                height: _dotSize,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: AppSpacing.xxs,
+                  children: [
+                    for (final birthday in birthdays.take(_maxDots))
+                      DecoratedBox(
+                        decoration: ShapeDecoration(
+                          shape: const CircleBorder(),
+                          color:
+                              _categoryOf(birthday)?.tones(context).color ??
+                              colorScheme.primary,
+                        ),
+                        child: const SizedBox.square(dimension: _dotSize),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Feuille du jour : les personnes fêtées, avec leur âge.
+class _DayBirthdaysSheet extends StatelessWidget {
+  const _DayBirthdaysSheet({
+    required this.date,
+    required this.birthdays,
+    required this.today,
+  });
+
+  static Future<void> show(
+    BuildContext context, {
+    required DateTime date,
+    required List<Birthday> birthdays,
+    required DateTime today,
+  }) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) =>
+          _DayBirthdaysSheet(date: date, birthdays: birthdays, today: today),
+    );
+  }
+
+  final DateTime date;
+  final List<Birthday> birthdays;
+  final DateTime today;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final locale = Localizations.localeOf(context).languageCode;
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.xs,
+          AppSpacing.lg,
+          AppSpacing.lg,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Positioned(
-              top: 8,
+            Semantics(
+              header: true,
               child: Text(
-                day.toString(),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
-                  color: isToday ? colorScheme.primary : colorScheme.onSurface,
+                DateFormat.yMMMMd(locale).format(date),
+                textAlign: TextAlign.center,
+                style: textTheme.titleLarge?.copyWith(
+                  color: colorScheme.primary,
                 ),
               ),
             ),
-            if (birthdays.isNotEmpty)
-              Positioned(
-                bottom: 8,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: birthdays.take(4).map((b) {
-                    final categoryId = b.categories.isNotEmpty
-                        ? b.categories.first
-                        : null;
-                    final category = categories
-                        .cast<BirthdayCategory?>()
-                        .firstWhere(
-                          (c) => c?.id == categoryId,
-                          orElse: () => null,
-                        );
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 1),
-                      width: 5,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color:
-                            category?.tones(context).color ??
-                            colorScheme.primary,
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                (category?.tones(context).color ??
-                                        colorScheme.primary)
-                                    .withValues(alpha: 0.3),
-                            blurRadius: 2,
-                            spreadRadius: 0.5,
+            const SizedBox(height: AppSpacing.md),
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: birthdays.length,
+                separatorBuilder: (_, _) =>
+                    const Divider(height: AppSpacing.lg),
+                itemBuilder: (context, index) {
+                  final birthday = birthdays[index];
+                  final picture = birthday.picture;
+                  final fullName = '${birthday.name} ${birthday.surname}';
+                  return MergeSemantics(
+                    child: Row(
+                      children: [
+                        AnKiAvatar(
+                          name: fullName,
+                          image: picture != null ? MemoryImage(picture) : null,
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(fullName, style: textTheme.titleMedium),
+                              Text(
+                                context.l10n.ageInYears(birthday.ageOn(today)),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
+            ),
           ],
         ),
       ),

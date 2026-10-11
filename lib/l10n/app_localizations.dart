@@ -260,6 +260,12 @@ abstract class AppLocalizations {
   /// **'ans'**
   String get yearsOld;
 
+  /// Âge accordé (« 1 an », « 34 ans »)
+  ///
+  /// In fr, this message translates to:
+  /// **'{age, plural, one{{age} an} other{{age} ans}}'**
+  String ageInYears(int age);
+
   /// No description provided for @requiredField.
   ///
   /// In fr, this message translates to:
@@ -464,6 +470,12 @@ abstract class AppLocalizations {
   /// **'Choisir une icône'**
   String get chooseIcon;
 
+  /// Nom lu par les lecteurs d'écran pour une icône de catégorie (numéro dans la grille)
+  ///
+  /// In fr, this message translates to:
+  /// **'Icône {number}'**
+  String iconOption(int number);
+
   /// Libellé de l'onglet des anniversaires (barre du bas)
   ///
   /// In fr, this message translates to:
@@ -499,6 +511,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Ajouter un anniversaire'**
   String get addBirthday;
+
+  /// Infobulle du bouton qui ferme une feuille
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get close;
+
+  /// Libellé du sélecteur de photo du formulaire
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir une photo'**
+  String get choosePhoto;
+
+  /// Bouton qui valide un choix (date)
+  ///
+  /// In fr, this message translates to:
+  /// **'Valider'**
+  String get confirm;
 
   /// Titre de l'accueil sans aucun anniversaire
   ///

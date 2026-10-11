@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
@@ -21,26 +22,37 @@ final _png = base64Decode(
 );
 
 void main() {
-  final now = DateTime.now();
+  // Octobre 2026 commence un jeudi.
+  final today = DateTime(2026, 10, 11);
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
 
-  Birthday onDay(int day, {String id = '1', Uint8List? picture}) => Birthday(
+  Birthday born(
+    DateTime date, {
+    String id = '1',
+    String name = 'Alice',
+    Uint8List? picture,
+  }) => Birthday(
     id: id,
-    name: 'Alice',
+    name: name,
     surname: 'Wonderland',
-    date: DateTime(1990, now.month, day),
+    date: date,
     categories: const ['fam'],
     picture: picture,
   );
 
+  Birthday onDay(int day, {String id = '1', String name = 'Alice'}) =>
+      born(DateTime(1990, today.month, day), id: id, name: name);
+
   Future<void> pumpCalendar(
     WidgetTester tester, {
     required List<Birthday> birthdays,
+    DateTime? on,
   }) async {
     await tester.pumpHarness(
-      const BirthdayCalendar(),
+      const SingleChildScrollView(child: BirthdayCalendar()),
       overrides: [
         birthdaysProvider.overrideWithValue(AsyncData(birthdays)),
+        clockProvider.overrideWithValue(() => on ?? today),
         currentUidProvider.overrideWithValue('u1'),
         categoryRepositoryProvider.overrideWithValue(
           RecordingCategoryRepository([family]),
@@ -50,31 +62,80 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('renders the grid and navigates between months', (tester) async {
-    await mockNetworkImages(() async {
-      await pumpCalendar(tester, birthdays: [onDay(15)]);
+  testWidgets('titles the month and navigates between months', (tester) async {
+    await pumpCalendar(tester, birthdays: [onDay(15)]);
 
-      expect(find.byType(GridView), findsOneWidget);
+    expect(find.text('Octobre 2026'), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.chevron_right_rounded));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.chevron_left_rounded));
-      await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Mois suivant'));
+    await tester.pumpAndSettle();
+    expect(find.text('Novembre 2026'), findsOneWidget);
 
-      expect(find.byType(GridView), findsOneWidget);
-    });
+    await tester.tap(find.byTooltip('Mois précédent'));
+    await tester.pumpAndSettle();
+    expect(find.text('Octobre 2026'), findsOneWidget);
+  });
+
+  testWidgets('starts the week on Monday and places the 1st on its weekday', (
+    tester,
+  ) async {
+    await pumpCalendar(tester, birthdays: const []);
+
+    final weekdays = tester
+        .widgetList<Text>(
+          find.descendant(
+            of: find.byType(ExcludeSemantics),
+            matching: find.byType(Text),
+          ),
+        )
+        .map((text) => text.data)
+        .toList();
+    expect(weekdays, ['L', 'M', 'M', 'J', 'V', 'S', 'D']);
+
+    // Le jeudi 1er octobre sous le « J », le lundi 5 sous le « L ».
+    expect(
+      tester.getCenter(find.text('1')).dx,
+      moreOrLessEquals(tester.getCenter(find.text('J')).dx, epsilon: 0.5),
+    );
+    expect(
+      tester.getCenter(find.text('5')).dx,
+      moreOrLessEquals(tester.getCenter(find.text('L')).dx, epsilon: 0.5),
+    );
+  });
+
+  testWidgets('announces each day with its date and who is celebrated', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpCalendar(tester, birthdays: [onDay(15)]);
+
+    expect(
+      tester.getSemantics(
+        find.bySemanticsLabel('jeudi 15 octobre, Alice Wonderland'),
+      ),
+      isSemantics(isButton: true, hasTapAction: true),
+    );
+    expect(find.bySemanticsLabel('vendredi 16 octobre'), findsOneWidget);
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    semantics.dispose();
   });
 
   testWidgets('tapping a day with birthdays opens the detail sheet', (
     tester,
   ) async {
     await mockNetworkImages(() async {
-      await pumpCalendar(tester, birthdays: [onDay(15, picture: _png)]);
+      await pumpCalendar(
+        tester,
+        birthdays: [born(DateTime(1990, 10, 15), picture: _png)],
+      );
 
       await tester.tap(find.text('15'));
       await tester.pumpAndSettle();
 
+      expect(find.text('15 octobre 2026'), findsOneWidget);
       expect(find.text('Alice Wonderland'), findsOneWidget);
+      // Âge actuel (35), comme ailleurs dans l'app : « aura 36 ans » viendra avec B1.
+      expect(find.text('35 ans'), findsOneWidget);
     });
   });
 
@@ -85,8 +146,8 @@ void main() {
       await pumpCalendar(
         tester,
         birthdays: [
-          onDay(15, picture: _png),
-          onDay(15, id: '2'),
+          onDay(15),
+          onDay(15, id: '2', name: 'Bob'),
         ],
       );
 
@@ -94,7 +155,18 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(Divider), findsOneWidget);
-      expect(find.byIcon(Icons.cake_rounded), findsOneWidget);
+      expect(find.text('Alice Wonderland'), findsOneWidget);
+      expect(find.text('Bob Wonderland'), findsOneWidget);
     });
+  });
+
+  testWidgets('keeps the header whole at 200 % text', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await pumpCalendar(tester, birthdays: [onDay(15)]);
+
+    expect(find.text('Octobre 2026'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

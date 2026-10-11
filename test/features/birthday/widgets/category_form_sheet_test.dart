@@ -133,9 +133,41 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Nouvelle catégorie'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.close));
+    await tester.tap(find.byTooltip('Fermer'));
     await tester.pumpAndSettle();
 
     expect(find.text('Nouvelle catégorie'), findsNothing);
+  });
+
+  testWidgets('names each icon and its selection for screen readers', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpHarness(
+      const CategoryFormSheet(),
+      overrides: overrides(all: [family]),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getSemantics(find.bySemanticsLabel('Icône 1')),
+      isSemantics(isButton: true, isSelected: true, hasTapAction: true),
+    );
+    expect(
+      tester.getSemantics(find.bySemanticsLabel('Icône 3')),
+      isSemantics(isSelected: false),
+    );
+
+    // La sélection suit le toucher, lu aussi par TalkBack.
+    await tester.tap(find.byIcon(Icons.work_rounded));
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSemantics(find.bySemanticsLabel('Icône 3')),
+      isSemantics(isSelected: true),
+    );
+
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    semantics.dispose();
   });
 }

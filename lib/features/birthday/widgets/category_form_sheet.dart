@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:an_ki/core/common/anki_text_field.dart';
+import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
@@ -16,7 +18,7 @@ class CategoryFormSheet extends ConsumerStatefulWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      useSafeArea: true,
       builder: (context) => const CategoryFormSheet(),
     );
   }
@@ -79,208 +81,189 @@ class _CategoryFormSheetState extends ConsumerState<CategoryFormSheet> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final sectionStyle = textTheme.labelLarge?.copyWith(
+      color: colorScheme.onSurfaceVariant,
+    );
     final categoriesState = ref.watch(categoriesProvider);
     final user = ref.watch(userProfileProvider).value;
     final userCategoryIds = user?.categories ?? [];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colorScheme.outlineVariant,
-                borderRadius: BorderRadius.circular(2),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.xs,
+          AppSpacing.lg,
+          AppSpacing.xl,
+        ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      context.l10n.newCategory,
+                      style: textTheme.headlineSmall,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  IconButton.filledTonal(
+                    onPressed: () => Navigator.pop(context),
+                    tooltip: context.l10n.close,
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+              const SizedBox(height: AppSpacing.lg),
+
+              // Section Catégories par défaut
+              Text(context.l10n.suggestedCategories, style: sectionStyle),
+              const SizedBox(height: AppSpacing.sm),
+              categoriesState.when(
+                data: (allCategories) {
+                  final availableDefaults = allCategories
+                      .where((cat) => !userCategoryIds.contains(cat.id))
+                      .toList();
+
+                  if (availableDefaults.isEmpty) {
+                    return Text(context.l10n.noMoreSuggestions);
+                  }
+
+                  return Wrap(
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
+                    children: [
+                      for (final category in availableDefaults)
+                        FilterChip(
+                          avatar: Icon(category.iconData),
+                          label: Text(category.localizedName(context)),
+                          selected: _selectedDefaultIds.contains(category.id),
+                          onSelected: (selected) {
+                            setState(() {
+                              if (selected) {
+                                _selectedDefaultIds.add(category.id);
+                              } else {
+                                _selectedDefaultIds.remove(category.id);
+                              }
+                            });
+                          },
+                        ),
+                    ],
+                  );
+                },
+                loading: () => const Wrap(
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xs,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          context.l10n.newCategory,
-                          style: textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Spacer(),
-                        IconButton.filledTonal(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.close),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Section Catégories par défaut
-                    Text(
-                      context.l10n.suggestedCategories,
-                      style: textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    categoriesState.when(
-                      data: (allCategories) {
-                        final availableDefaults = allCategories
-                            .where((cat) => !userCategoryIds.contains(cat.id))
-                            .toList();
-
-                        if (availableDefaults.isEmpty) {
-                          return Text(context.l10n.noMoreSuggestions);
-                        }
-
-                        return SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          child: Row(
-                            children: availableDefaults.map((cat) {
-                              final isSelected = _selectedDefaultIds.contains(
-                                cat.id,
-                              );
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: FilterChip(
-                                  label: Text(cat.localizedName(context)),
-                                  avatar: Icon(
-                                    cat.iconData,
-                                    size: 18,
-                                    color: isSelected
-                                        ? colorScheme.onPrimary
-                                        : colorScheme.primary,
-                                  ),
-                                  selected: isSelected,
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      if (selected) {
-                                        _selectedDefaultIds.add(cat.id);
-                                      } else {
-                                        _selectedDefaultIds.remove(cat.id);
-                                      }
-                                    });
-                                  },
-                                  showCheckmark: false,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(28),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        );
-                      },
-                      loading: () =>
-                          const Center(child: CircularProgressIndicator()),
-                      error: (_, _) => const SizedBox(),
-                    ),
-
-                    const SizedBox(height: 20),
-                    const Divider(),
-                    const SizedBox(height: 20),
-
-                    // Section Catégorie personnalisée
-                    Text(
-                      context.l10n.createCustomCategory,
-                      style: textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    AnKiTextField(
-                      controller: _controller,
-                      label: context.l10n.categoryName,
-                      // Dynamic icon: code is user-selected at runtime, not const.
-                      prefixIcon: IconData(
-                        // ignore: non_const_argument_for_const_parameter
-                        _selectedIconCode,
-                        fontFamily: 'MaterialIcons',
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      context.l10n.chooseIcon,
-                      style: textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 5,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
-                          ),
-                      itemCount: _availableIcons.length,
-                      itemBuilder: (context, index) {
-                        final icon = _availableIcons[index];
-                        final isSelected = _selectedIconCode == icon.codePoint;
-                        return InkWell(
-                          onTap: () => setState(
-                            () => _selectedIconCode = icon.codePoint,
-                          ),
-                          borderRadius: BorderRadius.circular(28),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? colorScheme.primary
-                                  : colorScheme.surfaceContainerHigh,
-                              borderRadius: BorderRadius.circular(28),
-                            ),
-                            child: Icon(
-                              icon,
-                              color: isSelected
-                                  ? colorScheme.onPrimary
-                                  : colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 32),
-                    FilledButton.icon(
-                      onPressed: _save,
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      icon: const Icon(Icons.add_rounded),
-                      label: Text(
-                        context.l10n.add,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                    SkeletonBox(height: 32, width: 96, radius: AppRadii.md),
+                    SkeletonBox(height: 32, width: 112, radius: AppRadii.md),
+                    SkeletonBox(height: 32, width: 88, radius: AppRadii.md),
                   ],
                 ),
+                error: (_, _) => const SizedBox.shrink(),
               ),
+
+              const SizedBox(height: AppSpacing.md),
+              const Divider(),
+              const SizedBox(height: AppSpacing.md),
+
+              // Section Catégorie personnalisée
+              Text(context.l10n.createCustomCategory, style: sectionStyle),
+              const SizedBox(height: AppSpacing.md),
+              AnKiTextField(
+                controller: _controller,
+                label: context.l10n.categoryName,
+                // Dynamic icon: code is user-selected at runtime, not const.
+                prefixIcon: IconData(
+                  // ignore: non_const_argument_for_const_parameter
+                  _selectedIconCode,
+                  fontFamily: 'MaterialIcons',
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(context.l10n.chooseIcon, style: sectionStyle),
+              const SizedBox(height: AppSpacing.md),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 5,
+                  mainAxisSpacing: AppSpacing.xs,
+                  crossAxisSpacing: AppSpacing.xs,
+                ),
+                itemCount: _availableIcons.length,
+                itemBuilder: (context, index) {
+                  final icon = _availableIcons[index];
+                  return _IconOption(
+                    icon: icon,
+                    label: context.l10n.iconOption(index + 1),
+                    isSelected: _selectedIconCode == icon.codePoint,
+                    onTap: () =>
+                        setState(() => _selectedIconCode = icon.codePoint),
+                  );
+                },
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              FilledButton.icon(
+                onPressed: _save,
+                icon: const Icon(Icons.add_rounded),
+                label: Text(context.l10n.add),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Une icône de la grille : un bouton sélectionnable, nommé pour TalkBack.
+class _IconOption extends StatelessWidget {
+  const _IconOption({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: Material(
+        color: isSelected
+            ? colorScheme.primary
+            : colorScheme.surfaceContainerHigh,
+        shape: const RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.all(Radius.circular(AppRadii.md)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Center(
+            child: Icon(
+              icon,
+              color: isSelected
+                  ? colorScheme.onPrimary
+                  : colorScheme.onSurfaceVariant,
             ),
-          ],
+          ),
         ),
       ),
     );

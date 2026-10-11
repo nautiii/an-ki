@@ -91,6 +91,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get yearsOld => 'ans';
 
   @override
+  String ageInYears(int age) {
+    String _temp0 = intl.Intl.pluralLogic(
+      age,
+      locale: localeName,
+      other: '$age ans',
+      one: '$age an',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get requiredField => 'Champ obligatoire';
 
   @override
@@ -202,6 +213,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chooseIcon => 'Choisir une icône';
 
   @override
+  String iconOption(int number) {
+    return 'Icône $number';
+  }
+
+  @override
   String get tabBirthdays => 'Anniversaires';
 
   @override
@@ -218,6 +234,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get addBirthday => 'Ajouter un anniversaire';
+
+  @override
+  String get close => 'Fermer';
+
+  @override
+  String get choosePhoto => 'Choisir une photo';
+
+  @override
+  String get confirm => 'Valider';
 
   @override
   String get emptyBirthdaysTitle => 'Vos anniversaires vivront ici';

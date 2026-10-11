@@ -181,7 +181,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(CupertinoDatePicker), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(TextButton, 'Ajouter'));
+      await tester.tap(find.widgetWithText(TextButton, 'Valider'));
       await tester.pumpAndSettle();
       expect(find.byType(CupertinoDatePicker), findsNothing);
     });
@@ -196,9 +196,57 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.close), findsOneWidget);
-      await tester.tap(find.byIcon(Icons.close));
+      expect(find.byTooltip('Fermer'), findsOneWidget);
+      await tester.tap(find.byTooltip('Fermer'));
       await tester.pumpAndSettle();
+    });
+  });
+
+  testWidgets('shows the birth date in words', (tester) async {
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        BirthdayFormSheet(birthdayToEdit: editable()),
+        overrides: overrides(RecordingBirthdayRepository()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('10 mai 1990'), findsOneWidget);
+    });
+  });
+
+  testWidgets('labels every control for screen readers', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        BirthdayFormSheet(birthdayToEdit: editable()),
+        overrides: overrides(RecordingBirthdayRepository()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('Choisir une photo')),
+        isSemantics(isButton: true, hasTapAction: true),
+      );
+      expect(find.byTooltip('Supprimer'), findsOneWidget);
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    });
+    semantics.dispose();
+  });
+
+  testWidgets('keeps the title whole at 200 % text', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        const Center(child: SizedBox(width: 360, child: BirthdayFormSheet())),
+        overrides: overrides(RecordingBirthdayRepository()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nouvel anniversaire'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   });
 
