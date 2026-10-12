@@ -156,48 +156,6 @@ void main() {
       expect(next.map((b) => b.id), ['near']);
     });
 
-    test(
-      'filteredBirthdaysProvider excludes the next and sorts by proximity',
-      () {
-        final container = containerWith([far, near, mid]);
-
-        final filtered = container.read(filteredBirthdaysProvider);
-
-        expect(filtered.map((b) => b.id), ['mid', 'far']);
-      },
-    );
-
-    test('filteredBirthdaysProvider applies the search query', () {
-      final container = containerWith([near, mid, far]);
-      container.read(birthdaySearchProvider.notifier).update('bob');
-
-      final filtered = container.read(filteredBirthdaysProvider);
-
-      expect(filtered.map((b) => b.id), ['mid']);
-    });
-
-    test('filteredBirthdaysProvider requires ALL selected categories', () {
-      final container = containerWith([near, mid, far]);
-      container.read(birthdayCategoryFilterProvider.notifier).update([
-        'cat1',
-        'cat2',
-      ]);
-
-      final filtered = container.read(filteredBirthdaysProvider);
-
-      // Seul « mid » porte les deux catégories (et ce n'est pas le prochain).
-      expect(filtered.map((b) => b.id), ['mid']);
-    });
-
-    test('categoryFilteredBirthdaysProvider keeps the next birthday', () {
-      final container = containerWith([near, mid, far]);
-      container.read(birthdaySearchProvider.notifier).update('alice');
-
-      final result = container.read(categoryFilteredBirthdaysProvider);
-
-      expect(result.map((b) => b.id), ['near']);
-    });
-
     test('agendaProvider leaves the hero out and groups the rest', () {
       final soon = _relative(6, id: 'soon', name: 'Dan', surname: 'Brown');
       final container = containerWith([far, near, mid, soon]);
@@ -217,6 +175,7 @@ void main() {
 
     test('birthdaySearchResultsProvider searches everyone, by proximity', () {
       final container = containerWith([far, near, mid]);
+      container.listen(birthdaySearchResultsProvider, (_, _) {});
 
       expect(container.read(birthdaySearchResultsProvider).map((b) => b.id), [
         'near',
@@ -230,34 +189,34 @@ void main() {
       ]);
 
       container.read(birthdaySearchProvider.notifier).update('');
-      container.read(birthdayCategoryFilterProvider.notifier).update(['cat2']);
+      container.read(birthdayCategoryFilterProvider.notifier).toggle('cat2');
       expect(container.read(birthdaySearchResultsProvider).map((b) => b.id), [
         'mid',
         'far',
       ]);
-    });
-
-    test('categoryFilteredBirthdaysProvider filters by category', () {
-      final container = containerWith([near, mid, far]);
-      container.read(birthdayCategoryFilterProvider.notifier).update(['cat2']);
-
-      final result = container.read(categoryFilteredBirthdaysProvider);
-
-      expect(result.map((b) => b.id).toSet(), {'mid', 'far'});
     });
   });
 
   group('Search and category filter notifiers', () {
     test('they expose and update their value', () {
       final container = sessionContainer(RecordingBirthdayRepository());
+      container.listen(birthdaySearchProvider, (_, _) {});
+      container.listen(birthdayCategoryFilterProvider, (_, _) {});
 
       expect(container.read(birthdaySearchProvider), '');
       container.read(birthdaySearchProvider.notifier).update('x');
       expect(container.read(birthdaySearchProvider), 'x');
 
+      final filters = container.read(birthdayCategoryFilterProvider.notifier);
       expect(container.read(birthdayCategoryFilterProvider), isEmpty);
-      container.read(birthdayCategoryFilterProvider.notifier).update(['a']);
-      expect(container.read(birthdayCategoryFilterProvider), ['a']);
+      filters
+        ..toggle('a')
+        ..toggle('b');
+      expect(container.read(birthdayCategoryFilterProvider), ['a', 'b']);
+      filters.toggle('a');
+      expect(container.read(birthdayCategoryFilterProvider), ['b']);
+      filters.clear();
+      expect(container.read(birthdayCategoryFilterProvider), isEmpty);
     });
 
     test('they reset when the user changes', () {
@@ -265,12 +224,23 @@ void main() {
       container.listen(birthdaySearchProvider, (_, _) {});
       container.listen(birthdayCategoryFilterProvider, (_, _) {});
       container.read(birthdaySearchProvider.notifier).update('x');
-      container.read(birthdayCategoryFilterProvider.notifier).update(['a']);
+      container.read(birthdayCategoryFilterProvider.notifier).toggle('a');
 
       container.read(_session.notifier).signIn(null);
 
       expect(container.read(birthdaySearchProvider), '');
       expect(container.read(birthdayCategoryFilterProvider), isEmpty);
+    });
+
+    test('they start over once the search screen is gone', () async {
+      final container = sessionContainer(RecordingBirthdayRepository());
+      final search = container.listen(birthdaySearchProvider, (_, _) {});
+      container.read(birthdaySearchProvider.notifier).update('x');
+
+      search.close();
+      await container.pump();
+
+      expect(container.read(birthdaySearchProvider), '');
     });
   });
 }

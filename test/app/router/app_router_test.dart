@@ -6,6 +6,7 @@ import 'package:an_ki/features/auth/domain/biometric_lock.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
 import 'package:an_ki/features/auth/screens/signup_screen.dart';
+import 'package:an_ki/features/birthday/screens/birthday_search_screen.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
@@ -59,6 +60,13 @@ void main() {
         expect(find.byType(HomeScreen), findsOneWidget);
 
         tester.appRouter.go(AppRoutes.scanner);
+        await tester.pumpAndSettle();
+        expect(find.byType(BookScannerScreen), findsOneWidget);
+
+        unawaited(tester.appRouter.push(AppRoutes.search));
+        await tester.pumpAndSettle();
+        expect(find.byType(BirthdaySearchScreen), findsOneWidget);
+        await tester.tap(find.byTooltip('Retour'));
         await tester.pumpAndSettle();
         expect(find.byType(BookScannerScreen), findsOneWidget);
 

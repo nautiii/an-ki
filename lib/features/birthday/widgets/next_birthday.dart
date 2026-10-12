@@ -67,7 +67,10 @@ class _HeroCard extends StatelessWidget {
       radius: 28,
     );
     final details = _HeroDetails(birthday: birthday, today: today);
-    final age = _HeroAge(age: birthday.ageOn(today));
+    final age = _HeroAge(
+      age: birthday.turningAge(today),
+      isToday: birthday.daysUntilNext(today) == 0,
+    );
     // Grand texte : avatar et âge passent au-dessus, le texte prend la largeur.
     final reflow = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
 
@@ -190,21 +193,27 @@ class _HeroDetails extends StatelessWidget {
   }
 }
 
-/// Âge en grand, son unité dessous.
+/// Âge atteint au prochain anniversaire, en grand : « aura » au-dessus avant
+/// le jour J, l'unité dessous.
 class _HeroAge extends StatelessWidget {
-  const _HeroAge({required this.age});
+  const _HeroAge({required this.age, required this.isToday});
 
   final int age;
+  final bool isToday;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final onHero = context.ankiColors.onHero;
+    final secondary = textTheme.labelMedium?.copyWith(
+      color: onHero.withValues(alpha: 0.85),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (!isToday) Text(context.l10n.heroTurning, style: secondary),
         Text(
           '$age',
           style: textTheme.headlineSmall?.copyWith(
@@ -212,12 +221,7 @@ class _HeroAge extends StatelessWidget {
             fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
-        Text(
-          context.l10n.yearsOld,
-          style: textTheme.labelMedium?.copyWith(
-            color: onHero.withValues(alpha: 0.85),
-          ),
-        ),
+        Text(context.l10n.yearsOld, style: secondary),
       ],
     );
   }

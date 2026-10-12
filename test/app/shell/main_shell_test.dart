@@ -1,7 +1,9 @@
 import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:flutter/material.dart';
@@ -18,9 +20,20 @@ void main() {
   Finder barIcon(IconData icon) =>
       find.descendant(of: find.byType(BottomBar), matching: find.byIcon(icon));
 
-  /// L'app connectée, ouverte sur l'onglet des anniversaires.
+  /// L'app connectée, ouverte sur l'onglet des anniversaires, avec un
+  /// anniversaire au carnet.
   Future<void> pumpSignedIn(WidgetTester tester) async {
-    await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
+    await tester.pumpApp(
+      auth: FakeAuthRepository(user: MockUser()),
+      birthdays: [
+        Birthday(
+          id: '1',
+          name: 'Léa',
+          surname: 'Martin',
+          date: DateTime(1990, 3, 12),
+        ),
+      ],
+    );
     await tester.settleApp();
   }
 
@@ -86,8 +99,9 @@ void main() {
   testWidgets('a hidden tab stays mounted with its state', (tester) async {
     await mockNetworkImages(() async {
       await pumpSignedIn(tester);
-      await tester.enterText(find.byType(TextField).first, 'Lé');
+      await tester.tap(find.text('Calendrier'));
       await tester.pumpAndSettle();
+      expect(find.byType(BirthdayCalendar), findsOneWidget);
 
       await tester.tap(barIcon(Icons.qr_code_scanner_rounded));
       await tester.pumpAndSettle();
@@ -98,7 +112,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(HomeScreen), findsOneWidget);
-      expect(find.widgetWithText(TextField, 'Lé'), findsOneWidget);
+      expect(find.byType(BirthdayCalendar), findsOneWidget);
     });
   });
 

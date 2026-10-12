@@ -13,10 +13,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'An Ki';
 
   @override
-  String get manageBirthdays => 'Manage your birthdays';
+  String greeting(String period) {
+    String _temp0 = intl.Intl.selectLogic(period, {
+      'day': 'Hello',
+      'other': 'Good evening',
+    });
+    return '$_temp0';
+  }
 
   @override
-  String get hello => 'Hello';
+  String greetingName(String period, String name) {
+    String _temp0 = intl.Intl.selectLogic(period, {
+      'day': 'Hello, $name',
+      'other': 'Good evening, $name',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get manageBirthdays => 'Manage your birthdays';
 
   @override
   String get loginWithGoogle => 'Login with Google';
@@ -85,9 +100,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editBirthday => 'Edit';
 
   @override
-  String get noBirthdaysFound => 'No birthdays found.';
-
-  @override
   String get yearsOld => 'years old';
 
   @override
@@ -132,9 +144,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String inDays(int days) {
     return 'In $days days';
   }
-
-  @override
-  String get search => 'Search...';
 
   @override
   String get connectionError => 'Login error';
@@ -221,16 +230,66 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabScanner => 'Scanner';
 
   @override
-  String get showCalendar => 'Show calendar';
-
-  @override
-  String get showList => 'Show list';
-
-  @override
   String get clearSearch => 'Clear search';
 
   @override
   String get addBirthday => 'Add a birthday';
+
+  @override
+  String get viewAgenda => 'Agenda';
+
+  @override
+  String get viewCalendar => 'Calendar';
+
+  @override
+  String get agendaSoon => 'Next 7 days';
+
+  @override
+  String agendaLine(String date, int age) {
+    String _temp0 = intl.Intl.pluralLogic(
+      age,
+      locale: localeName,
+      other: '$date · turns $age',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdownDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: 'Tomorrow',
+      zero: 'Today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get heroTurning => 'turns';
+
+  @override
+  String get searchTooltip => 'Search';
+
+  @override
+  String get searchHint => 'Search a name';
+
+  @override
+  String noSearchResults(String query) {
+    return 'No results for “$query”';
+  }
+
+  @override
+  String get noFilterResults => 'No birthdays with these filters';
+
+  @override
+  String addNamed(String name) {
+    return 'Add “$name”';
+  }
+
+  @override
+  String get clearFilters => 'Clear filters';
 
   @override
   String get close => 'Close';

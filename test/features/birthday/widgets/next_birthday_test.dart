@@ -87,7 +87,9 @@ void main() {
       expect(find.text('AW'), findsOneWidget);
       expect(find.text('Dans 3 jours'), findsOneWidget);
       expect(find.text('15 mars'), findsOneWidget);
-      expect(find.text('35'), findsOneWidget);
+      // L'âge atteint au prochain anniversaire, annoncé par « aura ».
+      expect(find.text('aura'), findsOneWidget);
+      expect(find.text('36'), findsOneWidget);
       expect(find.text('ans'), findsOneWidget);
     });
   });
@@ -99,6 +101,7 @@ void main() {
 
       expect(find.text("Aujourd'hui 🎉"), findsOneWidget);
       expect(find.text('36'), findsOneWidget);
+      expect(find.text('aura'), findsNothing);
     });
   });
 
@@ -152,7 +155,7 @@ void main() {
         isSemantics(
           label:
               'Prochain anniversaire\nAlice Wonderland\nDans 3 jours\n'
-              '15 mars\n35\nans',
+              '15 mars\naura\n36\nans',
           isButton: true,
           hasTapAction: true,
         ),

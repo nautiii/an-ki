@@ -1,3 +1,5 @@
+import 'package:an_ki/features/birthday/domain/birthday.dart';
+
 /// Catégorie d'anniversaire (« famille », « sport »…) : un nom et une icône.
 ///
 /// [name] est une clé pour les catégories prédéfinies (`family`…), traduite
@@ -21,4 +23,14 @@ class const BirthdayCategory({
 
   @override
   int get hashCode => Object.hash(id, name, icon);
+}
+
+/// Catégories d'un anniversaire.
+extension BirthdayCategories on Birthday {
+  /// Ses catégories parmi [known], dans l'ordre de la personne ; un id
+  /// inconnu (catégorie supprimée, pas encore chargée) est ignoré.
+  List<BirthdayCategory> categoriesFrom(Iterable<BirthdayCategory> known) {
+    final byId = {for (final category in known) category.id: category};
+    return [for (final id in categories) ?byId[id]];
+  }
 }

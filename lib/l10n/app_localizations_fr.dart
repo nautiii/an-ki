@@ -13,10 +13,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appName => 'An Ki';
 
   @override
-  String get manageBirthdays => 'Gérez vos anniversaires';
+  String greeting(String period) {
+    String _temp0 = intl.Intl.selectLogic(period, {
+      'day': 'Bonjour',
+      'other': 'Bonsoir',
+    });
+    return '$_temp0';
+  }
 
   @override
-  String get hello => 'Bonjour';
+  String greetingName(String period, String name) {
+    String _temp0 = intl.Intl.selectLogic(period, {
+      'day': 'Bonjour, $name',
+      'other': 'Bonsoir, $name',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get manageBirthdays => 'Gérez vos anniversaires';
 
   @override
   String get loginWithGoogle => 'Connexion Google';
@@ -85,9 +100,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get editBirthday => 'Modifier';
 
   @override
-  String get noBirthdaysFound => 'Aucun anniversaire trouvé.';
-
-  @override
   String get yearsOld => 'ans';
 
   @override
@@ -135,9 +147,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String inDays(int days) {
     return 'Dans $days jours';
   }
-
-  @override
-  String get search => 'Rechercher...';
 
   @override
   String get connectionError => 'Erreur de connexion';
@@ -224,16 +233,67 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tabScanner => 'Scanner';
 
   @override
-  String get showCalendar => 'Afficher le calendrier';
-
-  @override
-  String get showList => 'Afficher la liste';
-
-  @override
   String get clearSearch => 'Effacer la recherche';
 
   @override
   String get addBirthday => 'Ajouter un anniversaire';
+
+  @override
+  String get viewAgenda => 'Agenda';
+
+  @override
+  String get viewCalendar => 'Calendrier';
+
+  @override
+  String get agendaSoon => 'Dans les 7 jours';
+
+  @override
+  String agendaLine(String date, int age) {
+    String _temp0 = intl.Intl.pluralLogic(
+      age,
+      locale: localeName,
+      other: '$date · aura $age ans',
+      one: '$date · aura $age an',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdownDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'J-$days',
+      one: 'Demain',
+      zero: 'Aujourd\'hui',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get heroTurning => 'aura';
+
+  @override
+  String get searchTooltip => 'Rechercher';
+
+  @override
+  String get searchHint => 'Rechercher un nom';
+
+  @override
+  String noSearchResults(String query) {
+    return 'Aucun résultat pour « $query »';
+  }
+
+  @override
+  String get noFilterResults => 'Aucun anniversaire avec ces filtres';
+
+  @override
+  String addNamed(String name) {
+    return 'Ajouter « $name »';
+  }
+
+  @override
+  String get clearFilters => 'Effacer les filtres';
 
   @override
   String get close => 'Fermer';

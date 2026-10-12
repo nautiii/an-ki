@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/core/common/anki_avatar.dart';
+import 'package:an_ki/core/common/moon_phase.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
@@ -9,20 +10,21 @@ import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_display.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
-/// Tuile d'une personne : avatar, nom, date, catégories et âge.
+/// Ligne d'agenda : qui, quand, quel âge. L'anneau de l'avatar porte les
+/// couleurs des catégories de la personne.
 ///
 /// Toucher ouvre la modification. Glisser vers la droite, ou l'action
 /// « Supprimer » des lecteurs d'écran, supprime après confirmation.
-class ContactTile extends ConsumerWidget {
-  const ContactTile({super.key, required this.birthday});
+class AgendaTile extends ConsumerWidget {
+  const AgendaTile({super.key, required this.birthday});
 
   final Birthday birthday;
 
@@ -131,20 +133,30 @@ class _TileContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final locale = Localizations.localeOf(context).languageCode;
     final today = ref.watch(todayProvider);
-    // Les puces sont un complément : sans catégories chargées, la tuile reste lisible.
-    final allCategories = ref.watch(categoriesProvider).value ?? const [];
-    final categories = allCategories
-        .where((category) => birthday.categories.contains(category.id))
-        .toList();
-    final picture = birthday.picture;
+    final days = birthday.daysUntilNext(today);
     final fullName = '${birthday.name} ${birthday.surname}';
+    final picture = birthday.picture;
 
-    final avatar = AnKiAvatar(
-      name: fullName,
-      image: picture != null ? MemoryImage(picture) : null,
+    final categories = birthday.categoriesFrom(
+      ref.watch(categoriesProvider).value ?? const [],
     );
-    final details = Column(
+
+    // L'anneau est muet pour TalkBack : les catégories sont lues en clair.
+    final avatar = Semantics(
+      label: [
+        for (final category in categories) category.localizedName(context),
+      ].join(', '),
+      child: AnKiAvatar(
+        name: fullName,
+        image: picture != null ? MemoryImage(picture) : null,
+        ringColors: [
+          for (final category in categories) category.tones(context).color,
+        ],
+      ),
+    );
+    final identity = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -155,53 +167,26 @@ class _TileContent extends ConsumerWidget {
           style: textTheme.titleMedium?.copyWith(color: colorScheme.onSurface),
         ),
         Text(
-          birthday.formattedDate(context),
+          context.l10n.agendaLine(
+            DateFormat.MMMMd(locale).format(birthday.nextOccurrence(today)),
+            birthday.turningAge(today),
+          ),
           style: textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),
         ),
-        if (categories.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.xs),
-          Wrap(
-            spacing: AppSpacing.xxs,
-            runSpacing: AppSpacing.xxs,
-            children: [
-              for (final category in categories)
-                _CategoryChip(category: category),
-            ],
-          ),
-        ],
       ],
     );
-    final age = Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          '${birthday.ageOn(today)}',
-          style: textTheme.headlineSmall?.copyWith(
-            color: colorScheme.primary,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        ),
-        Text(
-          context.l10n.yearsOld,
-          style: textTheme.labelMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    );
-    // Grand texte : avatar et âge passent au-dessus, le texte prend la largeur.
-    final reflow = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
+    final countdown = _Countdown(days: days);
 
-    if (reflow) {
+    // Grand texte : avatar et compte à rebours au-dessus, le texte en dessous.
+    if (MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [avatar, const Spacer(), age]),
+          Row(children: [avatar, const Spacer(), countdown]),
           const SizedBox(height: AppSpacing.xs),
-          details,
+          identity,
         ],
       );
     }
@@ -209,50 +194,49 @@ class _TileContent extends ConsumerWidget {
       children: [
         avatar,
         const SizedBox(width: AppSpacing.sm),
-        Expanded(child: details),
+        Expanded(child: identity),
         const SizedBox(width: AppSpacing.xs),
-        age,
+        countdown,
       ],
     );
   }
 }
 
-/// Puce de catégorie : icône et libellé sur la teinte tonale de la catégorie.
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({required this.category});
+/// Lune et pastille « J-12 » : la proximité d'un coup d'œil.
+class _Countdown extends StatelessWidget {
+  const _Countdown({required this.days});
 
-  final BirthdayCategory category;
+  final int days;
 
   @override
   Widget build(BuildContext context) {
-    final tones = category.tones(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        color: tones.container,
-        shape: const StadiumBorder(),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xs,
-          vertical: AppSpacing.xxs,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(category.iconData, size: 16, color: tones.onContainer),
-            const SizedBox(width: AppSpacing.xxs),
-            Flexible(
-              child: Text(
-                category.localizedName(context),
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium
-                    ?.copyWith(color: tones.onContainer),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        MoonPhase(daysLeft: days, size: 18),
+        const SizedBox(width: AppSpacing.xs),
+        DecoratedBox(
+          decoration: ShapeDecoration(
+            color: colorScheme.secondaryContainer,
+            shape: const StadiumBorder(),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xs,
+              vertical: AppSpacing.xxs,
+            ),
+            child: Text(
+              context.l10n.countdownDays(days),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: colorScheme.onSecondaryContainer,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/providers/greeting_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/book_scanner/domain/book.dart';
@@ -134,7 +135,9 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
             children: [
               const SizedBox(height: AppSpacing.md),
               Header(
-                showViewToggle: false,
+                greeting: context.l10n.greeting(
+                  ref.watch(greetingProvider).name,
+                ),
                 userName: ref.watch(
                   userProfileProvider.select(
                     (profile) => profile.value?.displayName,

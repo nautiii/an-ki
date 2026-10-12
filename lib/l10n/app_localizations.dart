@@ -104,17 +104,23 @@ abstract class AppLocalizations {
   /// **'An Ki'**
   String get appName;
 
+  /// Salutation selon l'heure : Bonjour de 6 h 01 à 18 h, Bonsoir sinon
+  ///
+  /// In fr, this message translates to:
+  /// **'{period, select, day{Bonjour} other{Bonsoir}}'**
+  String greeting(String period);
+
+  /// Titre de l'accueil : salutation de l'heure et nom de l'utilisateur
+  ///
+  /// In fr, this message translates to:
+  /// **'{period, select, day{Bonjour, {name}} other{Bonsoir, {name}}}'**
+  String greetingName(String period, String name);
+
   /// No description provided for @manageBirthdays.
   ///
   /// In fr, this message translates to:
   /// **'Gérez vos anniversaires'**
   String get manageBirthdays;
-
-  /// No description provided for @hello.
-  ///
-  /// In fr, this message translates to:
-  /// **'Bonjour'**
-  String get hello;
 
   /// No description provided for @loginWithGoogle.
   ///
@@ -248,12 +254,6 @@ abstract class AppLocalizations {
   /// **'Modifier'**
   String get editBirthday;
 
-  /// No description provided for @noBirthdaysFound.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aucun anniversaire trouvé.'**
-  String get noBirthdaysFound;
-
   /// No description provided for @yearsOld.
   ///
   /// In fr, this message translates to:
@@ -325,12 +325,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Dans {days} jours'**
   String inDays(int days);
-
-  /// No description provided for @search.
-  ///
-  /// In fr, this message translates to:
-  /// **'Rechercher...'**
-  String get search;
 
   /// No description provided for @connectionError.
   ///
@@ -488,18 +482,6 @@ abstract class AppLocalizations {
   /// **'Scanner'**
   String get tabScanner;
 
-  /// Infobulle du bouton qui passe l'accueil en vue calendrier
-  ///
-  /// In fr, this message translates to:
-  /// **'Afficher le calendrier'**
-  String get showCalendar;
-
-  /// Infobulle du bouton qui repasse l'accueil en vue liste
-  ///
-  /// In fr, this message translates to:
-  /// **'Afficher la liste'**
-  String get showList;
-
   /// Infobulle du bouton qui vide le champ de recherche
   ///
   /// In fr, this message translates to:
@@ -511,6 +493,78 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Ajouter un anniversaire'**
   String get addBirthday;
+
+  /// Segment de l'accueil : liste des anniversaires par période
+  ///
+  /// In fr, this message translates to:
+  /// **'Agenda'**
+  String get viewAgenda;
+
+  /// Segment de l'accueil : vue calendrier
+  ///
+  /// In fr, this message translates to:
+  /// **'Calendrier'**
+  String get viewCalendar;
+
+  /// En-tête de la première section de l'agenda
+  ///
+  /// In fr, this message translates to:
+  /// **'Dans les 7 jours'**
+  String get agendaSoon;
+
+  /// Ligne d'agenda : date du prochain anniversaire et âge atteint
+  ///
+  /// In fr, this message translates to:
+  /// **'{age, plural, one{{date} · aura {age} an} other{{date} · aura {age} ans}}'**
+  String agendaLine(String date, int age);
+
+  /// Pastille de compte à rebours d'une ligne d'agenda
+  ///
+  /// In fr, this message translates to:
+  /// **'{days, plural, =0{Aujourd\'hui} =1{Demain} other{J-{days}}}'**
+  String countdownDays(int days);
+
+  /// Au-dessus de l'âge du héros, avant le jour J (« aura 34 ans »)
+  ///
+  /// In fr, this message translates to:
+  /// **'aura'**
+  String get heroTurning;
+
+  /// Infobulle du bouton qui ouvre la recherche
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher'**
+  String get searchTooltip;
+
+  /// Indication du champ de recherche
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher un nom'**
+  String get searchHint;
+
+  /// Recherche sans résultat
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun résultat pour « {query} »'**
+  String noSearchResults(String query);
+
+  /// Filtres de catégories sans résultat
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun anniversaire avec ces filtres'**
+  String get noFilterResults;
+
+  /// Crée un anniversaire à partir du texte recherché
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter « {name} »'**
+  String addNamed(String name);
+
+  /// Retire les filtres de catégories de la recherche
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer les filtres'**
+  String get clearFilters;
 
   /// Infobulle du bouton qui ferme une feuille
   ///

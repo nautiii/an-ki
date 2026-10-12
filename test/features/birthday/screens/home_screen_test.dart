@@ -1,16 +1,16 @@
 import 'package:an_ki/core/common/skeleton_box.dart';
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
-import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
+import 'package:an_ki/features/birthday/widgets/agenda_tile.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
-import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -45,38 +45,36 @@ Birthday _relative(
 }
 
 void main() {
-  final now = DateTime.now();
-  const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
+  // Lundi 12 octobre 2026, 20 h : « Bonsoir ».
+  final evening = DateTime(2026, 10, 12, 20);
 
-  Birthday onDay(int daysAhead, {required String id, String? cat}) {
+  Birthday onDay(int daysAhead, {required String id}) {
     final target = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    ).add(Duration(days: daysAhead));
+      evening.year,
+      evening.month,
+      evening.day + daysAhead,
+    );
     return Birthday(
       id: id,
       name: 'Person$id',
       surname: 'X',
       date: DateTime(1990, target.month, target.day),
-      categories: cat == null ? const [] : [cat],
     );
   }
 
   List<dynamic> overrides({
     required List<Birthday> birthdays,
     bool isLoading = false,
-    List<String> userCategories = const [],
-    List<BirthdayCategory> repoCategories = const [],
+    DateTime? now,
   }) => [
+    clockProvider.overrideWithValue(() => now ?? evening),
     currentUidProvider.overrideWithValue('fake-uid'),
     userProfileProvider.overrideWithValue(
-      AsyncData(
+      const AsyncData(
         UserProfile(
           id: 'fake-uid',
           name: 'A',
           surname: 'B',
-          categories: userCategories,
           isDark: false,
           locale: 'fr',
         ),
@@ -86,22 +84,27 @@ void main() {
       isLoading ? const AsyncLoading() : AsyncData(birthdays),
     ),
     categoryRepositoryProvider.overrideWithValue(
-      RecordingCategoryRepository(repoCategories),
+      RecordingCategoryRepository(const []),
     ),
   ];
 
-  testWidgets('shows the empty state when there are no other birthdays', (
-    tester,
-  ) async {
-    await mockNetworkImages(() async {
-      await tester.pumpHarness(
-        const HomeScreen(),
-        overrides: overrides(birthdays: [onDay(5, id: '1')]),
-      );
-      await tester.pumpAndSettle();
+  // Héros dans 3 jours ; puis la semaine, novembre et janvier prochain.
+  final agenda = [
+    onDay(3, id: '1'),
+    onDay(5, id: '2'),
+    onDay(20, id: '3'),
+    onDay(100, id: '4'),
+  ];
 
-      expect(find.text('Aucun anniversaire trouvé.'), findsOneWidget);
-    });
+  testWidgets('shows skeletons while loading', (tester) async {
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overrides(birthdays: const [], isLoading: true),
+    );
+    await tester.pump();
+
+    expect(find.byType(SkeletonBox), findsWidgets);
+    expect(find.text('Vos anniversaires vivront ici'), findsNothing);
   });
 
   testWidgets('invites to add the first birthday', (tester) async {
@@ -114,7 +117,8 @@ void main() {
 
       expect(find.text('Vos anniversaires vivront ici'), findsOneWidget);
       expect(find.text('Prochain anniversaire'), findsNothing);
-      expect(find.text('Aucun anniversaire trouvé.'), findsNothing);
+      // Rien à chercher dans un carnet vide.
+      expect(find.byTooltip('Rechercher'), findsNothing);
 
       await tester.tap(
         find.widgetWithText(FilledButton, 'Ajouter un anniversaire'),
@@ -123,6 +127,150 @@ void main() {
 
       expect(find.byType(BirthdayFormSheet), findsOneWidget);
     });
+  });
+
+  testWidgets('greets by the time of day', (tester) async {
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overrides(birthdays: agenda),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Bonsoir, B A'), findsOneWidget);
+
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overrides(birthdays: agenda, now: DateTime(2026, 10, 12, 9)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Bonjour, B A'), findsOneWidget);
+  });
+
+  testWidgets('lists the agenda by period, the hero aside', (tester) async {
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overrides(birthdays: agenda),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dans les 7 jours'), findsOneWidget);
+    expect(find.text('Novembre', skipOffstage: false), findsOneWidget);
+    expect(find.text('Janvier 2027', skipOffstage: false), findsOneWidget);
+    // La personne du héros n'apparaît qu'une fois.
+    expect(find.text('Person1 X'), findsOneWidget);
+    expect(find.byType(AgendaTile, skipOffstage: false), findsNWidgets(3));
+  });
+
+  testWidgets('shows nothing more when the hero holds everyone', (
+    tester,
+  ) async {
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overrides(birthdays: [onDay(3, id: '1')]),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Person1 X'), findsOneWidget);
+    expect(find.byType(AgendaTile), findsNothing);
+    expect(find.text('Dans les 7 jours'), findsNothing);
+  });
+
+  testWidgets('reads section titles as headers', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overrides(birthdays: agenda),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getSemantics(find.text('Dans les 7 jours')),
+      isSemantics(isHeader: true),
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('switches between the agenda and the calendar', (tester) async {
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overrides(birthdays: agenda),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Calendrier'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BirthdayCalendar), findsOneWidget);
+    expect(find.text('Dans les 7 jours'), findsNothing);
+
+    await tester.tap(find.text('Agenda'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BirthdayCalendar), findsNothing);
+    expect(find.text('Dans les 7 jours'), findsOneWidget);
+  });
+
+  testWidgets('the app bar opens the search, the form and the settings', (
+    tester,
+  ) async {
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overrides(birthdays: agenda),
+      routes: {
+        AppRoutes.search: (_) => const Text('Search route'),
+        AppRoutes.settings: (_) => const Text('Settings route'),
+      },
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Ajouter un anniversaire'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BirthdayFormSheet), findsOneWidget);
+    await tester.tap(find.byTooltip('Fermer'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Rechercher'));
+    await tester.pumpAndSettle();
+    expect(find.text('Search route'), findsOneWidget);
+  });
+
+  testWidgets('the avatar opens the settings', (tester) async {
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overrides(birthdays: agenda),
+      routes: {AppRoutes.settings: (_) => const Text('Settings route')},
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Paramètres'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Settings route'), findsOneWidget);
+  });
+
+  testWidgets('meets tap target and label guidelines', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overrides(birthdays: agenda),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    semantics.dispose();
+  });
+
+  testWidgets('holds together on a small phone at 200 % text', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overrides(birthdays: agenda),
+    );
+    tester.view.physicalSize = const Size(360, 800);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Dans les 7 jours', skipOffstage: false), findsOneWidget);
   });
 
   testWidgets('announces a failed category write', (tester) async {
@@ -150,127 +298,6 @@ void main() {
         find.text("Erreur lors de l'enregistrement de la catégorie"),
         findsOneWidget,
       );
-    });
-  });
-
-  testWidgets('the settings button opens the settings route', (tester) async {
-    await mockNetworkImages(() async {
-      await tester.pumpHarness(
-        const HomeScreen(),
-        overrides: overrides(birthdays: const []),
-        routes: {AppRoutes.settings: (_) => const Text('Settings route')},
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.settings_rounded));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Settings route'), findsOneWidget);
-    });
-  });
-
-  testWidgets('shows skeletons while loading', (tester) async {
-    await mockNetworkImages(() async {
-      await tester.pumpHarness(
-        const HomeScreen(),
-        overrides: overrides(birthdays: const [], isLoading: true),
-      );
-      await tester.pump();
-
-      expect(find.byType(SkeletonBox), findsWidgets);
-      expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(find.text('Vos anniversaires vivront ici'), findsNothing);
-    });
-  });
-
-  testWidgets('lists the non-next birthdays', (tester) async {
-    await mockNetworkImages(() async {
-      await tester.pumpHarness(
-        const HomeScreen(),
-        overrides: overrides(
-          birthdays: [
-            onDay(5, id: '1'),
-            onDay(40, id: '2'),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Person2 X'), findsOneWidget);
-
-      // Typing in the search bar updates the query provider.
-      await tester.enterText(find.byType(TextField), 'Person2');
-      await tester.pumpAndSettle();
-      expect(find.text('Person2 X'), findsOneWidget);
-    });
-  });
-
-  testWidgets('switches to the calendar view', (tester) async {
-    await mockNetworkImages(() async {
-      await tester.pumpHarness(
-        const HomeScreen(),
-        overrides: overrides(birthdays: [onDay(5, id: '1')]),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.calendar_month_rounded));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(BirthdayCalendar), findsOneWidget);
-    });
-  });
-
-  group('category filter bar', () {
-    testWidgets('shows an add chip when the user has no categories', (
-      tester,
-    ) async {
-      await mockNetworkImages(() async {
-        await tester.pumpHarness(
-          const HomeScreen(),
-          overrides: overrides(birthdays: [onDay(5, id: '1')]),
-        );
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.widgetWithText(ActionChip, 'Nouvelle catégorie'));
-        await tester.pumpAndSettle();
-
-        expect(find.byType(CategoryFormSheet), findsOneWidget);
-      });
-    });
-
-    testWidgets('lets the user filter by category', (tester) async {
-      await mockNetworkImages(() async {
-        await tester.pumpHarness(
-          const HomeScreen(),
-          overrides: overrides(
-            birthdays: [
-              onDay(5, id: '1'),
-              onDay(40, id: '2', cat: 'fam'),
-            ],
-            userCategories: const ['fam'],
-            repoCategories: [family],
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.widgetWithText(ChoiceChip, 'Famille'));
-        await tester.pumpAndSettle();
-
-        final container = ProviderScope.containerOf(
-          tester.element(find.byType(HomeScreen)),
-        );
-        expect(container.read(birthdayCategoryFilterProvider), ['fam']);
-
-        // Unselect again.
-        await tester.tap(find.widgetWithText(ChoiceChip, 'Famille'));
-        await tester.pumpAndSettle();
-        expect(container.read(birthdayCategoryFilterProvider), isEmpty);
-
-        // The trailing "+" chip opens the category form.
-        await tester.tap(find.byTooltip('Nouvelle catégorie'));
-        await tester.pumpAndSettle();
-        expect(find.byType(CategoryFormSheet), findsOneWidget);
-      });
     });
   });
 

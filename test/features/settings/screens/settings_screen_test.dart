@@ -63,6 +63,7 @@ void main() {
     await tester.pumpHarness(
       Builder(
         builder: (context) => Header(
+          greeting: 'Bonjour',
           userName: 'Quentin',
           onOpenSettings: () => Navigator.of(context).push(
             MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),

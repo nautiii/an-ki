@@ -48,7 +48,8 @@ final agendaProvider = Provider<List<AgendaSection>>((ref) {
       .agenda(ref.watch(todayProvider));
 });
 
-/// Texte de recherche, remis à zéro quand l'utilisateur change.
+/// Texte de l'écran de recherche ; repart de zéro à chaque ouverture de
+/// l'écran (autoDispose) et quand l'utilisateur change.
 class BirthdaySearchNotifier extends Notifier<String> {
   @override
   String build() {
@@ -59,11 +60,13 @@ class BirthdaySearchNotifier extends Notifier<String> {
   void update(String value) => state = value;
 }
 
-final birthdaySearchProvider = NotifierProvider<BirthdaySearchNotifier, String>(
-  BirthdaySearchNotifier.new,
-);
+final birthdaySearchProvider =
+    NotifierProvider.autoDispose<BirthdaySearchNotifier, String>(
+      BirthdaySearchNotifier.new,
+    );
 
-/// Catégories filtrées (par id), remises à zéro quand l'utilisateur change.
+/// Catégories filtrées (par id) dans l'écran de recherche ; même cycle de vie
+/// que le texte.
 class BirthdayCategoryFilterNotifier extends Notifier<List<String>> {
   @override
   List<String> build() {
@@ -71,72 +74,27 @@ class BirthdayCategoryFilterNotifier extends Notifier<List<String>> {
     return const [];
   }
 
-  void update(List<String> value) => state = value;
+  /// Ajoute la catégorie au filtre, ou l'en retire si elle y est déjà.
+  void toggle(String categoryId) => state = state.contains(categoryId)
+      ? [
+          for (final id in state)
+            if (id != categoryId) id,
+        ]
+      : [...state, categoryId];
+
+  void clear() => state = const [];
 }
 
 final birthdayCategoryFilterProvider =
-    NotifierProvider<BirthdayCategoryFilterNotifier, List<String>>(
+    NotifierProvider.autoDispose<BirthdayCategoryFilterNotifier, List<String>>(
       BirthdayCategoryFilterNotifier.new,
     );
 
-/// Provider pour filtrer les anniversaires (recherche + exclusion des prochains + catégories)
-final filteredBirthdaysProvider = Provider<List<Birthday>>((ref) {
-  final allBirthdays = ref.watch(birthdaysListProvider);
-  final nextBirthdays = ref.watch(nextBirthdaysProvider);
-  final nextIds = nextBirthdays.map((b) => b.id).toSet();
-  final searchQuery = ref.watch(birthdaySearchProvider).toLowerCase();
-  final categoryFilters = ref.watch(birthdayCategoryFilterProvider);
-  final today = ref.watch(todayProvider);
-
-  // 1. Filtrer
-  final filtered = allBirthdays.where((birthday) {
-    // Exclure le ou les prochains anniversaires (déjà affichés en haut)
-    if (nextIds.contains(birthday.id)) return false;
-
-    // Filtrer par catégories (doit posséder TOUTES les catégories sélectionnées)
-    if (categoryFilters.isNotEmpty) {
-      final hasAllCategories = categoryFilters.every(
-        (catId) => birthday.categories.contains(catId),
-      );
-      if (!hasAllCategories) return false;
-    }
-
-    // Filtrer par recherche
-    if (searchQuery.isEmpty) return true;
-    return birthday.name.toLowerCase().contains(searchQuery) ||
-        birthday.surname.toLowerCase().contains(searchQuery);
-  });
-
-  // 2. Trier par proximité (jours restants)
-  return filtered.sortedByNext(today);
-});
-
-/// Provider pour filtrer les anniversaires par catégories et recherche (SANS exclusion du prochain)
-/// Utile pour la vue calendrier
-final categoryFilteredBirthdaysProvider = Provider<List<Birthday>>((ref) {
-  final allBirthdays = ref.watch(birthdaysListProvider);
-  final searchQuery = ref.watch(birthdaySearchProvider).toLowerCase();
-  final categoryFilters = ref.watch(birthdayCategoryFilterProvider);
-
-  return allBirthdays.where((birthday) {
-    // Filtrer par catégories
-    if (categoryFilters.isNotEmpty) {
-      final hasAllCategories = categoryFilters.every(
-        (catId) => birthday.categories.contains(catId),
-      );
-      if (!hasAllCategories) return false;
-    }
-
-    // Filtrer par recherche
-    if (searchQuery.isEmpty) return true;
-    return birthday.name.toLowerCase().contains(searchQuery) ||
-        birthday.surname.toLowerCase().contains(searchQuery);
-  }).toList();
-});
-
 /// Résultats de l'écran de recherche : texte et catégories appliqués à tout le
 /// carnet (héros compris), du plus proche au plus lointain.
-final birthdaySearchResultsProvider = Provider<List<Birthday>>((ref) {
+final birthdaySearchResultsProvider = Provider.autoDispose<List<Birthday>>((
+  ref,
+) {
   return ref
       .watch(birthdaysListProvider)
       .matching(

@@ -1,3 +1,4 @@
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/app/app.dart';
 import 'package:an_ki/app/router/app_router.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
@@ -39,10 +40,11 @@ const testProfile = UserProfile(
 extension AppTesterExt on WidgetTester {
   /// L'app entière, routeur compris, sur un écran de la taille du harnais
   /// (800×1200) : la session de [auth], l'empreinte de [biometrics], des
-  /// données factices.
+  /// données factices (le carnet [birthdays], vide par défaut).
   Future<void> pumpApp({
     required FakeAuthRepository auth,
     FakeBiometricService? biometrics,
+    List<Birthday> birthdays = const [],
   }) {
     view.physicalSize = const Size(800, 1200);
     view.devicePixelRatio = 1.0;
@@ -63,7 +65,7 @@ extension AppTesterExt on WidgetTester {
             RecordingUserRepository(stored: testProfile),
           ),
           birthdayRepositoryProvider.overrideWithValue(
-            FakeBirthdayRepository(),
+            RecordingBirthdayRepository(initial: birthdays),
           ),
           categoryRepositoryProvider.overrideWithValue(
             RecordingCategoryRepository(const []),

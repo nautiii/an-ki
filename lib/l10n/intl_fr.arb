@@ -1,7 +1,21 @@
 {
   "appName": "An Ki",
+  "greeting": "{period, select, day{Bonjour} other{Bonsoir}}",
+  "@greeting": {
+    "description": "Salutation selon l'heure : Bonjour de 6 h 01 à 18 h, Bonsoir sinon",
+    "placeholders": {
+      "period": { "type": "String" }
+    }
+  },
+  "greetingName": "{period, select, day{Bonjour, {name}} other{Bonsoir, {name}}}",
+  "@greetingName": {
+    "description": "Titre de l'accueil : salutation de l'heure et nom de l'utilisateur",
+    "placeholders": {
+      "period": { "type": "String" },
+      "name": { "type": "String" }
+    }
+  },
   "manageBirthdays": "Gérez vos anniversaires",
-  "hello": "Bonjour",
   "loginWithGoogle": "Connexion Google",
   "loginWithEmail": "Connexion Email",
   "continueWithoutAccount": "Continuer sans compte",
@@ -24,7 +38,6 @@
   "add": "Ajouter",
   "newBirthday": "Nouvel anniversaire",
   "editBirthday": "Modifier",
-  "noBirthdaysFound": "Aucun anniversaire trouvé.",
   "yearsOld": "ans",
   "ageInYears": "{age, plural, one{{age} an} other{{age} ans}}",
   "@ageInYears": {
@@ -54,7 +67,6 @@
       }
     }
   },
-  "search": "Rechercher...",
   "connectionError": "Erreur de connexion",
   "registrationError": "Erreur d'inscription",
   "loginTitle": "An Ki - Connexion",
@@ -109,14 +121,6 @@
   "@tabScanner": {
     "description": "Libellé de l'onglet du scanner de livres (barre du bas)"
   },
-  "showCalendar": "Afficher le calendrier",
-  "@showCalendar": {
-    "description": "Infobulle du bouton qui passe l'accueil en vue calendrier"
-  },
-  "showList": "Afficher la liste",
-  "@showList": {
-    "description": "Infobulle du bouton qui repasse l'accueil en vue liste"
-  },
   "clearSearch": "Effacer la recherche",
   "@clearSearch": {
     "description": "Infobulle du bouton qui vide le champ de recherche"
@@ -124,6 +128,67 @@
   "addBirthday": "Ajouter un anniversaire",
   "@addBirthday": {
     "description": "Bouton ou infobulle d'ajout d'un anniversaire"
+  },
+  "viewAgenda": "Agenda",
+  "@viewAgenda": {
+    "description": "Segment de l'accueil : liste des anniversaires par période"
+  },
+  "viewCalendar": "Calendrier",
+  "@viewCalendar": {
+    "description": "Segment de l'accueil : vue calendrier"
+  },
+  "agendaSoon": "Dans les 7 jours",
+  "@agendaSoon": {
+    "description": "En-tête de la première section de l'agenda"
+  },
+  "agendaLine": "{age, plural, one{{date} · aura {age}\u00a0an} other{{date} · aura {age}\u00a0ans}}",
+  "@agendaLine": {
+    "description": "Ligne d'agenda : date du prochain anniversaire et âge atteint",
+    "placeholders": {
+      "date": { "type": "String" },
+      "age": { "type": "int" }
+    }
+  },
+  "countdownDays": "{days, plural, =0{Aujourd'hui} =1{Demain} other{J-{days}}}",
+  "@countdownDays": {
+    "description": "Pastille de compte à rebours d'une ligne d'agenda",
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "heroTurning": "aura",
+  "@heroTurning": {
+    "description": "Au-dessus de l'âge du héros, avant le jour J (« aura 34 ans »)"
+  },
+  "searchTooltip": "Rechercher",
+  "@searchTooltip": {
+    "description": "Infobulle du bouton qui ouvre la recherche"
+  },
+  "searchHint": "Rechercher un nom",
+  "@searchHint": {
+    "description": "Indication du champ de recherche"
+  },
+  "noSearchResults": "Aucun résultat pour «\u202f{query}\u202f»",
+  "@noSearchResults": {
+    "description": "Recherche sans résultat",
+    "placeholders": {
+      "query": { "type": "String" }
+    }
+  },
+  "noFilterResults": "Aucun anniversaire avec ces filtres",
+  "@noFilterResults": {
+    "description": "Filtres de catégories sans résultat"
+  },
+  "addNamed": "Ajouter «\u202f{name}\u202f»",
+  "@addNamed": {
+    "description": "Crée un anniversaire à partir du texte recherché",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "clearFilters": "Effacer les filtres",
+  "@clearFilters": {
+    "description": "Retire les filtres de catégories de la recherche"
   },
   "close": "Fermer",
   "@close": {

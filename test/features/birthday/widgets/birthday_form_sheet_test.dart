@@ -8,6 +8,7 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/cupertino.dart';
@@ -165,6 +166,36 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repository.deleted, contains('edit-1'));
+    });
+  });
+
+  testWidgets('pre-fills a new birthday from a searched name', (tester) async {
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        const BirthdayFormSheet(initialName: ' Rose  de la Tour '),
+        overrides: overrides(RecordingBirthdayRepository()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(TextField, 'Rose'), findsOneWidget);
+      expect(find.widgetWithText(TextField, 'de la Tour'), findsOneWidget);
+    });
+  });
+
+  testWidgets('creates a missing category without leaving the form', (
+    tester,
+  ) async {
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        const BirthdayFormSheet(),
+        overrides: overrides(RecordingBirthdayRepository()),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(ActionChip, 'Nouvelle catégorie'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CategoryFormSheet), findsOneWidget);
     });
   });
 

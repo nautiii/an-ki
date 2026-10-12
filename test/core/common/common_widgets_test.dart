@@ -2,7 +2,6 @@ import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/common/header.dart';
-import 'package:an_ki/core/common/search_bar.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,119 +10,43 @@ import '../../support/test_harness.dart';
 
 void main() {
   group('Header', () {
-    testWidgets('shows the user name and reports toggle and settings taps', (
+    testWidgets('shows the greeting and the name, opens the settings', (
       tester,
     ) async {
-      var toggles = 0;
       var settingsOpened = 0;
 
       await tester.pumpHarness(
         Header(
+          greeting: 'Bonsoir',
           userName: 'Q',
-          onToggleView: () => toggles++,
           onOpenSettings: () => settingsOpened++,
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Bonjour'), findsOneWidget);
+      expect(find.text('Bonsoir'), findsOneWidget);
       expect(find.text('Q'), findsOneWidget);
-
-      await tester.tap(find.byTooltip('Afficher le calendrier'));
-      await tester.pumpAndSettle();
-      expect(toggles, 1);
 
       await tester.tap(find.byTooltip('Paramètres'));
       await tester.pumpAndSettle();
       expect(settingsOpened, 1);
     });
 
-    testWidgets('shows the list icon while in calendar view', (tester) async {
+    testWidgets('shows a skeleton while the name loads', (tester) async {
       await tester.pumpHarness(
-        Header(userName: 'Q', isListView: false, onOpenSettings: () {}),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.view_list_rounded), findsOneWidget);
-      expect(find.byTooltip('Afficher la liste'), findsOneWidget);
-      expect(find.byIcon(Icons.calendar_month_rounded), findsNothing);
-    });
-
-    testWidgets('shows a skeleton while the name loads and hides the toggle', (
-      tester,
-    ) async {
-      await tester.pumpHarness(
-        Header(userName: null, showViewToggle: false, onOpenSettings: () {}),
+        Header(greeting: 'Bonjour', userName: null, onOpenSettings: () {}),
       );
       await tester.pump();
 
       expect(find.byType(SkeletonBox), findsOneWidget);
-      expect(find.byIcon(Icons.calendar_month_rounded), findsNothing);
-      expect(find.byIcon(Icons.view_list_rounded), findsNothing);
     });
 
     testWidgets('labels its buttons for screen readers', (tester) async {
       final semantics = tester.ensureSemantics();
       await tester.pumpHarness(
-        Header(userName: 'Q', onToggleView: () {}, onOpenSettings: () {}),
+        Header(greeting: 'Bonjour', userName: 'Q', onOpenSettings: () {}),
       );
       await tester.pumpAndSettle();
-
-      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
-      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-      semantics.dispose();
-    });
-  });
-
-  group('SearchBarWidget', () {
-    testWidgets('reports changes and triggers add', (tester) async {
-      final queries = <String>[];
-      var addPressed = 0;
-
-      await tester.pumpHarness(
-        SearchBarWidget(
-          onSearchChanged: queries.add,
-          onAddPressed: () => addPressed++,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.enterText(find.byType(TextField), 'Alice');
-      await tester.pump();
-      expect(queries.last, 'Alice');
-
-      await tester.tap(find.byTooltip('Ajouter un anniversaire'));
-      expect(addPressed, 1);
-    });
-
-    testWidgets('shows a clear button as soon as there is text', (
-      tester,
-    ) async {
-      final queries = <String>[];
-
-      await tester.pumpHarness(SearchBarWidget(onSearchChanged: queries.add));
-      await tester.pumpAndSettle();
-      expect(find.byTooltip('Effacer la recherche'), findsNothing);
-
-      await tester.enterText(find.byType(TextField), 'Alice');
-      await tester.pump();
-      expect(find.byTooltip('Effacer la recherche'), findsOneWidget);
-
-      await tester.tap(find.byTooltip('Effacer la recherche'));
-      await tester.pump();
-
-      expect(queries.last, '');
-      expect(find.widgetWithText(TextField, 'Alice'), findsNothing);
-      expect(find.byTooltip('Effacer la recherche'), findsNothing);
-    });
-
-    testWidgets('meets tap target and label guidelines', (tester) async {
-      final semantics = tester.ensureSemantics();
-      await tester.pumpHarness(
-        SearchBarWidget(onSearchChanged: (_) {}, onAddPressed: () {}),
-      );
-      await tester.enterText(find.byType(TextField), 'Alice');
-      await tester.pump();
 
       await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));

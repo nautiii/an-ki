@@ -126,7 +126,7 @@ void main() {
       await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
       await tester.settleApp();
 
-      await tester.tap(find.byIcon(Icons.settings_rounded));
+      await tester.tap(find.byTooltip('Paramètres'));
       await tester.settleApp();
       await tester.tap(find.text('Se déconnecter'));
       await tester.settleApp();

@@ -3,35 +3,27 @@ import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:flutter/material.dart';
 
-/// En-tête de salutation partagé entre les écrans des features.
+/// En-tête de salutation des onglets : salutation, nom, accès aux réglages.
 ///
 /// Volontairement « dumb » : il ne porte aucun état et n'importe aucune feature.
-/// Les écrans résolvent le nom de l'utilisateur / l'état de vue depuis leurs
-/// providers et les passent en paramètres — c'est ce qui permet à ce widget de
-/// résider légitimement dans `core/common`.
+/// Les écrans résolvent la salutation et le nom depuis leurs providers et les
+/// passent en paramètres — c'est ce qui permet à ce widget de résider
+/// légitimement dans `core/common`.
 class Header extends StatelessWidget {
+  /// Salutation déjà traduite (« Bonjour », « Bonsoir »).
+  final String greeting;
+
   /// Nom à afficher déjà résolu, ou null pendant son chargement (squelette).
   final String? userName;
-
-  /// Indique s'il faut afficher le bouton de bascule liste/calendrier.
-  final bool showViewToggle;
-
-  /// La vue courante est la liste (contrôle l'icône de bascule).
-  final bool isListView;
-
-  /// Appelé lors d'un appui sur la bascule de vue (ignoré si [showViewToggle] est false).
-  final VoidCallback? onToggleView;
 
   /// Appelé lors d'un appui sur le bouton réglages.
   final VoidCallback onOpenSettings;
 
   const Header({
     super.key,
+    required this.greeting,
     required this.userName,
     required this.onOpenSettings,
-    this.showViewToggle = true,
-    this.isListView = true,
-    this.onToggleView,
   });
 
   @override
@@ -50,7 +42,7 @@ class Header extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                context.l10n.hello,
+                greeting,
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -66,21 +58,6 @@ class Header extends StatelessWidget {
             ],
           ),
         ),
-        if (showViewToggle) ...[
-          IconButton(
-            style: actionStyle,
-            tooltip: isListView
-                ? context.l10n.showCalendar
-                : context.l10n.showList,
-            onPressed: onToggleView,
-            icon: Icon(
-              isListView
-                  ? Icons.calendar_month_rounded
-                  : Icons.view_list_rounded,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-        ],
         IconButton(
           style: actionStyle,
           tooltip: context.l10n.settings,

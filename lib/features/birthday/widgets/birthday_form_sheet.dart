@@ -11,6 +11,7 @@ import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
+import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,16 +21,27 @@ import 'package:intl/intl.dart';
 class BirthdayFormSheet extends ConsumerStatefulWidget {
   final Birthday? birthdayToEdit;
 
-  const BirthdayFormSheet({super.key, this.birthdayToEdit});
+  /// Nom pré-rempli d'une création (le texte d'une recherche sans résultat) :
+  /// le premier mot devient le prénom, la suite le nom.
+  final String? initialName;
 
-  static Future<bool?> show(BuildContext context, {Birthday? birthdayToEdit}) {
+  const BirthdayFormSheet({super.key, this.birthdayToEdit, this.initialName});
+
+  static Future<bool?> show(
+    BuildContext context, {
+    Birthday? birthdayToEdit,
+    String? initialName,
+  }) {
     return showModalBottomSheet<bool>(
       context: context,
       // Au-dessus de la barre flottante, pas dans l'onglet.
       useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (context) => BirthdayFormSheet(birthdayToEdit: birthdayToEdit),
+      builder: (context) => BirthdayFormSheet(
+        birthdayToEdit: birthdayToEdit,
+        initialName: initialName,
+      ),
     );
   }
 
@@ -62,6 +74,11 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     if (widget.birthdayToEdit != null) {
       _selectedDate = widget.birthdayToEdit!.date;
       _selectedCategories = List.from(widget.birthdayToEdit!.categories);
+    } else if (widget.initialName?.trim() case final name?
+        when name.isNotEmpty) {
+      final words = name.split(RegExp(r'\s+'));
+      _nameController.text = words.first;
+      _surnameController.text = words.skip(1).join(' ');
     }
   }
 
@@ -379,6 +396,12 @@ class _CategorySelector extends StatelessWidget {
             selected: selectedIds.contains(category.id),
             onSelected: (_) => onChanged(category.id),
           ),
+        // Créer la catégorie qui manque sans quitter la saisie.
+        ActionChip(
+          avatar: const Icon(Icons.add_rounded),
+          label: Text(context.l10n.newCategory),
+          onPressed: () => CategoryFormSheet.show(context),
+        ),
       ],
     );
   }

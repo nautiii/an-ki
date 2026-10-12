@@ -18,4 +18,7 @@ abstract final class AppRoutes {
 
   /// Réglages, ouverts par-dessus un onglet (`context.push`).
   static const String settings = '/settings';
+
+  /// Recherche d'anniversaires, ouverte par-dessus un onglet (`context.push`).
+  static const String search = '/search';
 }
