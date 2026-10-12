@@ -62,7 +62,7 @@ class _HeroCard extends StatelessWidget {
     final colors = context.ankiColors;
     final picture = birthday.picture;
     final avatar = AnKiAvatar(
-      name: '${birthday.name} ${birthday.surname}',
+      name: birthday.fullName,
       image: picture != null ? MemoryImage(picture) : null,
       radius: 28,
     );
@@ -159,7 +159,7 @@ class _HeroDetails extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xxs),
         Text(
-          '${birthday.name} ${birthday.surname}',
+          birthday.fullName,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: textTheme.titleLarge?.copyWith(color: onHero),

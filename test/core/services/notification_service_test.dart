@@ -111,11 +111,12 @@ void main() {
       ReminderType type, {
       int id = 1,
       DateTime? at,
+      String surname = 'Doe',
     }) => ReminderNotification(
       id: id,
       type: type,
       name: 'John',
-      surname: 'Doe',
+      surname: surname,
       age: 36,
       at: at ?? DateTime(2026, 6, 30, 10),
     );
@@ -156,6 +157,17 @@ void main() {
       expect(day.body, "C'est l'anniversaire de John aujourd'hui !");
       expect(weekBefore.title, '🎉 Anniversaire bientôt');
       expect(weekBefore.body, 'John Doe fête son anniversaire dans 7 jours.');
+    });
+
+    test('names a person without a last name with no stray space', () async {
+      await service.scheduleAll([
+        reminder(ReminderType.birthday, surname: ''),
+        reminder(ReminderType.weekBefore, id: 2, surname: ''),
+      ]);
+
+      final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
+      expect(day.title, '🎂 John');
+      expect(weekBefore.body, 'John fête son anniversaire dans 7 jours.');
     });
 
     test('words reminders with the configured localized texts', () async {

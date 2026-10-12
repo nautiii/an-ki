@@ -93,7 +93,7 @@ class _TileContent extends ConsumerWidget {
     final days = birthday.daysUntilNext(today);
     final date = DateFormat.MMMMd(locale)
         .format(birthday.nextOccurrence(today));
-    final fullName = '${birthday.name} ${birthday.surname}';
+    final fullName = birthday.fullName;
     final picture = birthday.picture;
 
     final categories = birthday.categoriesFrom(

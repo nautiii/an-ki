@@ -496,7 +496,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String notificationReminderBody(String name, String surname) {
-    return '$name $surname\'s birthday is in 7 days.';
+  String notificationReminderBody(String fullName) {
+    return '$fullName\'s birthday is in 7 days.';
   }
 }

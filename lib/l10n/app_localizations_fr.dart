@@ -506,7 +506,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String notificationReminderBody(String name, String surname) {
-    return '$name $surname fête son anniversaire dans 7 jours.';
+  String notificationReminderBody(String fullName) {
+    return '$fullName fête son anniversaire dans 7 jours.';
   }
 }

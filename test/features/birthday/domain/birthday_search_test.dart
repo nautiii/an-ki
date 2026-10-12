@@ -27,6 +27,12 @@ void main() {
     expect(people.matching(' hugo '), [hugo]);
   });
 
+  test('finds a person known by a single name', () {
+    final mamie = _person('Mamie', '');
+
+    expect([...people, mamie].matching('mamie'), [mamie]);
+  });
+
   test('keeps everyone for an empty query', () {
     expect(people.matching(''), people);
   });

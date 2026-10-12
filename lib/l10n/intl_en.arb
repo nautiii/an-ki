@@ -170,11 +170,10 @@
       "name": { "type": "String" }
     }
   },
-  "notificationReminderBody": "{name} {surname}'s birthday is in 7 days.",
+  "notificationReminderBody": "{fullName}'s birthday is in 7 days.",
   "@notificationReminderBody": {
     "placeholders": {
-      "name": { "type": "String" },
-      "surname": { "type": "String" }
+      "fullName": { "type": "String" }
     }
   }
 }

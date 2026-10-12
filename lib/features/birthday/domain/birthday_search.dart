@@ -10,9 +10,7 @@ extension BirthdaySearch on Iterable<Birthday> {
     return [
       for (final birthday in this)
         if (categoryIds.every(birthday.categories.contains) &&
-            '${birthday.name} ${birthday.surname}'.toLowerCase().contains(
-              needle,
-            ))
+            birthday.fullName.toLowerCase().contains(needle))
           birthday,
     ];
   }

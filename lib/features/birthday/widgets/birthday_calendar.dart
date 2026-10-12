@@ -244,7 +244,7 @@ class _CalendarDayCell extends StatelessWidget {
     // Lu par TalkBack : la date complète et les personnes fêtées.
     final label = [
       DateFormat.MMMMEEEEd(locale).format(date),
-      for (final birthday in birthdays) '${birthday.name} ${birthday.surname}',
+      for (final birthday in birthdays) birthday.fullName,
     ].join(', ');
 
     return Semantics(
@@ -382,7 +382,7 @@ class _DayBirthdaysSheet extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final birthday = birthdays[index];
                   final picture = birthday.picture;
-                  final fullName = '${birthday.name} ${birthday.surname}';
+                  final fullName = birthday.fullName;
                   return MergeSemantics(
                     child: Row(
                       children: [

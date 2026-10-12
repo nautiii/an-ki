@@ -293,12 +293,11 @@
       "name": { "type": "String" }
     }
   },
-  "notificationReminderBody": "{name} {surname} fête son anniversaire dans 7 jours.",
+  "notificationReminderBody": "{fullName} fête son anniversaire dans 7 jours.",
   "@notificationReminderBody": {
     "description": "Sans âge : la notification se répète chaque année avec le même texte.",
     "placeholders": {
-      "name": { "type": "String" },
-      "surname": { "type": "String" }
+      "fullName": { "type": "String" }
     }
   }
 }

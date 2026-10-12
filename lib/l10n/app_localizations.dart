@@ -959,8 +959,8 @@ abstract class AppLocalizations {
   /// Sans âge : la notification se répète chaque année avec le même texte.
   ///
   /// In fr, this message translates to:
-  /// **'{name} {surname} fête son anniversaire dans 7 jours.'**
-  String notificationReminderBody(String name, String surname);
+  /// **'{fullName} fête son anniversaire dans 7 jours.'**
+  String notificationReminderBody(String fullName);
 }
 
 class _AppLocalizationsDelegate

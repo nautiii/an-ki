@@ -2,7 +2,7 @@ import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:flutter/foundation.dart';
 
 /// Anniversaire d'une personne : identité, date de naissance (année
-/// comprise), catégories et photo éventuelle.
+/// facultative), catégories et photo éventuelle.
 ///
 /// Modèle de domaine : Dart pur, immuable, sans Firebase ni Flutter UI. La
 /// conversion Firestore (photo en base64 comprise) vit dans
@@ -17,6 +17,11 @@ class const Birthday({
   /// Photo compressée (octets JPEG ou PNG), null sans photo.
   final Uint8List? picture,
 }) {
+  /// Prénom et nom réunis, sans espace de trop quand l'un manque
+  /// (« Mamie »).
+  String get fullName =>
+      [name, surname].where((part) => part.isNotEmpty).join(' ');
+
   @override
   bool operator ==(Object other) =>
       other is Birthday &&

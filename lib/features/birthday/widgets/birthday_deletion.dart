@@ -29,9 +29,7 @@ void deleteWithUndo(BuildContext context, Birthday birthday) {
   final closed = snackBar
       .showSnackBar(
         SnackBar(
-          content: Text(
-            l10n.birthdayDeleted('${birthday.name} ${birthday.surname}'),
-          ),
+          content: Text(l10n.birthdayDeleted(birthday.fullName)),
           // Depuis Flutter 3.44, une snackbar avec action reste sinon ouverte.
           persist: false,
           duration: accessible ? undoDelay * 2 : undoDelay,

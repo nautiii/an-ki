@@ -37,4 +37,22 @@ void main() {
       expect(birthday(date: DateTime(1991, 5, 10)), isNot(base));
     });
   });
+
+  group('fullName', () {
+    Birthday named(String name, String surname) => Birthday(
+      id: '1',
+      name: name,
+      surname: surname,
+      date: const BirthDate(month: 5, day: 10),
+    );
+
+    test('joins the first and last names', () {
+      expect(named('Alice', 'Wonderland').fullName, 'Alice Wonderland');
+    });
+
+    test('adds no stray space when a part is missing', () {
+      expect(named('Mamie', '').fullName, 'Mamie');
+      expect(named('', 'Dupont').fullName, 'Dupont');
+    });
+  });
 }

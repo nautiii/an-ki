@@ -35,10 +35,11 @@ void main() {
     List<String> categories = const ['fri', 'fam'],
     Uint8List? picture,
     BirthDate date = const BirthDate(year: 1990, month: 10, day: 24),
+    String surname = 'Wonderland',
   }) => Birthday(
     id: '1',
     name: 'Alice',
-    surname: 'Wonderland',
+    surname: surname,
     date: date,
     categories: categories,
     picture: picture,
@@ -90,6 +91,14 @@ void main() {
     expect(find.text('24 octobre'), findsOneWidget);
     expect(find.textContaining('aura'), findsNothing);
     expect(find.text('J-12'), findsOneWidget);
+  });
+
+  testWidgets('names a person without a last name, no stray space', (
+    tester,
+  ) async {
+    await pumpTile(tester, birthday(surname: ''));
+
+    expect(find.text('Alice'), findsOneWidget);
   });
 
   testWidgets('says tomorrow rather than J-1', (tester) async {

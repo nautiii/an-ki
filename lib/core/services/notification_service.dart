@@ -19,7 +19,7 @@ class NotificationStrings {
   // le texte écrit à la planification, l'âge serait faux l'année suivante si
   // l'app n'est pas rouverte.
   final String Function(String name) birthdayBody;
-  final String Function(String name, String surname) reminderBody;
+  final String Function(String fullName) reminderBody;
 
   const NotificationStrings({
     required this.channelName,
@@ -34,8 +34,7 @@ class NotificationStrings {
     channelDescription: 'Rappels d\'anniversaire du jour',
     reminderTitle: '🎉 Anniversaire bientôt',
     birthdayBody: (name) => 'C\'est l\'anniversaire de $name aujourd\'hui !',
-    reminderBody: (name, surname) =>
-        '$name $surname fête son anniversaire dans 7 jours.',
+    reminderBody: (fullName) => '$fullName fête son anniversaire dans 7 jours.',
   );
 
   factory NotificationStrings.fromL10n(AppLocalizations l10n) =>
@@ -207,19 +206,21 @@ class NotificationService {
   }
 
   Future<void> _schedule(ReminderNotification reminder) async {
+    // Sans espace de trop quand le nom manque (« Mamie »).
+    final fullName = [
+      reminder.name,
+      reminder.surname,
+    ].where((part) => part.isNotEmpty).join(' ');
     try {
       await _plugin.zonedSchedule(
         id: reminder.id,
         title: switch (reminder.type) {
-          ReminderType.birthday => '🎂 ${reminder.name} ${reminder.surname}',
+          ReminderType.birthday => '🎂 $fullName',
           ReminderType.weekBefore => _strings.reminderTitle,
         },
         body: switch (reminder.type) {
           ReminderType.birthday => _strings.birthdayBody(reminder.name),
-          ReminderType.weekBefore => _strings.reminderBody(
-            reminder.name,
-            reminder.surname,
-          ),
+          ReminderType.weekBefore => _strings.reminderBody(fullName),
         },
         scheduledDate: tz.TZDateTime(
           tz.local,
