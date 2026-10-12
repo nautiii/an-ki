@@ -1,6 +1,7 @@
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
@@ -42,6 +43,24 @@ Birthday _relative(
     surname: surname,
     date: DateTime(1990, target.month, target.day),
   );
+}
+
+/// Répertoire qui accorde l'accès et contient deux anniversaires.
+class _GrantedContactsService extends ContactsService {
+  @override
+  Future<bool> requestReadPermission() async => true;
+
+  @override
+  Future<List<ImportedBirthday>> fetchBirthdays() async => [
+    ImportedBirthday(name: 'Léa', surname: 'Martin', date: DateTime(1990, 3)),
+    ImportedBirthday(name: 'Hugo', surname: 'Bernard', date: DateTime(1985, 6)),
+  ];
+}
+
+/// Répertoire dont l'accès est refusé.
+class _DeniedContactsService extends ContactsService {
+  @override
+  Future<bool> requestReadPermission() async => false;
 }
 
 void main() {
@@ -298,6 +317,47 @@ void main() {
         find.text("Erreur lors de l'enregistrement de la catégorie"),
         findsOneWidget,
       );
+    });
+  });
+
+  group('contacts import from the empty home', () {
+    Future<RecordingBirthdayRepository> pumpEmpty(
+      WidgetTester tester,
+      ContactsService contacts,
+    ) async {
+      final repository = RecordingBirthdayRepository();
+      await mockNetworkImages(() async {
+        await tester.pumpHarness(
+          const HomeScreen(),
+          overrides: [
+            ...overrides(birthdays: const []),
+            birthdayRepositoryProvider.overrideWithValue(repository),
+            contactsServiceProvider.overrideWithValue(contacts),
+          ],
+        );
+        await tester.pumpAndSettle();
+      });
+      return repository;
+    }
+
+    testWidgets('imports the contacts and says how many', (tester) async {
+      final repository = await pumpEmpty(tester, _GrantedContactsService());
+
+      await tester.tap(find.text('Importer mes contacts'));
+      await tester.pumpAndSettle();
+
+      expect(repository.created.map((d) => d.name), ['Léa', 'Hugo']);
+      expect(find.text('2 contacts importés avec succès !'), findsOneWidget);
+    });
+
+    testWidgets('explains a refused permission', (tester) async {
+      final repository = await pumpEmpty(tester, _DeniedContactsService());
+
+      await tester.tap(find.text('Importer mes contacts'));
+      await tester.pumpAndSettle();
+
+      expect(repository.created, isEmpty);
+      expect(find.text('Permission refusée.'), findsOneWidget);
     });
   });
 

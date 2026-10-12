@@ -304,7 +304,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get emptyBirthdaysMessage =>
-      'Ajoutez le premier : AnKi vous préviendra au bon moment.';
+      'Ajoutez le premier, ou retrouvez ceux de vos contacts : AnKi vous préviendra au bon moment.';
+
+  @override
+  String get importMyContacts => 'Importer mes contacts';
 
   @override
   String get noBooksMessage =>

@@ -5,8 +5,8 @@ import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/birthday/domain/contact_import_failure.dart';
 import 'package:an_ki/features/birthday/providers/contact_import.dart';
+import 'package:an_ki/features/birthday/widgets/contact_import_text.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/features/user/providers/user_profile_editor.dart';
@@ -193,16 +193,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     // Issue de l'import des contacts : nombre importé, permission refusée ou
     // échec de lecture.
     ref.listen(contactImportProvider, (_, next) {
-      final message = switch (next) {
-        AsyncData(:final value?) =>
-          value > 0
-              ? context.l10n.contactsImported(value)
-              : context.l10n.noContactsWithBirthday,
-        AsyncError(error: ContactImportFailure.permissionDenied) =>
-          context.l10n.permissionDenied,
-        AsyncError() => context.l10n.errorUnknown,
-        _ => null,
-      };
+      final message = contactImportMessage(context.l10n, next);
       if (message != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(behavior: SnackBarBehavior.floating, content: Text(message)),

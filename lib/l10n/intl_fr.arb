@@ -201,9 +201,13 @@
   "@emptyBirthdaysTitle": {
     "description": "Titre de l'accueil sans aucun anniversaire"
   },
-  "emptyBirthdaysMessage": "Ajoutez le premier : AnKi vous préviendra au bon moment.",
+  "emptyBirthdaysMessage": "Ajoutez le premier, ou retrouvez ceux de vos contacts : AnKi vous préviendra au bon moment.",
   "@emptyBirthdaysMessage": {
     "description": "Message de l'accueil sans aucun anniversaire"
+  },
+  "importMyContacts": "Importer mes contacts",
+  "@importMyContacts": {
+    "description": "Action secondaire de l'accueil vide : importer les anniversaires des contacts"
   },
   "noBooksMessage": "Scannez le code-barres d'un livre pour garder une idée de cadeau.",
   "@noBooksMessage": {

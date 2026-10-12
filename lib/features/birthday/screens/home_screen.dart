@@ -1,20 +1,26 @@
+import 'dart:async';
+
 import 'package:an_ki/core/common/anki_empty_state.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
+import 'package:an_ki/features/birthday/providers/contact_import.dart';
 import 'package:an_ki/features/birthday/providers/home_view_provider.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_list.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/contact_import_text.dart';
 import 'package:an_ki/features/birthday/widgets/home_app_bar.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// Accueil : qui est le prochain, puis l'agenda par mois (ou le calendrier).
 ///
@@ -42,6 +48,18 @@ class HomeScreen extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.l10n.errorSavingCategory)),
         );
+      }
+    });
+    // Issue de l'import lancé depuis l'accueil vide. Les réglages, ouverts
+    // par-dessus, annoncent celui qu'ils lancent.
+    ref.listen(contactImportProvider, (_, next) {
+      if (GoRouter.of(context).state.matchedLocation == AppRoutes.settings) {
+        return;
+      }
+      final message = contactImportMessage(context.l10n, next);
+      if (message != null) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
       }
     });
     final isLoading = ref.watch(birthdaysLoadingProvider);
@@ -143,12 +161,17 @@ class _ViewSwitch extends ConsumerWidget {
   }
 }
 
-/// Premier lancement : la lune et une invitation à ajouter.
-class _FirstRun extends StatelessWidget {
+/// Premier lancement : la lune, puis ajouter quelqu'un ou retrouver les
+/// anniversaires des contacts du téléphone.
+class _FirstRun extends ConsumerWidget {
   const _FirstRun();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final importing = ref.watch(
+      contactImportProvider.select((state) => state.isLoading),
+    );
+
     return Padding(
       padding: EdgeInsets.only(
         top: AppSpacing.lg,
@@ -161,6 +184,11 @@ class _FirstRun extends StatelessWidget {
           message: context.l10n.emptyBirthdaysMessage,
           primaryLabel: context.l10n.addBirthday,
           onPrimary: () => BirthdayFormSheet.show(context),
+          secondaryLabel: context.l10n.importMyContacts,
+          // Désactivé pendant l'import : la permission puis la lecture.
+          onSecondary: importing
+              ? null
+              : () => unawaited(ref.read(contactImportProvider.notifier).run()),
         ),
       ),
     );

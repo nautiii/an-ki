@@ -587,8 +587,14 @@ abstract class AppLocalizations {
   /// Message de l'accueil sans aucun anniversaire
   ///
   /// In fr, this message translates to:
-  /// **'Ajoutez le premier : AnKi vous préviendra au bon moment.'**
+  /// **'Ajoutez le premier, ou retrouvez ceux de vos contacts : AnKi vous préviendra au bon moment.'**
   String get emptyBirthdaysMessage;
+
+  /// Action secondaire de l'accueil vide : importer les anniversaires des contacts
+  ///
+  /// In fr, this message translates to:
+  /// **'Importer mes contacts'**
+  String get importMyContacts;
 
   /// Message de la liste de livres vide
   ///

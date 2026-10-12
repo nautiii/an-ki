@@ -300,7 +300,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emptyBirthdaysMessage =>
-      'Add the first one: AnKi will remind you at the right moment.';
+      'Add the first one, or bring in your contacts\' birthdays: AnKi will remind you at the right moment.';
+
+  @override
+  String get importMyContacts => 'Import my contacts';
 
   @override
   String get noBooksMessage => 'Scan a book\'s barcode to keep a gift idea.';
