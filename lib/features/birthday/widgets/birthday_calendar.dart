@@ -127,10 +127,9 @@ class _WeekdayHeader extends StatelessWidget {
     final first = localizations.firstDayOfWeekIndex;
 
     // Initiales ambiguës (« M » : mardi ou mercredi) : chaque case annonce
-    // déjà sa date complète.
+    // déjà sa date complète. Pas d'écart, comme la grille, pour s'aligner.
     return ExcludeSemantics(
       child: Row(
-        spacing: _CalendarGrid.spacing,
         children: [
           for (var i = 0; i < DateTime.daysPerWeek; i++)
             Expanded(
@@ -155,8 +154,10 @@ class _CalendarGrid extends StatelessWidget {
     required this.categories,
   });
 
-  /// Écart entre les cases, repris par l'en-tête des jours pour s'aligner.
-  static const double spacing = AppSpacing.xxs;
+  /// Retrait visuel de chaque case (l'écart vu à l'écran), dans sa zone de
+  /// toucher : sans écart entre elles, 7 cases de 48 dp tiennent sur 336 dp
+  /// (360 moins les marges). 2 dp : un réglage optique, hors grille de 8.
+  static const double cellInset = 2;
 
   final DateTime focusedDate;
   final DateTime today;
@@ -180,8 +181,6 @@ class _CalendarGrid extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: DateTime.daysPerWeek,
-        mainAxisSpacing: spacing,
-        crossAxisSpacing: spacing,
       ),
       itemCount: leadingDays + daysInMonth,
       itemBuilder: (context, index) {
@@ -253,51 +252,61 @@ class _CalendarDayCell extends StatelessWidget {
       button: onTap != null,
       excludeSemantics: true,
       onTap: onTap,
-      child: Material(
-        color: isToday
-            ? colorScheme.primaryContainer
-            : colorScheme.surfaceContainerLow,
-        shape: RoundedSuperellipseBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(AppRadii.sm)),
-          side: isToday
-              ? BorderSide(color: colorScheme.primary, width: 1.5)
-              : BorderSide.none,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '${date.day}',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isToday
-                      ? colorScheme.onPrimaryContainer
-                      : colorScheme.onSurface,
-                ),
+      // Toute la case répond, retrait compris : la cible reste pleine.
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(_CalendarGrid.cellInset),
+          child: Material(
+            color: isToday
+                ? colorScheme.primaryContainer
+                : colorScheme.surfaceContainerLow,
+            shape: RoundedSuperellipseBorder(
+              borderRadius: const BorderRadius.all(
+                Radius.circular(AppRadii.sm),
               ),
-              const SizedBox(height: AppSpacing.xxs),
-              SizedBox(
-                height: _dotSize,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: AppSpacing.xxs,
-                  children: [
-                    for (final birthday in birthdays.take(_maxDots))
-                      DecoratedBox(
-                        decoration: ShapeDecoration(
-                          shape: const CircleBorder(),
-                          color:
-                              _categoryOf(birthday)?.tones(context).color ??
-                              colorScheme.primary,
-                        ),
-                        child: const SizedBox.square(dimension: _dotSize),
-                      ),
-                  ],
-                ),
+              side: isToday
+                  ? BorderSide(color: colorScheme.primary, width: 1.5)
+                  : BorderSide.none,
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTap,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${date.day}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: isToday
+                          ? colorScheme.onPrimaryContainer
+                          : colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  SizedBox(
+                    height: _dotSize,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: AppSpacing.xxs,
+                      children: [
+                        for (final birthday in birthdays.take(_maxDots))
+                          DecoratedBox(
+                            decoration: ShapeDecoration(
+                              shape: const CircleBorder(),
+                              color:
+                                  _categoryOf(birthday)?.tones(context).color ??
+                                  colorScheme.primary,
+                            ),
+                            child: const SizedBox.square(dimension: _dotSize),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

@@ -186,4 +186,50 @@ void main() {
     expect(find.text('Octobre 2026'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('keeps 48 dp cells on a 360 dp phone', (tester) async {
+    final semantics = tester.ensureSemantics();
+    // 360 dp moins les marges de 12 dp de l'accueil.
+    await tester.pumpHarness(
+      const Center(
+        child: SizedBox(
+          width: 336,
+          child: SingleChildScrollView(child: BirthdayCalendar()),
+        ),
+      ),
+      overrides: [
+        birthdaysProvider.overrideWithValue(AsyncData([onDay(15)])),
+        clockProvider.overrideWithValue(() => today),
+        currentUidProvider.overrideWithValue('u1'),
+        categoryRepositoryProvider.overrideWithValue(
+          RecordingCategoryRepository([family]),
+        ),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    final cell = tester.getSize(
+      find.bySemanticsLabel(RegExp('jeudi 15 octobre')),
+    );
+    expect(cell.width, greaterThanOrEqualTo(48));
+    expect(cell.height, greaterThanOrEqualTo(48));
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    semantics.dispose();
+  });
+
+  testWidgets('a tap in the cell margin still opens the day', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpCalendar(tester, birthdays: [onDay(15)]);
+
+    // La case entière (nœud sémantique) ; son coin est dans le retrait, hors
+    // de la case dessinée.
+    final cell = tester.getRect(
+      find.bySemanticsLabel(RegExp('jeudi 15 octobre')),
+    );
+    await tester.tapAt(cell.topLeft + const Offset(1, 1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Alice Wonderland'), findsOneWidget);
+    semantics.dispose();
+  });
 }

@@ -105,11 +105,12 @@ class HomeScreen extends ConsumerWidget {
             if (view == HomeView.agenda)
               const AgendaSliver()
             else
+              // Marges réduites : des cases d'au moins 48 dp dès 360 dp.
               const SliverPadding(
                 padding: EdgeInsets.fromLTRB(
-                  AppSpacing.gutter,
+                  AppSpacing.sm,
                   AppSpacing.md,
-                  AppSpacing.gutter,
+                  AppSpacing.sm,
                   0,
                 ),
                 sliver: SliverToBoxAdapter(child: BirthdayCalendar()),
