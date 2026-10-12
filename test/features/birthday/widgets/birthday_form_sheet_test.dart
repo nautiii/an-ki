@@ -149,7 +149,7 @@ void main() {
     });
   });
 
-  testWidgets('edit mode deletes after confirmation', (tester) async {
+  testWidgets('deletes once the undo delay is over', (tester) async {
     final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
@@ -158,14 +158,21 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.delete_outline_rounded));
+      await tester.tap(find.byTooltip('Supprimer'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Supprimer l\'anniversaire'), findsOneWidget);
-      await tester.tap(find.text('Supprimer'));
+      // La feuille se ferme, sans boîte de dialogue ; rien n'est encore effacé.
+      expect(find.byType(BirthdayFormSheet), findsNothing);
+      expect(
+        find.text('Anniversaire de Alice Wonderland supprimé'),
+        findsOneWidget,
+      );
+      expect(repository.deleted, isEmpty);
+
+      await tester.pump(const Duration(seconds: 6));
       await tester.pumpAndSettle();
 
-      expect(repository.deleted, contains('edit-1'));
+      expect(repository.deleted, ['edit-1']);
     });
   });
 
@@ -281,9 +288,7 @@ void main() {
     });
   });
 
-  testWidgets('cancelling the delete dialog keeps the birthday', (
-    tester,
-  ) async {
+  testWidgets('undo keeps the birthday', (tester) async {
     final repository = RecordingBirthdayRepository();
     await mockNetworkImages(() async {
       await tester.pumpHarness(
@@ -292,9 +297,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.delete_outline_rounded));
+      await tester.tap(find.byTooltip('Supprimer'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Annuler'));
+      await tester.pump(const Duration(seconds: 6));
       await tester.pumpAndSettle();
 
       expect(repository.deleted, isEmpty);

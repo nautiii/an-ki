@@ -340,33 +340,53 @@ void main() {
       expect(find.text('Bob Builder'), findsOneWidget);
     });
 
-    testWidgets(
-      'swiping a listed birthday asks for confirmation and deletes it',
-      (tester) async {
-        final repository = RecordingBirthdayRepository(initial: [next, listed]);
+    testWidgets('swiping left hides the birthday and offers undo', (
+      tester,
+    ) async {
+      final repository = RecordingBirthdayRepository(initial: [next, listed]);
 
-        await tester.pumpHarness(
-          const HomeScreen(),
-          overrides: overridesWith(repository),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpHarness(
+        const HomeScreen(),
+        overrides: overridesWith(repository),
+      );
+      await tester.pumpAndSettle();
 
-        expect(find.text('Bob Builder'), findsOneWidget);
+      await tester.drag(find.text('Bob Builder'), const Offset(-600, 0));
+      await tester.pumpAndSettle();
 
-        // Swipe the listed tile (start-to-end) to trigger the delete confirmation.
-        await tester.drag(find.text('Bob Builder'), const Offset(600, 0));
-        await tester.pumpAndSettle();
+      expect(find.text('Bob Builder'), findsNothing);
+      expect(find.text('Anniversaire de Bob Builder supprimé'), findsOneWidget);
+      expect(repository.deleted, isEmpty);
 
-        expect(find.text('Supprimer l\'anniversaire'), findsOneWidget);
+      await tester.tap(find.text('Annuler'));
+      await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Supprimer'));
-        await tester.pumpAndSettle();
+      expect(find.text('Bob Builder'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
+      expect(repository.deleted, isEmpty);
+    });
 
-        expect(repository.deleted, contains('listed'));
-      },
-    );
+    testWidgets('the deletion is written once the undo delay is over', (
+      tester,
+    ) async {
+      final repository = RecordingBirthdayRepository(initial: [next, listed]);
 
-    testWidgets('a failed delete is announced once the tile is gone', (
+      await tester.pumpHarness(
+        const HomeScreen(),
+        overrides: overridesWith(repository),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.text('Bob Builder'), const Offset(-600, 0));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
+
+      expect(repository.deleted, ['listed']);
+    });
+
+    testWidgets('a failed delete brings the birthday back and says so', (
       tester,
     ) async {
       final repository = RecordingBirthdayRepository(
@@ -380,36 +400,19 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.drag(find.text('Bob Builder'), const Offset(600, 0));
+      await tester.drag(find.text('Bob Builder'), const Offset(-600, 0));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Supprimer'));
+      await tester.pump(const Duration(seconds: 6));
       await tester.pumpAndSettle();
 
       expect(
         find.text("Erreur lors de l'enregistrement de l'anniversaire"),
         findsOneWidget,
       );
-    });
-
-    testWidgets('cancelling the confirmation keeps the birthday', (
-      tester,
-    ) async {
-      final repository = RecordingBirthdayRepository(initial: [next, listed]);
-
-      await tester.pumpHarness(
-        const HomeScreen(),
-        overrides: overridesWith(repository),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.drag(find.text('Bob Builder'), const Offset(600, 0));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Annuler'));
-      await tester.pumpAndSettle();
-
-      expect(repository.deleted, isEmpty);
       expect(find.text('Bob Builder'), findsOneWidget);
+      // Laisse la snackbar d'erreur se fermer.
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('screen readers delete through the tile action', (
@@ -429,13 +432,11 @@ void main() {
         const CustomSemanticsAction(label: 'Supprimer'),
       );
       await tester.pumpAndSettle();
-      expect(find.text("Supprimer l'anniversaire"), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(TextButton, 'Supprimer'));
+      expect(find.text('Anniversaire de Bob Builder supprimé'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 12));
       await tester.pumpAndSettle();
-
       expect(repository.deleted, ['listed']);
-      expect(find.text("Anniversaire de Bob Builder supprimé"), findsOneWidget);
       semantics.dispose();
     });
   });

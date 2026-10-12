@@ -83,15 +83,6 @@
   "pseudo": "Pseudo",
   "pseudoUpdated": "Pseudo mis à jour avec succès !",
   "updatePseudo": "Mettre à jour le pseudo",
-  "deleteBirthdayTitle": "Supprimer l'anniversaire",
-  "deleteBirthdayConfirmation": "Voulez-vous vraiment supprimer l'anniversaire de {name} ?",
-  "@deleteBirthdayConfirmation": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "birthdayDeleted": "Anniversaire de {name} supprimé",
   "@birthdayDeleted": {
     "placeholders": {
@@ -99,6 +90,10 @@
         "type": "String"
       }
     }
+  },
+  "undo": "Annuler",
+  "@undo": {
+    "description": "Action de la snackbar qui rétablit un anniversaire supprimé"
   },
   "delete": "Supprimer",
   "newCategory": "Nouvelle catégorie",

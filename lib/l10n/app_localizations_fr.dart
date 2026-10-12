@@ -197,17 +197,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get updatePseudo => 'Mettre à jour le pseudo';
 
   @override
-  String get deleteBirthdayTitle => 'Supprimer l\'anniversaire';
-
-  @override
-  String deleteBirthdayConfirmation(String name) {
-    return 'Voulez-vous vraiment supprimer l\'anniversaire de $name ?';
-  }
-
-  @override
   String birthdayDeleted(String name) {
     return 'Anniversaire de $name supprimé';
   }
+
+  @override
+  String get undo => 'Annuler';
 
   @override
   String get delete => 'Supprimer';

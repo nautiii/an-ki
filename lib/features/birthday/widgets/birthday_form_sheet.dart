@@ -10,6 +10,7 @@ import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:flutter/cupertino.dart';
@@ -122,40 +123,11 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     Navigator.of(context).pop(true);
   }
 
-  Future<void> _delete() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.deleteBirthdayTitle),
-        content: Text(
-          context.l10n.deleteBirthdayConfirmation(
-            "${widget.birthdayToEdit!.name} ${widget.birthdayToEdit!.surname}",
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: Text(context.l10n.delete),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && mounted) {
-      unawaited(
-        ref
-            .read(birthdayEditorProvider.notifier)
-            .delete(widget.birthdayToEdit!.id),
-      );
-      Navigator.of(context).pop(true);
-    }
+  /// Supprime avec « Annuler » : la feuille se ferme, la snackbar de
+  /// l'accueil laisse quelques secondes pour revenir en arrière.
+  void _delete() {
+    deleteWithUndo(context, widget.birthdayToEdit!);
+    Navigator.of(context).pop(true);
   }
 
   void _showDatePicker(BuildContext context) {

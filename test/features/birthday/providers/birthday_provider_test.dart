@@ -197,6 +197,47 @@ void main() {
     });
   });
 
+  group('Pending deletions', () {
+    final lea = Birthday(
+      id: 'lea',
+      name: 'Léa',
+      surname: 'Martin',
+      date: DateTime(1990, 3, 12),
+    );
+    final hugo = Birthday(
+      id: 'hugo',
+      name: 'Hugo',
+      surname: 'Bernard',
+      date: DateTime(1990, 6), // 1er juin
+    );
+
+    test('hide a birthday everywhere until it is restored', () async {
+      final container = sessionContainer(
+        RecordingBirthdayRepository(initial: [lea, hugo]),
+      );
+      container.listen(birthdaysListProvider, (_, _) {});
+      container.listen(birthdaysProvider, (_, _) {});
+      await container.read(birthdaysProvider.future);
+      final pending = container.read(pendingDeletionsProvider.notifier);
+
+      pending.hide('lea');
+      expect(container.read(birthdaysListProvider), [hugo]);
+
+      pending.restore('lea');
+      expect(container.read(birthdaysListProvider), [lea, hugo]);
+    });
+
+    test('start empty again when the user changes', () {
+      final container = sessionContainer(RecordingBirthdayRepository());
+      container.listen(pendingDeletionsProvider, (_, _) {});
+      container.read(pendingDeletionsProvider.notifier).hide('lea');
+
+      container.read(_session.notifier).signIn('u2');
+
+      expect(container.read(pendingDeletionsProvider), isEmpty);
+    });
+  });
+
   group('Search and category filter notifiers', () {
     test('they expose and update their value', () {
       final container = sessionContainer(RecordingBirthdayRepository());

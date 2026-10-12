@@ -25,11 +25,39 @@ final birthdaysLoadingProvider = Provider<bool>((ref) {
   return birthdays.isLoading && !birthdays.hasValue && !birthdays.hasError;
 });
 
-/// Liste courante des anniversaires : vide pendant le premier chargement ou
-/// en cas d'erreur, la précédente pendant un rechargement.
-final birthdaysListProvider = Provider<List<Birthday>>(
-  (ref) => ref.watch(birthdaysProvider).value ?? const [],
-);
+/// Anniversaires supprimés mais encore rattrapables : masqués partout pendant
+/// le délai « Annuler », puis jusqu'à la fin de l'écriture. Vide à chaque
+/// changement d'utilisateur.
+class PendingDeletions extends Notifier<Set<String>> {
+  @override
+  Set<String> build() {
+    ref.watch(currentUidProvider);
+    return const {};
+  }
+
+  void hide(String birthdayId) => state = {...state, birthdayId};
+
+  void restore(String birthdayId) => state = {
+    for (final id in state)
+      if (id != birthdayId) id,
+  };
+}
+
+final pendingDeletionsProvider =
+    NotifierProvider<PendingDeletions, Set<String>>(PendingDeletions.new);
+
+/// Liste courante des anniversaires, sans ceux en cours de suppression :
+/// vide pendant le premier chargement ou en cas d'erreur, la précédente
+/// pendant un rechargement.
+final birthdaysListProvider = Provider<List<Birthday>>((ref) {
+  final birthdays = ref.watch(birthdaysProvider).value ?? const [];
+  final pending = ref.watch(pendingDeletionsProvider);
+  if (pending.isEmpty) return birthdays;
+  return [
+    for (final birthday in birthdays)
+      if (!pending.contains(birthday.id)) birthday,
+  ];
+});
 
 /// Le ou les prochains anniversaires (plusieurs s'ils tombent le même jour),
 /// recalculés quand le jour change.

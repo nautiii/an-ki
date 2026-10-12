@@ -62,15 +62,6 @@
   "pseudo": "Nickname",
   "pseudoUpdated": "Nickname updated successfully!",
   "updatePseudo": "Update Nickname",
-  "deleteBirthdayTitle": "Delete Birthday",
-  "deleteBirthdayConfirmation": "Are you sure you want to delete {name}'s birthday?",
-  "@deleteBirthdayConfirmation": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "birthdayDeleted": "{name}'s birthday deleted",
   "@birthdayDeleted": {
     "placeholders": {
@@ -79,6 +70,7 @@
       }
     }
   },
+  "undo": "Undo",
   "delete": "Delete",
   "newCategory": "New category",
   "categoryName": "Category's name",

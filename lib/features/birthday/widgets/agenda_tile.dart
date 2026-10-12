@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/common/moon_phase.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
@@ -8,8 +6,8 @@ import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
-import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
@@ -21,54 +19,14 @@ import 'package:intl/intl.dart';
 /// Ligne d'agenda : qui, quand, quel âge. L'anneau de l'avatar porte les
 /// couleurs des catégories de la personne.
 ///
-/// Toucher ouvre la modification. Glisser vers la droite, ou l'action
-/// « Supprimer » des lecteurs d'écran, supprime après confirmation.
+/// Toucher ouvre la modification. Glisser vers la gauche, ou l'action
+/// « Supprimer » des lecteurs d'écran, supprime avec « Annuler ».
 class AgendaTile extends ConsumerWidget {
   const AgendaTile({super.key, required this.birthday});
 
   final Birthday birthday;
 
   static const _radius = BorderRadius.all(Radius.circular(AppRadii.lg));
-
-  String get _fullName => '${birthday.name} ${birthday.surname}';
-
-  Future<bool> _confirmDelete(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.deleteBirthdayTitle),
-        content: Text(context.l10n.deleteBirthdayConfirmation(_fullName)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: Text(context.l10n.delete),
-          ),
-        ],
-      ),
-    );
-    return confirmed ?? false;
-  }
-
-  void _delete(BuildContext context, WidgetRef ref) {
-    unawaited(ref.read(birthdayEditorProvider.notifier).delete(birthday.id));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.birthdayDeleted(_fullName))),
-    );
-  }
-
-  /// Chemin des lecteurs d'écran, sans glissement : même confirmation.
-  Future<void> _confirmThenDelete(BuildContext context, WidgetRef ref) async {
-    if (await _confirmDelete(context) && context.mounted) {
-      _delete(context, ref);
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -78,18 +36,15 @@ class AgendaTile extends ConsumerWidget {
       borderRadius: _radius,
       child: Dismissible(
         key: Key(birthday.id),
-        direction: DismissDirection.startToEnd,
-        confirmDismiss: (_) {
-          unawaited(HapticFeedback.mediumImpact());
-          return _confirmDelete(context);
-        },
-        onDismissed: (_) => _delete(context, ref),
+        // La droite reste libre pour une action positive (« Souhaiter »).
+        direction: DismissDirection.endToStart,
+        onDismissed: (_) => deleteWithUndo(context, birthday),
         background: ColoredBox(
           color: colorScheme.errorContainer,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             child: Align(
-              alignment: AlignmentDirectional.centerStart,
+              alignment: AlignmentDirectional.centerEnd,
               child: Icon(
                 Icons.delete_outline_rounded,
                 color: colorScheme.onErrorContainer,
@@ -104,7 +59,7 @@ class AgendaTile extends ConsumerWidget {
               button: true,
               customSemanticsActions: {
                 CustomSemanticsAction(label: context.l10n.delete): () =>
-                    unawaited(_confirmThenDelete(context, ref)),
+                    deleteWithUndo(context, birthday),
               },
               child: InkWell(
                 onTap: () {
