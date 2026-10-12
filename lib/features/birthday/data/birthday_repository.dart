@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:an_ki/core/extensions/firestore_extensions.dart';
 import 'package:an_ki/core/providers/firebase_providers.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -79,7 +80,7 @@ Birthday? _birthdayFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     id: doc.id,
     name: data['name'] as String? ?? '',
     surname: data['surname'] as String? ?? '',
-    date: date,
+    date: BirthDate.fromDate(date),
     categories: List<String>.from(
       data['categories'] as List<dynamic>? ?? const [],
     ),
@@ -100,7 +101,9 @@ Uint8List? _decodePicture(String? encoded) {
 Map<String, Object> _draftToMap(BirthdayDraft draft) => {
   'name': draft.name.trim(),
   'surname': draft.surname.trim(),
-  'date': Timestamp.fromDate(draft.date),
+  'date': Timestamp.fromDate(
+    DateTime(draft.date.year, draft.date.month, draft.date.day),
+  ),
   'categories': draft.categories,
   if (draft.picture case final picture?) 'picture': base64Encode(picture),
 };

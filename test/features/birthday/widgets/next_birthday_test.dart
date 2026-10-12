@@ -5,6 +5,7 @@ import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
@@ -36,7 +37,7 @@ void main() {
       id: id,
       name: name,
       surname: surname,
-      date: DateTime(1990, target.month, target.day),
+      date: BirthDate.fromDate(DateTime(1990, target.month, target.day)),
       picture: picture,
     );
   }

@@ -5,6 +5,7 @@ import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
@@ -41,7 +42,7 @@ Birthday _relative(
     id: id,
     name: name,
     surname: surname,
-    date: DateTime(1990, target.month, target.day),
+    date: BirthDate.fromDate(DateTime(1990, target.month, target.day)),
   );
 }
 
@@ -77,7 +78,7 @@ void main() {
       id: id,
       name: 'Person$id',
       surname: 'X',
-      date: DateTime(1990, target.month, target.day),
+      date: BirthDate.fromDate(DateTime(1990, target.month, target.day)),
     );
   }
 

@@ -28,6 +28,7 @@ import 'package:an_ki/features/auth/domain/biometric_lock.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
@@ -122,7 +123,9 @@ List<Birthday> sampleBirthdays() {
       id: id,
       name: name,
       surname: surname,
-      date: DateTime(next.year - turning, next.month, next.day),
+      date: BirthDate.fromDate(
+        DateTime(next.year - turning, next.month, next.day),
+      ),
       categories: categories,
     );
   }

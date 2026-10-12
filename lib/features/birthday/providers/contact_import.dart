@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/domain/contact_import_failure.dart';
 import 'package:flutter/foundation.dart';
@@ -42,7 +43,7 @@ class ContactImport extends AsyncNotifier<int?> {
                 BirthdayDraft(
                   name: contact.name,
                   surname: contact.surname,
-                  date: contact.date,
+                  date: BirthDate.fromDate(contact.date),
                 ),
             ])
             .catchError((Object error) {

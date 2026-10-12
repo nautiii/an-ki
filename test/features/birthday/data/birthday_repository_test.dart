@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -24,7 +25,7 @@ void main() {
   }) => BirthdayDraft(
     name: name,
     surname: surname,
-    date: DateTime(1990, 5, 10),
+    date: BirthDate.fromDate(DateTime(1990, 5, 10)),
     categories: const ['family'],
     picture: picture,
   );
@@ -76,7 +77,7 @@ void main() {
           id: ref.id,
           name: 'Alice',
           surname: 'Wonderland',
-          date: DateTime(1990, 5, 10),
+          date: BirthDate.fromDate(DateTime(1990, 5, 10)),
           categories: const ['family', 'friend'],
           picture: Uint8List.fromList([1, 2, 3]),
         ),
@@ -92,7 +93,12 @@ void main() {
       final birthdays = await repository.watchBirthdays('user-1').first;
 
       expect(birthdays, [
-        Birthday(id: ref.id, name: '', surname: '', date: DateTime(1985)),
+        Birthday(
+          id: ref.id,
+          name: '',
+          surname: '',
+          date: BirthDate.fromDate(DateTime(1985)),
+        ),
       ]);
     });
 

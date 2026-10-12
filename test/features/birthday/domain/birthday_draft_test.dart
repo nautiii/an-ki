@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,13 +13,17 @@ void main() {
   }) => BirthdayDraft(
     name: 'Alice',
     surname: surname,
-    date: DateTime(1990, 5, 10),
+    date: BirthDate.fromDate(DateTime(1990, 5, 10)),
     categories: categories,
     picture: picture == null ? null : Uint8List.fromList(picture),
   );
 
   test('has no category and no picture by default', () {
-    final draft = BirthdayDraft(name: 'A', surname: 'B', date: DateTime(2000));
+    final draft = BirthdayDraft(
+      name: 'A',
+      surname: 'B',
+      date: BirthDate.fromDate(DateTime(2000)),
+    );
 
     expect(draft.categories, isEmpty);
     expect(draft.picture, isNull);

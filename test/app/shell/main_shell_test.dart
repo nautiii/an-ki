@@ -1,6 +1,7 @@
 import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
@@ -30,7 +31,7 @@ void main() {
           id: '1',
           name: 'Léa',
           surname: 'Martin',
-          date: DateTime(1990, 3, 12),
+          date: BirthDate.fromDate(DateTime(1990, 3, 12)),
         ),
       ],
     );

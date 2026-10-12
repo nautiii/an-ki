@@ -11,6 +11,6 @@ extension BirthdayDisplay on Birthday {
     final format = includeYear
         ? DateFormat.yMMMMd(locale)
         : DateFormat.MMMMd(locale);
-    return format.format(date);
+    return format.format(DateTime(date.year, date.month, date.day));
   }
 }

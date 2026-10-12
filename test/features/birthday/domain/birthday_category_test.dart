@@ -1,3 +1,4 @@
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,7 +29,7 @@ void main() {
       id: 'b',
       name: 'Léa',
       surname: 'Martin',
-      date: DateTime(1990),
+      date: BirthDate.fromDate(DateTime(1990)),
       categories: ids,
     );
 

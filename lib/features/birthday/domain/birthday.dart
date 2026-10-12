@@ -1,3 +1,4 @@
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:flutter/foundation.dart';
 
 /// Anniversaire d'une personne : identité, date de naissance (année
@@ -10,7 +11,7 @@ class const Birthday({
   required final String id,
   required final String name,
   required final String surname,
-  required final DateTime date,
+  required final BirthDate date,
   final List<String> categories = const [],
 
   /// Photo compressée (octets JPEG ou PNG), null sans photo.

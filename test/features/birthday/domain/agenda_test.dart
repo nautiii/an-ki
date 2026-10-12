@@ -1,9 +1,14 @@
 import 'package:an_ki/features/birthday/domain/agenda.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Birthday _born(DateTime date, String id) =>
-    Birthday(id: id, name: 'P$id', surname: 'X', date: date);
+Birthday _born(DateTime date, String id) => Birthday(
+  id: id,
+  name: 'P$id',
+  surname: 'X',
+  date: BirthDate.fromDate(date),
+);
 
 List<String> _ids(AgendaSection section) => [
   for (final b in section.birthdays) b.id,

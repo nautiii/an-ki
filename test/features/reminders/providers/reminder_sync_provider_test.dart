@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/services/notification_service.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/reminders/providers/reminder_sync_provider.dart';
@@ -23,7 +24,7 @@ void main() {
     id: 'lea',
     name: 'Léa',
     surname: 'Martin',
-    date: DateTime(1994, 3, 12),
+    date: BirthDate.fromDate(DateTime(1994, 3, 12)),
   );
 
   late _RecordingNotificationService notifications;

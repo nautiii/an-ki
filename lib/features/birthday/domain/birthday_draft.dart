@@ -1,3 +1,4 @@
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:flutter/foundation.dart';
 
 /// Saisie d'un anniversaire avant enregistrement (formulaire ou import de
@@ -5,7 +6,7 @@ import 'package:flutter/foundation.dart';
 class const BirthdayDraft({
   required final String name,
   required final String surname,
-  required final DateTime date,
+  required final BirthDate date,
   final List<String> categories = const [],
 
   /// Nouvelle photo (octets compressés) ; null : pas de photo à la création,

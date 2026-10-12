@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
@@ -32,7 +33,7 @@ void main() {
     id: 'edit-1',
     name: 'Alice',
     surname: 'Wonderland',
-    date: DateTime(1990, 5, 10),
+    date: BirthDate.fromDate(DateTime(1990, 5, 10)),
     categories: const ['fam'],
     picture: picture,
   );

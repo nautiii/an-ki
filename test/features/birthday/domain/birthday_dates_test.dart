@@ -1,9 +1,10 @@
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Birthday _born(DateTime date, {String id = '1'}) =>
-    Birthday(id: id, name: 'A', surname: 'B', date: date);
+    Birthday(id: id, name: 'A', surname: 'B', date: BirthDate.fromDate(date));
 
 void main() {
   final today = DateTime(2026, 6, 15);

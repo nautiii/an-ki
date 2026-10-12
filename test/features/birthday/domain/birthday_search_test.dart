@@ -1,3 +1,4 @@
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,7 +11,7 @@ Birthday _person(
   id: name,
   name: name,
   surname: surname,
-  date: DateTime(1990),
+  date: BirthDate.fromDate(DateTime(1990)),
   categories: categories,
 );
 

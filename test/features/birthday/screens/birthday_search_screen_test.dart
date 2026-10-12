@@ -2,6 +2,7 @@ import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
@@ -27,7 +28,7 @@ void main() {
         id: id,
         name: name,
         surname: 'Martin',
-        date: DateTime(1990, month, 20),
+        date: BirthDate.fromDate(DateTime(1990, month, 20)),
         categories: cats ?? const [],
       );
 

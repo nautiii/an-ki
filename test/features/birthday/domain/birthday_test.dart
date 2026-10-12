@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -13,7 +14,7 @@ void main() {
     id: '1',
     name: 'Alice',
     surname: 'Wonderland',
-    date: date ?? DateTime(1990, 5, 10),
+    date: BirthDate.fromDate(date ?? DateTime(1990, 5, 10)),
     categories: categories,
     picture: Uint8List.fromList(picture),
   );

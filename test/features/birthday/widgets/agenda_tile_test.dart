@@ -7,6 +7,7 @@ import 'package:an_ki/core/theme/label_tones.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_tile.dart';
@@ -38,7 +39,7 @@ void main() {
     id: '1',
     name: 'Alice',
     surname: 'Wonderland',
-    date: date ?? DateTime(1990, 10, 24),
+    date: BirthDate.fromDate(date ?? DateTime(1990, 10, 24)),
     categories: categories,
     picture: picture,
   );

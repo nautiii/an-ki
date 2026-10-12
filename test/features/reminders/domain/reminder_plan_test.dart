@@ -1,9 +1,14 @@
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/reminders/domain/reminder_plan.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Birthday _born(DateTime date, {String id = 'lea'}) =>
-    Birthday(id: id, name: 'Léa', surname: 'Martin', date: date);
+Birthday _born(DateTime date, {String id = 'lea'}) => Birthday(
+  id: id,
+  name: 'Léa',
+  surname: 'Martin',
+  date: BirthDate.fromDate(date),
+);
 
 /// Rappel de [kind] dans le plan d'un seul anniversaire.
 PlannedReminder _reminder(
@@ -37,8 +42,12 @@ String _idAt(int slot, {required String prefix}) {
 }
 
 /// Anniversaire dont le prénom reprend l'id, pour retrouver ses rappels.
-Birthday _person(String id) =>
-    Birthday(id: id, name: id, surname: 'Martin', date: DateTime(1990, 6, 30));
+Birthday _person(String id) => Birthday(
+  id: id,
+  name: id,
+  surname: 'Martin',
+  date: BirthDate.fromDate(DateTime(1990, 6, 30)),
+);
 
 /// Ids [jour J, J-7] planifiés pour chaque anniversaire, par id.
 Map<String, List<int>> _idsOf(

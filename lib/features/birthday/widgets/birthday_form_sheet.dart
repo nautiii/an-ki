@@ -5,6 +5,7 @@ import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
@@ -73,7 +74,8 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     );
 
     if (widget.birthdayToEdit != null) {
-      _selectedDate = widget.birthdayToEdit!.date;
+      final date = widget.birthdayToEdit!.date;
+      _selectedDate = DateTime(date.year, date.month, date.day);
       _selectedCategories = List.from(widget.birthdayToEdit!.categories);
     } else if (widget.initialName?.trim() case final name?
         when name.isNotEmpty) {
@@ -110,7 +112,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     final draft = BirthdayDraft(
       name: _nameController.text.trim(),
       surname: _surnameController.text.trim(),
-      date: _selectedDate,
+      date: BirthDate.fromDate(_selectedDate),
       categories: _selectedCategories,
       picture: _picture,
     );
