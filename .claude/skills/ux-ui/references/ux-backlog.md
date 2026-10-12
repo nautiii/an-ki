@@ -5,36 +5,23 @@ Living list of what to improve, from a full audit with the snapshot tool (light,
 below deliberately question structure, not just polish.
 
 Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, calendar, loading,
-scanner, settings, auth). Roadmap step 1 (F2, F3, A1–A8) shipped on 2026-10-12, step 2 (B1, Q1,
-Q2, A9) the same day: the items they fixed are gone from this list.
+scanner, settings, auth). Roadmap steps 1 (F2, F3, A1–A8), 2 (B1, Q1, Q2, A9) and 3 (B2)
+shipped on 2026-10-12: the items they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
 auth or dependencies → design brief + maintainer approval first.
 
 ## Contents
-- Big bets (B2–B7) — structural redesigns with the highest impact
+- Big bets (B3–B7) — structural redesigns with the highest impact
 - Foundation (F1, F4, F5) — design system, prerequisite for consistency
 - P1 — friction & states (Q4–Q7)
-- P2 — polish (D1, D3, D4, D6–D10)
+- P2 — polish (D1, D3, D4, D6–D14)
 - Suggested roadmap
 
 ---
 
 ## Big bets
-
-### B2 — Express capture, birth year optional (job 3: capture)
-- **Problem**: photo first, 2 required name fields, year forced (default « today − 25 years ») →
-  the app shows **invented ages** for friends whose year you don't know (trust killer); date
-  rendered `12/10/2001`; the date sheet's confirm button says « Ajouter »; validation after submit.
-- **Proposal**: quick-add sheet — Name (one field) + day/month (+ « Je connais l'année ») →
-  « Plus d'options » (photo, groups, notes); CTA enabled when valid; keyboard flow; success
-  snackbar. Ages and « aura N ans » only when the year is known. Later: « Léa 12 mars » parsing.
-- **Model**: `Birthday.date` → day/month + `int? year` (or `hasYear`), backward-compatible
-  `fromFirestore`, notifications keyed on day/month, age guards.
-- **Refs**: Google Contacts (year optional), Todoist Quick Add, Google Calendar quick event.
-- **Impact**: add in < 10 s instead of ~25 s; no false information.
-- **Cost**: medium-high (model, repository, form, notifications, tests) — approval required.
 
 ### B3 — Close the loop: « Souhaiter » + the birthday moment (job 2: act)
 - **Problem**: AnKi reminds but doesn't help act. Notifications have no actions; J-0 is just a
@@ -125,12 +112,24 @@ auth or dependencies → design brief + maintainer approval first.
   three app-bar actions (`home_app_bar.dart`); a longer pseudo does it on any phone.
 - **D10 Scanner header**: the scanner tab keeps the old two-line `Header` while the home has the
   pinned app bar → align the two tabs when B4 reworks the scanner.
+- **D11 Legacy text fields**: the category sheet, login, signup and settings still use
+  `AnKiTextField` (outlined, radius 28, sizes and error line drawn by hand) while the birthday
+  sheet uses themed `TextField`s with inline `errorText` → migrate them (Q7 with the category sheet).
+- **D12 Month-first locales**: the typed birth date reads day then month in every language (hint
+  « DD/MM »); a US user typing « 03/12 » gets 3 December — the live preview shows it, an order
+  taken from `DateFormat.yMd(locale)` would remove the trap.
+- **D13 Imported years**: contacts imported before 2026-10-12 without a birth year were saved as
+  born in 2000 and still show an age; each can be fixed in the sheet (« 12/03/2000 » → « 12/03 »).
+  A bulk repair can't tell them from real 2000 births: data migration, approval first.
+- **D14 Add confirmation**: saving closes the sheet silently; a birthday months away lands
+  off-screen → snackbar « Léa ajoutée » with « Voir » (scroll to the row).
 
 ## Suggested roadmap
 
 1. ~~**F2 + F3 + A1–A8** — foundation and accessibility debt~~ — shipped 2026-10-12.
 2. ~~**B1 + Q1–Q2** — the home everyone sees daily (A9 with it)~~ — shipped 2026-10-12.
-3. **B2** — capture without friction or invented ages (model change).
+3. ~~**B2** — capture without friction or invented ages (model change)~~ — shipped 2026-10-12.
 4. **B3** — the birthday moment and the wish loop (new dependency).
 5. **B5** — onboarding that lands on a populated agenda.
-6. **B4, B6, B7, F1, F4, F5, Q4–Q7, D1–D10** — depth and polish (F1 any time once approved).
+6. **B4, B6, B7, F1, F4, F5, Q4–Q7, D1–D14** — depth and polish (F1 any time once approved);
+   natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.

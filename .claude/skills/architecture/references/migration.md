@@ -98,6 +98,8 @@ touching their files. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent + rev
 - Left out of M8: move `birthday`/`books` to `user/{uid}/…` — data migration with dual read,
   rules update deployed by the maintainer, one release of overlap.
 - Worth it only for a concrete need: sharing, rules complexity, cost. Brief and approval first.
+- When it runs, store the birth date as `day`, `month` and an optional `year` instead of `date` +
+  `yearKnown` (kept in step 3 of the UX roadmap to avoid a migration).
 
 ## 4. How to run a step
 

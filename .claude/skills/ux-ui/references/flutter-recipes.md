@@ -223,8 +223,11 @@ final locale = Localizations.localeOf(context).toLanguageTag();
 DateFormat.MMMMd(locale).format(date);   // « 9 octobre » / "October 9"
 DateFormat.yMMMMd(locale).format(date);  // « 9 octobre 1992 »
 ```
-Never build dates by hand (`'${d.day}/${d.month}/${d.year}'`, month arrays). Countdown with ICU
-plurals in the ARB files:
+Never build dates by hand (`'${d.day}/${d.month}/${d.year}'`, month arrays). A `BirthDate`
+without a year is formatted on a leap year (2000), so 29 February exists: use
+`date.formatted(context)` (`birthday_display.dart`) rather than a new `DateTime`. Typed birth
+dates: `BirthDateField` (mask, preview, errors) over the pure rules of `birth_date_input.dart`.
+Countdown with ICU plurals in the ARB files:
 ```json
 "countdown": "{days, plural, =0{Aujourd'hui} =1{Demain} other{Dans {days} jours}}",
 "turningAge": "{age, plural, =1{aura 1 an} other{aura {age} ans}}"

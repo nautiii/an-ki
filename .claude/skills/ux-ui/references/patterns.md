@@ -66,23 +66,31 @@ agenda** (Netflix billboard + Todoist Upcoming / Google Calendar schedule).
 
 ## C. Capture a birthday (core flow — make it < 10 s)
 
-**Quick-add sheet with progressive disclosure** (Google Calendar quick event, Todoist Quick Add).
-1. Name — one field, `autofocus`, `TextCapitalization.words`, `textInputAction: next`,
-   `autofillHints: [AutofillHints.name]`. Splitting first/last name is friction for friends
-   (« Mamie », « Léa »): ask the maintainer before changing the model; at minimum make last name optional.
-2. Date — **day + month required, year optional** (Google Contacts). Options, best first:
-   a) day/month wheels with a « Je connais l'année » toggle; b) text field `JJ/MM` or `JJ/MM/AAAA`
-   accepting `12/3`, `12.03`, `12 mars` (Postel) with live preview « 12 mars »;
-   c) `showDatePicker(initialEntryMode: DatePickerEntryMode.input)` only if year is known.
-   Never default to « today − 25 years ».
-3. « Plus d'options » expander: photo, categories, notes.
-4. CTA pinned at the bottom, enabled as soon as name + day/month are valid; keyboard « done » saves;
-   success → close + `lightImpact` + snackbar « Léa ajoutée » (with « Annuler » if cheap).
+**Quick-add sheet** (Google Calendar quick event, Todoist Quick Add, Google Contacts' optional
+year). Shipped in step 3: `birthday_form_sheet.dart`, `birth_date_field.dart`; the flow is « + »,
+the name, « Suivant », four digits, « OK ».
+1. Name — **one field** « Prénom et nom », `autofocus`, `TextCapitalization.words`,
+   `textInputAction: next` to the date. Split on save (`BirthdayDraft.splitFullName`: first word =
+   first name, the rest = last name), so « Mamie » works and the model keeps two fields. No
+   `autofillHints`: they would offer the user's own name.
+2. Date — typed, **day + month required, year optional**: `TextInputType.datetime`, slashes
+   inserted while typing (`maskBirthDateInput`), tolerant reading (`parseBirthDate`: « 1203 »,
+   « 1/3 », « 12.03.1990 » — Postel), live preview under the field (« Le 12 mars 1990 · aura
+   37 ans ») and precise errors (no such date, incomplete year, future date). An unfinished input
+   is a neutral hint while typing and an error once the field is left. Never default to « today −
+   25 years », never a wheel or picker that forces the year.
+3. Avatar beside the name: live initials, tap → photo (never the first thing in the form).
+   Categories on one scrolling row of `FilterChip`s, icon in the category tone replaced by the
+   check once selected, « Nouvelle catégorie » last.
+4. CTA enabled as soon as name + day/month are valid; keyboard « OK » saves; `lightImpact` on
+   save. Editing reuses the sheet, prefilled (« 15/10 » for a yearless birthday).
+- Without a year no age is shown anywhere (agenda line, hero, calendar day sheet): never an
+  invented one.
 - Bulk path: **import from contacts** is the fastest value — surface it in the empty state and
   onboarding, not only in settings. Show a preview list with checkboxes (pre-checked) before import.
-- Stretch: natural-language single field « Léa 12 mars » (Todoist) parsed in the Notifier.
+- Stretch: natural-language single field « Léa 12 mars » (Todoist) parsed by a domain rule.
 - Avoid: photo picker as the first thing in the form, required fields that aren't needed to
-  remind, validation only after pressing save, a date sheet whose confirm button says « Ajouter ».
+  remind, validation only after pressing save, a date control that forces the year.
 
 ## D. Edit, delete, quick actions
 

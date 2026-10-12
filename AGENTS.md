@@ -113,8 +113,9 @@ code predates the target; the plan is `.claude/skills/architecture/references/mi
 
 ## Glossary
 
-- **Birthday** — a person (name, surname, birth date with year), category ids, optional photo
-  stored as base64 in the document. Firestore `birthday/{id}`, owned through its `uid` field.
+- **Birthday** — a person (name, possibly empty surname, birth date whose year is optional),
+  category ids, optional photo stored as base64 in the document. Firestore `birthday/{id}`, owned
+  through its `uid` field; an unknown year is stored as 2000 with `yearKnown: false`.
 - **Category** (« catégorie ») — a label with an icon. Documents in the shared top-level
   `category` collection; each user picks theirs in `user/{uid}.categories`.
 - **User** — the profile document `user/{uid}`: name, pseudo, categories, theme, locale.

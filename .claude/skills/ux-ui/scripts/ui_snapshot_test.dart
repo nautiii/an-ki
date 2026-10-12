@@ -118,7 +118,8 @@ List<Birthday> sampleBirthdays() {
     required int turning,
     List<String> categories = const [],
   }) {
-    final next = today.add(Duration(days: inDays));
+    // En jours de calendrier : un changement d'heure décalerait d'un jour.
+    final next = DateTime(today.year, today.month, today.day + inDays);
     return Birthday(
       id: id,
       name: name,
