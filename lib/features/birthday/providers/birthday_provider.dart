@@ -1,8 +1,10 @@
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/domain/agenda.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
+import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Anniversaires de l'utilisateur courant, en temps réel ; liste vide hors
@@ -34,6 +36,16 @@ final birthdaysListProvider = Provider<List<Birthday>>(
 final nextBirthdaysProvider = Provider<List<Birthday>>((ref) {
   final birthdays = ref.watch(birthdaysListProvider);
   return birthdays.nextBirthdays(ref.watch(todayProvider));
+});
+
+/// L'agenda de l'accueil : les anniversaires que le héros n'affiche pas,
+/// « dans les 7 jours » puis par mois.
+final agendaProvider = Provider<List<AgendaSection>>((ref) {
+  final nextIds = {for (final b in ref.watch(nextBirthdaysProvider)) b.id};
+  return ref
+      .watch(birthdaysListProvider)
+      .where((birthday) => !nextIds.contains(birthday.id))
+      .agenda(ref.watch(todayProvider));
 });
 
 /// Texte de recherche, remis à zéro quand l'utilisateur change.
@@ -120,4 +132,16 @@ final categoryFilteredBirthdaysProvider = Provider<List<Birthday>>((ref) {
     return birthday.name.toLowerCase().contains(searchQuery) ||
         birthday.surname.toLowerCase().contains(searchQuery);
   }).toList();
+});
+
+/// Résultats de l'écran de recherche : texte et catégories appliqués à tout le
+/// carnet (héros compris), du plus proche au plus lointain.
+final birthdaySearchResultsProvider = Provider<List<Birthday>>((ref) {
+  return ref
+      .watch(birthdaysListProvider)
+      .matching(
+        ref.watch(birthdaySearchProvider),
+        categoryIds: ref.watch(birthdayCategoryFilterProvider),
+      )
+      .sortedByNext(ref.watch(todayProvider));
 });

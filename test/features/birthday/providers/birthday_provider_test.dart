@@ -1,5 +1,6 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/domain/agenda.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -195,6 +196,45 @@ void main() {
       final result = container.read(categoryFilteredBirthdaysProvider);
 
       expect(result.map((b) => b.id), ['near']);
+    });
+
+    test('agendaProvider leaves the hero out and groups the rest', () {
+      final soon = _relative(6, id: 'soon', name: 'Dan', surname: 'Brown');
+      final container = containerWith([far, near, mid, soon]);
+
+      final agenda = container.read(agendaProvider);
+
+      expect(agenda.first.period, const AgendaSoon());
+      expect(agenda.first.birthdays.map((b) => b.id), ['soon']);
+      expect(
+        [
+          for (final section in agenda)
+            for (final b in section.birthdays) b.id,
+        ],
+        ['soon', 'mid', 'far'],
+      );
+    });
+
+    test('birthdaySearchResultsProvider searches everyone, by proximity', () {
+      final container = containerWith([far, near, mid]);
+
+      expect(container.read(birthdaySearchResultsProvider).map((b) => b.id), [
+        'near',
+        'mid',
+        'far',
+      ]);
+
+      container.read(birthdaySearchProvider.notifier).update('alice');
+      expect(container.read(birthdaySearchResultsProvider).map((b) => b.id), [
+        'near',
+      ]);
+
+      container.read(birthdaySearchProvider.notifier).update('');
+      container.read(birthdayCategoryFilterProvider.notifier).update(['cat2']);
+      expect(container.read(birthdaySearchResultsProvider).map((b) => b.id), [
+        'mid',
+        'far',
+      ]);
     });
 
     test('categoryFilteredBirthdaysProvider filters by category', () {

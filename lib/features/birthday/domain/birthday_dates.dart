@@ -26,6 +26,10 @@ extension BirthdayDates on Birthday {
   int daysUntilNext(DateTime today) =>
       _utcDay(nextOccurrence(today)).difference(_utcDay(today)).inDays;
 
+  /// Âge atteint au prochain anniversaire à partir de [today], celui du jour
+  /// compris : « aura 34 ans ».
+  int turningAge(DateTime today) => nextOccurrence(today).year - date.year;
+
   /// Âge en années révolues à [today] ; l'anniversaire compte dès son jour.
   int ageOn(DateTime today) {
     final hadBirthday =

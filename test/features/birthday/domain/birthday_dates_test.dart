@@ -68,6 +68,20 @@ void main() {
     });
   });
 
+  group('turningAge', () {
+    test('is the age reached at the next birthday', () {
+      expect(_born(DateTime(1990, 6, 20)).turningAge(today), 36);
+    });
+
+    test('counts the birthday of the day', () {
+      expect(_born(DateTime(1990, 6, 15)).turningAge(today), 36);
+    });
+
+    test('looks at next year once the birthday has passed', () {
+      expect(_born(DateTime(1990, 6, 14)).turningAge(today), 37);
+    });
+  });
+
   group('ageOn', () {
     test('counts the birthday from its day', () {
       expect(_born(DateTime(1990, 6, 15)).ageOn(today), 36);
