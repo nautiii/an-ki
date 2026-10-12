@@ -52,9 +52,21 @@ class _GrantedContactsService extends ContactsService {
   Future<bool> requestReadPermission() async => true;
 
   @override
-  Future<List<ImportedBirthday>> fetchBirthdays() async => [
-    ImportedBirthday(name: 'Léa', surname: 'Martin', date: DateTime(1990, 3)),
-    ImportedBirthday(name: 'Hugo', surname: 'Bernard', date: DateTime(1985, 6)),
+  Future<List<ImportedBirthday>> fetchBirthdays() async => const [
+    ImportedBirthday(
+      name: 'Léa',
+      surname: 'Martin',
+      month: 3,
+      day: 1,
+      year: 1990,
+    ),
+    ImportedBirthday(
+      name: 'Hugo',
+      surname: 'Bernard',
+      month: 6,
+      day: 1,
+      year: 1985,
+    ),
   ];
 }
 

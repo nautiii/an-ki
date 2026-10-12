@@ -8,12 +8,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class ImportedBirthday {
   final String name;
   final String surname;
-  final DateTime date;
+  final int month;
+  final int day;
+
+  /// Année de naissance ; null quand le contact ne la donne pas.
+  final int? year;
 
   const ImportedBirthday({
     required this.name,
     required this.surname,
-    required this.date,
+    required this.month,
+    required this.day,
+    this.year,
   });
 }
 
@@ -47,11 +53,9 @@ class ContactsService {
         ImportedBirthday(
           name: contact.name?.first ?? "",
           surname: contact.name?.last ?? "",
-          date: DateTime(
-            birthdayEvent.year ?? 2000,
-            birthdayEvent.month,
-            birthdayEvent.day,
-          ),
+          month: birthdayEvent.month,
+          day: birthdayEvent.day,
+          year: birthdayEvent.year,
         ),
       );
     }

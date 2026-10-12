@@ -43,7 +43,11 @@ class ContactImport extends AsyncNotifier<int?> {
                 BirthdayDraft(
                   name: contact.name,
                   surname: contact.surname,
-                  date: BirthDate.fromDate(contact.date),
+                  date: BirthDate(
+                    year: contact.year,
+                    month: contact.month,
+                    day: contact.day,
+                  ),
                 ),
             ])
             .catchError((Object error) {

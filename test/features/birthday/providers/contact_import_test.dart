@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/contact_import_failure.dart';
 import 'package:an_ki/features/birthday/providers/contact_import.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,9 +68,21 @@ void main() {
   test('writes one birthday per contact and publishes the count', () async {
     final container = makeContainer(
       _FakeContactsService(
-        contacts: [
-          ImportedBirthday(name: 'A', surname: 'B', date: DateTime(1990)),
-          ImportedBirthday(name: 'C', surname: 'D', date: DateTime(1992, 2, 2)),
+        contacts: const [
+          ImportedBirthday(
+            name: 'A',
+            surname: 'B',
+            month: 1,
+            day: 1,
+            year: 1990,
+          ),
+          ImportedBirthday(
+            name: 'C',
+            surname: 'D',
+            month: 2,
+            day: 2,
+            year: 1992,
+          ),
         ],
       ),
     );
@@ -78,6 +91,30 @@ void main() {
 
     expect(container.read(contactImportProvider).value, 2);
     expect(repo.created.map((input) => input.name), ['A', 'C']);
+  });
+
+  test('keeps the year of a contact, never invents one', () async {
+    final container = makeContainer(
+      _FakeContactsService(
+        contacts: const [
+          ImportedBirthday(name: 'Mamie', surname: '', month: 10, day: 15),
+          ImportedBirthday(
+            name: 'Léa',
+            surname: 'Martin',
+            month: 3,
+            day: 12,
+            year: 1990,
+          ),
+        ],
+      ),
+    );
+
+    await container.read(contactImportProvider.notifier).run();
+
+    expect(repo.created.map((draft) => draft.date), const [
+      BirthDate(month: 10, day: 15),
+      BirthDate(year: 1990, month: 3, day: 12),
+    ]);
   });
 
   test('ignores a second run while one is in progress', () async {
