@@ -32,7 +32,7 @@ import them from `package:an_ki/core/...`, extend them there, never fork them pe
 | `lib/core/common/anki_empty_state.dart` | `AnKiEmptyState` — illustration, title, message, primary/secondary CTA |
 | `lib/core/common/skeleton_box.dart` | `SkeletonBox` — pulsing placeholder, static under reduce-motion |
 | `lib/core/common/anki_avatar.dart` | `AnKiAvatar(name:, image:)` — photo or initials on a stable tonal color |
-| `lib/core/common/bottom_bar.dart` | `BottomBar` (signature S5) and `BottomBar.overlap`, the bottom padding of lists that scroll under it |
+| `lib/core/common/bottom_bar.dart` | `BottomBar` (signature S5), the shell `Scaffold`'s `bottomNavigationBar` (`extendBody`): lists pad by `MediaQuery.paddingOf(context).bottom`, snackbars float above it |
 
 `anki_colors_test.dart` locks the identity's promise: every brand text/background pair stays
 ≥ 4.5:1 in both themes. If a seed change breaks it, the test fails — fix the color, not the test.

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:an_ki/core/common/anki_empty_state.dart';
-import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/constants/app_assets.dart';
@@ -233,7 +232,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                           : books.isEmpty
                           ? SingleChildScrollView(
                               padding: const EdgeInsets.only(
-                                bottom: BottomBar.overlap,
+                                bottom: AppSpacing.xl,
                               ),
                               child: AnKiEmptyState(
                                 illustration: Image.asset(AppAssets.moon),

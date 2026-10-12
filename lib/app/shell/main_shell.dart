@@ -15,37 +15,32 @@ class MainShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // La barre est celle du Scaffold racine : les snackbars (toujours
+    // affichées par ce Scaffold, même lancées depuis un onglet) se posent
+    // au-dessus d'elle. Avec extendBody, le contenu passe sous le verre et
+    // reçoit la hauteur de la barre dans son padding du bas.
     return Scaffold(
-      extendBody: true, // Permet au contenu de passer sous la BottomBar floue
-      body: Stack(
-        children: [
-          navigationShell,
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: BottomBar(
-              destinations: [
-                BottomBarDestination(
-                  icon: Icons.cake_outlined,
-                  selectedIcon: Icons.cake_rounded,
-                  label: context.l10n.tabBirthdays,
-                ),
-                BottomBarDestination(
-                  icon: Icons.qr_code_scanner_rounded,
-                  selectedIcon: Icons.qr_code_scanner_rounded,
-                  label: context.l10n.tabScanner,
-                ),
-              ],
-              selectedIndex: navigationShell.currentIndex,
-              // L'onglet déjà ouvert revient à son écran de départ.
-              onSelected: (index) => navigationShell.goBranch(
-                index,
-                initialLocation: index == navigationShell.currentIndex,
-              ),
-            ),
+      extendBody: true,
+      body: navigationShell,
+      bottomNavigationBar: BottomBar(
+        destinations: [
+          BottomBarDestination(
+            icon: Icons.cake_outlined,
+            selectedIcon: Icons.cake_rounded,
+            label: context.l10n.tabBirthdays,
+          ),
+          BottomBarDestination(
+            icon: Icons.qr_code_scanner_rounded,
+            selectedIcon: Icons.qr_code_scanner_rounded,
+            label: context.l10n.tabScanner,
           ),
         ],
+        selectedIndex: navigationShell.currentIndex,
+        // L'onglet déjà ouvert revient à son écran de départ.
+        onSelected: (index) => navigationShell.goBranch(
+          index,
+          initialLocation: index == navigationShell.currentIndex,
+        ),
       ),
     );
   }

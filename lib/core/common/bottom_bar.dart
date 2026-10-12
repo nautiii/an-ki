@@ -29,11 +29,6 @@ class BottomBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelected;
 
-  /// Espace que la barre recouvre au-dessus de la zone sûre, respiration
-  /// comprise : une liste qui défile dessous le réserve en bas pour que son
-  /// dernier élément reste visible.
-  static const double overlap = 96;
-
   @override
   Widget build(BuildContext context) {
     final colors = context.ankiColors;

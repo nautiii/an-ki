@@ -64,6 +64,25 @@ void main() {
     });
   });
 
+  testWidgets('a snackbar from a tab floats above the nav bar', (tester) async {
+    await mockNetworkImages(() async {
+      await pumpSignedIn(tester);
+
+      ScaffoldMessenger.of(tester.element(find.byType(HomeScreen)))
+          .showSnackBar(const SnackBar(content: Text('Hello')));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getRect(find.byType(SnackBar)).bottom,
+        lessThanOrEqualTo(tester.getRect(find.byType(BottomBar)).top),
+      );
+
+      // Laisse la snackbar se fermer : aucun minuteur en attente.
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+    });
+  });
+
   testWidgets('a hidden tab stays mounted with its state', (tester) async {
     await mockNetworkImages(() async {
       await pumpSignedIn(tester);

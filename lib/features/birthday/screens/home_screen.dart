@@ -1,5 +1,4 @@
 import 'package:an_ki/core/common/anki_empty_state.dart';
-import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/search_bar.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
@@ -133,10 +132,7 @@ class _HomeContent extends StatelessWidget {
       return const Align(
         alignment: Alignment.topCenter,
         child: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            top: AppSpacing.sm,
-            bottom: BottomBar.overlap,
-          ),
+          padding: EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.md),
           child: BirthdayCalendar(),
         ),
       );
@@ -147,7 +143,7 @@ class _HomeContent extends StatelessWidget {
       return SingleChildScrollView(
         padding: const EdgeInsets.only(
           top: AppSpacing.xl,
-          bottom: BottomBar.overlap,
+          bottom: AppSpacing.xl,
         ),
         child: AnKiEmptyState(
           illustration: Image.asset(AppAssets.moon),
