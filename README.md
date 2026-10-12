@@ -9,17 +9,21 @@ anniversaire. Simple, élégante et efficace.
   option de sauvegarde ultérieure).
 - 📅 **Gestion des Anniversaires** : Ajoutez, modifiez et organisez les anniversaires de vos proches.
 - 📂 **Catégorisation** : Classez vos contacts par catégories (Famille, Amis, Collègues, Autre).
-- 🔔 **Notifications** : Recevez des rappels pour ne rien manquer.
+- 🔔 **Rappels** : Notifications le jour J et 7 jours avant, programmées sur l'appareil (même
+  hors ligne).
 - 🌓 **Mode Sombre/Clair** : Interface adaptative selon vos préférences.
 - 🌍 **Multi-langue** : Support complet du Français (par défaut) et de l'Anglais.
 
 ## 🛠️ Stack Technique
 
-- **Framework** : [Flutter](https://flutter.dev/)
-- **Backend** : [Firebase](https://firebase.google.com/) (Auth, Firestore, Storage)
-- **Gestion d'état** : [Riverpod](https://riverpod.dev/)
+- **Framework** : [Flutter](https://flutter.dev/) 3.47.6 · Dart 3.13.5 · Material 3
+- **Plateformes** : Android (testé sur appareil), iOS (non testé) ; la cible web a été retirée
+- **Backend** : [Firebase](https://firebase.google.com/) (Auth, Firestore avec persistance hors ligne)
+- **Gestion d'état** : [Riverpod](https://riverpod.dev/) 3, sans génération de code
+- **Navigation** : [go_router](https://pub.dev/packages/go_router)
 - **Notifications** : [Flutter Local Notifications](https://pub.dev/packages/flutter_local_notifications)
 - **Localisation** : `flutter_localizations` (ARB files)
+- Toutes les dépendances sont épinglées à une version exacte (`pubspec.lock` versionné).
 
 ## 📦 Installation
 
@@ -60,18 +64,34 @@ anniversaire. Simple, élégante et efficace.
 
 ## 🛠️ Scripts & Déploiement
 
-Si vous désirez déployer l'application sur votre téléphone, utilisez le script de déploiement :
- ```powerShell
- .\build_and_deploy.ps1
- ```
+Les scripts PowerShell sont dans `scripts/` et lisent `secrets.json` :
+```powershell
+.\scripts\run.ps1                                 # flutter run avec les secrets
+.\scripts\build_and_deploy.ps1 [-Release] [-Clean] # build l'APK et l'installe via adb
+```
+
+## ✅ Qualité
+
+```bash
+flutter analyze        # doit être propre
+dart analyze           # seul à exécuter le plugin riverpod_lint
+flutter test           # dont test/architecture/ qui vérifie les dépendances entre couches
+flutter gen-l10n       # après toute modification d'un fichier .arb
+```
 
 ## 📂 Structure du projet
 
-- `lib/core/` : Éléments partagés (thèmes, extensions, services).
-- `lib/data/` : Modèles de données et dépôts (Firestore).
-- `lib/features/` : Fonctionnalités de l'application (Auth, Birthday).
-- `lib/providers/` : Gestion de l'état global.
-- `lib/l10n/` : Fichiers de traduction.
+Architecture MVVM en couches, organisée par fonctionnalité :
+
+- `lib/app/` : Racine de composition (MaterialApp, routes, shell à onglets, démarrage).
+- `lib/core/` : Éléments partagés indépendants des fonctionnalités (thème, widgets communs,
+  services, routage, extensions).
+- `lib/features/<feature>/` : `auth`, `user`, `birthday`, `book_scanner`, `reminders`, `settings`,
+  chacune découpée en `domain/`, `data/`, `providers/`, `screens/`, `widgets/`.
+- `lib/l10n/` : Fichiers de traduction (`intl_fr.arb` comme modèle, `intl_en.arb`).
+- `test/` : Miroir de `lib/`.
+
+Les conventions de code et d'architecture sont détaillées dans [`AGENTS.md`](AGENTS.md).
 
 ---
 **Développeur:** Quentin Maillard
