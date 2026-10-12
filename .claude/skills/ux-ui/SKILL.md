@@ -201,6 +201,12 @@ flutter test build/ui_snapshots/_src/palette_audit_test.dart
   platforms differ, but iOS must stay correct.
 - If unrelated tests fail, run the touched feature's tests and report the unrelated failures
   instead of silently fixing them.
+- Nested `Scaffold`s show snackbars only in the outermost one: the shell's. That is why the nav
+  bar is its `bottomNavigationBar` (`extendBody`): floating snackbars land above it, and tab
+  content gets the bar's height in `MediaQuery.paddingOf(context).bottom` — pad scrollables
+  with it, never a hard-coded height.
+- Under a pinned `SliverAppBar`, pin section headers with `SliverPersistentHeader(pinned: true)`:
+  `PinnedHeaderSliver` ignores the app bar and slides under it.
 - Signed-in screens live in a go_router shell branch: `showModalBottomSheet` needs
   `useRootNavigator: true`, or the sheet opens inside the tab, under the floating bar (its CTA
   hidden, the bar still tappable). Dialogs already default to the root navigator.

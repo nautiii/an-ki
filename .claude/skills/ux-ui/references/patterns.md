@@ -51,14 +51,17 @@ agenda** (Netflix billboard + Todoist Upcoming / Google Calendar schedule).
 - **Hero** (S1): next birthday(s); several on the same day → `PageView`/`CarouselView` with
   page dots *and* swipe hint; content: avatar, name, « aujourd'hui / demain / dans N jours »,
   « aura N ans », moon phase (S3), one primary action when ≤ 7 days (« Souhaiter », « Idée cadeau »).
-- **Agenda list** grouped by time: « Aujourd'hui · Cette semaine · Ce mois-ci · Plus tard »
-  (chunking, Miller), sticky section headers. Each row: avatar, name, countdown badge first,
-  date without year (« 9 octobre »), age they will turn. The birth year is noise here.
+- **Agenda list** grouped by time: « Dans les 7 jours », then one section per month
+  (« Novembre », « Janvier 2027 ») — chunking (Miller) that holds for a whole year, where
+  « Plus tard » would become a flat list again. Sticky section headers. Each row: avatar ringed
+  with the person's category tones, name, « 9 octobre · aura 34 ans », moon + « J-12 » badge.
+  The birth year is noise here.
 - Greeting personalised by time of day (Spotify « Bonsoir ») is a cheap warm touch; keep it short.
 - Refs: Todoist *Upcoming*, Apple Reminders *Today/Scheduled*, Google Calendar *Schedule*,
   Facebook birthdays (today first + quick wish).
-- Flutter: `CustomScrollView` + `SliverMainAxisGroup` per bucket with a pinned
-  `SliverPersistentHeader`; grouping/sorting in a derived provider, never in the widget.
+- Flutter: `CustomScrollView` + `SliverMainAxisGroup` per section with a pinned
+  `SliverPersistentHeader`; grouping in a domain rule (`agenda()`) wired by `agendaProvider`.
+  Shipped in step 2: `home_screen.dart`, `agenda_list.dart`, `agenda_tile.dart`.
 - Avoid: one flat list sorted by name, the birth year as main metadata, more than one hero.
 
 ## C. Capture a birthday (core flow — make it < 10 s)

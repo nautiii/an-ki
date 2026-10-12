@@ -115,7 +115,7 @@ Why each boundary:
 | A list or document the UI shows | `providers/` as a session-scoped `StreamProvider` | `ideasProvider`, `personIdeasProvider(id)` |
 | Screen actions (save, delete, import) and their progress/error | `providers/` as a controller | `IdeaEditor` → `ideaEditorProvider` |
 | Search text, filters, selected view | `providers/` as a small `Notifier<T>` | `birthdaySearchProvider` |
-| A filtered, sorted or combined view of data | `providers/` derived provider calling a domain function | `filteredBirthdaysProvider` |
+| A filtered, sorted or combined view of data | `providers/` derived provider calling a domain function | `agendaProvider` |
 | A reaction to data changes (reschedule notifications) | `providers/` side-effect provider, activated by `app/bootstrap` | `reminderSyncProvider` |
 | A page reachable by navigation | `screens/` + path in `core/routing/` + entry in `app/router/` | `IdeasScreen` |
 | A sheet or dialog | `widgets/` with `static Future<T?> show(context)` | `AddIdeaSheet` |

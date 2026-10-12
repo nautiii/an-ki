@@ -5,38 +5,23 @@ Living list of what to improve, from a full audit with the snapshot tool (light,
 below deliberately question structure, not just polish.
 
 Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, calendar, loading,
-scanner, settings, auth). Roadmap step 1 (F2, F3, A1–A8) shipped on 2026-10-12: those eight scenes
-now pass the audit with no finding; the items it fixed are gone from this list.
+scanner, settings, auth). Roadmap step 1 (F2, F3, A1–A8) shipped on 2026-10-12, step 2 (B1, Q1,
+Q2, A9) the same day: the items they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
 auth or dependencies → design brief + maintainer approval first.
 
 ## Contents
-- Big bets (B1–B7) — structural redesigns with the highest impact
+- Big bets (B2–B7) — structural redesigns with the highest impact
 - Foundation (F1, F4, F5) — design system, prerequisite for consistency
-- P0 — accessibility & correctness (A9)
-- P1 — friction & states (Q1, Q2, Q4–Q7)
-- P2 — polish (D1, D3, D4, D6–D8)
+- P1 — friction & states (Q4–Q7)
+- P2 — polish (D1, D3, D4, D6–D10)
 - Suggested roadmap
 
 ---
 
 ## Big bets
-
-### B1 — Home becomes a scroll-first « Agenda » (job 1: who's next)
-- **Problem**: header + hero + search + filter chips push the first person to y≈412 of 915 —
-  less than half the screen shows people. Flat list; rows lead with birth year + current age
-  instead of « when » and « how old they'll be ». Calendar hides behind an ambiguous icon toggle.
-- **Proposal**: `CustomScrollView` — `SliverAppBar.large` greeting by time of day (« Bonsoir
-  Camille ») with avatar → profile/settings; hero (next birthday, celebration on J-0); agenda
-  buckets with sticky headers (recipes §5); rows: avatar/initials, name, countdown badge + moon
-  phase, « 12 mars · aura 34 ans ». Search = app-bar icon opening `SearchAnchor` (recent
-  searches, filters inside); « Agenda | Calendrier » as a segmented control.
-- **Refs**: Google Calendar schedule, Todoist Upcoming, Spotify home, iOS large titles.
-- **Impact**: first person visible ~100 px higher, scan time down, clear hierarchy.
-- **Cost**: medium — `home_screen`, `contact_tile`, `next_birthday`, new `agendaProvider`; no
-  data-model change.
 
 ### B2 — Express capture, birth year optional (job 3: capture)
 - **Problem**: photo first, 2 required name fields, year forced (default « today − 25 years ») →
@@ -93,9 +78,9 @@ auth or dependencies → design brief + maintainer approval first.
 
 ### B7 — Groups, simplified
 - **Problem**: categories need a separate sheet (suggested + custom + icon grid) with quirky
-  defaults (OG's, GOAT, Doggo, Internet…) and filter chips always on the home. Colors are now
-  tonal per theme (`LabelTones`), but tied to those 14 names: custom groups all share the neutral
-  tone.
+  defaults (OG's, GOAT, Doggo, Internet…); creating one from the birthday form stacks a sheet on
+  a sheet. Colors are tonal per theme (`LabelTones`, ring around each agenda avatar), but tied to
+  those 14 names: custom groups all share the neutral tone, so their ring stays invisible.
 - **Proposal**: « Groupes » with 4 sensible defaults (Famille, Amis, Travail, Autres); create
   inline from the form's chip row (« + Nouveau groupe »); filters only when ≥ 2 groups are used;
   a tone picked per group (`LabelTones` seeds, identity §3.4).
@@ -111,27 +96,15 @@ auth or dependencies → design brief + maintainer approval first.
   sizes instead of the input theme), `BookCard` (`BorderRadius.circular(24/12)`, faux bold),
   `settings_screen.dart:260` (radius 16).
 
-## P0 — accessibility & correctness
-
-- **A9 Calendar cells under 48 dp on small phones**: 7 columns of a 312 dp content width give
-  41 dp cells (48 dp from a 392 dp-wide screen). Every cell announces its full date and who is
-  celebrated, but the touch target stays small → B1's agenda as the default view, or a week list
-  on narrow screens.
-
 ## P1 — friction & states
 
-- **Q1 Delete**: swipe + confirm dialog → undo snackbar (recipes §4); keep a dialog only for
-  account deletion.
-- **Q2 Empty states**: first run now shows the moon + « Ajouter un anniversaire »; still missing:
-  « Importer mes contacts » as its secondary action, a real no-results state (search or filters:
-  reset / create), and the case where every birthday sits in the hero — the list then says
-  « Aucun anniversaire trouvé. » with no search nor filter active (`home_screen.dart`).
 - **Q4 Settings**: flat list; binary theme switch; dropdown for 2 languages; separate « Mettre à
   jour le pseudo » button; destructive actions mixed with preferences → grouped sections, segmented
   controls, instant apply, danger zone (patterns J).
 - **Q5 Auth intro**: staggered fades reveal buttons after up to ~1.8 s → ≤ 600 ms, CTAs visible
   at once (route paths already go through `AppRoutes`, M4).
-- **Q6 Search**: no-results dead end → « Ajouter « … » » prefilled; highlight matches.
+- **Q6 Search**: results don't highlight the matched letters (the search screen already offers
+  « Ajouter « … » » when nothing matches).
 - **Q7 Category sheet**: save always enabled then errors via snackbar → disable until valid,
   inline guidance.
 
@@ -143,16 +116,21 @@ auth or dependencies → design brief + maintainer approval first.
 - **D3 Motion**: `AnKiFadeIn` (auth, login, signup) ignores reduce motion → `context.motion(...)`.
 - **D4 Haptics**: ad hoc (selection/light/medium mixed) → identity §9 map.
 - **D6 Predictive back**: manifest flag missing (recipes §10).
-- **D7 Age unit**: hero and tiles split the number from « ans » → « 1 » + « ans » for a
-  one-year-old; reuse the `ageInYears` plural when B1 reworks the rows (« aura 2 ans »).
+- **D7 Age unit**: the hero splits « aura », the number and « ans » → « aura 1 ans » for a baby's
+  first birthday; agenda rows already use a plural (`agendaLine`).
 - **D8 Scanner tab**: the « Roman / BD / Cuisine / Tech » chips look like filters but do nothing;
   empty-state title ends with a period (« Aucun livre trouvé. ») → remove or make them real (B4).
+
+- **D9 Compact greeting**: at 360×640 and 130 % text, « Bonjour, Camille » ellipsizes behind the
+  three app-bar actions (`home_app_bar.dart`); a longer pseudo does it on any phone.
+- **D10 Scanner header**: the scanner tab keeps the old two-line `Header` while the home has the
+  pinned app bar → align the two tabs when B4 reworks the scanner.
 
 ## Suggested roadmap
 
 1. ~~**F2 + F3 + A1–A8** — foundation and accessibility debt~~ — shipped 2026-10-12.
-2. **B1 + Q1–Q2** — the home everyone sees daily (A9 with it).
+2. ~~**B1 + Q1–Q2** — the home everyone sees daily (A9 with it)~~ — shipped 2026-10-12.
 3. **B2** — capture without friction or invented ages (model change).
 4. **B3** — the birthday moment and the wish loop (new dependency).
 5. **B5** — onboarding that lands on a populated agenda.
-6. **B4, B6, B7, F1, F4, F5, Q4–Q7, D1–D8** — depth and polish (F1 any time once approved).
+6. **B4, B6, B7, F1, F4, F5, Q4–Q7, D1–D10** — depth and polish (F1 any time once approved).

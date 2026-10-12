@@ -172,132 +172,36 @@ google_fonts style only fakes bold). Steps (downloading the font = ask the maint
 
 ## 4. Delete with « Annuler »
 
-Gmail pattern: the item disappears at once, a snackbar offers undo, the write happens only when
-the snackbar closes without undo. Logic in the Notifier, the widget only triggers it.
+Gmail pattern, shipped in step 2: the person disappears at once, a snackbar offers undo, the write
+happens only when the snackbar closes without undo.
 
-```dart
-// birthday_provider.dart — état
-class BirthdayState {
-  // … champs existants
-  /// Anniversaires masqués en attendant la fin du délai « Annuler ».
-  final Set<String> pendingDeletionIds; // défaut : const {} (+ copyWith)
-}
-
-// BirthdayNotifier
-void stageDeletion(String birthdayId) {
-  state = state.copyWith(
-    pendingDeletionIds: {...state.pendingDeletionIds, birthdayId},
-  );
-}
-
-void undoDeletion(String birthdayId) {
-  state = state.copyWith(
-    pendingDeletionIds: {...state.pendingDeletionIds}..remove(birthdayId),
-  );
-}
-
-/// Supprime pour de bon ; en cas d'échec l'élément réapparaît (échec visible).
-Future<bool> commitDeletion(String uid, String birthdayId) async {
-  try {
-    await _repository.deleteBirthday(uid, birthdayId);
-    return true;
-  } on Object {
-    return false;
-  } finally {
-    if (ref.mounted) undoDeletion(birthdayId);
-  }
-}
-
-// Provider dérivé : les listes visibles excluent les suppressions en attente.
-final birthdaysListProvider = Provider<List<Birthday>>((ref) {
-  final state = ref.watch(birthdayProvider);
-  return state.birthdays
-      .where((b) => !state.pendingDeletionIds.contains(b.id))
-      .toList();
-});
-```
-
-```dart
-// Widget (ex. ContactTile) — déclenché par Dismissible.onDismissed ou un menu.
-void _deleteWithUndo(BuildContext context, WidgetRef ref, Birthday b) {
-  final uid = ref.read(currentUidProvider);
-  if (uid == null) return;
-  // Lu avant l'async : le notifier survit à ce widget, pas `ref`.
-  final notifier = ref.read(birthdayProvider.notifier);
-  final l10n = context.l10n;
-  HapticFeedback.mediumImpact();
-  notifier.stageDeletion(b.id);
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-          SnackBar(
-            content: Text(l10n.birthdayDeleted('${b.name} ${b.surname}')),
-            persist: false, // depuis 3.44 : avec une action, un SnackBar persiste sinon
-            duration: const Duration(seconds: 5),
-            action: SnackBarAction(
-              label: l10n.undo, // à ajouter : « Annuler » / "Undo"
-              onPressed: () => notifier.undoDeletion(b.id),
-            ),
-          ),
-        )
-        .closed
-        .then((reason) {
-          if (reason != SnackBarClosedReason.action) {
-            notifier.commitDeletion(uid, b.id);
-          }
-        });
-}
-```
-
-Remove the confirmation dialog from the swipe. Keep `Dismissible(direction: endToStart)` and add
-`Semantics(customSemanticsActions: {CustomSemanticsAction(label: l10n.delete): …})` so TalkBack
-users can delete too. With TalkBack on, Flutter keeps action snackbars open — fine.
+- `pendingDeletionsProvider` (`birthday_provider.dart`): a session-scoped set of hidden ids;
+  `birthdaysListProvider` leaves them out, so the hero, the agenda, the calendar and the search
+  all hide the person at once.
+- `deleteWithUndo(context, birthday)` (`widgets/birthday_deletion.dart`): hides, shows the
+  snackbar (`persist: false`, 5 s, 10 s with TalkBack), then on any close but the action calls
+  `BirthdayEditor.delete` and unhides once the write ends — the Firestore stream drops the
+  document by itself, a failure makes it reappear and the home announces it.
+- It reads everything before the snackbar closes, through
+  `ProviderScope.containerOf(context, listen: false)`: the swiped row or the closed sheet is gone
+  by then, its `WidgetRef` with it.
+- Callers: the agenda row (`Dismissible` end-to-start — start-to-end stays free for a positive
+  action), its TalkBack `CustomSemanticsAction`, the edit sheet's delete button. No dialog.
+- Snackbars always render in the shell's root `Scaffold` (nested Scaffolds): the nav bar is that
+  Scaffold's `bottomNavigationBar`, so floating snackbars sit above it.
 
 ## 5. Agenda grouped by time, sticky headers
 
-```dart
-enum AgendaBucket { today, thisWeek, thisMonth, later }
-
-AgendaBucket bucketFor(int daysUntilNext) => switch (daysUntilNext) {
-  0 => AgendaBucket.today,
-  <= 7 => AgendaBucket.thisWeek,
-  <= 31 => AgendaBucket.thisMonth,
-  _ => AgendaBucket.later,
-};
-
-/// Anniversaires visibles groupés par période, dans l'ordre chronologique.
-final agendaProvider = Provider<Map<AgendaBucket, List<Birthday>>>((ref) {
-  final birthdays = [...ref.watch(filteredBirthdaysProvider)]
-    ..sort((a, b) => a.daysUntilNext.compareTo(b.daysUntilNext));
-  final agenda = <AgendaBucket, List<Birthday>>{};
-  for (final birthday in birthdays) {
-    (agenda[bucketFor(birthday.daysUntilNext)] ??= []).add(birthday);
-  }
-  return agenda;
-});
-```
-
-```dart
-CustomScrollView(
-  slivers: [
-    // SliverAppBar.large (salutation), héros, puis :
-    for (final MapEntry(key: bucket, value: people) in agenda.entries)
-      SliverMainAxisGroup(
-        slivers: [
-          PinnedHeaderSliver(child: _BucketHeader(bucket: bucket)), // Semantics(header: true)
-          SliverList.builder(
-            itemCount: people.length,
-            itemBuilder: (context, i) => ContactTile(birthday: people[i]),
-          ),
-        ],
-      ),
-    // Espace sous la barre flottante : hauteur de la barre + marge + safe area, calculée.
-  ],
-)
-```
-
-Labels via l10n: « Aujourd'hui », « Cette semaine », « Dans le mois », « Plus tard ». The header
-background must be opaque (`colorScheme.surface`) so pinned headers don't overlap rows.
+Shipped in step 2 — read the code rather than a copy:
+- Rule: `features/birthday/domain/agenda.dart` — `agenda(today)` returns `AgendaSection`s
+  (`AgendaSoon`, then `AgendaMonth(year, month)`), tested on the year boundary and 29 February.
+- Wiring: `agendaProvider` (everyone but the hero's people), labels by `agendaPeriodLabel`
+  (`DateFormat.MMMM`, `yMMMM` for another year, sentence case).
+- Slivers: `AgendaSliver` (`widgets/agenda_list.dart`) — one `SliverMainAxisGroup` per section,
+  each with a pinned `SliverPersistentHeader` whose extent follows the text scale.
+- `PinnedHeaderSliver` pins at the very top and slides **under** a pinned `SliverAppBar`; the
+  pinned `SliverPersistentHeader` stacks below it. Header background opaque
+  (`colorScheme.surface`) so rows pass beneath.
 
 ## 6. Large-text reflow
 
