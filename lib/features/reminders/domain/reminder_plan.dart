@@ -28,8 +28,9 @@ class const PlannedReminder({
   required final String name,
   required final String surname,
 
-  /// Âge atteint le jour de l'anniversaire.
-  required final int age,
+  /// Âge atteint le jour de l'anniversaire ; null quand l'année de naissance
+  /// est inconnue.
+  required final int? age,
 
   /// Moment du rappel, heure locale.
   required final DateTime at,
@@ -88,7 +89,10 @@ PlannedReminder _plan(
     kind: kind,
     name: birthday.name,
     surname: birthday.surname,
-    age: occurrence.year - birthday.date.year,
+    age: switch (birthday.date.year) {
+      final year? => occurrence.year - year,
+      null => null,
+    },
     at: at,
   );
 }

@@ -253,6 +253,36 @@ void main() {
     });
   });
 
+  testWidgets('keeps an unknown year while the date is left as is', (
+    tester,
+  ) async {
+    final repository = RecordingBirthdayRepository();
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        const BirthdayFormSheet(
+          birthdayToEdit: Birthday(
+            id: 'edit-1',
+            name: 'Mamie',
+            surname: 'Rose',
+            date: BirthDate(month: 10, day: 15),
+          ),
+        ),
+        overrides: overrides(repository),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('15 octobre'), findsOneWidget);
+
+      await tester.tap(find.text('Enregistrer').last);
+      await tester.pumpAndSettle();
+
+      expect(
+        repository.created.single.date,
+        const BirthDate(month: 10, day: 15),
+      );
+    });
+  });
+
   testWidgets('labels every control for screen readers', (tester) async {
     final semantics = tester.ensureSemantics();
     await mockNetworkImages(() async {

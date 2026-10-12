@@ -27,15 +27,22 @@ extension BirthdayDates on Birthday {
       _utcDay(nextOccurrence(today)).difference(_utcDay(today)).inDays;
 
   /// Âge atteint au prochain anniversaire à partir de [today], celui du jour
-  /// compris : « aura 34 ans ».
-  int turningAge(DateTime today) => nextOccurrence(today).year - date.year;
+  /// compris : « aura 34 ans ». Null quand l'année de naissance est inconnue.
+  int? turningAge(DateTime today) {
+    final year = date.year;
+    if (year == null) return null;
+    return nextOccurrence(today).year - year;
+  }
 
   /// Âge en années révolues à [today] ; l'anniversaire compte dès son jour.
-  int ageOn(DateTime today) {
+  /// Null quand l'année de naissance est inconnue.
+  int? ageOn(DateTime today) {
+    final year = date.year;
+    if (year == null) return null;
     final hadBirthday =
         today.month > date.month ||
         (today.month == date.month && today.day >= date.day);
-    return today.year - date.year - (hadBirthday ? 0 : 1);
+    return today.year - year - (hadBirthday ? 0 : 1);
   }
 }
 

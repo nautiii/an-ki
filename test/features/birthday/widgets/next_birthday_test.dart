@@ -31,13 +31,18 @@ void main() {
     String name = 'Alice',
     String surname = 'Wonderland',
     Uint8List? picture,
+    bool yearKnown = true,
   }) {
     final target = today.add(Duration(days: daysAhead));
     return Birthday(
       id: id,
       name: name,
       surname: surname,
-      date: BirthDate.fromDate(DateTime(1990, target.month, target.day)),
+      date: BirthDate(
+        year: yearKnown ? 1990 : null,
+        month: target.month,
+        day: target.day,
+      ),
       picture: picture,
     );
   }
@@ -92,6 +97,19 @@ void main() {
       expect(find.text('aura'), findsOneWidget);
       expect(find.text('36'), findsOneWidget);
       expect(find.text('ans'), findsOneWidget);
+    });
+  });
+
+  testWidgets('shows no age without a birth year', (tester) async {
+    await mockNetworkImages(() async {
+      await pumpCard(tester, birthdays: [relative(3, yearKnown: false)]);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alice Wonderland'), findsOneWidget);
+      expect(find.text('Dans 3 jours'), findsOneWidget);
+      expect(find.text('15 mars'), findsOneWidget);
+      expect(find.text('aura'), findsNothing);
+      expect(find.text('ans'), findsNothing);
     });
   });
 
@@ -180,6 +198,20 @@ void main() {
       expect(find.text('Alice Wonderland'), findsOneWidget);
       expect(find.text('Dans 12 jours'), findsOneWidget);
       expect(find.text('24 mars'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  testWidgets('keeps a card without age whole at 200 % text', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await mockNetworkImages(() async {
+      await pumpCard(tester, birthdays: [relative(12, yearKnown: false)]);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alice Wonderland'), findsOneWidget);
+      expect(find.text('ans'), findsNothing);
       expect(tester.takeException(), isNull);
     });
   });

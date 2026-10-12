@@ -63,10 +63,11 @@ class const ReminderNotification({
   required final String name,
   required final String surname,
 
-  /// Âge atteint le jour de l'anniversaire. Pas affiché tant que les
-  /// notifications se répètent chaque année ; gardé pour le
-  /// réafficher quand chaque occurrence sera planifiée à part.
-  required final int age,
+  /// Âge atteint le jour de l'anniversaire, null si l'année de naissance est
+  /// inconnue. Pas affiché tant que les notifications se répètent chaque
+  /// année ; gardé pour le réafficher quand chaque occurrence sera planifiée
+  /// à part.
+  required final int? age,
 
   /// Moment du rappel, heure locale ; il se répète chaque année.
   required final DateTime at,

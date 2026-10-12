@@ -6,6 +6,14 @@ import 'package:flutter_test/flutter_test.dart';
 Birthday _born(DateTime date, {String id = '1'}) =>
     Birthday(id: id, name: 'A', surname: 'B', date: BirthDate.fromDate(date));
 
+/// Né le [day]/[month], année inconnue.
+Birthday _bornOn(int month, int day) => Birthday(
+  id: '1',
+  name: 'A',
+  surname: 'B',
+  date: BirthDate(month: month, day: day),
+);
+
 void main() {
   final today = DateTime(2026, 6, 15);
 
@@ -51,6 +59,17 @@ void main() {
       expect(birthday.nextOccurrence(DateTime(2027, 2)), DateTime(2027, 3));
       expect(birthday.nextOccurrence(DateTime(2028, 2)), DateTime(2028, 2, 29));
     });
+
+    test('need only the day and month', () {
+      final birthday = _bornOn(10, 14);
+
+      expect(birthday.nextOccurrence(today), DateTime(2026, 10, 14));
+      expect(birthday.daysUntilNext(today), 121);
+      expect(
+        _bornOn(2, 29).nextOccurrence(DateTime(2027, 2)),
+        DateTime(2027, 3),
+      );
+    });
   });
 
   group('occurrenceIn', () {
@@ -81,6 +100,10 @@ void main() {
     test('looks at next year once the birthday has passed', () {
       expect(_born(DateTime(1990, 6, 14)).turningAge(today), 37);
     });
+
+    test('is unknown without a birth year', () {
+      expect(_bornOn(6, 20).turningAge(today), isNull);
+    });
   });
 
   group('ageOn', () {
@@ -96,6 +119,10 @@ void main() {
     test('is complete once the birthday has passed', () {
       expect(_born(DateTime(1990, 6, 14)).ageOn(today), 36);
       expect(_born(DateTime(1990)).ageOn(today), 36);
+    });
+
+    test('is unknown without a birth year', () {
+      expect(_bornOn(6, 14).ageOn(today), isNull);
     });
   });
 

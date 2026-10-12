@@ -91,6 +91,8 @@ class _TileContent extends ConsumerWidget {
     final locale = Localizations.localeOf(context).languageCode;
     final today = ref.watch(todayProvider);
     final days = birthday.daysUntilNext(today);
+    final date = DateFormat.MMMMd(locale)
+        .format(birthday.nextOccurrence(today));
     final fullName = '${birthday.name} ${birthday.surname}';
     final picture = birthday.picture;
 
@@ -122,10 +124,11 @@ class _TileContent extends ConsumerWidget {
           style: textTheme.titleMedium?.copyWith(color: colorScheme.onSurface),
         ),
         Text(
-          context.l10n.agendaLine(
-            DateFormat.MMMMd(locale).format(birthday.nextOccurrence(today)),
-            birthday.turningAge(today),
-          ),
+          // Sans année de naissance, la date seule : aucun âge inventé.
+          switch (birthday.turningAge(today)) {
+            final age? => context.l10n.agendaLine(date, age),
+            null => date,
+          },
           style: textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),

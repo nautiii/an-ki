@@ -21,11 +21,12 @@ void main() {
   BirthdayDraft draft({
     String name = 'Alice',
     String surname = 'Wonderland',
+    BirthDate date = const BirthDate(year: 1990, month: 5, day: 10),
     Uint8List? picture,
   }) => BirthdayDraft(
     name: name,
     surname: surname,
-    date: BirthDate.fromDate(DateTime(1990, 5, 10)),
+    date: date,
     categories: const ['family'],
     picture: picture,
   );
@@ -102,6 +103,19 @@ void main() {
       ]);
     });
 
+    test('leaves out a year flagged unknown', () async {
+      await seed({
+        'uid': 'user-1',
+        'name': 'Mamie',
+        'date': Timestamp.fromDate(DateTime(2000, 10, 15)),
+        'yearKnown': false,
+      });
+
+      final birthday = (await repository.watchBirthdays('user-1').first).single;
+
+      expect(birthday.date, const BirthDate(month: 10, day: 15));
+    });
+
     test('drops an undecodable picture', () async {
       await seed({
         'uid': 'user-1',
@@ -142,8 +156,20 @@ void main() {
         'name': 'Alice',
         'surname': 'Wonderland',
         'date': Timestamp.fromDate(DateTime(1990, 5, 10)),
+        'yearKnown': true,
         'categories': ['family'],
       });
+    });
+
+    test('stores a missing year as a leap year flagged unknown', () async {
+      await repository.createBirthday(
+        'user-1',
+        draft(date: const BirthDate(month: 2, day: 29)),
+      );
+
+      final doc = (await firestore.collection('birthday').get()).docs.single;
+      expect(doc.data()['date'], Timestamp.fromDate(DateTime(2000, 2, 29)));
+      expect(doc.data()['yearKnown'], false);
     });
 
     test('encodes the picture as base64 when provided', () async {
@@ -169,6 +195,21 @@ void main() {
       await repository.updateBirthday('user-1', ref.id, draft(name: 'Updated'));
 
       expect((await stored(ref.id))['name'], 'Updated');
+    });
+
+    test('clears the unknown year flag once the year is given', () async {
+      final ref = await seed({
+        'uid': 'user-1',
+        'name': 'Mamie',
+        'date': Timestamp.fromDate(DateTime(2000, 10, 15)),
+        'yearKnown': false,
+      });
+
+      await repository.updateBirthday('user-1', ref.id, draft());
+
+      final data = await stored(ref.id);
+      expect(data['date'], Timestamp.fromDate(DateTime(1990, 5, 10)));
+      expect(data['yearKnown'], true);
     });
 
     test('keeps the stored picture when the draft has none', () async {

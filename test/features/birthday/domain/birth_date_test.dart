@@ -21,4 +21,13 @@ void main() {
     expect(date, isNot(const BirthDate(year: 1990, month: 4, day: 12)));
     expect(date, isNot(const BirthDate(year: 1990, month: 3, day: 13)));
   });
+
+  test('may leave the year out', () {
+    const date = BirthDate(month: 10, day: 15);
+
+    expect(date.year, isNull);
+    expect(date, const BirthDate(month: 10, day: 15));
+    expect(date.hashCode, const BirthDate(month: 10, day: 15).hashCode);
+    expect(date, isNot(const BirthDate(year: 1990, month: 10, day: 15)));
+  });
 }

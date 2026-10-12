@@ -76,11 +76,17 @@ Birthday? _birthdayFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
   final data = doc.data() ?? const <String, dynamic>{};
   final date = (data['date'] as Timestamp?)?.toDate();
   if (date == null) return null;
+  // Absent des documents écrits avant l'année facultative : année connue.
+  final yearKnown = data['yearKnown'] as bool? ?? true;
   return Birthday(
     id: doc.id,
     name: data['name'] as String? ?? '',
     surname: data['surname'] as String? ?? '',
-    date: BirthDate.fromDate(date),
+    date: BirthDate(
+      year: yearKnown ? date.year : null,
+      month: date.month,
+      day: date.day,
+    ),
     categories: List<String>.from(
       data['categories'] as List<dynamic>? ?? const [],
     ),
@@ -98,12 +104,20 @@ Uint8List? _decodePicture(String? encoded) {
   }
 }
 
+/// Année écrite dans `date` quand l'année de naissance est inconnue :
+/// bissextile, pour que le 29 février tienne ; `yearKnown: false` dit de
+/// l'ignorer.
+const _unknownYear = 2000;
+
+// `yearKnown` est toujours écrit : une modification qui ajoute l'année doit
+// effacer un `false` précédent (`update` ne touche que les champs donnés).
 Map<String, Object> _draftToMap(BirthdayDraft draft) => {
   'name': draft.name.trim(),
   'surname': draft.surname.trim(),
   'date': Timestamp.fromDate(
-    DateTime(draft.date.year, draft.date.month, draft.date.day),
+    DateTime(draft.date.year ?? _unknownYear, draft.date.month, draft.date.day),
   ),
+  'yearKnown': draft.date.year != null,
   'categories': draft.categories,
   if (draft.picture case final picture?) 'picture': base64Encode(picture),
 };

@@ -34,12 +34,12 @@ void main() {
   Birthday birthday({
     List<String> categories = const ['fri', 'fam'],
     Uint8List? picture,
-    DateTime? date,
+    BirthDate date = const BirthDate(year: 1990, month: 10, day: 24),
   }) => Birthday(
     id: '1',
     name: 'Alice',
     surname: 'Wonderland',
-    date: BirthDate.fromDate(date ?? DateTime(1990, 10, 24)),
+    date: date,
     categories: categories,
     picture: picture,
   );
@@ -84,8 +84,19 @@ void main() {
     expect(find.text('J-12'), findsOneWidget);
   });
 
+  testWidgets('shows the date alone without a birth year', (tester) async {
+    await pumpTile(tester, birthday(date: const BirthDate(month: 10, day: 24)));
+
+    expect(find.text('24 octobre'), findsOneWidget);
+    expect(find.textContaining('aura'), findsNothing);
+    expect(find.text('J-12'), findsOneWidget);
+  });
+
   testWidgets('says tomorrow rather than J-1', (tester) async {
-    await pumpTile(tester, birthday(date: DateTime(1990, 10, 13)));
+    await pumpTile(
+      tester,
+      birthday(date: const BirthDate(year: 1990, month: 10, day: 13)),
+    );
 
     expect(find.text('Demain'), findsOneWidget);
   });

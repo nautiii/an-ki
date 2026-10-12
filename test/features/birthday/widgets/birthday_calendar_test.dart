@@ -157,6 +157,26 @@ void main() {
     });
   });
 
+  testWidgets('day sheet shows no age without a birth year', (tester) async {
+    await pumpCalendar(
+      tester,
+      birthdays: const [
+        Birthday(
+          id: '1',
+          name: 'Alice',
+          surname: 'Wonderland',
+          date: BirthDate(month: 10, day: 15),
+        ),
+      ],
+    );
+
+    await tester.tap(find.text('15'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Alice Wonderland'), findsOneWidget);
+    expect(find.textContaining(RegExp(r'\d+ ans?$')), findsNothing);
+  });
+
   testWidgets('day sheet lists multiple birthdays with a separator', (
     tester,
   ) async {

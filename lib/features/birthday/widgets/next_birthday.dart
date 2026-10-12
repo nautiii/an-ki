@@ -67,10 +67,14 @@ class _HeroCard extends StatelessWidget {
       radius: 28,
     );
     final details = _HeroDetails(birthday: birthday, today: today);
-    final age = _HeroAge(
-      age: birthday.turningAge(today),
-      isToday: birthday.daysUntilNext(today) == 0,
-    );
+    // Sans année de naissance, aucun âge : le texte prend la place.
+    final age = switch (birthday.turningAge(today)) {
+      final turning? => _HeroAge(
+        age: turning,
+        isToday: birthday.daysUntilNext(today) == 0,
+      ),
+      null => null,
+    };
     // Grand texte : avatar et âge passent au-dessus, le texte prend la largeur.
     final reflow = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
 
@@ -100,7 +104,7 @@ class _HeroCard extends StatelessWidget {
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(children: [avatar, const Spacer(), age]),
+                          Row(children: [avatar, const Spacer(), ?age]),
                           const SizedBox(height: AppSpacing.sm),
                           details,
                         ],
@@ -110,8 +114,10 @@ class _HeroCard extends StatelessWidget {
                           avatar,
                           const SizedBox(width: AppSpacing.md),
                           Expanded(child: details),
-                          const SizedBox(width: AppSpacing.sm),
-                          age,
+                          if (age != null) ...[
+                            const SizedBox(width: AppSpacing.sm),
+                            age,
+                          ],
                         ],
                       ),
               ),

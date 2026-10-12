@@ -154,6 +154,23 @@ void main() {
     expect(day.age, 27);
   });
 
+  test('reminds without an age when the birth year is unknown', () {
+    const birthday = Birthday(
+      id: 'lea',
+      name: 'Léa',
+      surname: 'Martin',
+      date: BirthDate(month: 6, day: 30),
+    );
+
+    final day = _reminder(birthday, ReminderKind.birthday, now: now);
+    final weekBefore = _reminder(birthday, ReminderKind.weekBefore, now: now);
+
+    expect(day.at, DateTime(2026, 6, 30, 10));
+    expect(day.age, isNull);
+    expect(weekBefore.at, DateTime(2026, 6, 23, 10));
+    expect(weekBefore.age, isNull);
+  });
+
   test('derives stable ids, distinct per kind', () {
     final birthday = _born(DateTime(1990, 6, 30));
     final base = 'lea'.hashCode.abs() % 100000;

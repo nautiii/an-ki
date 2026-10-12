@@ -21,4 +21,19 @@ void main() {
     expect(birthday.formattedDate(context), '10 janvier 1990');
     expect(birthday.formattedDate(context, includeYear: false), '10 janvier');
   });
+
+  testWidgets('formattedDate leaves an unknown year out, 29 February too', (
+    tester,
+  ) async {
+    final context = await tester.pumpLocalizedContext();
+    const birthday = Birthday(
+      id: '1',
+      name: 'A',
+      surname: 'B',
+      date: BirthDate(month: 2, day: 29),
+    );
+
+    expect(birthday.formattedDate(context), '29 février');
+    expect(birthday.formattedDate(context, includeYear: false), '29 février');
+  });
 }

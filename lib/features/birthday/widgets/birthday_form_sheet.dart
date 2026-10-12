@@ -61,6 +61,10 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
       .read(clockProvider)()
       .subtract(const Duration(days: 365 * 25));
 
+  /// Faux pour un anniversaire enregistré sans année : il le reste tant que
+  /// la date n'est pas changée, les roues imposant une année.
+  bool _hasYear = true;
+
   /// Photo choisie dans la galerie, lue dès le choix : le brouillon porte des
   /// octets, jamais un fichier.
   Uint8List? _picture;
@@ -75,7 +79,9 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
 
     if (widget.birthdayToEdit != null) {
       final date = widget.birthdayToEdit!.date;
-      _selectedDate = DateTime(date.year, date.month, date.day);
+      // Sans année, une année bissextile : le 29 février doit exister.
+      _selectedDate = DateTime(date.year ?? 2000, date.month, date.day);
+      _hasYear = date.year != null;
       _selectedCategories = List.from(widget.birthdayToEdit!.categories);
     } else if (widget.initialName?.trim() case final name?
         when name.isNotEmpty) {
@@ -112,7 +118,11 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     final draft = BirthdayDraft(
       name: _nameController.text.trim(),
       surname: _surnameController.text.trim(),
-      date: BirthDate.fromDate(_selectedDate),
+      date: BirthDate(
+        year: _hasYear ? _selectedDate.year : null,
+        month: _selectedDate.month,
+        day: _selectedDate.day,
+      ),
       categories: _selectedCategories,
       picture: _picture,
     );
@@ -141,7 +151,10 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
       builder: (_) => _DateSheet(
         initialDate: _selectedDate,
         maximumDate: ref.read(clockProvider)(),
-        onChanged: (date) => setState(() => _selectedDate = date),
+        onChanged: (date) => setState(() {
+          _selectedDate = date;
+          _hasYear = true;
+        }),
       ),
     );
   }
@@ -235,6 +248,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
               _DatePickerField(
                 label: context.l10n.birthDate,
                 date: _selectedDate,
+                includeYear: _hasYear,
                 onTap: () => _showDatePicker(context),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -386,11 +400,13 @@ class _DatePickerField extends StatelessWidget {
   const _DatePickerField({
     required this.label,
     required this.date,
+    required this.includeYear,
     required this.onTap,
   });
 
   final String label;
   final DateTime date;
+  final bool includeYear;
   final VoidCallback onTap;
 
   @override
@@ -430,7 +446,10 @@ class _DatePickerField extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          DateFormat.yMMMMd(locale).format(date),
+                          (includeYear
+                                  ? DateFormat.yMMMMd(locale)
+                                  : DateFormat.MMMMd(locale))
+                              .format(date),
                           style: textTheme.titleMedium,
                         ),
                       ],

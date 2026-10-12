@@ -396,12 +396,14 @@ class _DayBirthdaysSheet extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(fullName, style: textTheme.titleMedium),
-                              Text(
-                                context.l10n.ageInYears(birthday.ageOn(today)),
-                                style: textTheme.bodyMedium?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
+                              // Sans année de naissance, le nom seul.
+                              if (birthday.ageOn(today) case final age?)
+                                Text(
+                                  context.l10n.ageInYears(age),
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ),
