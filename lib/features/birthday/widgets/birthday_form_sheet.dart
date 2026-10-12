@@ -1,30 +1,34 @@
 import 'dart:async';
-import 'dart:typed_data';
 
-import 'package:an_ki/core/common/anki_text_field.dart';
+import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
-import 'package:an_ki/features/birthday/domain/birth_date.dart';
+import 'package:an_ki/features/birthday/domain/birth_date_input.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/birthday/widgets/birth_date_field.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 
+/// Feuille d'ajout ou de modification d'un anniversaire, faite pour la saisie
+/// express : un seul champ « Prénom et nom », la date tapée au clavier
+/// (l'année est facultative), les catégories sur une ligne.
+///
+/// Une création tient en « + », le nom, « Suivant », quatre chiffres, « OK ».
 class BirthdayFormSheet extends ConsumerStatefulWidget {
   final Birthday? birthdayToEdit;
 
   /// Nom pré-rempli d'une création (le texte d'une recherche sans résultat) :
-  /// le premier mot devient le prénom, la suite le nom.
+  /// la saisie reprend alors à la date.
   final String? initialName;
 
   const BirthdayFormSheet({super.key, this.birthdayToEdit, this.initialName});
@@ -52,18 +56,20 @@ class BirthdayFormSheet extends ConsumerStatefulWidget {
 }
 
 class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
-  final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _nameController;
-  late final TextEditingController _surnameController;
+  static const _gutter = EdgeInsets.symmetric(horizontal: AppSpacing.lg);
 
-  List<String> _selectedCategories = [];
-  late DateTime _selectedDate = ref
-      .read(clockProvider)()
-      .subtract(const Duration(days: 365 * 25));
+  late final TextEditingController _name;
+  late final TextEditingController _date;
+  final _dateFocus = FocusNode();
+  late final List<String> _categories;
 
-  /// Faux pour un anniversaire enregistré sans année : il le reste tant que
-  /// la date n'est pas changée, les roues imposant une année.
-  bool _hasYear = true;
+  /// Champ qui ouvre le clavier à la création : le nom, ou la date quand le
+  /// nom vient d'une recherche. La modification ne l'ouvre pas.
+  late final bool _autofocusName;
+  late final bool _autofocusDate;
+
+  /// Vrai dès que le nom a été modifié : un nom vide n'est signalé qu'ensuite.
+  bool _nameEdited = false;
 
   /// Photo choisie dans la galerie, lue dès le choix : le brouillon porte des
   /// octets, jamais un fichier.
@@ -72,30 +78,30 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.birthdayToEdit?.name);
-    _surnameController = TextEditingController(
-      text: widget.birthdayToEdit?.surname,
+    final birthday = widget.birthdayToEdit;
+    _name = TextEditingController(
+      text: birthday?.fullName ?? widget.initialName?.trim(),
     );
-
-    if (widget.birthdayToEdit != null) {
-      final date = widget.birthdayToEdit!.date;
-      // Sans année, une année bissextile : le 29 février doit exister.
-      _selectedDate = DateTime(date.year ?? 2000, date.month, date.day);
-      _hasYear = date.year != null;
-      _selectedCategories = List.from(widget.birthdayToEdit!.categories);
-    } else if (widget.initialName?.trim() case final name?
-        when name.isNotEmpty) {
-      final words = name.split(RegExp(r'\s+'));
-      _nameController.text = words.first;
-      _surnameController.text = words.skip(1).join(' ');
-    }
+    _date = TextEditingController(
+      text: birthday == null ? null : birthDateInputText(birthday.date),
+    );
+    _categories = [...?birthday?.categories];
+    _autofocusName = birthday == null && _name.text.isEmpty;
+    _autofocusDate = birthday == null && _name.text.isNotEmpty;
+    // Quitter le champ de date peut changer son aide en erreur.
+    _dateFocus.addListener(_refresh);
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _surnameController.dispose();
+    _name.dispose();
+    _date.dispose();
+    _dateFocus.dispose();
     super.dispose();
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _pickImage() async {
@@ -110,25 +116,29 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     if (mounted) setState(() => _picture = bytes);
   }
 
-  /// Valide, lance l'écriture sans l'attendre puis ferme la feuille : un échec
+  void _toggleCategory(String id) => setState(() {
+    if (!_categories.remove(id)) _categories.add(id);
+  });
+
+  /// Lance l'écriture sans l'attendre puis ferme la feuille : un échec
   /// éventuel est annoncé par l'écran d'accueil.
   void _save() {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-
+    final date = parseBirthDate(_date.text, ref.read(todayProvider));
+    if (!BirthdayDraft.isValidName(_name.text) || date is! BirthDateComplete) {
+      return;
+    }
+    final (:name, :surname) = BirthdayDraft.splitFullName(_name.text);
     final draft = BirthdayDraft(
-      name: _nameController.text.trim(),
-      surname: _surnameController.text.trim(),
-      date: BirthDate(
-        year: _hasYear ? _selectedDate.year : null,
-        month: _selectedDate.month,
-        day: _selectedDate.day,
-      ),
-      categories: _selectedCategories,
+      name: name,
+      surname: surname,
+      date: date.date,
+      categories: _categories,
       picture: _picture,
     );
 
     final editor = ref.read(birthdayEditorProvider.notifier);
     final toEdit = widget.birthdayToEdit;
+    unawaited(HapticFeedback.lightImpact());
     unawaited(
       toEdit != null ? editor.edit(toEdit.id, draft) : editor.create(draft),
     );
@@ -142,122 +152,116 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     Navigator.of(context).pop(true);
   }
 
-  void _showDatePicker(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      // Au-dessus de la barre flottante, pas dans l'onglet.
-      useRootNavigator: true,
-      useSafeArea: true,
-      builder: (_) => _DateSheet(
-        initialDate: _selectedDate,
-        maximumDate: ref.read(clockProvider)(),
-        onChanged: (date) => setState(() {
-          _selectedDate = date;
-          _hasYear = true;
-        }),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final today = ref.watch(todayProvider);
     final isEditing = widget.birthdayToEdit != null;
+    final date = parseBirthDate(_date.text, today);
+    final nameIsValid = BirthdayDraft.isValidName(_name.text);
+    final canSave = nameIsValid && date is BirthDateComplete;
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.xs,
-          AppSpacing.lg,
-          AppSpacing.lg,
+        padding: const EdgeInsets.only(
+          top: AppSpacing.xs,
+          bottom: AppSpacing.lg,
         ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: _gutter,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: Text(
-                      isEditing
-                          ? context.l10n.editBirthday
-                          : context.l10n.newBirthday,
-                      style: textTheme.headlineSmall,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          isEditing ? l10n.editBirthday : l10n.newBirthday,
+                          style: textTheme.headlineSmall,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      IconButton.filledTonal(
+                        onPressed: () => Navigator.pop(context),
+                        tooltip: l10n.close,
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Row(
+                    children: [
+                      _PhotoButton(
+                        name: _name.text,
+                        picture: _picture ?? widget.birthdayToEdit?.picture,
+                        onTap: _pickImage,
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: TextField(
+                          controller: _name,
+                          autofocus: _autofocusName,
+                          textCapitalization: TextCapitalization.words,
+                          textInputAction: TextInputAction.next,
+                          onChanged: (_) => setState(() => _nameEdited = true),
+                          // « Suivant » passe à la date, clavier ouvert.
+                          onEditingComplete: _dateFocus.requestFocus,
+                          decoration: InputDecoration(
+                            labelText: l10n.fullName,
+                            hintText: l10n.fullNameHint,
+                            errorText: _nameEdited && !nameIsValid
+                                ? l10n.requiredField
+                                : null,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  BirthDateField(
+                    controller: _date,
+                    focusNode: _dateFocus,
+                    input: date,
+                    today: today,
+                    autofocus: _autofocusDate,
+                    onChanged: (_) => setState(() {}),
+                    // « OK » enregistre ; sinon le champ quitté dit ce qui
+                    // manque.
+                    onSubmitted: (_) => _save(),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    l10n.categories,
+                    style: textTheme.labelLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.xs),
-                  IconButton.filledTonal(
-                    onPressed: () => Navigator.pop(context),
-                    tooltip: context.l10n.close,
-                    icon: const Icon(Icons.close_rounded),
-                  ),
+                  const SizedBox(height: AppSpacing.xs),
                 ],
               ),
-              const SizedBox(height: AppSpacing.lg),
-              Center(
-                child: _ImagePickerButton(
-                  picture: _picture ?? widget.birthdayToEdit?.picture,
-                  onTap: _pickImage,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              AnKiTextField(
-                controller: _nameController,
-                label: context.l10n.firstName,
-                prefixIcon: Icons.person_outline_rounded,
-                validator: (v) => BirthdayDraft.isValidName(v ?? '')
-                    ? null
-                    : context.l10n.requiredField,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              AnKiTextField(
-                controller: _surnameController,
-                label: context.l10n.lastName,
-                prefixIcon: Icons.badge_outlined,
-                validator: (v) => BirthdayDraft.isValidName(v ?? '')
-                    ? null
-                    : context.l10n.requiredField,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                context.l10n.category,
-                style: textTheme.labelLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _CategorySelector(
-                categories: ref.watch(userCategoriesProvider),
-                selectedIds: _selectedCategories,
-                onChanged: (id) {
-                  setState(() {
-                    if (_selectedCategories.contains(id)) {
-                      _selectedCategories.remove(id);
-                    } else {
-                      _selectedCategories.add(id);
-                    }
-                  });
-                },
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              _DatePickerField(
-                label: context.l10n.birthDate,
-                date: _selectedDate,
-                includeYear: _hasYear,
-                onTap: () => _showDatePicker(context),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Row(
+            ),
+            _CategoryRow(
+              categories: ref.watch(userCategoriesProvider),
+              selectedIds: _categories,
+              onToggle: _toggleCategory,
+              padding: _gutter,
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Padding(
+              padding: _gutter,
+              child: Row(
                 children: [
                   if (isEditing) ...[
                     IconButton.filledTonal(
                       onPressed: _delete,
-                      tooltip: context.l10n.delete,
+                      tooltip: l10n.delete,
                       style: IconButton.styleFrom(
                         foregroundColor: colorScheme.onErrorContainer,
                         backgroundColor: colorScheme.errorContainer,
@@ -274,29 +278,33 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                   ],
                   Expanded(
                     child: FilledButton.icon(
-                      onPressed: _save,
+                      onPressed: canSave ? _save : null,
                       icon: Icon(
                         isEditing ? Icons.check_rounded : Icons.add_rounded,
                       ),
-                      label: Text(
-                        isEditing ? context.l10n.save : context.l10n.add,
-                      ),
+                      label: Text(isEditing ? l10n.save : l10n.add),
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// Choix de la photo : avatar touchable, annoncé comme un bouton.
-class _ImagePickerButton extends StatelessWidget {
-  const _ImagePickerButton({this.picture, required this.onTap});
+/// Avatar de la personne, ses initiales suivant la saisie ; le toucher
+/// choisit une photo.
+class _PhotoButton extends StatelessWidget {
+  const _PhotoButton({
+    required this.name,
+    required this.picture,
+    required this.onTap,
+  });
 
+  final String name;
   final Uint8List? picture;
   final VoidCallback onTap;
 
@@ -304,7 +312,6 @@ class _ImagePickerButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final picture = this.picture;
-    final ImageProvider? image = picture != null ? MemoryImage(picture) : null;
 
     return Semantics(
       button: true,
@@ -313,15 +320,10 @@ class _ImagePickerButton extends StatelessWidget {
       onTap: onTap,
       child: Stack(
         children: [
-          CircleAvatar(
-            radius: 48,
-            backgroundColor: colorScheme.surfaceContainerHigh,
-            foregroundImage: image,
-            child: Icon(
-              Icons.person_rounded,
-              size: 40,
-              color: colorScheme.onSurfaceVariant,
-            ),
+          AnKiAvatar(
+            name: name,
+            image: picture != null ? MemoryImage(picture) : null,
+            radius: 28,
           ),
           Positioned(
             right: 0,
@@ -336,10 +338,10 @@ class _ImagePickerButton extends StatelessWidget {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.xs),
+                padding: const EdgeInsets.all(AppSpacing.xxs),
                 child: Icon(
                   Icons.photo_camera_rounded,
-                  size: 18,
+                  size: 14,
                   color: colorScheme.onPrimary,
                 ),
               ),
@@ -360,167 +362,71 @@ class _ImagePickerButton extends StatelessWidget {
   }
 }
 
-class _CategorySelector extends StatelessWidget {
-  const _CategorySelector({
+/// Catégories sur une ligne qui défile, « Nouvelle catégorie » au bout pour
+/// créer celle qui manque sans quitter la saisie.
+class _CategoryRow extends StatelessWidget {
+  const _CategoryRow({
     required this.categories,
     required this.selectedIds,
-    required this.onChanged,
+    required this.onToggle,
+    required this.padding,
   });
 
   final List<BirthdayCategory> categories;
   final List<String> selectedIds;
-  final ValueChanged<String> onChanged;
+  final ValueChanged<String> onToggle;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: AppSpacing.xs,
-      runSpacing: AppSpacing.xs,
-      children: [
-        for (final category in categories)
-          ChoiceChip(
-            avatar: Icon(category.iconData),
-            label: Text(category.localizedName(context)),
-            selected: selectedIds.contains(category.id),
-            onSelected: (_) => onChanged(category.id),
-          ),
-        // Créer la catégorie qui manque sans quitter la saisie.
-        ActionChip(
-          avatar: const Icon(Icons.add_rounded),
-          label: Text(context.l10n.newCategory),
-          onPressed: () => CategoryFormSheet.show(context),
-        ),
-      ],
-    );
-  }
-}
-
-/// Champ de date : ouvre le sélecteur, affiche la date dans la langue de l'app.
-class _DatePickerField extends StatelessWidget {
-  const _DatePickerField({
-    required this.label,
-    required this.date,
-    required this.includeYear,
-    required this.onTap,
-  });
-
-  final String label;
-  final DateTime date;
-  final bool includeYear;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final locale = Localizations.localeOf(context).languageCode;
-
-    return MergeSemantics(
-      child: Semantics(
-        button: true,
-        child: Material(
-          color: colorScheme.surfaceContainerHigh,
-          shape: const RoundedSuperellipseBorder(
-            borderRadius: BorderRadius.all(Radius.circular(AppRadii.md)),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today_rounded,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          label,
-                          style: textTheme.labelMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        Text(
-                          (includeYear
-                                  ? DateFormat.yMMMMd(locale)
-                                  : DateFormat.MMMMd(locale))
-                              .format(date),
-                          style: textTheme.titleMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Icon(
-                    Icons.edit_calendar_rounded,
-                    size: 20,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Feuille du sélecteur de date : la roue suit la date, « Valider » ferme.
-class _DateSheet extends StatelessWidget {
-  const _DateSheet({
-    required this.initialDate,
-    required this.maximumDate,
-    required this.onChanged,
-  });
-
-  final DateTime initialDate;
-  final DateTime maximumDate;
-  final ValueChanged<DateTime> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.xs,
-        AppSpacing.lg,
-        AppSpacing.lg,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: padding,
+      child: Row(
+        spacing: AppSpacing.xs,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  context.l10n.birthDate,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(context.l10n.confirm),
-              ),
-            ],
-          ),
-          const Divider(),
-          SizedBox(
-            height: 216,
-            child: CupertinoDatePicker(
-              mode: CupertinoDatePickerMode.date,
-              initialDateTime: initialDate,
-              maximumDate: maximumDate,
-              onDateTimeChanged: onChanged,
+          for (final category in categories)
+            _CategoryChip(
+              category: category,
+              selected: selectedIds.contains(category.id),
+              onToggle: () => onToggle(category.id),
             ),
+          ActionChip(
+            avatar: const Icon(Icons.add_rounded),
+            label: Text(context.l10n.newCategory),
+            onPressed: () => CategoryFormSheet.show(context),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Une catégorie à cocher : son icône à sa couleur, remplacée par la coche
+/// une fois choisie.
+class _CategoryChip extends StatelessWidget {
+  const _CategoryChip({
+    required this.category,
+    required this.selected,
+    required this.onToggle,
+  });
+
+  final BirthdayCategory category;
+  final bool selected;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilterChip(
+      avatar: selected
+          ? null
+          : Icon(category.iconData, color: category.tones(context).color),
+      label: Text(category.localizedName(context)),
+      selected: selected,
+      onSelected: (_) {
+        HapticFeedback.selectionClick();
+        onToggle();
+      },
     );
   }
 }

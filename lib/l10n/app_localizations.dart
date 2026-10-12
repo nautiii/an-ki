@@ -188,17 +188,77 @@ abstract class AppLocalizations {
   /// **'Confirmer le mot de passe'**
   String get confirmPassword;
 
-  /// No description provided for @birthDate.
+  /// Champ unique de la feuille d'anniversaire : le premier mot devient le prénom
   ///
   /// In fr, this message translates to:
-  /// **'Date de naissance'**
-  String get birthDate;
+  /// **'Prénom et nom'**
+  String get fullName;
 
-  /// No description provided for @category.
+  /// No description provided for @fullNameHint.
   ///
   /// In fr, this message translates to:
-  /// **'Catégorie'**
-  String get category;
+  /// **'Léa Martin, Mamie…'**
+  String get fullNameHint;
+
+  /// No description provided for @birthdayDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date d\'anniversaire'**
+  String get birthdayDate;
+
+  /// Ordre de saisie de la date : jour, mois, année facultative
+  ///
+  /// In fr, this message translates to:
+  /// **'JJ/MM ou JJ/MM/AAAA'**
+  String get birthdayDateHint;
+
+  /// No description provided for @birthYearOptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'année est facultative'**
+  String get birthYearOptional;
+
+  /// Aperçu d'une date tapée sans année : « Le 12 mars »
+  ///
+  /// In fr, this message translates to:
+  /// **'Le {date}'**
+  String birthDatePreview(String date);
+
+  /// Aperçu d'une date tapée avec l'année et l'âge atteint au prochain anniversaire
+  ///
+  /// In fr, this message translates to:
+  /// **'{age, plural, one{Le {date} · aura {age} an} other{Le {date} · aura {age} ans}}'**
+  String birthDatePreviewAge(String date, int age);
+
+  /// No description provided for @birthDateIncomplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indiquez le jour et le mois'**
+  String get birthDateIncomplete;
+
+  /// No description provided for @birthYearDigits.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'année s\'écrit avec 4 chiffres'**
+  String get birthYearDigits;
+
+  /// No description provided for @birthDateInvalid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette date n\'existe pas'**
+  String get birthDateInvalid;
+
+  /// No description provided for @birthDateFuture.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette date est dans le futur'**
+  String get birthDateFuture;
+
+  /// No description provided for @categories.
+  ///
+  /// In fr, this message translates to:
+  /// **'Catégories'**
+  String get categories;
 
   /// No description provided for @family.
   ///
@@ -571,12 +631,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Choisir une photo'**
   String get choosePhoto;
-
-  /// Bouton qui valide un choix (date)
-  ///
-  /// In fr, this message translates to:
-  /// **'Valider'**
-  String get confirm;
 
   /// Titre de l'accueil sans aucun anniversaire
   ///

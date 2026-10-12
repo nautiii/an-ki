@@ -27,8 +27,37 @@
   "email": "Email",
   "password": "Mot de passe",
   "confirmPassword": "Confirmer le mot de passe",
-  "birthDate": "Date de naissance",
-  "category": "Catégorie",
+  "fullName": "Prénom et nom",
+  "@fullName": {
+    "description": "Champ unique de la feuille d'anniversaire : le premier mot devient le prénom"
+  },
+  "fullNameHint": "Léa Martin, Mamie…",
+  "birthdayDate": "Date d'anniversaire",
+  "birthdayDateHint": "JJ/MM ou JJ/MM/AAAA",
+  "@birthdayDateHint": {
+    "description": "Ordre de saisie de la date : jour, mois, année facultative"
+  },
+  "birthYearOptional": "L'année est facultative",
+  "birthDatePreview": "Le {date}",
+  "@birthDatePreview": {
+    "description": "Aperçu d'une date tapée sans année : « Le 12 mars »",
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "birthDatePreviewAge": "{age, plural, one{Le {date} · aura {age}\u00a0an} other{Le {date} · aura {age}\u00a0ans}}",
+  "@birthDatePreviewAge": {
+    "description": "Aperçu d'une date tapée avec l'année et l'âge atteint au prochain anniversaire",
+    "placeholders": {
+      "date": { "type": "String" },
+      "age": { "type": "int" }
+    }
+  },
+  "birthDateIncomplete": "Indiquez le jour et le mois",
+  "birthYearDigits": "L'année s'écrit avec 4 chiffres",
+  "birthDateInvalid": "Cette date n'existe pas",
+  "birthDateFuture": "Cette date est dans le futur",
+  "categories": "Catégories",
   "family": "Famille",
   "friend": "Ami",
   "colleague": "Collègue",
@@ -192,10 +221,6 @@
   "choosePhoto": "Choisir une photo",
   "@choosePhoto": {
     "description": "Libellé du sélecteur de photo du formulaire"
-  },
-  "confirm": "Valider",
-  "@confirm": {
-    "description": "Bouton qui valide un choix (date)"
   },
   "emptyBirthdaysTitle": "Vos anniversaires vivront ici",
   "@emptyBirthdaysTitle": {

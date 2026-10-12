@@ -113,9 +113,14 @@ void main() {
     await tester.tap(find.text('Ajouter « Rose Dupont »'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(BirthdayFormSheet), findsOneWidget);
-    expect(find.widgetWithText(TextField, 'Rose'), findsOneWidget);
-    expect(find.widgetWithText(TextField, 'Dupont'), findsOneWidget);
+    // Le nom cherché pré-remplit le champ unique de la feuille.
+    expect(
+      find.descendant(
+        of: find.byType(BirthdayFormSheet),
+        matching: find.widgetWithText(TextField, 'Rose Dupont'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('creates a category from the filter row', (tester) async {

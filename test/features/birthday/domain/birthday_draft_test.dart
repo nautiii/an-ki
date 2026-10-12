@@ -38,6 +38,26 @@ void main() {
     });
   });
 
+  group('splitFullName', () {
+    test('takes the first word as first name, the rest as last name', () {
+      expect(BirthdayDraft.splitFullName('Léa Martin'), (
+        name: 'Léa',
+        surname: 'Martin',
+      ));
+      expect(BirthdayDraft.splitFullName('  Jean  Pierre   Dupont '), (
+        name: 'Jean',
+        surname: 'Pierre Dupont',
+      ));
+    });
+
+    test('leaves the last name empty for a single word', () {
+      expect(BirthdayDraft.splitFullName('Mamie'), (
+        name: 'Mamie',
+        surname: '',
+      ));
+    });
+  });
+
   test('equality compares by value, picture bytes included', () {
     final base = draft(picture: [1]);
     // Listes et octets distincts, de même contenu.

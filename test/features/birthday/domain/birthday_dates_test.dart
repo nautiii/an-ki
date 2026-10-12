@@ -160,4 +160,16 @@ void main() {
       expect(next.map((b) => b.id), ['a', 'b']);
     });
   });
+
+  group('on a birth date alone', () {
+    test('answer as on the birthday that carries it', () {
+      const date = BirthDate(year: 1990, month: 6, day: 20);
+
+      expect(date.nextOccurrence(today), DateTime(2026, 6, 20));
+      expect(date.daysUntilNext(today), 5);
+      expect(date.turningAge(today), 36);
+      expect(date.ageOn(today), 35);
+      expect(const BirthDate(month: 6, day: 20).turningAge(today), isNull);
+    });
+  });
 }

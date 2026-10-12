@@ -1,15 +1,16 @@
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 
-/// Règles de dates d'un anniversaire.
+/// Règles de dates d'une date de naissance.
 ///
 /// [today] est toujours passé en paramètre (`todayProvider` côté providers et
 /// widgets) : rien ici ne lit l'horloge, les tests fixent le jour. Seuls
 /// l'année, le mois et le jour de [today] comptent.
-extension BirthdayDates on Birthday {
+extension BirthDateDates on BirthDate {
   /// Jour de l'anniversaire l'année [year].
   ///
   /// Né un 29 février : le 1er mars les années non bissextiles.
-  DateTime occurrenceIn(int year) => DateTime(year, date.month, date.day);
+  DateTime occurrenceIn(int year) => DateTime(year, month, day);
 
   /// Prochain anniversaire à partir de [today], ce jour compris.
   DateTime nextOccurrence(DateTime today) {
@@ -29,7 +30,7 @@ extension BirthdayDates on Birthday {
   /// Âge atteint au prochain anniversaire à partir de [today], celui du jour
   /// compris : « aura 34 ans ». Null quand l'année de naissance est inconnue.
   int? turningAge(DateTime today) {
-    final year = date.year;
+    final year = this.year;
     if (year == null) return null;
     return nextOccurrence(today).year - year;
   }
@@ -37,13 +38,30 @@ extension BirthdayDates on Birthday {
   /// Âge en années révolues à [today] ; l'anniversaire compte dès son jour.
   /// Null quand l'année de naissance est inconnue.
   int? ageOn(DateTime today) {
-    final year = date.year;
+    final year = this.year;
     if (year == null) return null;
     final hadBirthday =
-        today.month > date.month ||
-        (today.month == date.month && today.day >= date.day);
+        today.month > month || (today.month == month && today.day >= day);
     return today.year - year - (hadBirthday ? 0 : 1);
   }
+}
+
+/// Les mêmes règles, lues depuis un anniversaire.
+extension BirthdayDates on Birthday {
+  /// Voir [BirthDateDates.occurrenceIn].
+  DateTime occurrenceIn(int year) => date.occurrenceIn(year);
+
+  /// Voir [BirthDateDates.nextOccurrence].
+  DateTime nextOccurrence(DateTime today) => date.nextOccurrence(today);
+
+  /// Voir [BirthDateDates.daysUntilNext].
+  int daysUntilNext(DateTime today) => date.daysUntilNext(today);
+
+  /// Voir [BirthDateDates.turningAge].
+  int? turningAge(DateTime today) => date.turningAge(today);
+
+  /// Voir [BirthDateDates.ageOn].
+  int? ageOn(DateTime today) => date.ageOn(today);
 }
 
 /// Règles de dates sur une liste d'anniversaires.

@@ -67,10 +67,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmPassword => 'Confirm password';
 
   @override
-  String get birthDate => 'Birth date';
+  String get fullName => 'Full name';
 
   @override
-  String get category => 'Category';
+  String get fullNameHint => 'Lea Martin, Grandma…';
+
+  @override
+  String get birthdayDate => 'Birthday';
+
+  @override
+  String get birthdayDateHint => 'DD/MM or DD/MM/YYYY';
+
+  @override
+  String get birthYearOptional => 'The year is optional';
+
+  @override
+  String birthDatePreview(String date) {
+    return '$date';
+  }
+
+  @override
+  String birthDatePreviewAge(String date, int age) {
+    String _temp0 = intl.Intl.pluralLogic(
+      age,
+      locale: localeName,
+      other: '$date · turns $age',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get birthDateIncomplete => 'Enter the day and month';
+
+  @override
+  String get birthYearDigits => 'Write the year with 4 digits';
+
+  @override
+  String get birthDateInvalid => 'This date doesn\'t exist';
+
+  @override
+  String get birthDateFuture => 'This date is in the future';
+
+  @override
+  String get categories => 'Categories';
 
   @override
   String get family => 'Family';
@@ -291,9 +330,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get choosePhoto => 'Choose a photo';
-
-  @override
-  String get confirm => 'Confirm';
 
   @override
   String get emptyBirthdaysTitle => 'Your birthdays will live here';

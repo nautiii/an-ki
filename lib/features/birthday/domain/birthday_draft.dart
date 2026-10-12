@@ -17,6 +17,14 @@ class const BirthdayDraft({
   /// espaces. Le formulaire s'en sert pour valider ses champs.
   static bool isValidName(String value) => value.trim().isNotEmpty;
 
+  /// Prénom et nom tirés d'un champ unique : le premier mot est le prénom,
+  /// la suite le nom (« Jean Pierre Dupont » → « Jean », « Pierre Dupont ») ;
+  /// un seul mot (« Mamie ») n'a pas de nom.
+  static ({String name, String surname}) splitFullName(String fullName) {
+    final words = fullName.trim().split(RegExp(r'\s+'));
+    return (name: words.first, surname: words.skip(1).join(' '));
+  }
+
   @override
   bool operator ==(Object other) =>
       other is BirthdayDraft &&

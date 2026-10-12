@@ -67,10 +67,50 @@ class AppLocalizationsFr extends AppLocalizations {
   String get confirmPassword => 'Confirmer le mot de passe';
 
   @override
-  String get birthDate => 'Date de naissance';
+  String get fullName => 'Prénom et nom';
 
   @override
-  String get category => 'Catégorie';
+  String get fullNameHint => 'Léa Martin, Mamie…';
+
+  @override
+  String get birthdayDate => 'Date d\'anniversaire';
+
+  @override
+  String get birthdayDateHint => 'JJ/MM ou JJ/MM/AAAA';
+
+  @override
+  String get birthYearOptional => 'L\'année est facultative';
+
+  @override
+  String birthDatePreview(String date) {
+    return 'Le $date';
+  }
+
+  @override
+  String birthDatePreviewAge(String date, int age) {
+    String _temp0 = intl.Intl.pluralLogic(
+      age,
+      locale: localeName,
+      other: 'Le $date · aura $age ans',
+      one: 'Le $date · aura $age an',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get birthDateIncomplete => 'Indiquez le jour et le mois';
+
+  @override
+  String get birthYearDigits => 'L\'année s\'écrit avec 4 chiffres';
+
+  @override
+  String get birthDateInvalid => 'Cette date n\'existe pas';
+
+  @override
+  String get birthDateFuture => 'Cette date est dans le futur';
+
+  @override
+  String get categories => 'Catégories';
 
   @override
   String get family => 'Famille';
@@ -295,9 +335,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get choosePhoto => 'Choisir une photo';
-
-  @override
-  String get confirm => 'Valider';
 
   @override
   String get emptyBirthdaysTitle => 'Vos anniversaires vivront ici';
