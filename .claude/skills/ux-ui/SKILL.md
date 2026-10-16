@@ -106,6 +106,8 @@ haptics → semantics → l10n FR + EN (`flutter gen-l10n`) → tests.
 ### 5. Verify — show, don't claim
 - Snapshot **after** with the same scenes and compare the sheets side by side: every issue you
   fixed is gone from the audit, and nothing new appeared.
+- When the screen can be reached in the running app, capture it on the emulator too (device
+  skill): the real font, emoji, system bars and Android's text scaling, light · dark · 200 %.
 - `flutter analyze` clean on touched files; `flutter test` for touched features, new tests included.
 - Go through the review checklist below.
 
@@ -163,7 +165,7 @@ flutter test build/ui_snapshots/_src/palette_audit_test.dart
     audit and confirm before acting.
 - Limits: Roboto stands in for Outfit until the font is bundled (backlog F1); emoji render as
   boxes; plugins called during build need a `prepare` mock. Re-copy the scripts when the skill's
-  versions change.
+  versions change. The device skill captures the real rendering where these limits matter.
 
 ## Review checklist
 
@@ -197,7 +199,8 @@ flutter test build/ui_snapshots/_src/palette_audit_test.dart
   to the `material_ui` package is a separate migration, never part of a UI change.
 - Dependencies are pinned to exact versions (no `^`, the maintainer's choice): keep that convention
   when a new package is approved.
-- Android first: the maintainer tests on an Android phone. Material conventions win when the
+- Android first: the maintainer tests on an Android phone, agents on the `Honor_Magic7_Pro`
+  emulator (device skill). Material conventions win when the
   platforms differ, but iOS must stay correct.
 - If unrelated tests fail, run the touched feature's tests and report the unrelated failures
   instead of silently fixing them.

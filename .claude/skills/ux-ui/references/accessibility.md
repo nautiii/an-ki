@@ -117,7 +117,8 @@ testWidgets('header actions are accessible', (tester) async {
 **Snapshot audit** (`scripts/ui_snapshot_test.dart`) — tap targets, labels, contrast heuristic,
 layout overflow at 200 % and 360×640, light and dark, with the real theme.
 
-**Manual pass on the phone** before shipping a redesign:
+**Manual pass on a device** before shipping a redesign (commands: device skill,
+`references/recipes.md` §5):
 1. TalkBack: swipe through the screen — each element announced once, meaningful, in visual order;
    every action reachable (including swipe actions via the actions menu).
 2. Font size and display size at maximum.

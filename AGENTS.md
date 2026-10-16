@@ -5,7 +5,8 @@ you never miss the birthday of someone you care about. Three user jobs, by frequ
 **see who's next** (daily, in under 2 s), **act on it** (wish, find a gift), **capture** (add or
 import a birthday in under 10 s). Data syncs through Firebase and works offline; reminders are
 scheduled on the device so they fire without network. Android first: the maintainer tests on a
-physical phone over USB. iOS must stay correct but hasn't been built on the current setup.
+physical phone over USB, agents on the `Honor_Magic7_Pro` emulator (device skill). iOS must stay
+correct but hasn't been built on the current setup.
 
 ## Working agreement
 
@@ -22,7 +23,7 @@ physical phone over USB. iOS must stay correct but hasn't been built on the curr
   propose the better structure instead of patching around it.
 - Fix what's broken in the code you touch; report unrelated problems (failing tests included)
   instead of fixing them silently.
-- Show, don't claim: say what you ran (format, analyze, tests, phone) and what you didn't.
+- Show, don't claim: say what you ran (format, analyze, tests, device) and what you didn't.
 
 ## Stack
 
@@ -40,7 +41,7 @@ Every dependency is pinned to an exact version.
 | Analysis — must be clean | `flutter analyze` and `dart analyze` (only the latter runs the `riverpod_lint` plugin) |
 | Tests | `flutter test`, or `flutter test test/features/<feature>` |
 | Strings, after any `.arb` change | `flutter gen-l10n` |
-| Run on the phone | `scripts/run.ps1` (= `flutter run --dart-define-from-file=secrets.json`) |
+| Run on a device | `scripts/run.ps1 [-d <device id>]` (= `flutter run --dart-define-from-file=secrets.json`); agents start it in the Terminal panel (device skill) |
 | Build and install an APK | `scripts/build_and_deploy.ps1 [-Release] [-Clean]` |
 | Icon / splash, after changing their pubspec config | `dart run flutter_launcher_icons` · `dart run flutter_native_splash:create` |
 
@@ -106,6 +107,7 @@ code predates the target; the plan is `.claude/skills/architecture/references/mi
 |------|------|
 | Add or reshape behaviour: feature, model, repository, provider, service, Firestore shape, navigation, refactor, migration, structure review | `.claude/skills/architecture/SKILL.md` |
 | Anything visual or interactive: screen, flow, states, theme, motion, copy, accessibility | `.claude/skills/ux-ui/SKILL.md` |
+| Run, see or debug the app on the emulator or the phone: launch, screenshots, logs, dark mode, 200 % text, permissions, reminders | `.claude/skills/device/SKILL.md` |
 | Commit, branch, pull request | `.claude/skills/git-workflow/SKILL.md` |
 | Rules for the zone you edit: UI, state, data, tests, l10n, platform | `.claude/rules/*.md` — loaded automatically by Claude Code; other agents read the matching file |
 | Why the architecture is what it is, and when to revisit it | `.claude/skills/architecture/references/decisions.md` |

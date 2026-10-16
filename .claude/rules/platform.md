@@ -53,7 +53,7 @@ No web target since 2026-10-12 (`web/` removed). `lib/core/firebase_options.dart
   provider (`notificationServiceProvider`, migration M1) so tests can override it. Keep the
   `@visibleForTesting` constructors.
 - Unit tests can't prove platform behaviour (permissions, scheduled notifications, biometrics,
-  camera): say whether it was checked on the phone.
+  camera): check it on a device (device skill) and say on which one, or that it wasn't.
 
 ## Dependencies (`pubspec.yaml`)
 
@@ -62,4 +62,4 @@ No web target since 2026-10-12 (`web/` removed). `lib/core/firebase_options.dart
 - A plugin may need a manifest permission, a higher `minSdk` or iOS version: apply its setup
   steps in the same change.
 - After a dependency change: `flutter pub get`, `flutter analyze`, the full test suite, and a run
-  on the phone when a plugin changed.
+  on a device when a plugin changed.
