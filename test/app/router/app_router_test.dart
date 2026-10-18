@@ -8,6 +8,7 @@ import 'package:an_ki/features/auth/screens/login_screen.dart';
 import 'package:an_ki/features/auth/screens/signup_screen.dart';
 import 'package:an_ki/features/auth/screens/welcome_screen.dart';
 import 'package:an_ki/features/birthday/screens/birthday_search_screen.dart';
+import 'package:an_ki/features/birthday/screens/contact_import_screen.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
@@ -92,6 +93,13 @@ void main() {
 
         // Les réglages s'ouvrent par-dessus l'onglet, qui reste en place.
         await tester.tap(find.byType(BackButton));
+        await tester.pumpAndSettle();
+        expect(find.byType(BookScannerScreen), findsOneWidget);
+
+        unawaited(tester.appRouter.push(AppRoutes.contactImport));
+        await tester.pumpAndSettle();
+        expect(find.byType(ContactImportScreen), findsOneWidget);
+        await tester.tap(find.byType(CloseButton));
         await tester.pumpAndSettle();
         expect(find.byType(BookScannerScreen), findsOneWidget);
       });

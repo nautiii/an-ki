@@ -701,20 +701,32 @@ abstract class AppLocalizations {
   /// Titre de l'accueil sans aucun anniversaire
   ///
   /// In fr, this message translates to:
-  /// **'Vos anniversaires vivront ici'**
+  /// **'Qui voulez-vous fêter ?'**
   String get emptyBirthdaysTitle;
 
   /// Message de l'accueil sans aucun anniversaire
   ///
   /// In fr, this message translates to:
-  /// **'Ajoutez le premier, ou retrouvez ceux de vos contacts : AnKi vous préviendra au bon moment.'**
+  /// **'Retrouvez les anniversaires de vos contacts en une fois, sans rien retaper.'**
   String get emptyBirthdaysMessage;
 
-  /// Action secondaire de l'accueil vide : importer les anniversaires des contacts
+  /// Action principale de l'accueil vide : ouvre l'import des contacts
   ///
   /// In fr, this message translates to:
-  /// **'Importer mes contacts'**
-  String get importMyContacts;
+  /// **'Choisir dans mes contacts'**
+  String get chooseFromContacts;
+
+  /// No description provided for @addByHand.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter à la main'**
+  String get addByHand;
+
+  /// Sous l'invitation à importer : ce que lit AnKi dans le répertoire
+  ///
+  /// In fr, this message translates to:
+  /// **'AnKi ne lit que les noms et les dates d\'anniversaire.'**
+  String get contactsPrivacy;
 
   /// Message de la liste de livres vide
   ///
@@ -776,23 +788,113 @@ abstract class AppLocalizations {
   /// **'Importer les contacts'**
   String get importContacts;
 
-  /// No description provided for @contactsImported.
+  /// No description provided for @contactImportTitle.
   ///
   /// In fr, this message translates to:
-  /// **'{count} contacts importés avec succès !'**
-  String contactsImported(int count);
+  /// **'Vos contacts'**
+  String get contactImportTitle;
 
-  /// No description provided for @noContactsWithBirthday.
+  /// En tête de l'aperçu d'import : nouveaux anniversaires trouvés
   ///
   /// In fr, this message translates to:
-  /// **'Aucun contact avec une date de naissance trouvé.'**
-  String get noContactsWithBirthday;
+  /// **'{count, plural, =1{1 anniversaire trouvé. Décochez-le si vous ne voulez pas le suivre.} other{{count} anniversaires trouvés. Décochez ceux que vous ne voulez pas suivre.}}'**
+  String contactImportFound(int count);
 
-  /// No description provided for @permissionDenied.
+  /// No description provided for @contactImportAllKnown.
   ///
   /// In fr, this message translates to:
-  /// **'Permission refusée.'**
-  String get permissionDenied;
+  /// **'Tous les anniversaires de vos contacts sont déjà dans AnKi.'**
+  String get contactImportAllKnown;
+
+  /// No description provided for @contactImportSelectAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout cocher ({count})'**
+  String contactImportSelectAll(int count);
+
+  /// No description provided for @contactImportKnown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déjà dans AnKi'**
+  String get contactImportKnown;
+
+  /// Ligne d'un contact de l'aperçu : sa date et dans combien de jours
+  ///
+  /// In fr, this message translates to:
+  /// **'{days, plural, =0{{date} · aujourd\'hui} =1{{date} · demain} other{{date} · dans {days} jours}}'**
+  String contactImportDetail(String date, int days);
+
+  /// No description provided for @contactImportAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Ajouter} =1{Ajouter 1 anniversaire} other{Ajouter {count} anniversaires}}'**
+  String contactImportAdd(int count);
+
+  /// No description provided for @contactImportAdded.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 anniversaire ajouté} other{{count} anniversaires ajoutés}}'**
+  String contactImportAdded(int count);
+
+  /// No description provided for @contactImportDeniedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'AnKi n\'a pas accès à vos contacts'**
+  String get contactImportDeniedTitle;
+
+  /// No description provided for @contactImportDeniedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autorisez l\'accès pour choisir qui ajouter, ou ajoutez vos proches à la main.'**
+  String get contactImportDeniedMessage;
+
+  /// No description provided for @contactImportBlockedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autorisez « Contacts » dans les réglages de l\'app, puis revenez ici. Vous pouvez aussi ajouter vos proches à la main.'**
+  String get contactImportBlockedMessage;
+
+  /// No description provided for @contactImportAllow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autoriser l\'accès'**
+  String get contactImportAllow;
+
+  /// No description provided for @openAppSettings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir les réglages'**
+  String get openAppSettings;
+
+  /// No description provided for @contactImportEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun anniversaire dans vos contacts'**
+  String get contactImportEmptyTitle;
+
+  /// No description provided for @contactImportEmptyMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez des dates à vos contacts, ou vos proches ici, à la main.'**
+  String get contactImportEmptyMessage;
+
+  /// No description provided for @contactImportErrorTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire vos contacts'**
+  String get contactImportErrorTitle;
+
+  /// No description provided for @contactImportErrorMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayez dans un instant.'**
+  String get contactImportErrorMessage;
+
+  /// No description provided for @retry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get retry;
 
   /// No description provided for @suggestedCategories.
   ///

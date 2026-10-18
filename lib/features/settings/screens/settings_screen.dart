@@ -2,18 +2,17 @@ import 'dart:async';
 
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/birthday/providers/contact_import.dart';
-import 'package:an_ki/features/birthday/widgets/contact_import_text.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/features/user/providers/user_profile_editor.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -190,17 +189,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         );
       }
     });
-    // Issue de l'import des contacts : nombre importé, permission refusée ou
-    // échec de lecture.
-    ref.listen(contactImportProvider, (_, next) {
-      final message = contactImportMessage(context.l10n, next);
-      if (message != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(behavior: SnackBarBehavior.floating, content: Text(message)),
-        );
-      }
-    });
-
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentLocale = ref.watch(localeProvider);
@@ -285,10 +273,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             leading: const Icon(Icons.contact_page_rounded),
             title: Text(context.l10n.importContacts),
             trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () {
-              unawaited(HapticFeedback.lightImpact());
-              unawaited(ref.read(contactImportProvider.notifier).run());
-            },
+            // L'aperçu de l'import, qui annonce lui-même ce qu'il ajoute.
+            onTap: () => context.push(AppRoutes.contactImport),
           ),
           const Divider(),
           ListTile(

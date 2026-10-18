@@ -378,14 +378,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get choosePhoto => 'Choose a photo';
 
   @override
-  String get emptyBirthdaysTitle => 'Your birthdays will live here';
+  String get emptyBirthdaysTitle => 'Who do you want to celebrate?';
 
   @override
   String get emptyBirthdaysMessage =>
-      'Add the first one, or bring in your contacts\' birthdays: AnKi will remind you at the right moment.';
+      'Bring in your contacts\' birthdays all at once, no typing.';
 
   @override
-  String get importMyContacts => 'Import my contacts';
+  String get chooseFromContacts => 'Choose from my contacts';
+
+  @override
+  String get addByHand => 'Add by hand';
+
+  @override
+  String get contactsPrivacy => 'AnKi only reads names and birthdays.';
 
   @override
   String get noBooksMessage => 'Scan a book\'s barcode to keep a gift idea.';
@@ -421,15 +427,99 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importContacts => 'Import contacts';
 
   @override
-  String contactsImported(int count) {
-    return '$count contacts imported successfully!';
+  String get contactImportTitle => 'Your contacts';
+
+  @override
+  String contactImportFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count birthdays found. Untick the ones you don\'t want to follow.',
+      one: '1 birthday found. Untick it if you don\'t want to follow it.',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get noContactsWithBirthday => 'No contacts with a birthday found.';
+  String get contactImportAllKnown =>
+      'All your contacts\' birthdays are already in AnKi.';
 
   @override
-  String get permissionDenied => 'Permission denied.';
+  String contactImportSelectAll(int count) {
+    return 'Select all ($count)';
+  }
+
+  @override
+  String get contactImportKnown => 'Already in AnKi';
+
+  @override
+  String contactImportDetail(String date, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$date · in $days days',
+      one: '$date · tomorrow',
+      zero: '$date · today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String contactImportAdd(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count birthdays',
+      one: 'Add 1 birthday',
+      zero: 'Add',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String contactImportAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count birthdays added',
+      one: '1 birthday added',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get contactImportDeniedTitle => 'AnKi can\'t see your contacts';
+
+  @override
+  String get contactImportDeniedMessage =>
+      'Allow access to choose who to add, or add your people by hand.';
+
+  @override
+  String get contactImportBlockedMessage =>
+      'Allow Contacts in the app\'s settings, then come back here. You can also add your people by hand.';
+
+  @override
+  String get contactImportAllow => 'Allow access';
+
+  @override
+  String get openAppSettings => 'Open settings';
+
+  @override
+  String get contactImportEmptyTitle => 'No birthdays in your contacts';
+
+  @override
+  String get contactImportEmptyMessage =>
+      'Add dates to your contacts, or add your people here by hand.';
+
+  @override
+  String get contactImportErrorTitle => 'Couldn\'t read your contacts';
+
+  @override
+  String get contactImportErrorMessage => 'Try again in a moment.';
+
+  @override
+  String get retry => 'Try again';
 
   @override
   String get suggestedCategories => 'Suggested categories';

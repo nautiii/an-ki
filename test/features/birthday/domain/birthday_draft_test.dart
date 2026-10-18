@@ -29,6 +29,12 @@ void main() {
     expect(draft.picture, isNull);
   });
 
+  test('fullName joins the names without a stray space', () {
+    expect(draft().fullName, 'Alice Wonderland');
+    expect(draft(surname: '').fullName, 'Alice');
+    expect(draft(surname: '  ').fullName, 'Alice');
+  });
+
   group('validation', () {
     test('a name needs more than spaces', () {
       expect(BirthdayDraft.isValidName('Alice'), isTrue);

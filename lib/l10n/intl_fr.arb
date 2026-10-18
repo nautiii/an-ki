@@ -281,17 +281,22 @@
   "@choosePhoto": {
     "description": "Libellé du sélecteur de photo du formulaire"
   },
-  "emptyBirthdaysTitle": "Vos anniversaires vivront ici",
+  "emptyBirthdaysTitle": "Qui voulez-vous fêter\u202f?",
   "@emptyBirthdaysTitle": {
     "description": "Titre de l'accueil sans aucun anniversaire"
   },
-  "emptyBirthdaysMessage": "Ajoutez le premier, ou retrouvez ceux de vos contacts : AnKi vous préviendra au bon moment.",
+  "emptyBirthdaysMessage": "Retrouvez les anniversaires de vos contacts en une fois, sans rien retaper.",
   "@emptyBirthdaysMessage": {
     "description": "Message de l'accueil sans aucun anniversaire"
   },
-  "importMyContacts": "Importer mes contacts",
-  "@importMyContacts": {
-    "description": "Action secondaire de l'accueil vide : importer les anniversaires des contacts"
+  "chooseFromContacts": "Choisir dans mes contacts",
+  "@chooseFromContacts": {
+    "description": "Action principale de l'accueil vide : ouvre l'import des contacts"
+  },
+  "addByHand": "Ajouter à la main",
+  "contactsPrivacy": "AnKi ne lit que les noms et les dates d'anniversaire.",
+  "@contactsPrivacy": {
+    "description": "Sous l'invitation à importer : ce que lit AnKi dans le répertoire"
   },
   "noBooksMessage": "Scannez le code-barres d'un livre pour garder une idée de cadeau.",
   "@noBooksMessage": {
@@ -314,16 +319,52 @@
   "deleteAccountTitle": "Suppression du compte",
   "deleteAccountConfirmation": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.",
   "importContacts": "Importer les contacts",
-  "contactsImported": "{count} contacts importés avec succès !",
-  "@contactsImported": {
+  "contactImportTitle": "Vos contacts",
+  "contactImportFound": "{count, plural, =1{1 anniversaire trouvé. Décochez-le si vous ne voulez pas le suivre.} other{{count} anniversaires trouvés. Décochez ceux que vous ne voulez pas suivre.}}",
+  "@contactImportFound": {
+    "description": "En tête de l'aperçu d'import : nouveaux anniversaires trouvés",
     "placeholders": {
-      "count": {
-        "type": "int"
-      }
+      "count": { "type": "int" }
     }
   },
-  "noContactsWithBirthday": "Aucun contact avec une date de naissance trouvé.",
-  "permissionDenied": "Permission refusée.",
+  "contactImportAllKnown": "Tous les anniversaires de vos contacts sont déjà dans AnKi.",
+  "contactImportSelectAll": "Tout cocher ({count})",
+  "@contactImportSelectAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "contactImportKnown": "Déjà dans AnKi",
+  "contactImportDetail": "{days, plural, =0{{date} · aujourd'hui} =1{{date} · demain} other{{date} · dans {days} jours}}",
+  "@contactImportDetail": {
+    "description": "Ligne d'un contact de l'aperçu : sa date et dans combien de jours",
+    "placeholders": {
+      "date": { "type": "String" },
+      "days": { "type": "int" }
+    }
+  },
+  "contactImportAdd": "{count, plural, =0{Ajouter} =1{Ajouter 1 anniversaire} other{Ajouter {count} anniversaires}}",
+  "@contactImportAdd": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "contactImportAdded": "{count, plural, =1{1 anniversaire ajouté} other{{count} anniversaires ajoutés}}",
+  "@contactImportAdded": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "contactImportDeniedTitle": "AnKi n'a pas accès à vos contacts",
+  "contactImportDeniedMessage": "Autorisez l'accès pour choisir qui ajouter, ou ajoutez vos proches à la main.",
+  "contactImportBlockedMessage": "Autorisez «\u202fContacts\u202f» dans les réglages de l'app, puis revenez ici. Vous pouvez aussi ajouter vos proches à la main.",
+  "contactImportAllow": "Autoriser l'accès",
+  "openAppSettings": "Ouvrir les réglages",
+  "contactImportEmptyTitle": "Aucun anniversaire dans vos contacts",
+  "contactImportEmptyMessage": "Ajoutez des dates à vos contacts, ou vos proches ici, à la main.",
+  "contactImportErrorTitle": "Impossible de lire vos contacts",
+  "contactImportErrorMessage": "Réessayez dans un instant.",
+  "retry": "Réessayer",
   "suggestedCategories": "Catégories suggérées",
   "createCustomCategory": "Ou créer une catégorie personnalisée",
   "noMoreSuggestions": "Aucune autre catégorie suggérée",

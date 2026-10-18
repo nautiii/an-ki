@@ -29,6 +29,31 @@ void main() {
     expect(imported, 1);
   });
 
+  testWidgets('shows the icon of its main action and its footer', (
+    tester,
+  ) async {
+    await tester.pumpHarness(
+      AnKiEmptyState(
+        illustration: const SizedBox(),
+        title: 'Qui voulez-vous fêter ?',
+        message: 'Retrouvez les anniversaires de vos contacts.',
+        primaryLabel: 'Choisir dans mes contacts',
+        primaryIcon: Icons.contacts_rounded,
+        onPrimary: () {},
+        footer: const Text('AnKi ne lit que les noms et les dates.'),
+      ),
+    );
+
+    expect(
+      find.descendant(
+        of: find.byType(FilledButton),
+        matching: find.byIcon(Icons.contacts_rounded),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('AnKi ne lit que les noms et les dates.'), findsOneWidget);
+  });
+
   testWidgets('renders no button without labels', (tester) async {
     await tester.pumpHarness(
       const AnKiEmptyState(

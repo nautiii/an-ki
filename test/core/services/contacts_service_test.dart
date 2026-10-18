@@ -76,6 +76,41 @@ void main() {
       },
     );
 
+    test('maps every permission status to an access', () async {
+      const statuses = {
+        'granted': ContactsAccess.granted,
+        'limited': ContactsAccess.granted,
+        'denied': ContactsAccess.denied,
+        'notDetermined': ContactsAccess.denied,
+        'permanentlyDenied': ContactsAccess.blocked,
+        'restricted': ContactsAccess.blocked,
+      };
+      for (final MapEntry(key: status, value: access) in statuses.entries) {
+        final calls = <String>[];
+        mockChannel((call) async {
+          calls.add(call.method);
+          return status;
+        });
+
+        expect(await const ContactsService().requestReadAccess(), access);
+        expect(await const ContactsService().readAccess(), access);
+        // La demande peut ouvrir la boîte système, la lecture jamais.
+        expect(calls, ['permissions.request', 'permissions.check']);
+      }
+    });
+
+    test('openAppSettings opens the app page of the settings', () async {
+      final calls = <String>[];
+      mockChannel((call) async {
+        calls.add(call.method);
+        return null;
+      });
+
+      await const ContactsService().openAppSettings();
+
+      expect(calls, ['permissions.openSettings']);
+    });
+
     test('fetchBirthdays propagates plugin errors', () async {
       mockChannel((call) async => throw PlatformException(code: 'failed'));
 

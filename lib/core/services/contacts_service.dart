@@ -23,17 +23,44 @@ class ImportedBirthday {
   });
 }
 
+/// Accès en lecture au répertoire du téléphone.
+enum ContactsAccess {
+  /// Accordé (ou limité aux contacts choisis, iOS 18).
+  granted,
+
+  /// Refusé, mais la boîte système peut encore être proposée.
+  denied,
+
+  /// Refusé pour de bon (deux refus sur Android, un sur iOS) ou bloqué par
+  /// une règle de l'appareil : seuls les réglages de l'app peuvent l'accorder.
+  blocked,
+}
+
 /// Encapsule le plugin `flutter_contacts` (couche Service).
 class ContactsService {
   const ContactsService();
 
-  /// Demande l'accès en lecture aux contacts du device.
-  Future<bool> requestReadPermission() async {
-    final status = await FlutterContacts.permissions.request(
-      PermissionType.read,
-    );
-    return status == PermissionStatus.granted;
-  }
+  /// Demande l'accès en lecture : la boîte système quand elle peut encore
+  /// s'afficher, sinon l'accès tel qu'il est.
+  Future<ContactsAccess> requestReadAccess() async =>
+      _access(await FlutterContacts.permissions.request(PermissionType.read));
+
+  /// Accès en lecture actuel, sans rien demander.
+  Future<ContactsAccess> readAccess() async =>
+      _access(await FlutterContacts.permissions.check(PermissionType.read));
+
+  /// Ouvre la page de l'app dans les réglages du téléphone, où se trouvent
+  /// ses autorisations.
+  Future<void> openAppSettings() => FlutterContacts.permissions.openSettings();
+
+  static ContactsAccess _access(PermissionStatus status) => switch (status) {
+    PermissionStatus.granted ||
+    PermissionStatus.limited => ContactsAccess.granted,
+    PermissionStatus.denied ||
+    PermissionStatus.notDetermined => ContactsAccess.denied,
+    PermissionStatus.permanentlyDenied ||
+    PermissionStatus.restricted => ContactsAccess.blocked,
+  };
 
   /// Renvoie tous les contacts qui exposent un événement d'anniversaire.
   Future<List<ImportedBirthday>> fetchBirthdays() async {

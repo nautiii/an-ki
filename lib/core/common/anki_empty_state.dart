@@ -10,9 +10,11 @@ class AnKiEmptyState extends StatelessWidget {
     required this.title,
     required this.message,
     this.primaryLabel,
+    this.primaryIcon,
     this.onPrimary,
     this.secondaryLabel,
     this.onSecondary,
+    this.footer,
   });
 
   /// Illustration décorative (ex. `Image.asset(AppAssets.moon)`), exclue de la sémantique.
@@ -20,9 +22,15 @@ class AnKiEmptyState extends StatelessWidget {
   final String title;
   final String message;
   final String? primaryLabel;
+
+  /// Icône devant le libellé de l'action principale.
+  final IconData? primaryIcon;
   final VoidCallback? onPrimary;
   final String? secondaryLabel;
   final VoidCallback? onSecondary;
+
+  /// Sous les actions : une précision (ce que l'action lit, par exemple).
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -52,13 +60,24 @@ class AnKiEmptyState extends StatelessWidget {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          if (primaryLabel != null) ...[
+          if (primaryLabel case final label?) ...[
             const SizedBox(height: AppSpacing.lg),
-            FilledButton(onPressed: onPrimary, child: Text(primaryLabel!)),
+            FilledButton.icon(
+              onPressed: onPrimary,
+              icon: switch (primaryIcon) {
+                final icon? => Icon(icon),
+                null => null,
+              },
+              label: Text(label, textAlign: TextAlign.center),
+            ),
           ],
-          if (secondaryLabel != null) ...[
+          if (secondaryLabel case final label?) ...[
             const SizedBox(height: AppSpacing.xs),
-            TextButton(onPressed: onSecondary, child: Text(secondaryLabel!)),
+            TextButton(onPressed: onSecondary, child: Text(label)),
+          ],
+          if (footer case final footer?) ...[
+            const SizedBox(height: AppSpacing.sm),
+            footer,
           ],
         ],
       ),

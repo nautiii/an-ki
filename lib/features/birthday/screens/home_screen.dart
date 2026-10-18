@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:an_ki/core/common/anki_empty_state.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/constants/app_assets.dart';
@@ -9,12 +7,10 @@ import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
-import 'package:an_ki/features/birthday/providers/contact_import.dart';
 import 'package:an_ki/features/birthday/providers/home_view_provider.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_list.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
-import 'package:an_ki/features/birthday/widgets/contact_import_text.dart';
 import 'package:an_ki/features/birthday/widgets/home_app_bar.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:flutter/material.dart';
@@ -48,18 +44,6 @@ class HomeScreen extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.l10n.errorSavingCategory)),
         );
-      }
-    });
-    // Issue de l'import lancé depuis l'accueil vide. Les réglages, ouverts
-    // par-dessus, annoncent celui qu'ils lancent.
-    ref.listen(contactImportProvider, (_, next) {
-      if (GoRouter.of(context).state.matchedLocation == AppRoutes.settings) {
-        return;
-      }
-      final message = contactImportMessage(context.l10n, next);
-      if (message != null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(message)));
       }
     });
     final isLoading = ref.watch(birthdaysLoadingProvider);
@@ -162,16 +146,16 @@ class _ViewSwitch extends ConsumerWidget {
   }
 }
 
-/// Premier lancement : la lune, puis ajouter quelqu'un ou retrouver les
-/// anniversaires des contacts du téléphone.
-class _FirstRun extends ConsumerWidget {
+/// Premier lancement : l'accueil vide est l'invitation à retrouver les
+/// anniversaires du répertoire, le plus court chemin vers un agenda rempli ;
+/// la saisie à la main reste à côté.
+class _FirstRun extends StatelessWidget {
   const _FirstRun();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final importing = ref.watch(
-      contactImportProvider.select((state) => state.isLoading),
-    );
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -183,13 +167,28 @@ class _FirstRun extends ConsumerWidget {
           illustration: Image.asset(AppAssets.moon),
           title: context.l10n.emptyBirthdaysTitle,
           message: context.l10n.emptyBirthdaysMessage,
-          primaryLabel: context.l10n.addBirthday,
-          onPrimary: () => BirthdayFormSheet.show(context),
-          secondaryLabel: context.l10n.importMyContacts,
-          // Désactivé pendant l'import : la permission puis la lecture.
-          onSecondary: importing
-              ? null
-              : () => unawaited(ref.read(contactImportProvider.notifier).run()),
+          primaryLabel: context.l10n.chooseFromContacts,
+          primaryIcon: Icons.contacts_rounded,
+          onPrimary: () => context.push(AppRoutes.contactImport),
+          secondaryLabel: context.l10n.addByHand,
+          onSecondary: () => BirthdayFormSheet.show(context),
+          // Ce que l'import lit, avant que la boîte système ne le demande.
+          footer: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ExcludeSemantics(
+                child: Icon(Icons.lock_outline_rounded, size: 16, color: muted),
+              ),
+              const SizedBox(width: AppSpacing.xxs),
+              Flexible(
+                child: Text(
+                  context.l10n.contactsPrivacy,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -26,4 +26,8 @@ abstract final class AppRoutes {
 
   /// Recherche d'anniversaires, ouverte par-dessus un onglet (`context.push`).
   static const String search = '/search';
+
+  /// Import des anniversaires du répertoire, ouvert par-dessus l'accueil vide
+  /// ou les réglages (`context.push`).
+  static const String contactImport = '/import';
 }

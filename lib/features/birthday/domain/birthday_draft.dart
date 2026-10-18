@@ -13,6 +13,10 @@ class const BirthdayDraft({
   /// photo inchangée à la modification.
   final Uint8List? picture,
 }) {
+  /// Prénom et nom, sans espace de trop quand l'un manque (« Mamie »).
+  String get fullName =>
+      [name.trim(), surname.trim()].where((part) => part.isNotEmpty).join(' ');
+
   /// Règle de saisie d'un prénom ou d'un nom : du texte, pas seulement des
   /// espaces. Le formulaire s'en sert pour valider ses champs.
   static bool isValidName(String value) => value.trim().isNotEmpty;

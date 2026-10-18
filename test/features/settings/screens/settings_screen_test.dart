@@ -1,6 +1,6 @@
 import 'package:an_ki/core/common/header.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
-import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
@@ -11,7 +11,6 @@ import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart' as fam;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -29,12 +28,6 @@ const _profile = UserProfile(
   isDark: false,
   locale: 'fr',
 );
-
-/// Service de contacts dont l'utilisateur refuse la permission.
-class _DeniedContactsService extends ContactsService {
-  @override
-  Future<bool> requestReadPermission() async => false;
-}
 
 void main() {
   /// Réglages d'une session ouverte (`uid-1`) sur un appareil à empreinte.
@@ -147,51 +140,21 @@ void main() {
     expect(users.stored?.isDark, isTrue);
   });
 
-  testWidgets('says so when the contacts permission is refused', (
-    tester,
-  ) async {
-    await tester.pumpHarness(
-      const SettingsScreen(),
-      overrides: [
-        ...overridesWith(),
-        contactsServiceProvider.overrideWithValue(_DeniedContactsService()),
-      ],
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Importer les contacts'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Permission refusée.'), findsOneWidget);
-  });
-
-  testWidgets('shows a generic error when the contacts plugin fails', (
-    tester,
-  ) async {
-    // Make the contacts plugin throw so the handler hits its catch branch.
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-          const MethodChannel('flutter_contacts'),
-          (call) async => throw PlatformException(code: 'denied'),
-        );
-    addTearDown(
-      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-            const MethodChannel('flutter_contacts'),
-            null,
-          ),
-    );
-
+  testWidgets('opens the contacts import', (tester) async {
     await tester.pumpHarness(
       const SettingsScreen(),
       overrides: overridesWith(),
+      routes: {
+        AppRoutes.contactImport: (_) =>
+            const Scaffold(body: Text('Import route')),
+      },
     );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Importer les contacts'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Une erreur est survenue.'), findsOneWidget);
+    expect(find.text('Import route'), findsOneWidget);
   });
 
   group('sign out', () {

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:an_ki/core/services/biometric_service.dart';
+import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
@@ -572,6 +573,46 @@ class FakeBiometricService extends Fake implements BiometricService {
   Future<void> clearBiometricData() async {
     token = null;
     userId = null;
+  }
+}
+
+/// Répertoire simulé : l'accès [access], les anniversaires [contacts], ou
+/// [failure] à la lecture. Relève les demandes d'accès, les lectures et les
+/// ouvertures des réglages ; [pendingRead] fait attendre la lecture.
+class FakeContactsService extends Fake implements ContactsService {
+  FakeContactsService({
+    this.access = ContactsAccess.granted,
+    this.contacts = const [],
+    this.failure,
+  });
+
+  ContactsAccess access;
+  List<ImportedBirthday> contacts;
+  final Exception? failure;
+  Completer<void>? pendingRead;
+
+  int requests = 0;
+  int reads = 0;
+  int settingsOpened = 0;
+
+  @override
+  Future<ContactsAccess> requestReadAccess() async {
+    requests++;
+    return access;
+  }
+
+  @override
+  Future<ContactsAccess> readAccess() async => access;
+
+  @override
+  Future<void> openAppSettings() async => settingsOpened++;
+
+  @override
+  Future<List<ImportedBirthday>> fetchBirthdays() async {
+    reads++;
+    await pendingRead?.future;
+    if (failure case final error?) throw error;
+    return contacts;
   }
 }
 
