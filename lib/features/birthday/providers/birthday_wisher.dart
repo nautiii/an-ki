@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:an_ki/core/services/share_service.dart';
+import 'package:an_ki/features/birthday/data/share_service.dart';
 import 'package:an_ki/features/birthday/domain/wish_failure.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

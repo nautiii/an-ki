@@ -1,4 +1,4 @@
-import 'package:an_ki/core/services/share_service.dart';
+import 'package:an_ki/features/birthday/data/share_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
