@@ -17,6 +17,27 @@ class MockNotificationsPlugin extends Fake
   bool allCancelled = false;
   bool throwOnSchedule = false;
 
+  /// Rappel du plugin pour un toucher pendant que l'app tourne.
+  DidReceiveNotificationResponseCallback? onResponse;
+
+  /// Ce que le plugin dit du lancement de l'app.
+  NotificationAppLaunchDetails? launchDetails;
+
+  @override
+  Future<bool?> initialize({
+    required InitializationSettings settings,
+    DidReceiveNotificationResponseCallback? onDidReceiveNotificationResponse,
+    DidReceiveBackgroundNotificationResponseCallback?
+    onDidReceiveBackgroundNotificationResponse,
+  }) async {
+    onResponse = onDidReceiveNotificationResponse;
+    return true;
+  }
+
+  @override
+  Future<NotificationAppLaunchDetails?>
+  getNotificationAppLaunchDetails() async => launchDetails;
+
   @override
   Future<void> cancel({required int id, String? tag}) async {
     cancelledIds.add(id);
@@ -50,19 +71,10 @@ class MockNotificationsPlugin extends Fake
         title: title,
         body: body,
         scheduledDate: scheduledDate,
+        details: notificationDetails,
+        payload: payload,
       ),
     );
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
-    if (invocation.memberName == #initialize) {
-      return Future.value(true);
-    }
-    if (invocation.memberName == #getNotificationAppLaunchDetails) {
-      return Future<NotificationAppLaunchDetails?>.value();
-    }
-    return super.noSuchMethod(invocation);
   }
 }
 
@@ -71,13 +83,20 @@ class ZonedScheduleCall {
   final String? title;
   final String? body;
   final tz.TZDateTime scheduledDate;
+  final NotificationDetails details;
+  final String? payload;
 
   ZonedScheduleCall({
     required this.id,
     this.title,
     this.body,
     required this.scheduledDate,
+    required this.details,
+    this.payload,
   });
+
+  /// Boutons Android de la notification.
+  List<AndroidNotificationAction>? get actions => details.android?.actions;
 }
 
 void main() {
@@ -119,7 +138,50 @@ void main() {
       surname: surname,
       age: 36,
       at: at ?? DateTime(2026, 6, 30, 10),
+      payload: 'john',
     );
+
+    test('adds « Souhaiter » to the notification of the day only', () async {
+      await service.scheduleAll([
+        reminder(ReminderType.birthday),
+        reminder(ReminderType.weekBefore, id: 2),
+      ]);
+
+      final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
+      final wish = day.actions!.single;
+      expect(wish.id, NotificationActions.wish);
+      expect(wish.title, 'Souhaiter');
+      // Le bouton ouvre l'app, qui affiche la feuille de partage.
+      expect(wish.showsUserInterface, isTrue);
+      expect(weekBefore.actions, isNull);
+    });
+
+    test('names the wish button in the configured language', () async {
+      service.configure(
+        NotificationStrings.fromL10n(
+          lookupAppLocalizations(const Locale('en')),
+        ),
+      );
+
+      await service.scheduleAll([reminder(ReminderType.birthday)]);
+
+      expect(
+        mockPlugin.zonedScheduleCalls.single.actions!.single.title,
+        'Send wishes',
+      );
+    });
+
+    test('carries the payload of each reminder', () async {
+      await service.scheduleAll([
+        reminder(ReminderType.birthday),
+        reminder(ReminderType.weekBefore, id: 2),
+      ]);
+
+      expect(mockPlugin.zonedScheduleCalls.map((c) => c.payload), [
+        'john',
+        'john',
+      ]);
+    });
 
     test('cancels the notifications no longer planned', () async {
       mockPlugin.pendingRequests.addAll(const [
@@ -205,6 +267,59 @@ void main() {
       await service.scheduleAll([reminder(ReminderType.birthday)]);
 
       expect(mockPlugin.zonedScheduleCalls, isEmpty);
+    });
+  });
+
+  group('taps', () {
+    const wishResponse = NotificationResponse(
+      notificationResponseType:
+          NotificationResponseType.selectedNotificationAction,
+      actionId: NotificationActions.wish,
+      payload: 'lea',
+    );
+
+    test('forwards a tap while the app runs', () async {
+      final taps = <NotificationTap>[];
+      final subscription = service.taps.listen(taps.add);
+      addTearDown(subscription.cancel);
+
+      mockPlugin.onResponse!(wishResponse);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(taps, [
+        const NotificationTap(
+          payload: 'lea',
+          actionId: NotificationActions.wish,
+        ),
+      ]);
+    });
+
+    test('gives the tap that launched the app, once', () async {
+      mockPlugin.launchDetails = const NotificationAppLaunchDetails(
+        true,
+        notificationResponse: wishResponse,
+      );
+
+      expect(
+        await service.launchTap(),
+        const NotificationTap(
+          payload: 'lea',
+          actionId: NotificationActions.wish,
+        ),
+      );
+      expect(await service.launchTap(), isNull);
+    });
+
+    test('gives no launch tap when the app started otherwise', () async {
+      mockPlugin.launchDetails = const NotificationAppLaunchDetails(false);
+
+      expect(await service.launchTap(), isNull);
+    });
+
+    test('gives no launch tap before initialization', () async {
+      final fresh = NotificationService(MockNotificationsPlugin());
+
+      expect(await fresh.launchTap(), isNull);
     });
   });
 

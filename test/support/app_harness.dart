@@ -1,8 +1,12 @@
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/app/app.dart';
 import 'package:an_ki/app/router/app_router.dart';
+
+import 'dart:async';
+
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/notification_service.dart';
+import 'package:an_ki/core/services/share_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
@@ -16,8 +20,19 @@ import 'package:go_router/go_router.dart';
 
 import 'fake_providers.dart';
 
-/// Notifications sans plugin.
+/// Notifications sans plugin : aucun toucher, sauf ceux que le test envoie
+/// par [tap] ou donne comme [launch].
 class SilentNotificationService extends Fake implements NotificationService {
+  SilentNotificationService({this.launch});
+
+  /// Toucher qui aurait lancé l'app.
+  final NotificationTap? launch;
+
+  final _taps = StreamController<NotificationTap>.broadcast();
+
+  /// Simule un toucher pendant que l'app tourne.
+  void tap(NotificationTap tap) => _taps.add(tap);
+
   @override
   void configure(NotificationStrings strings) {}
 
@@ -26,6 +41,12 @@ class SilentNotificationService extends Fake implements NotificationService {
 
   @override
   Future<void> scheduleAll(List<ReminderNotification> reminders) async {}
+
+  @override
+  Stream<NotificationTap> get taps => _taps.stream;
+
+  @override
+  Future<NotificationTap?> launchTap() async => launch;
 }
 
 /// Profil du compte `fake-uid` des faux dépôts.
@@ -40,11 +61,14 @@ const testProfile = UserProfile(
 extension AppTesterExt on WidgetTester {
   /// L'app entière, routeur compris, sur un écran de la taille du harnais
   /// (800×1200) : la session de [auth], l'empreinte de [biometrics], des
-  /// données factices (le carnet [birthdays], vide par défaut).
+  /// données factices (le carnet [birthdays], vide par défaut), des
+  /// notifications et un partage simulés ([notifications], [share]).
   Future<void> pumpApp({
     required FakeAuthRepository auth,
     FakeBiometricService? biometrics,
     List<Birthday> birthdays = const [],
+    SilentNotificationService? notifications,
+    FakeShareService? share,
   }) {
     view.physicalSize = const Size(800, 1200);
     view.devicePixelRatio = 1.0;
@@ -59,8 +83,9 @@ extension AppTesterExt on WidgetTester {
             biometrics ?? FakeBiometricService(),
           ),
           notificationServiceProvider.overrideWithValue(
-            SilentNotificationService(),
+            notifications ?? SilentNotificationService(),
           ),
+          shareServiceProvider.overrideWithValue(share ?? FakeShareService()),
           userRepositoryProvider.overrideWithValue(
             RecordingUserRepository(stored: testProfile),
           ),

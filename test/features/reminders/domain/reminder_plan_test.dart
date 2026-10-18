@@ -86,6 +86,8 @@ void main() {
       ReminderKind.birthday,
       ReminderKind.weekBefore,
     ]);
+    // Chaque rappel ramène à son anniversaire.
+    expect(plan.map((r) => r.birthdayId), ['lea', 'lea', 'hugo', 'hugo']);
     expect(planReminders(const [], now: now), isEmpty);
   });
 

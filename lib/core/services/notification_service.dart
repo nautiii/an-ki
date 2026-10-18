@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -21,12 +23,16 @@ class NotificationStrings {
   final String Function(String name) birthdayBody;
   final String Function(String fullName) reminderBody;
 
+  /// Bouton « Souhaiter » de la notification du jour J.
+  final String wishAction;
+
   const NotificationStrings({
     required this.channelName,
     required this.channelDescription,
     required this.reminderTitle,
     required this.birthdayBody,
     required this.reminderBody,
+    required this.wishAction,
   });
 
   static final NotificationStrings french = NotificationStrings(
@@ -35,6 +41,7 @@ class NotificationStrings {
     reminderTitle: '🎉 Anniversaire bientôt',
     birthdayBody: (name) => 'C\'est l\'anniversaire de $name aujourd\'hui !',
     reminderBody: (fullName) => '$fullName fête son anniversaire dans 7 jours.',
+    wishAction: 'Souhaiter',
   );
 
   factory NotificationStrings.fromL10n(AppLocalizations l10n) =>
@@ -44,11 +51,36 @@ class NotificationStrings {
         reminderTitle: l10n.notificationReminderTitle,
         birthdayBody: l10n.notificationBirthdayBody,
         reminderBody: l10n.notificationReminderBody,
+        wishAction: l10n.wish,
       );
 }
 
 /// Type de rappel ; il choisit le texte de la notification.
 enum ReminderType { birthday, weekBefore }
+
+/// Identifiants des boutons de notification, rendus tels quels au toucher.
+abstract final class NotificationActions {
+  const NotificationActions._();
+
+  /// « Souhaiter », sur la notification du jour J.
+  static const String wish = 'wish';
+}
+
+/// Toucher sur une notification de l'app : ce qu'elle porte ([payload]) et
+/// le bouton touché ([actionId]), null pour la notification elle-même.
+class const NotificationTap({
+  required final String? payload,
+  final String? actionId,
+}) {
+  @override
+  bool operator ==(Object other) =>
+      other is NotificationTap &&
+      other.payload == payload &&
+      other.actionId == actionId;
+
+  @override
+  int get hashCode => Object.hash(payload, actionId);
+}
 
 /// Rappel à afficher, décidé par la feature `reminders` : le service ne
 /// calcule aucune date, il planifie ce qu'on lui donne.
@@ -70,6 +102,10 @@ class const ReminderNotification({
 
   /// Moment du rappel, heure locale ; il se répète chaque année.
   required final DateTime at,
+
+  /// Rendu tel quel au toucher ([NotificationTap.payload]) : l'id de
+  /// l'anniversaire, que la feature choisit.
+  final String? payload,
 }) {
   @override
   bool operator ==(Object other) =>
@@ -79,10 +115,11 @@ class const ReminderNotification({
       other.name == name &&
       other.surname == surname &&
       other.age == age &&
-      other.at == at;
+      other.at == at &&
+      other.payload == payload;
 
   @override
-  int get hashCode => Object.hash(id, type, name, surname, age, at);
+  int get hashCode => Object.hash(id, type, name, surname, age, at, payload);
 }
 
 /// Service singleton des notifications locales : initialisation du plugin,
@@ -104,8 +141,31 @@ class NotificationService {
 
   NotificationStrings _strings = NotificationStrings.french;
 
+  final _taps = StreamController<NotificationTap>.broadcast();
+
+  /// Le toucher qui a lancé l'app n'est rendu qu'une fois.
+  bool _launchTapTaken = false;
+
   /// Injecte les textes localisés utilisés pour les notifications planifiées.
   void configure(NotificationStrings strings) => _strings = strings;
+
+  /// Touchers sur une notification pendant que l'app tourne.
+  Stream<NotificationTap> get taps => _taps.stream;
+
+  /// Toucher qui a lancé l'app, rendu une seule fois ; null si elle a démarré
+  /// autrement.
+  Future<NotificationTap?> launchTap() async {
+    if (!_initialized || _launchTapTaken) return null;
+    _launchTapTaken = true;
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    final response = details?.notificationResponse;
+    if (details == null || !details.didNotificationLaunchApp) return null;
+    if (response == null) return null;
+    return NotificationTap(
+      payload: response.payload,
+      actionId: response.actionId,
+    );
+  }
 
   /// À appeler une seule fois avant [runApp].
   Future<void> initialize() async {
@@ -137,6 +197,9 @@ class NotificationService {
       settings: const InitializationSettings(
         android: androidSettings,
         iOS: iosSettings,
+      ),
+      onDidReceiveNotificationResponse: (response) => _taps.add(
+        NotificationTap(payload: response.payload, actionId: response.actionId),
       ),
     );
 
@@ -230,7 +293,8 @@ class NotificationService {
           reminder.at.hour,
           reminder.at.minute,
         ),
-        notificationDetails: _notificationDetails(),
+        notificationDetails: _notificationDetails(reminder.type),
+        payload: reminder.payload,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.dateAndTime,
       );
@@ -241,7 +305,7 @@ class NotificationService {
     }
   }
 
-  NotificationDetails _notificationDetails() {
+  NotificationDetails _notificationDetails(ReminderType type) {
     return NotificationDetails(
       android: AndroidNotificationDetails(
         _channelId,
@@ -249,6 +313,19 @@ class NotificationService {
         channelDescription: _strings.channelDescription,
         importance: Importance.max,
         priority: Priority.high,
+        // Le jour J, « Souhaiter » ouvre l'app sur la feuille de partage.
+        // iOS n'a pas le bouton : ses catégories se déclarent à
+        // l'initialisation, avant que les textes ne soient localisés.
+        actions: switch (type) {
+          ReminderType.birthday => [
+            AndroidNotificationAction(
+              NotificationActions.wish,
+              _strings.wishAction,
+              showsUserInterface: true,
+            ),
+          ],
+          ReminderType.weekBefore => null,
+        },
       ),
       iOS: const DarwinNotificationDetails(
         presentAlert: true,

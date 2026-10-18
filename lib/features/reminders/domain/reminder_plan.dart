@@ -25,6 +25,9 @@ class const PlannedReminder({
   /// rappel.
   required final int id,
   required final ReminderKind kind,
+
+  /// Anniversaire rappelé : le toucher de la notification y ramène.
+  required final String birthdayId,
   required final String name,
   required final String surname,
 
@@ -40,13 +43,14 @@ class const PlannedReminder({
       other is PlannedReminder &&
       other.id == id &&
       other.kind == kind &&
+      other.birthdayId == birthdayId &&
       other.name == name &&
       other.surname == surname &&
       other.age == age &&
       other.at == at;
 
   @override
-  int get hashCode => Object.hash(id, kind, name, surname, age, at);
+  int get hashCode => Object.hash(id, kind, birthdayId, name, surname, age, at);
 }
 
 /// Rappels de chaque anniversaire (jour J et J-7), au prochain créneau encore
@@ -87,6 +91,7 @@ PlannedReminder _plan(
   return PlannedReminder(
     id: _notificationId(slot, kind),
     kind: kind,
+    birthdayId: birthday.id,
     name: birthday.name,
     surname: birthday.surname,
     age: switch (birthday.date.year) {

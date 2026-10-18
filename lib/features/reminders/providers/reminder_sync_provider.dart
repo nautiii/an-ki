@@ -40,5 +40,6 @@ extension on PlannedReminder {
     surname: surname,
     age: age,
     at: at,
+    payload: birthdayId,
   );
 }

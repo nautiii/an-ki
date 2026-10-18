@@ -61,6 +61,7 @@ void main() {
     final base = 'lea'.hashCode.abs() % 100000;
     expect(notifications.scheduled, [
       [
+        // L'id de l'anniversaire voyage avec la notification.
         ReminderNotification(
           id: base,
           type: ReminderType.birthday,
@@ -68,6 +69,7 @@ void main() {
           surname: 'Martin',
           age: 32,
           at: DateTime(2026, 3, 12, 10),
+          payload: 'lea',
         ),
         ReminderNotification(
           id: base + 500000,
@@ -76,6 +78,7 @@ void main() {
           surname: 'Martin',
           age: 32,
           at: DateTime(2026, 3, 5, 10),
+          payload: 'lea',
         ),
       ],
       isEmpty,
