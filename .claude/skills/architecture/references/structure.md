@@ -1,10 +1,10 @@
 # Structure — where code goes, what may import what
 
-The executable version of this file is `test/architecture/architecture_test.dart` (installed by
-migration step M0). When the two disagree, fix one of them in the same change.
+The executable version of this file is `test/architecture/architecture_test.dart`. When the two
+disagree, fix one of them in the same change.
 
 ## Contents
-1. Target tree
+1. Tree
 2. Zones: `app/`, `core/`, `features/`, `l10n/`
 3. Layers inside a feature
 4. Placement table
@@ -16,7 +16,7 @@ migration step M0). When the two disagree, fix one of them in the same change.
 
 ---
 
-## 1. Target tree
+## 1. Tree
 
 ```
 lib/
@@ -157,7 +157,7 @@ strings built in a provider.
 The graph is declared in `featureDependencies` (architecture test). `app/` may import every
 feature and is not part of it.
 
-| Feature | May import — today | May import — target (`migration.md`, planned bricks) |
+| Feature | May import — today | May import — with the planned bricks (ux-ui backlog) |
 |---------|--------------------|------------------------------------------------------|
 | `auth` | — | — |
 | `user` | auth | auth |
@@ -199,8 +199,7 @@ When an import would create a cycle, in this order:
 - Notifiers are named by role: `IdeaEditor` (writes), `BirthdaySearch` (UI state); the
   provider is the lowerCamel name + `Provider`. Existing `XNotifier` names stay until touched.
 - `XState` only when a Notifier holds several fields that change together; prefer `AsyncValue`.
-- Screens `XScreen`, sheets `XSheet`, tiles `XTile`, failures `XFailure`, drafts `XDraft`
-  (legacy: `CreateXInput`).
+- Screens `XScreen`, sheets `XSheet`, tiles `XTile`, failures `XFailure`, drafts `XDraft`.
 - Tests: `<file>_test.dart` mirroring the path; a flow across several screens of a feature:
   `test/features/<f>/<flow>_flow_test.dart`.
 
@@ -219,12 +218,9 @@ the shape of a package.
 
 ## 9. The architecture test
 
-- Installed in `test/architecture/` by M0 (2026-10-08), with the 25 violations of that day in
-  `knownViolations`. The repo file is the source of truth from then on; the copy in
-  `assets/foundation/` is only the original template.
-- It runs with the rest of `flutter test` (pure `dart:io`, ~1 s) and prints violations grouped
-  by rule, each with its fix hint.
+- `test/architecture/architecture_test.dart` runs with the rest of `flutter test` (pure
+  `dart:io`, ~1 s) and prints violations grouped by rule, each with its fix hint.
 - Adding a feature: add it to `featureDependencies` with its edges (the test fails until you do).
-- Fixing debt: the test lists the `knownViolations` lines that no longer match — delete them. The
-  set only shrinks; a new violation is fixed in code, not added to the set.
+- `knownViolations` is empty (the 25 violations of 2026-10-07 were all fixed by 2026-10-11) and
+  stays so: a new violation is fixed in code, never added to the set.
 - It reads `import`/`export` directives only. Generated files (`lib/l10n/`, `*.g.dart`) are skipped.

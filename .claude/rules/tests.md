@@ -48,8 +48,8 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
   `meetsGuideline(labeledTapTargetGuideline)` and `find.bySemanticsLabel`.
 - The harness disables Riverpod's automatic retry (`retry: (_, _) => null`): a provider in error
   renders its error at once, with no retry timer left pending.
-- `test/architecture/` runs with the suite: a new feature is declared in `featureDependencies`,
-  fixed debt is removed from `knownViolations`, a new violation is fixed in the code.
+- `test/architecture/` runs with the suite: a new feature is declared in `featureDependencies`;
+  `knownViolations` stays empty, a new violation is fixed in the code.
 - `TestHarness` doesn't apply `AppTheme`: widget tests check behaviour; look and contrast are
   checked with the ux-ui snapshot tool.
 

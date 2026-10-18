@@ -131,9 +131,9 @@ isolate, CLI tool).
 (profile creation, permission requests) live in `app/bootstrap`.
 
 **Why.** Riverpod's docs: providers should initialize themselves; there is deliberately no
-"reset all providers"; providers that depend on the user should watch the user. Today's
-imperative start/clear spreads session knowledge into `AppInitializer` and `SettingsScreen` and
-can leak the previous account's data when a reset is forgotten.
+"reset all providers"; providers that depend on the user should watch the user. The former
+imperative start/clear (replaced in M2) spread session knowledge into `AppInitializer` and
+`SettingsScreen` and could leak the previous account's data when a reset was forgotten.
 
 **Revisit when** offline-only (no account) mode arrives: the session then becomes "local profile
 or uid", still one provider at the root.
@@ -142,8 +142,8 @@ or uid", still one provider at the root.
 
 **Decision.** Repositories expose `snapshots()` streams; no second cache (no Riverpod offline
 persistence). UI flows don't await Firestore writes. New collections live under
-`user/{uid}/<collection>`; legacy top-level collections keep `uid` filtering until a planned
-migration. Client timestamps from `clockProvider`.
+`user/{uid}/<collection>`; the top-level `birthday` and `books` collections keep `uid`
+filtering until step M10 (only on a concrete need). Client timestamps from `clockProvider`.
 
 **Why.** Persistence is on by default on Android/iOS; listeners emit local writes immediately
 while write futures resolve only on server acknowledgement — awaiting them freezes the UI
@@ -165,8 +165,8 @@ lives in `app/router/`.
 **Why.** Flutter's docs: small apps without complex deep linking can use Navigator, but named
 routes are not recommended once deep links matter; go_router stays the team's recommendation for
 most apps and is feature-complete (bug fixes only). Notification taps that must open a screen
-with a correct back stack — including from a cold start — are exactly where a Router helps, and
-AnKi's roadmap gets there soon.
+with a correct back stack — including from a cold start — are exactly where a Router helps: the
+« Souhaiter » action (B3) goes through it, the person page (B4) will.
 
 **How.** go_router 18 depends on the new `material_ui`/`cupertino_ui` packages, so 17.5.0 (the
 last 17.x, same API) is pinned until the Material decoupling migration. The `GoRouter` is built
@@ -185,8 +185,9 @@ layers, feature DAG, debt ratchet), the analyzer with strict modes, `riverpod_li
 analyzer plugin system, and the review checklist for what tools can't see.
 
 **Why.** An architecture that only lives in a document erodes at the first rushed feature — the
-current 25 violations prove it. A zero-dependency test gives exact, actionable failures in ~1 s
-and lets debt shrink but never grow. Off-the-shelf import linters exist (`import_lint` 2.x,
+25 violations found on 2026-10-07 proved it; the ratchet brought them to zero by 2026-10-11. A
+zero-dependency test gives exact, actionable failures in ~1 s and lets debt shrink but never
+grow. Off-the-shelf import linters exist (`import_lint` 2.x,
 `import_rules`, DCM's paid `avoid-banned-imports`) but none expresses the feature DAG and the
 ratchet as simply; one may be added later for in-IDE feedback.
 

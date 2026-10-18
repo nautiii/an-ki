@@ -39,19 +39,21 @@ without a plan to build it.
 
 ## Web
 
-No web target since 2026-10-12 (`web/` removed). `lib/core/firebase_options.dart` and
+No web target (`web/` removed). `lib/core/firebase_options.dart` and
 `firebase.json` still describe the Firebase web app until the maintainer reruns
 `flutterfire configure --platforms=android,ios` (then move the file back to `lib/core/`).
 
 ## Plugin wrappers (`lib/core/services/`)
 
 - A service is a thin, stateless door to a plugin: no business rule, no policy (*when* to remind
-  is a domain rule of the `reminders` feature, `reminder_plan.dart`), no text of its own, no
-  feature import. Features map their objects onto `core` value objects
+  is a domain rule of the `reminders` feature, `reminder_plan.dart`), no text of its own (the
+  one exception: `NotificationService`'s French fallback texts, replaced by the ARB ones at
+  startup), no feature import. Features map their objects onto `core` value objects
   (`ReminderNotification`, `ImportedBirthday`).
-- `.instance` singletons exist for `main()` initialization only; everything else should read a
-  provider (`notificationServiceProvider`, migration M1) so tests can override it. Keep the
-  `@visibleForTesting` constructors.
+- `.instance` singletons serve `main()` initialization and provider defaults
+  (`notificationServiceProvider`, `biometricServiceProvider`, `firestoreProvider`…), or sit inside
+  a plugin wrapper (`share_service.dart`); everything else reads the provider, so tests can
+  override it. Keep the `@visibleForTesting` constructors.
 - Unit tests can't prove platform behaviour (permissions, scheduled notifications, biometrics,
   camera): check it on a device (device skill) and say on which one, or that it wasn't.
 
@@ -61,7 +63,7 @@ No web target since 2026-10-12 (`web/` removed). `lib/core/firebase_options.dart
   `decisions.md` when it's structural.
 - A plugin may need a manifest permission, a higher `minSdk` or iOS version: apply its setup
   steps in the same change.
-- After a dependency change: `flutter pub get`, `flutter analyze`, the full test suite, and a run
-  on a device when a plugin changed.
+- After a dependency change: `flutter pub get`, `flutter analyze`, `dart analyze`, the full test
+  suite, and a run on a device when a plugin changed.
 - Upgrades (Flutter, packages, Gradle/AGP/KGP) follow `/deps-upgrade`, which only the maintainer
   starts: asked to upgrade otherwise, suggest the command rather than improvising the procedure.

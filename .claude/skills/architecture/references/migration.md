@@ -1,78 +1,39 @@
-# Migration plan — what remains between the code and the target
+# Remaining work — device checks, open debt, structural steps
 
-The 2026-10-07 audit (commit `46359f3`) and steps M0–M9 (2026-10-08/11) brought the code to
-the target, except what this file lists. Keep it current: when a step lands, add a line to
-*Done*, delete the debt it cleared and record what you discover.
+The code follows the target since steps M0–M9 (2026-10-08/11; the commits of those days hold the
+details). This file lists only what remains. Keep it short: delete a line once it's done, record
+what you discover.
 
 ## Contents
-1. Where the code stands
+1. Not verified outside the tests yet
 2. Open debt
 3. Remaining steps
 4. How to run a step
 
 ---
 
-## 1. Where the code stands
+## 1. Not verified outside the tests yet
 
-- **Layers everywhere**: each feature has the `domain/ data/ providers/ screens/ widgets/` it
-  needs; the feature graph is declared in `test/architecture/architecture_test.dart` and
-  `knownViolations` is empty — a new violation is fixed in the code, never listed.
-- **Domain**: pure models with `==`, drafts (`BirthdayDraft`), typed failures (`AuthFailure`,
-  `BookFailure`, `ContactImportFailure`), rules as functions taking `today` or `now`
-  (`birthday_dates.dart`, `reminder_plan.dart`); only `clockProvider`/`todayProvider` read the
-  clock.
-- **Data**: SDKs injected from `core/providers/`; Firestore mapping private to each repository,
-  tolerant on read; multi-document writes through `writeInBatches`.
-- **State**: session-scoped streams on `currentUidProvider`; one controller per family of actions
-  (`BirthdayEditor`, `CategoryEditor`, `BookEditor`…) with optimistic writes whose failures a
-  host screen announces; side effects (`reminderSyncProvider`) activated from `app/`.
-- **Composition**: `app/` owns the router, the shell and the bootstrap. go_router (`app/router/`,
-  `appRouterProvider`) redirects on `authAccessProvider`; the tabs are branches of a
-  `StatefulShellRoute` that keep their state; features navigate by path
-  (`core/routing/app_routes.dart`) with `context.go` / `context.push`.
-- **Auth**: the session (`authUserProvider`, Firebase `userChanges`), the biometric lock
-  (`biometricLockProvider`) and the actions (`AuthController`) are separate; the router picks
-  the screen from `authAccessProvider` (pure rules `authAccess`, `accessRedirect`). The
-  fingerprint only unlocks the session of its own account. No legacy notifier is left.
-
-**Not verified outside the tests yet** — delete each line once done:
+Delete each line once done:
 - `firestore.rules` deployed by the maintainer (owner pinned on update, M0):
   `firebase deploy --only firestore:rules`.
-- M2–M6 and M9 on the phone: sign-in (email and sign-up land on the app, not on the form; Google,
-  where a cancel stays silent; anonymous), a restored session locked behind the fingerprint
-  without the app flashing first, unlock, a revoked fingerprint (`biometricToken` changed in the
-  console) signing out with « La connexion biométrique n'est plus valide… », sign-out with the
-  fingerprint on (lock only) and off,
-  enabling and disabling the fingerprint in the settings, birthday with a photo (kept when editing
-  without a new one), category created offline (the sheet closes at once), contacts import
-  refused (« Permission refusée. »), account deletion with the fingerprint on or off (birthdays,
-  books and profile gone, no error), reminders at 10:00 on J-0 and J-7 without duplicates after
-  the update, birthdays tab shown again after signing back in.
-- M7 on the phone: a tab keeps its scroll and search when you come back to it, the settings
-  open above the tab and back returns to it, back from the e-mail sign-in returns to the
-  sign-in choice, the system back button on a tab leaves the app.
+- M2–M6 and M9 on the emulator (device skill), all behind the maintainer: sign-in (email and
+  sign-up land on the app, not on the form; Google, where a cancel stays silent; anonymous), a
+  restored session locked behind the fingerprint without the app flashing first, unlock, a
+  revoked fingerprint (`biometricToken` changed in the console) signing out with « La connexion
+  biométrique n'est plus valide… », sign-out with the fingerprint on (lock only) and off,
+  enabling and disabling the fingerprint in the settings (the switch shows only once a screen
+  lock and a finger are enrolled, device recipes §9), birthday with a photo (kept when editing
+  without a new one; the gallery, no camera needed), category created offline (the sheet closes
+  at once), account deletion with the fingerprint on or off (birthdays, books and profile gone,
+  no error) on a test account, birthdays tab shown again after signing back in.
 
-**Done**
-
-| Step | Date | Outcome |
-|------|------|---------|
-| M0 | 2026-10-08 | architecture test, stricter lints, `riverpod_lint`, document owner pinned in the rules |
-| M1 | 2026-10-08 | infrastructure and session providers; SDKs injected into repositories and services |
-| M2 | 2026-10-09 | data derived from the session, controllers with optimistic writes |
-| M3 | 2026-10-09 | pure domain models, Firestore mapping inside repositories, date rules |
-| M4 | 2026-10-09 | shell and route table in `app/`, paths in `core/routing/`, `settings` feature |
-| M5 | 2026-10-09 | typed failures, no `AppLocalizations` in state, optimistic category writes |
-| M6 | 2026-10-09 | `reminders` feature plans J-0/J-7; `NotificationService` only schedules |
-| M9 | 2026-10-11 | auth split: session stream, biometric lock, `AuthController`; `App` waits for both before choosing a screen |
-| M8 | 2026-10-11 | concept names (`UserProfile`, `Birthday`, `Book`); every screen and widget test mirrors `lib/`; the data move stays open (§3) |
-| M7 | 2026-10-11 | go_router 17.5.0: router provider with access redirects, tabs as stateful branches, paths `/auth/login`, `/birthdays`, `/scanner` |
-| A16 | 2026-10-18 | `invalid-credential` → `AuthFailure.invalidCredentials`, offline → `AuthFailure.network`, with the welcome (UX step 5.1) |
-
-The commit messages of those days hold the details. Bugs found on the way (DST day counts,
-batches over 500 writes, books left behind by account deletion, blank names, error shown on a
-cancelled Google sign-in, sign-in screens left on top of the app, account deletion failing with
-the fingerprint on, a fingerprint opening the app without a Firebase session or on another
-account's session, a sign-out that left the session open) are fixed and tested.
+Checked on the emulator on 2026-10-18 and removed from the list: reminders (120 planned for 60
+birthdays, J-0 and J-7 all at 10:00, no duplicate id, AlarmManager holding the same 120; a J-0
+and a J-7 fired once each, the J-7 on the DST change), contacts import refused, a tab keeping
+its scroll, settings above the tab and back, back from the e-mail sign-in, system back leaving
+the app. The search is now its own screen (`birthday_search_screen.dart`) that hides the tabs,
+so « keeps its search » no longer applies.
 
 ## 2. Open debt
 
@@ -88,11 +49,11 @@ ux-ui backlog (`ux-backlog.md`), not here.
 Recommended order: M10 only on a concrete need. A local fix (A15) goes with any change
 touching its files. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent + review).
 
-### With B3/B4 — notification taps open a page · S
-- Left out of M7 until a page exists to open: the payload of a reminder is a route path
-  (`ReminderNotification`), `NotificationService` hands taps
-  (`onDidReceiveNotificationResponse`, and the launch details on a cold start) to the router,
-  which `go`es there behind the access redirects.
+### With B4 — a notification tap opens the person page · S
+- Taps already reach the app: `NotificationService` streams them (cold start included) and
+  `app/bootstrap/app_initializer.dart` handles « Souhaiter » (payload = birthday id). A tap on
+  the notification itself only opens the app: once the person page exists, `go` there, behind
+  the access redirects.
 
 ### M10 — Per-user collections · L · system change, only on a concrete need
 - Left out of M8: move `birthday`/`books` to `user/{uid}/…` — data migration with dual read,
@@ -112,6 +73,6 @@ touching its files. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent + revie
 5. After changing providers or shared test fakes, re-run the ux-ui snapshot script: the analyzer
    skips `.claude/` and the script only compiles once copied, so only a run proves it still works
    (steps in its header).
-6. Update this file: a line in *Done*, the cleared debt deleted, discoveries added to §2; general
-   gotchas go to `patterns.md` §15.
+6. Update this file: the finished step and the cleared debt deleted, discoveries added to §2;
+   general gotchas go to `patterns.md` §15.
 7. Commit per the git-workflow skill: one intent per commit, `git add <paths> && git commit`.

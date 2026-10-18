@@ -47,37 +47,40 @@ Every dependency is pinned to an exact version.
 | Icon / splash, after changing their pubspec config | `dart run flutter_launcher_icons` · `dart run flutter_native_splash:create` |
 
 The app reads `GOOGLE_BOOKS_API_KEY` from `secrets.json` through `--dart-define-from-file`.
-In Claude Code, a hook (`.claude/settings.json`) formats every `.dart` file right after it is
-written or edited, and reading `secrets.json` is denied; other agents run `dart format`
-themselves.
+In Claude Code, hooks (`.claude/settings.json`, scripts in `.claude/hooks/`) show the git state
+at session start, format every `.dart` file right after it is written or edited, block blind,
+merging or forced git commands and `firebase deploy`, and ask the maintainer before a push or
+anything that discards work; reading `secrets.json` is denied. Other agents follow the same
+rules by hand.
 
 ## Code map
 
 ```
 lib/main.dart       process start: Firebase, notifications, ProviderScope
 lib/app/            composition root — MaterialApp, route table, shell (tabs), bootstrap; the only code that knows every feature
-lib/core/           feature-agnostic — common/ (dumb shared widgets), theme/, services/ (plugin wrappers),
-                    providers/, routing/ (route paths), extensions/, config/; never imports app/ or a feature
+lib/core/           feature-agnostic — common/ (dumb shared widgets), theme/, animations/, services/ (plugin
+                    wrappers), providers/, routing/ (route paths), extensions/, config/, constants/;
+                    never imports app/ or a feature
 lib/features/<f>/   auth · user · birthday · book_scanner · reminders · settings — domain/, data/, providers/, screens/, widgets/
 lib/l10n/           intl_fr.arb (template) + intl_en.arb; app_localizations*.dart are generated
 test/               mirrors lib/; test/support/ holds the widget harness and shared fakes
 scripts/            PowerShell: run, build and deploy
 ```
 
-## Architecture: target vs today
+## Architecture
 
-Target: feature-first layered MVVM — `screens/ widgets/ → providers/ → data/ → domain/` inside
-each feature, features linked by a declared acyclic graph, rules enforced by
-`test/architecture/architecture_test.dart` (known debt listed there, it only shrinks). Today's
-code predates the target; the plan is `.claude/skills/architecture/references/migration.md`
-(M0–M9 done; M10 waits for a concrete need and approval).
+Feature-first layered MVVM: `screens/ widgets/ → providers/ → data/ → domain/` inside each
+feature, features linked by a declared acyclic graph. `test/architecture/architecture_test.dart`
+enforces it and lists no known violation; what still differs (open debt, per-user collections)
+is in `.claude/skills/architecture/references/migration.md`.
 
-- Never copy a legacy pattern into new code: session handling with `startListening`/`clear()`,
-  `XState` with `isLoading`/`errorMessage` strings, `AppLocalizations` passed to notifiers,
-  `.instance` singletons read by features, `FirebaseFirestore.instance` defaults, raw route
-  strings, `DateTime.now()` outside the clock provider, models importing Firestore or Flutter.
-- Don't migrate opportunistically either: a bug fix stays a bug fix. Structural moves follow the
-  plan, one step per commit, behaviour locked by tests first.
+- Banned, and gone from the code: session handling with `startListening`/`clear()`, `XState`
+  with `isLoading`/`errorMessage` strings, `AppLocalizations` in notifiers, `.instance`
+  singletons read outside a provider or a plugin wrapper, `FirebaseFirestore.instance` defaults
+  in repositories, raw route strings, `DateTime.now()` outside `clockProvider`, models importing
+  Firestore or Flutter UI (`flutter/foundation.dart` is allowed).
+- A bug fix stays a bug fix: restructuring is its own change, one step per commit, behaviour
+  locked by tests first.
 
 ## House rules — every task
 
@@ -93,8 +96,8 @@ code predates the target; the plan is `.claude/skills/architecture/references/mi
   copies the object, never by default.
 - Strong typing: no `dynamic` in app code (analyzer strict modes are on); `const` wherever
   possible; past ~300 lines, split a widget into private widget classes.
-- Every Firestore read and write is scoped to the signed-in user (path or `uid` filter);
-  multi-document writes go in a `WriteBatch`.
+- Every Firestore read and write is scoped to the signed-in user (path or `uid` filter), except
+  the shared `category` collection; multi-document writes go through `writeInBatches`.
 - Ask before adding a package, a plugin, an Android permission or a data migration; pin exact
   versions (no `^`).
 - Every change ships with tests at each layer it touches; aim for meaningful coverage close to
@@ -111,7 +114,7 @@ code predates the target; the plan is `.claude/skills/architecture/references/mi
 | Run, see or debug the app on the emulator or the phone: launch, screenshots, logs, dark mode, 200 % text, permissions, reminders | `.claude/skills/device/SKILL.md` |
 | Commit, branch, pull request | `.claude/skills/git-workflow/SKILL.md` |
 | Upgrade Flutter, packages or the Android toolchain | `/deps-upgrade` — only the maintainer starts it (`.claude/skills/deps-upgrade/SKILL.md`); asked for an upgrade otherwise, suggest it |
-| Rules for the zone you edit: UI, state, data, tests, l10n, platform | `.claude/rules/*.md` — loaded automatically by Claude Code; other agents read the matching file |
+| Rules for the zone you edit: UI, state, data, navigation, reminders, tests, l10n, platform | `.claude/rules/*.md` — loaded automatically by Claude Code; other agents read the matching file |
 | Why the architecture is what it is, and when to revisit it | `.claude/skills/architecture/references/decisions.md` |
 | What to do next | `.claude/skills/ux-ui/references/ux-backlog.md` (product, UX) · `.claude/skills/architecture/references/migration.md` (code) |
 
@@ -123,7 +126,8 @@ code predates the target; the plan is `.claude/skills/architecture/references/mi
   stored as 2000 with `yearKnown: false`.
 - **Category** (« catégorie ») — a label with an icon. Documents in the shared top-level
   `category` collection; each user picks theirs in `user/{uid}.categories`.
-- **User** — the profile document `user/{uid}`: name, pseudo, categories, theme, locale.
+- **User** — the profile document `user/{uid}`: name, surname, pseudo, categories, theme
+  (`isDark`), locale, biometric token.
 - **Reminder** — local notifications on the day (J-0) and 7 days before (J-7), at 10:00 device time;
   the J-0 one carries « Souhaiter » (Android), which opens AnKi on the share sheet.
 - **Book** — scanned by ISBN and looked up on Google Books; the seed of the gift-ideas feature.

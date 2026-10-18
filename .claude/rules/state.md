@@ -24,14 +24,15 @@ Riverpod 3.4 with hand-written providers. Patterns with code: architecture skill
   `todayProvider`, e.g. `birthday_dates.dart`); providers only wire them.
 - `==`/`hashCode` on every state class: Riverpod 3 filters updates with `==`.
 
-## Target shapes for new code
+## Shapes
 
 - Data the UI shows: a session-scoped `StreamProvider` watching `currentUidProvider`, so sign-in,
   account switch and sign-out are correct by construction. No `startListening(uid)`/`clear()`.
 - Actions: one controller per family of actions (`AsyncNotifier<void>`, named by role:
   `IdeaEditor`), publishing progress and failure as `AsyncValue`. Optimistic Firestore writes
-  aren't awaited by the UI (they resolve on server acknowledgement, never offline); awaited
-  operations (sign-in, ISBN lookup) start with `if (state.isLoading) return;`.
+  aren't awaited by the UI (they resolve on server acknowledgement, never offline); an awaited
+  operation the user can trigger twice starts with `if (state.isLoading) return…;`
+  (`AuthController`, `BirthdayWisher`, `ContactImport`).
 - UI state (search text, filters, view mode): a small `Notifier<T>` whose `build` watches the
   session, so it resets at sign-out.
 - Derived views: a `Provider` calling a domain function; `autoDispose` + `family` per screen or
@@ -43,10 +44,10 @@ Riverpod 3.4 with hand-written providers. Patterns with code: architecture skill
 
 ## Auth state
 
-Since M9: the session is `authUserProvider` (Firebase `userChanges`), the biometric lock
+The session is `authUserProvider` (Firebase `userChanges`), the biometric lock
 `biometricLockProvider`, the actions `AuthController` (awaited operations, failures as
 `AsyncError(AuthFailure)`); `currentUidProvider` derives from the session, `authAccessProvider`
 from both. The fingerprint only unlocks the Firebase session of the account that enabled it:
-without a session nothing opens, and a token refused by the profile closes the session. No legacy
-notifier is left: copy the target shapes above, e.g. `BirthdayEditor`, `CategoryEditor`,
-`ContactImport`, `AuthController`, `userProfileProvider`.
+without a session nothing opens, and a token refused by the profile closes the session. Examples
+of the shapes above: `BirthdayEditor`, `CategoryEditor`, `ContactImport`, `AuthController`,
+`userProfileProvider`.

@@ -26,7 +26,8 @@ it can be the starting point after a design pass with the ux-ui skill.
 
 ## Trying it in the repo
 
-Requires the foundation files (migration step M1):
+The providers it relies on (`firestoreProvider`, `clockProvider`, `currentUidProvider`) are in
+`lib/`:
 
 ```bash
 S=.claude/skills/architecture/assets

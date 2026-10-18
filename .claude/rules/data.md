@@ -29,7 +29,7 @@ Patterns with code: architecture skill, `references/patterns.md` §1–4; decisi
 
 - Fetch and push only: no state, no business rule, no UI string, no `BuildContext`; never call
   another feature's repository.
-- SDKs come through the constructor (target: from `firestoreProvider`); no new
+- SDKs come through the constructor (from `firestoreProvider`, `firebaseAuthProvider`, …); no
   `FirebaseFirestore.instance` default. `xRepositoryProvider` sits next to the class.
 - Translate SDK exceptions into the feature's failures at the boundary, keeping the stack trace
   (`Error.throwWithStackTrace`).
@@ -39,14 +39,15 @@ Patterns with code: architecture skill, `references/patterns.md` §1–4; decisi
   `FieldValue.serverTimestamp()` (null in local snapshots until acknowledged).
 - Tolerant reads (absent field → default, never `data()!`); omit null optionals on write. A new
   field keeps old documents readable and gets a repository test with an old-shape document.
-- Multi-document writes in a `WriteBatch` (≤ 500 operations).
+- Multi-document writes through `writeInBatches` (`core/extensions/firestore_extensions.dart`:
+  `WriteBatch`es of ≤ 500 operations).
 - Photos are compressed base64 inside the document (512 px, quality 80; no Firebase Storage):
   keep them small, a Firestore document is capped at 1 MiB.
 
 ## Firestore layout and rules
 
 - New per-user collections live under `user/{uid}/<collection>`: isolation comes from the path.
-- Legacy top-level `birthday` and `books` documents carry `uid`: every query filters
+- The top-level `birthday` and `books` documents (until step M10) carry `uid`: every query filters
   `where('uid', isEqualTo: uid)` (rules are not filters — a query without it is rejected) and
   every create sets it. `category` documents are shared: any signed-in user reads and creates.
 - A new collection or path changes `firestore.rules` in the same change; on update, the owner

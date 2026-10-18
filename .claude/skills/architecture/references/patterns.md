@@ -1,9 +1,10 @@
 # Patterns — how to write each building block
 
 Riverpod 3.4 without codegen, Firebase, Dart 3.13, Flutter 3.47. Every snippet here was compiled
-and exercised against the repo's dependencies on 2026-10-07. The complete, tested reference
-implementation is the gift-ideas feature in `assets/example/` — read it before building a feature;
-this file explains the choices and the variants.
+and exercised against the repo's dependencies when written. A complete, minimal feature to copy is the
+gift-ideas example in `assets/example/` (the seed of backlog B4); the app's own features follow
+the same patterns, `birthday` being the most complete. This file explains the choices and the
+variants.
 
 ## Contents
 1. Domain model
@@ -58,7 +59,7 @@ class const Idea({
   updates with `==`, and tests compare values. Lists: `listEquals(a, b)` and `Object.hashAll`
   from `package:flutter/foundation.dart`.
 - No `fromFirestore`/`toJson` on domain models: mapping lives in private functions of the
-  repository (every feature since M3).
+  repository.
 - Form input is its own type (`IdeaDraft`) carrying the validation rule (`isValid`) used by both
   the button state and the controller. Files picked by the user become bytes or a path in the
   draft, never an `XFile` (that is a plugin type).
@@ -95,7 +96,7 @@ final todayProvider = Provider<DateTime>((ref) {
 });
 ```
 
-Both live in `assets/foundation/lib/core/providers/clock_provider.dart` (with tests).
+Both live in `lib/core/providers/clock_provider.dart` (with tests).
 `clockProvider` is `Provider<DateTime Function()>`; tests pin it with
 `clockProvider.overrideWithValue(() => DateTime(2026, 3, 12))`, widget tests pin `todayProvider`
 directly. One implementation per rule: the notification scheduler and the home screen call the
@@ -124,7 +125,7 @@ Future<T> _guard<T>(Future<T> Function() write) async {
 ```
 
   Auth follows the same shape: `AuthRepository` maps `FirebaseAuthException.code` to an
-  `AuthFailure`, so no layer above knows Firebase codes and notifiers stop taking `l10n`.
+  `AuthFailure`, so no layer above knows Firebase codes or takes `l10n`.
 - The UI maps failures to words with an exhaustive `switch` (`widgets/idea_failure_text.dart`),
   with a fallback for unexpected errors (`l10n.errorUnknown`).
 - No `Result`/`Either` type: `AsyncValue` already carries data-or-error up to the UI, and typed
@@ -185,8 +186,8 @@ final ideaRepositoryProvider = Provider<IdeaRepository>(
   (`data['title'] as String? ?? ''`, never `data()!`); null-aware map entries to omit optionals
   (`'note': ?draft.note`). A schema change (birth year made optional) reads both shapes in the
   mapper and writes the new one — no migration script needed for additive changes.
-- Multi-document operations use `WriteBatch`; repositories never call another feature's
-  repository.
+- Multi-document operations go through `writeInBatches` (`core/extensions/firestore_extensions.dart`,
+  `WriteBatch`es of ≤ 500 operations); repositories never call another feature's repository.
 
 ## 5. Service (plugin wrapper)
 
@@ -239,7 +240,7 @@ final personIdeasProvider = Provider.autoDispose
 - One family argument; several → a record `(String?, int)` (value equality).
 - `autoDispose` for per-screen or per-id providers; session data stays alive.
 - Narrow rebuilds with `select`:
-  `ref.watch(userProvider.select((s) => s.user?.displayName))`.
+  `ref.watch(userProfileProvider.select((profile) => profile.value?.pseudo))`.
 
 ## 8. UI-state notifiers
 
@@ -504,8 +505,8 @@ test('streams the ideas of the signed-in user', () async {
 - A repository that gains a method needs it in its shared fake (`test/support/fake_providers.dart`):
   `Fake` throws on anything not overridden, and every harness test using the default overrides
   crashes.
-- Widget tests pin time with `todayProvider.overrideWithValue(DateTime(2026, 3, 12))`: the real
-  provider arms a midnight `Timer` that fails the pending-timer check.
+- Pin time with `todayProvider.overrideWithValue(DateTime(2026, 3, 12))` when an assertion
+  depends on the day; otherwise no override is needed (§15).
 - Dependents are recomputed lazily: after changing a source in a test, re-read the dependent
   provider rather than counting synchronous listener calls.
 - Exceptions on fake Firestore: `whenCalling(Invocation.method(#delete, null)).on(docRef)
@@ -519,7 +520,7 @@ test('streams the ideas of the signed-in user', () async {
 - Methods use `ref.read`; only `build` uses `ref.watch`. A `ref.watch` getter called from a
   method is a bug waiting to happen.
 - Automatic retry is on by default (10 tries, 200 ms → 6.4 s) for exceptions: render `hasError`
-  first. Tests turn it off — the widget harness does since M0, `ProviderContainer.test` takes
+  first. Tests turn it off — the widget harness does, `ProviderContainer.test` takes
   `retry: (_, _) => null`.
 - Paused providers: hidden widgets (`TickerMode`) pause their listeners; side-effect providers
   must be watched from an always-visible widget.

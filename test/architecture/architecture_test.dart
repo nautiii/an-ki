@@ -29,12 +29,10 @@ const featureDependencies = <String, Set<String>>{
 /// Dossiers autorisés directement sous `lib/features/<feature>/`.
 const featureLayers = {'domain', 'data', 'providers', 'screens', 'widgets'};
 
-/// Dette connue, à résorber étape par étape (`references/migration.md`).
+/// Dette connue : vide depuis le 2026-10-11 et elle doit le rester — une
+/// nouvelle violation se corrige dans le code, jamais ici.
 /// Format : `<fichier> -> <cible> [règle]`. Le test échoue aussi quand une
 /// ligne ne correspond plus à rien : la retirer.
-///
-/// Relevé du 2026-10-07 ; si le code a bougé avant l'installation, le
-/// premier lancement liste les lignes à ajouter ou retirer.
 const knownViolations = <String>{};
 
 /// Ce que chaque règle protège, et comment corriger.
