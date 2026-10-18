@@ -1,6 +1,6 @@
-# An Ki 🎂
+# AnKi 🎂
 
-**An Ki** est une application Flutter moderne conçue pour vous aider à ne plus jamais oublier un
+**AnKi** est une application Flutter moderne conçue pour vous aider à ne plus jamais oublier un
 anniversaire. Simple, élégante et efficace.
 
 ## 🚀 Fonctionnalités
@@ -8,7 +8,8 @@ anniversaire. Simple, élégante et efficace.
 - 🔐 **Authentification Multi-plateforme** : Connectez-vous via Google, Email ou restez anonyme (avec
   option de sauvegarde ultérieure).
 - 📅 **Gestion des Anniversaires** : Ajoutez, modifiez et organisez les anniversaires de vos proches.
-- 📂 **Catégorisation** : Classez vos contacts par catégories (Famille, Amis, Collègues, Autre).
+- 📂 **Catégorisation** : Classez vos proches par catégories prédéfinies (Famille, Ami, Sport…) ou
+  par les vôtres.
 - 🔔 **Rappels** : Notifications le jour J et 7 jours avant, programmées sur l'appareil (même
   hors ligne).
 - 🌓 **Mode Sombre/Clair** : Interface adaptative selon vos préférences.
@@ -29,7 +30,7 @@ anniversaire. Simple, élégante et efficace.
 
 1. **Cloner le projet** :
    ```bash
-   git clone https://github.com/votre-username/kairos.git
+   git clone https://github.com/nautiii/kairos.git
    cd kairos
    ```
 
@@ -38,12 +39,13 @@ anniversaire. Simple, élégante et efficace.
    flutter pub get
    ```
 
-3. **Configuration Firebase** :
-    - Créez un projet sur la [Console Firebase](https://console.firebase.google.com/).
-    - Ajoutez les applications Android et iOS.
-    - Téléchargez et placez les fichiers `google-services.json` et `GoogleService-Info.plist` dans
-      les dossiers respectifs.
-    - Activez l'Authentification (Email, Google, Anonyme) et Firestore.
+3. **Configuration Firebase** : la configuration client du projet (`android/app/google-services.json`,
+   `lib/core/firebase_options.dart`) est versionnée. Pour utiliser votre propre projet Firebase :
+    - activez l'authentification (e-mail, Google, anonyme) et Firestore dans la
+      [console Firebase](https://console.firebase.google.com/) ;
+    - lancez `flutterfire configure --platforms=android,ios`, puis déplacez le
+      `lib/firebase_options.dart` généré dans `lib/core/` ;
+    - pour la connexion Google, enregistrez l'empreinte SHA-1 de votre clé de signature.
 
 4. **Configurer les secrets** : copiez `secrets.example.json` en `secrets.json` (ignoré par git)
    et renseignez la clé `GOOGLE_BOOKS_API_KEY` (clé Google Books, restreinte à l'app Android).
