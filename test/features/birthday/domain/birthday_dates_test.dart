@@ -88,6 +88,36 @@ void main() {
     });
   });
 
+  group('lastOccurrence', () {
+    test('is today on the birthday itself', () {
+      expect(
+        _born(DateTime(1990, 6, 15)).lastOccurrence(today),
+        DateTime(2026, 6, 15),
+      );
+    });
+
+    test('stays in the current year once the birthday has passed', () {
+      expect(
+        _born(DateTime(1990, 6, 14)).lastOccurrence(today),
+        DateTime(2026, 6, 14),
+      );
+    });
+
+    test('goes back a year for a birthday still ahead', () {
+      expect(
+        _born(DateTime(1990, 12, 31)).lastOccurrence(DateTime(2027)),
+        DateTime(2026, 12, 31),
+      );
+    });
+
+    test('ignores the time of day of today', () {
+      expect(
+        _born(DateTime(1990, 6, 15)).lastOccurrence(DateTime(2026, 6, 15, 8)),
+        DateTime(2026, 6, 15),
+      );
+    });
+  });
+
   group('turningAge', () {
     test('is the age reached at the next birthday', () {
       expect(_born(DateTime(1990, 6, 20)).turningAge(today), 36);

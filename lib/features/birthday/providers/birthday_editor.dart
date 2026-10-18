@@ -31,6 +31,16 @@ class BirthdayEditor extends AsyncNotifier<void> {
     (_) => ref.read(birthdayRepositoryProvider).deleteBirthday(birthdayId),
   );
 
+  /// Marque souhaité l'anniversaire de [year] (`BirthdayWishes.wishYear`).
+  Future<void> markWished(String birthdayId, int year) => _write(
+    (_) => ref.read(birthdayRepositoryProvider).markWished(birthdayId, year),
+  );
+
+  /// Annule [markWished].
+  Future<void> unmarkWished(String birthdayId, int year) => _write(
+    (_) => ref.read(birthdayRepositoryProvider).unmarkWished(birthdayId, year),
+  );
+
   /// Exécute une écriture pour l'utilisateur courant et publie son issue.
   /// Hors session, ne fait rien (comme l'UI avant elle).
   Future<void> _write(Future<void> Function(String uid) write) async {

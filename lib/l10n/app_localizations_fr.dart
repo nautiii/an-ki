@@ -250,6 +250,17 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get alreadyWished => 'Déjà souhaité';
+
+  @override
+  String get wished => 'Souhaité';
+
+  @override
+  String birthdayWished(String name) {
+    return 'Anniversaire de $name souhaité';
+  }
+
+  @override
   String get undo => 'Annuler';
 
   @override

@@ -80,6 +80,9 @@
       }
     }
   },
+  "alreadyWished": "Already wished",
+  "wished": "Wished",
+  "birthdayWished": "Wished {name} a happy birthday",
   "undo": "Undo",
   "delete": "Delete",
   "newCategory": "New category",

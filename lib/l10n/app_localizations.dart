@@ -488,6 +488,24 @@ abstract class AppLocalizations {
   /// **'Anniversaire de {name} supprimé'**
   String birthdayDeleted(String name);
 
+  /// Bouton du héros le jour J : l'anniversaire a été souhaité hors d'AnKi (de vive voix, par téléphone)
+  ///
+  /// In fr, this message translates to:
+  /// **'Déjà souhaité'**
+  String get alreadyWished;
+
+  /// Pastille du héros une fois l'anniversaire du jour souhaité
+  ///
+  /// In fr, this message translates to:
+  /// **'Souhaité'**
+  String get wished;
+
+  /// Snackbar après avoir souhaité un anniversaire, avec « Annuler »
+  ///
+  /// In fr, this message translates to:
+  /// **'Anniversaire de {name} souhaité'**
+  String birthdayWished(String name);
+
   /// Action de la snackbar qui rétablit un anniversaire supprimé
   ///
   /// In fr, this message translates to:

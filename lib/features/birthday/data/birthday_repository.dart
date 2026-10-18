@@ -50,6 +50,20 @@ class BirthdayRepository {
     BirthdayDraft draft,
   ) => _birthdays.doc(birthdayId).update({..._draftToMap(draft), 'uid': uid});
 
+  /// Marque l'anniversaire de [year] souhaité. `arrayUnion` n'ajoute l'année
+  /// qu'une fois et ne touche à aucun autre champ ; la propriété du document
+  /// est vérifiée par les règles Firestore.
+  Future<void> markWished(String birthdayId, int year) =>
+      _birthdays.doc(birthdayId).update({
+        'wishedYears': FieldValue.arrayUnion([year]),
+      });
+
+  /// Retire [year] des années souhaitées (« Annuler »).
+  Future<void> unmarkWished(String birthdayId, int year) =>
+      _birthdays.doc(birthdayId).update({
+        'wishedYears': FieldValue.arrayRemove([year]),
+      });
+
   /// Supprime un anniversaire. La propriété du document est vérifiée par les
   /// règles Firestore : pas de lecture préalable, qui retarderait l'écriture.
   Future<void> deleteBirthday(String birthdayId) =>
@@ -91,6 +105,11 @@ Birthday? _birthdayFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
       data['categories'] as List<dynamic>? ?? const [],
     ),
     picture: _decodePicture(data['picture'] as String?),
+    // Absent des documents écrits avant « souhaité » : jamais souhaité.
+    wishedYears: [
+      for (final year in data['wishedYears'] as List<dynamic>? ?? const [])
+        if (year is int) year,
+    ],
   );
 }
 

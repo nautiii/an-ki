@@ -7,9 +7,11 @@ import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
+import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_display.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -86,6 +88,34 @@ class _HeroCard extends StatelessWidget {
     };
     // Grand texte : avatar et âge passent au-dessus, le texte prend la largeur.
     final reflow = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
+    final identity = Padding(
+      // Le jour J, les actions prennent le bas de la carte.
+      padding: isToday
+          ? const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.sm,
+            )
+          : const EdgeInsets.all(AppSpacing.md),
+      child: reflow
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [avatar, const Spacer(), ?age]),
+                const SizedBox(height: AppSpacing.sm),
+                details,
+              ],
+            )
+          : Row(
+              children: [
+                avatar,
+                const SizedBox(width: AppSpacing.md),
+                Expanded(child: details),
+                if (age != null) ...[const SizedBox(width: AppSpacing.sm), age],
+              ],
+            ),
+    );
 
     return DecoratedBox(
       decoration: ShapeDecoration(
@@ -97,41 +127,41 @@ class _HeroCard extends StatelessWidget {
         type: MaterialType.transparency,
         shape: _shape,
         clipBehavior: Clip.antiAlias,
-        child: MergeSemantics(
-          child: Semantics(
-            button: true,
-            child: InkWell(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                BirthdayFormSheet.show(context, birthdayToEdit: birthday);
-              },
-              splashColor: onColor.withValues(alpha: 0.12),
-              highlightColor: onColor.withValues(alpha: 0.08),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: reflow
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(children: [avatar, const Spacer(), ?age]),
-                          const SizedBox(height: AppSpacing.sm),
-                          details,
-                        ],
-                      )
-                    : Row(
-                        children: [
-                          avatar,
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(child: details),
-                          if (age != null) ...[
-                            const SizedBox(width: AppSpacing.sm),
-                            age,
-                          ],
-                        ],
-                      ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Toucher la personne ouvre sa fiche ; les actions du jour J
+            // restent des cibles à part pour les lecteurs d'écran.
+            MergeSemantics(
+              child: Semantics(
+                button: true,
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    BirthdayFormSheet.show(context, birthdayToEdit: birthday);
+                  },
+                  splashColor: onColor.withValues(alpha: 0.12),
+                  highlightColor: onColor.withValues(alpha: 0.08),
+                  child: identity,
+                ),
               ),
             ),
-          ),
+            if (isToday)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  0,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                ),
+                child: WishActions(
+                  birthday: birthday,
+                  wished: birthday.isWished(today),
+                  onColor: onColor,
+                ),
+              ),
+          ],
         ),
       ),
     );

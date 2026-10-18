@@ -178,6 +178,12 @@ class FakeBirthdayRepository extends Fake implements BirthdayRepository {
   Future<void> deleteBirthday(String birthdayId) async {}
 
   @override
+  Future<void> markWished(String birthdayId, int year) async {}
+
+  @override
+  Future<void> unmarkWished(String birthdayId, int year) async {}
+
+  @override
   Future<void> deleteAllUserBirthdays(String uid) async {}
 }
 
@@ -197,10 +203,26 @@ class RecordingBirthdayRepository extends FakeBirthdayRepository {
   final deleted = <String>[];
   final erasedUids = <String>[];
 
+  /// Vœux marqués puis annulés, dans l'ordre : (id, année).
+  final wished = <(String, int)>[];
+  final unwished = <(String, int)>[];
+
   @override
   Stream<List<Birthday>> watchBirthdays(String uid) {
     watchedUids.add(uid);
     return Stream.value(initial);
+  }
+
+  @override
+  Future<void> markWished(String birthdayId, int year) async {
+    _maybeFail();
+    wished.add((birthdayId, year));
+  }
+
+  @override
+  Future<void> unmarkWished(String birthdayId, int year) async {
+    _maybeFail();
+    unwished.add((birthdayId, year));
   }
 
   @override

@@ -2,7 +2,7 @@ import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:flutter/foundation.dart';
 
 /// Anniversaire d'une personne : identité, date de naissance (année
-/// facultative), catégories et photo éventuelle.
+/// facultative), catégories, photo éventuelle et années où il a été souhaité.
 ///
 /// Modèle de domaine : Dart pur, immuable, sans Firebase ni Flutter UI. La
 /// conversion Firestore (photo en base64 comprise) vit dans
@@ -16,6 +16,10 @@ class const Birthday({
 
   /// Photo compressée (octets JPEG ou PNG), null sans photo.
   final Uint8List? picture,
+
+  /// Années dont l'anniversaire a été souhaité (`BirthdayWishes` dit
+  /// laquelle compte aujourd'hui) ; l'historique reste.
+  final List<int> wishedYears = const [],
 }) {
   /// Prénom et nom réunis, sans espace de trop quand l'un manque
   /// (« Mamie »).
@@ -30,7 +34,8 @@ class const Birthday({
       other.surname == surname &&
       other.date == date &&
       listEquals(other.categories, categories) &&
-      listEquals(other.picture, picture);
+      listEquals(other.picture, picture) &&
+      listEquals(other.wishedYears, wishedYears);
 
   // La photo ne contribue que par sa taille : hacher ses octets serait coûteux
   // et la taille suffit à rester cohérent avec ==.
@@ -42,5 +47,6 @@ class const Birthday({
     date,
     Object.hashAll(categories),
     picture?.length,
+    Object.hashAll(wishedYears),
   );
 }

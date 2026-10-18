@@ -10,6 +10,7 @@ void main() {
     List<String> categories = const ['family'],
     List<int> picture = const [1, 2, 3],
     DateTime? date,
+    List<int> wishedYears = const [2025],
   }) => Birthday(
     id: '1',
     name: 'Alice',
@@ -17,13 +18,18 @@ void main() {
     date: BirthDate.fromDate(date ?? DateTime(1990, 5, 10)),
     categories: categories,
     picture: Uint8List.fromList(picture),
+    wishedYears: wishedYears,
   );
 
   group('equality', () {
-    test('compares by value, categories and picture bytes included', () {
+    test('compares by value, lists and picture bytes included', () {
       final base = birthday();
       // Listes et octets distincts, de même contenu.
-      final same = birthday(categories: ['family'], picture: [1, 2, 3]);
+      final same = birthday(
+        categories: ['family'],
+        picture: [1, 2, 3],
+        wishedYears: [2025],
+      );
 
       expect(same, base);
       expect(same.hashCode, base.hashCode);
@@ -35,6 +41,7 @@ void main() {
       expect(birthday(categories: ['friend']), isNot(base));
       expect(birthday(picture: [9]), isNot(base));
       expect(birthday(date: DateTime(1991, 5, 10)), isNot(base));
+      expect(birthday(wishedYears: [2025, 2026]), isNot(base));
     });
   });
 

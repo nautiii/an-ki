@@ -46,6 +46,28 @@ void main() {
     expect(container.read(birthdayEditorProvider), isA<AsyncData<void>>());
   });
 
+  test('marks and unmarks a wish through the repository', () async {
+    final repo = RecordingBirthdayRepository();
+    final container = makeContainer(repo);
+    final editor = container.read(birthdayEditorProvider.notifier);
+
+    await editor.markWished('id-1', 2026);
+    await editor.unmarkWished('id-1', 2026);
+
+    expect(repo.wished, [('id-1', 2026)]);
+    expect(repo.unwished, [('id-1', 2026)]);
+    expect(container.read(birthdayEditorProvider), isA<AsyncData<void>>());
+  });
+
+  test('publishes a failed wish as an AsyncError', () async {
+    final repo = RecordingBirthdayRepository(failure: Exception('offline'));
+    final container = makeContainer(repo);
+
+    await container.read(birthdayEditorProvider.notifier).markWished('id', 1);
+
+    expect(container.read(birthdayEditorProvider).hasError, isTrue);
+  });
+
   test('does nothing without a session', () async {
     final repo = RecordingBirthdayRepository();
     final container = makeContainer(repo, uid: null);

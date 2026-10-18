@@ -128,6 +128,23 @@
       }
     }
   },
+  "alreadyWished": "Déjà souhaité",
+  "@alreadyWished": {
+    "description": "Bouton du héros le jour J : l'anniversaire a été souhaité hors d'AnKi (de vive voix, par téléphone)"
+  },
+  "wished": "Souhaité",
+  "@wished": {
+    "description": "Pastille du héros une fois l'anniversaire du jour souhaité"
+  },
+  "birthdayWished": "Anniversaire de {name} souhaité",
+  "@birthdayWished": {
+    "description": "Snackbar après avoir souhaité un anniversaire, avec « Annuler »",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "undo": "Annuler",
   "@undo": {
     "description": "Action de la snackbar qui rétablit un anniversaire supprimé"

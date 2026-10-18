@@ -20,6 +20,15 @@ extension BirthDateDates on BirthDate {
     return occurrenceIn(day.year + 1);
   }
 
+  /// Dernier anniversaire à [today], ce jour compris : celui de cette année
+  /// s'il est passé, sinon celui de l'an dernier.
+  DateTime lastOccurrence(DateTime today) {
+    final day = _dayOf(today);
+    final thisYear = occurrenceIn(day.year);
+    if (!thisYear.isAfter(day)) return thisYear;
+    return occurrenceIn(day.year - 1);
+  }
+
   /// Jours avant le prochain anniversaire : 0 le jour même.
   ///
   /// Compté en jours de calendrier (dates UTC) : entre deux minuits locaux,
@@ -53,6 +62,9 @@ extension BirthdayDates on Birthday {
 
   /// Voir [BirthDateDates.nextOccurrence].
   DateTime nextOccurrence(DateTime today) => date.nextOccurrence(today);
+
+  /// Voir [BirthDateDates.lastOccurrence].
+  DateTime lastOccurrence(DateTime today) => date.lastOccurrence(today);
 
   /// Voir [BirthDateDates.daysUntilNext].
   int daysUntilNext(DateTime today) => date.daysUntilNext(today);

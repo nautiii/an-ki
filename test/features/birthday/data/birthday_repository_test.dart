@@ -116,6 +116,19 @@ void main() {
       expect(birthday.date, const BirthDate(month: 10, day: 15));
     });
 
+    test('reads the years wished, skipping what is not a year', () async {
+      await seed({
+        'uid': 'user-1',
+        'name': 'Alice',
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'wishedYears': [2024, 'oops', 2026],
+      });
+
+      final birthday = (await repository.watchBirthdays('user-1').first).single;
+
+      expect(birthday.wishedYears, [2024, 2026]);
+    });
+
     test('drops an undecodable picture', () async {
       await seed({
         'uid': 'user-1',
@@ -236,6 +249,63 @@ void main() {
       await repository.updateBirthday('user-1', ref.id, draft(picture: bytes));
 
       expect((await stored(ref.id))['picture'], base64Encode(bytes));
+    });
+
+    test('keeps the years wished', () async {
+      final ref = await seed({
+        'uid': 'user-1',
+        'name': 'Old',
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'wishedYears': [2025],
+      });
+
+      await repository.updateBirthday('user-1', ref.id, draft());
+
+      expect((await stored(ref.id))['wishedYears'], [2025]);
+    });
+  });
+
+  group('markWished and unmarkWished', () {
+    test('add a year once and leave the other fields alone', () async {
+      final ref = await seed({
+        'uid': 'user-1',
+        'name': 'Alice',
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'wishedYears': [2025],
+      });
+
+      await repository.markWished(ref.id, 2026);
+      await repository.markWished(ref.id, 2026);
+
+      final data = await stored(ref.id);
+      expect(data['wishedYears'], [2025, 2026]);
+      expect(data['uid'], 'user-1');
+      expect(data['name'], 'Alice');
+    });
+
+    test('mark a document written before wishes', () async {
+      final ref = await seed({
+        'uid': 'user-1',
+        'name': 'Alice',
+        'date': Timestamp.fromDate(DateTime(1990)),
+      });
+
+      await repository.markWished(ref.id, 2026);
+
+      expect((await stored(ref.id))['wishedYears'], [2026]);
+    });
+
+    test('remove only the year undone', () async {
+      final ref = await seed({
+        'uid': 'user-1',
+        'name': 'Alice',
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'wishedYears': [2025, 2026],
+      });
+
+      await repository.unmarkWished(ref.id, 2026);
+
+      expect((await stored(ref.id))['wishedYears'], [2025]);
     });
   });
 

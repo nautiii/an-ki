@@ -5,6 +5,7 @@ import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
@@ -33,6 +34,7 @@ void main() {
     String surname = 'Wonderland',
     Uint8List? picture,
     bool yearKnown = true,
+    List<int> wishedYears = const [],
   }) {
     final target = today.add(Duration(days: daysAhead));
     return Birthday(
@@ -45,6 +47,7 @@ void main() {
         day: target.day,
       ),
       picture: picture,
+      wishedYears: wishedYears,
     );
   }
 
@@ -53,6 +56,7 @@ void main() {
     WidgetTester tester, {
     required List<Birthday> birthdays,
     bool isLoading = false,
+    RecordingBirthdayRepository? repository,
   }) async {
     await tester.pumpHarness(
       const Center(child: SizedBox(width: 312, child: NextBirthdayCard())),
@@ -64,6 +68,9 @@ void main() {
         currentUidProvider.overrideWithValue('fake-uid'),
         userProfileProvider.overrideWithValue(const AsyncData(null)),
         categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),
+        birthdayRepositoryProvider.overrideWithValue(
+          repository ?? RecordingBirthdayRepository(),
+        ),
       ],
     );
   }
@@ -142,6 +149,87 @@ void main() {
       expect(find.text('12 mars'), findsNothing);
       final (gradient, colors) = heroGradient(tester);
       expect(gradient, colors.celebration);
+    });
+  });
+
+  testWidgets('marks today\'s birthday as wished, with undo', (tester) async {
+    final repository = RecordingBirthdayRepository();
+    await mockNetworkImages(() async {
+      await pumpCard(tester, birthdays: [relative(0)], repository: repository);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Déjà souhaité'));
+      await tester.pump();
+
+      expect(repository.wished, [('1', 2026)]);
+      expect(
+        find.text('Anniversaire de Alice Wonderland souhaité'),
+        findsOneWidget,
+      );
+    });
+  });
+
+  testWidgets('shows the wished pill instead of the actions', (tester) async {
+    await mockNetworkImages(() async {
+      await pumpCard(
+        tester,
+        birthdays: [
+          relative(0, wishedYears: [2026]),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Souhaité'), findsOneWidget);
+      expect(find.text('Déjà souhaité'), findsNothing);
+    });
+  });
+
+  testWidgets('offers no wish action before the day', (tester) async {
+    await mockNetworkImages(() async {
+      await pumpCard(tester, birthdays: [relative(3)]);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Déjà souhaité'), findsNothing);
+      expect(find.text('Souhaité'), findsNothing);
+    });
+  });
+
+  testWidgets('keeps the person and the wish action apart for TalkBack', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await mockNetworkImages(() async {
+      await pumpCard(tester, birthdays: [relative(0)]);
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getSemantics(find.text('Alice Wonderland')),
+        isSemantics(
+          label: "Aujourd'hui 🎉\nAlice Wonderland\n36\nans",
+          isButton: true,
+          hasTapAction: true,
+        ),
+      );
+      expect(find.bySemanticsLabel('Déjà souhaité'), findsOneWidget);
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    });
+    semantics.dispose();
+  });
+
+  testWidgets('keeps the birthday of the day whole at 200 % text', (
+    tester,
+  ) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await mockNetworkImages(() async {
+      await pumpCard(tester, birthdays: [relative(0)]);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alice Wonderland'), findsOneWidget);
+      expect(find.text('Déjà souhaité'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   });
 
