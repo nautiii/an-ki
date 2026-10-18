@@ -57,6 +57,23 @@ void main() {
     });
   });
 
+  group('isGuestProvider', () {
+    test('is true for an anonymous session only', () async {
+      final container = makeContainer();
+      container.listen(isGuestProvider, (_, _) {});
+      await settle();
+      expect(container.read(isGuestProvider), isFalse);
+
+      await repository.signInAnonymously();
+      await settle();
+      expect(container.read(isGuestProvider), isTrue);
+
+      await repository.signInWithGoogle();
+      await settle();
+      expect(container.read(isGuestProvider), isFalse);
+    });
+  });
+
   group('biometricLockProvider', () {
     Future<BiometricLock> lockFor(FakeBiometricService service) {
       biometrics = service;

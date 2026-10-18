@@ -483,9 +483,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attention => 'Attention';
 
   @override
-  String get guest => 'Guest';
-
-  @override
   String get signOutAnonymousWarning =>
       'By signing out, you will lose all your saved birthdays because you are using a guest account. Do you want to continue?';
 

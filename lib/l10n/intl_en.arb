@@ -155,7 +155,6 @@
   "biometricError": "Error during biometric authentication",
   "biometricRevoked": "Biometric login is no longer valid. Sign in again to continue.",
   "attention": "Attention",
-  "guest": "Guest",
   "signOutAnonymousWarning": "By signing out, you will lose all your saved birthdays because you are using a guest account. Do you want to continue?",
   "saveMyData": "Save my data",
   "dataSavedSuccess": "Account saved successfully!",

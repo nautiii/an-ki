@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// Barre d'app de l'accueil, épinglée : salutation de l'heure et nom, puis
+/// Barre d'app de l'accueil, épinglée : salutation de l'heure et prénom, puis
 /// recherche, ajout et réglages (l'avatar).
 class HomeAppBar extends ConsumerWidget {
   const HomeAppBar({super.key, required this.canSearch});
@@ -21,9 +21,8 @@ class HomeAppBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final period = ref.watch(greetingProvider).name;
-    final name = ref.watch(
-      userProfileProvider.select((profile) => profile.value?.displayName),
-    );
+    // Sans nom (invité, profil pas encore chargé) : la salutation seule.
+    final name = ref.watch(greetingNameProvider);
 
     return SliverAppBar(
       pinned: true,

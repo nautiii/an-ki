@@ -493,9 +493,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attention => 'Attention';
 
   @override
-  String get guest => 'Invité';
-
-  @override
   String get signOutAnonymousWarning =>
       'En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?';
 

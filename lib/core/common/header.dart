@@ -13,7 +13,8 @@ class Header extends StatelessWidget {
   /// Salutation déjà traduite (« Bonjour », « Bonsoir »).
   final String greeting;
 
-  /// Nom à afficher déjà résolu, ou null pendant son chargement (squelette).
+  /// Nom à afficher déjà résolu, vide quand il n'y en a pas (invité), ou
+  /// null pendant son chargement (squelette).
   final String? userName;
 
   /// Appelé lors d'un appui sur le bouton réglages.
@@ -47,9 +48,11 @@ class Header extends StatelessWidget {
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (userName case final name?)
-                Text(name, style: textTheme.headlineMedium)
-              else
+              if (userName case final name?) ...[
+                // Sans nom, la salutation seule.
+                if (name.isNotEmpty)
+                  Text(name, style: textTheme.headlineMedium),
+              ] else
                 // Nom pas encore chargé : un squelette plutôt qu'un texte factice.
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: AppSpacing.xxs),

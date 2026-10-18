@@ -329,7 +329,6 @@
   "biometricError": "Erreur lors de l'authentification biométrique",
   "biometricRevoked": "La connexion biométrique n'est plus valide. Reconnectez-vous pour continuer.",
   "attention": "Attention",
-  "guest": "Invité",
   "signOutAnonymousWarning": "En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?",
   "saveMyData": "Sauvegarder mes données",
   "dataSavedSuccess": "Compte sauvegardé avec succès !",

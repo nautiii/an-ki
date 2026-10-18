@@ -57,4 +57,40 @@ void main() {
 
     expect(container.read(userProfileProvider).value?.pseudo, 'Q');
   });
+
+  group('greetingNameProvider', () {
+    ProviderContainer greetingContainer(
+      UserProfile? profile, {
+      bool guest = false,
+    }) => ProviderContainer.test(
+      retry: (_, _) => null,
+      overrides: [
+        userProfileProvider.overrideWithValue(AsyncData(profile)),
+        isGuestProvider.overrideWithValue(guest),
+      ],
+    );
+
+    test('greets an account by its first name', () {
+      expect(greetingContainer(_user).read(greetingNameProvider), 'Quentin');
+    });
+
+    test('greets a guest without « Invité »', () {
+      const guestProfile = UserProfile(
+        id: 'user-1',
+        name: 'Invité',
+        surname: '',
+        isDark: false,
+        locale: 'fr',
+      );
+
+      expect(
+        greetingContainer(guestProfile, guest: true).read(greetingNameProvider),
+        isNull,
+      );
+    });
+
+    test('has no name before the profile exists', () {
+      expect(greetingContainer(null).read(greetingNameProvider), isNull);
+    });
+  });
 }

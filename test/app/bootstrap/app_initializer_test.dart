@@ -85,9 +85,7 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
-  testWidgets('creates a guest profile for an anonymous account', (
-    tester,
-  ) async {
+  testWidgets('creates a nameless profile for a guest', (tester) async {
     final users = RecordingUserRepository();
     await pumpInitializer(
       tester,
@@ -97,7 +95,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(users.created.single.name, 'Invité');
+    // Pas de « Invité » écrit dans les données : l'accueil salue sans nom.
+    expect(users.created.single.name, isEmpty);
+    expect(users.created.single.surname, isEmpty);
     expect(users.created.single.id, 'u1');
     expect(find.text('Child ready'), findsOneWidget);
   });

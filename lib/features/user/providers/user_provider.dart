@@ -13,3 +13,14 @@ final userProfileProvider = StreamProvider<UserProfile?>((ref) {
   if (uid == null) return Stream.value(null);
   return ref.watch(userRepositoryProvider).watchUser(uid);
 });
+
+/// Nom des salutations ([UserProfile.greetingName]) : null sans profil
+/// chargé, ou sans nom à dire.
+final greetingNameProvider = Provider<String?>((ref) {
+  final guest = ref.watch(isGuestProvider);
+  return ref.watch(
+    userProfileProvider.select(
+      (profile) => profile.value?.greetingName(guest: guest),
+    ),
+  );
+});

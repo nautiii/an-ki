@@ -167,14 +167,27 @@ void main() {
       overrides: overrides(birthdays: agenda),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Bonsoir, B A'), findsOneWidget);
+    expect(find.text('Bonsoir, A'), findsOneWidget);
 
     await tester.pumpHarness(
       const HomeScreen(),
       overrides: overrides(birthdays: agenda, now: DateTime(2026, 10, 12, 9)),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Bonjour, B A'), findsOneWidget);
+    expect(find.text('Bonjour, A'), findsOneWidget);
+  });
+
+  testWidgets('greets a guest without a name', (tester) async {
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: [
+        ...overrides(birthdays: agenda),
+        isGuestProvider.overrideWithValue(true),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bonsoir'), findsOneWidget);
   });
 
   testWidgets('lists the agenda by period, the hero aside', (tester) async {

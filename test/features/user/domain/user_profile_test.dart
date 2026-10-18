@@ -5,11 +5,12 @@ void main() {
   /// Profil de référence ; chaque argument en change un champ.
   UserProfile profile({
     String? pseudo = 'Q',
+    String name = 'Quentin',
     List<String> categories = const ['family'],
     String locale = 'fr',
   }) => UserProfile(
     id: '1',
-    name: 'Quentin',
+    name: name,
     surname: 'Maillard',
     pseudo: pseudo,
     categories: categories,
@@ -18,17 +19,30 @@ void main() {
     biometricToken: 'token',
   );
 
-  group('displayName', () {
+  group('greetingName', () {
     test('uses the pseudo when set', () {
-      expect(profile().displayName, 'Q');
+      expect(profile().greetingName(guest: false), 'Q');
     });
 
-    test('falls back to surname and name without a pseudo', () {
-      expect(profile(pseudo: null).displayName, 'Maillard Quentin');
+    test('falls back to the first name without a pseudo', () {
+      expect(profile(pseudo: null).greetingName(guest: false), 'Quentin');
+      expect(profile(pseudo: ' ').greetingName(guest: false), 'Quentin');
     });
 
-    test('falls back to surname and name when the pseudo is empty', () {
-      expect(profile(pseudo: '').displayName, 'Maillard Quentin');
+    test('is null without a pseudo nor a first name', () {
+      expect(
+        profile(pseudo: null, name: '').greetingName(guest: false),
+        isNull,
+      );
+    });
+
+    test('greets a guest by the pseudo only, never « Invité »', () {
+      expect(profile().greetingName(guest: true), 'Q');
+      // Profil d'invité écrit par les versions précédentes.
+      expect(
+        profile(pseudo: null, name: 'Invité').greetingName(guest: true),
+        isNull,
+      );
     });
   });
 

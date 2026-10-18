@@ -125,6 +125,10 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
         savedBooks.isLoading && !savedBooks.hasValue && !savedBooks.hasError;
     final isScanning = ref.watch(isbnLookupProvider.select((s) => s.isLoading));
     final books = savedBooks.value ?? const <Book>[];
+    final profileLoaded = ref.watch(
+      userProfileProvider.select((profile) => profile.hasValue),
+    );
+    final greetingName = ref.watch(greetingNameProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -138,11 +142,9 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                 greeting: context.l10n.greeting(
                   ref.watch(greetingProvider).name,
                 ),
-                userName: ref.watch(
-                  userProfileProvider.select(
-                    (profile) => profile.value?.displayName,
-                  ),
-                ),
+                // Squelette tant que le profil charge ; ensuite le prénom, ou
+                // rien pour un invité.
+                userName: profileLoaded ? greetingName ?? '' : null,
                 onOpenSettings: () => context.push(AppRoutes.settings),
               ),
               const SizedBox(height: AppSpacing.lg),

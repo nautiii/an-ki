@@ -125,7 +125,8 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
   }
 
   /// Crée le profil du compte courant s'il n'existe pas encore : noms saisis
-  /// à l'inscription, sinon tirés du compte Google, sinon « Invité ».
+  /// à l'inscription, sinon tirés du compte Google ; un invité n'a pas de nom
+  /// (l'accueil le salue sans nom).
   Future<void> _createMissingProfile() async {
     if (!mounted) return;
     final user = ref.read(authUserProvider).value;
@@ -140,7 +141,7 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
         ? (typed.name, typed.surname)
         : _namesFromDisplayName(
             user.displayName ?? '',
-            fallback: user.isAnonymous ? context.l10n.guest : '-',
+            fallback: user.isAnonymous ? '' : '-',
           );
     final profile = UserProfile(
       id: uid,

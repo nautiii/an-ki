@@ -896,12 +896,6 @@ abstract class AppLocalizations {
   /// **'Attention'**
   String get attention;
 
-  /// No description provided for @guest.
-  ///
-  /// In fr, this message translates to:
-  /// **'Invité'**
-  String get guest;
-
   /// No description provided for @signOutAnonymousWarning.
   ///
   /// In fr, this message translates to:

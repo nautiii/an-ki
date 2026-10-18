@@ -32,6 +32,16 @@ void main() {
       expect(settingsOpened, 1);
     });
 
+    testWidgets('shows the greeting alone without a name', (tester) async {
+      await tester.pumpHarness(
+        Header(greeting: 'Bonjour', userName: '', onOpenSettings: () {}),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bonjour'), findsOneWidget);
+      expect(find.byType(SkeletonBox), findsNothing);
+    });
+
     testWidgets('shows a skeleton while the name loads', (tester) async {
       await tester.pumpHarness(
         Header(greeting: 'Bonjour', userName: null, onOpenSettings: () {}),

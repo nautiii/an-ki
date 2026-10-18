@@ -56,6 +56,14 @@ final currentUidProvider = Provider<String?>(
   (ref) => ref.watch(authUserProvider.select((user) => user.value?.uid)),
 );
 
+/// Session d'invité (compte anonyme, ouvert par « Commencer ») : AnKi le salue
+/// sans nom. Faux hors session.
+final isGuestProvider = Provider<bool>(
+  (ref) => ref.watch(
+    authUserProvider.select((user) => user.value?.isAnonymous ?? false),
+  ),
+);
+
 /// Accès à l'app ([authAccess]), null tant que la session ou le verrou ne
 /// sont pas connus (démarrage). Une erreur de lecture compte comme une
 /// absence : pas de session, pas d'empreinte.

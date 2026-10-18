@@ -15,11 +15,14 @@ class const UserProfile({
   required final String locale,
   final String? biometricToken,
 }) {
-  /// Nom affiché dans l'UI : le pseudo s'il est défini, sinon « nom prénom ».
-  String get displayName {
-    final pseudo = this.pseudo;
-    if (pseudo != null && pseudo.isNotEmpty) return pseudo;
-    return '$surname $name';
+  /// Nom pour saluer : le pseudo s'il est défini, sinon le prénom ; null s'il
+  /// n'y a ni l'un ni l'autre. Pour un invité ([guest]), le pseudo seul : son
+  /// profil peut porter « Invité », qu'écrivaient les versions précédentes.
+  String? greetingName({required bool guest}) {
+    final pseudo = this.pseudo?.trim() ?? '';
+    if (pseudo.isNotEmpty) return pseudo;
+    final name = this.name.trim();
+    return guest || name.isEmpty ? null : name;
   }
 
   @override
