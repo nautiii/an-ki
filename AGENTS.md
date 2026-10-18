@@ -110,6 +110,7 @@ code predates the target; the plan is `.claude/skills/architecture/references/mi
 | Anything visual or interactive: screen, flow, states, theme, motion, copy, accessibility | `.claude/skills/ux-ui/SKILL.md` |
 | Run, see or debug the app on the emulator or the phone: launch, screenshots, logs, dark mode, 200 % text, permissions, reminders | `.claude/skills/device/SKILL.md` |
 | Commit, branch, pull request | `.claude/skills/git-workflow/SKILL.md` |
+| Upgrade Flutter, packages or the Android toolchain | `/deps-upgrade` — only the maintainer starts it (`.claude/skills/deps-upgrade/SKILL.md`); asked for an upgrade otherwise, suggest it |
 | Rules for the zone you edit: UI, state, data, tests, l10n, platform | `.claude/rules/*.md` — loaded automatically by Claude Code; other agents read the matching file |
 | Why the architecture is what it is, and when to revisit it | `.claude/skills/architecture/references/decisions.md` |
 | What to do next | `.claude/skills/ux-ui/references/ux-backlog.md` (product, UX) · `.claude/skills/architecture/references/migration.md` (code) |

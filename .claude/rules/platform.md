@@ -63,3 +63,5 @@ No web target since 2026-10-12 (`web/` removed). `lib/core/firebase_options.dart
   steps in the same change.
 - After a dependency change: `flutter pub get`, `flutter analyze`, the full test suite, and a run
   on a device when a plugin changed.
+- Upgrades (Flutter, packages, Gradle/AGP/KGP) follow `/deps-upgrade`, which only the maintainer
+  starts: asked to upgrade otherwise, suggest the command rather than improvising the procedure.
