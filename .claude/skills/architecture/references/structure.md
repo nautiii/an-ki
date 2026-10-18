@@ -166,10 +166,11 @@ feature and is not part of it.
 | `reminders` | birthday | auth, birthday |
 | `ideas` | | auth, birthday |
 | `settings` | auth, user, birthday, book_scanner | auth, user, birthday, reminders, ideas |
-| `onboarding` | | auth, birthday, reminders |
 
 Reading the target: `auth` and `user` are foundations, `birthday` (people and their dates) is the
-core domain, everything else builds on it, and nothing builds on `settings` or `onboarding`.
+core domain, everything else builds on it, and nothing builds on `settings`. Onboarding (B5) is
+no feature of its own: the welcome lives in `auth`, the contacts import in `birthday`, the
+reminders priming in `reminders`, and `app/bootstrap` sequences them (approved 2026-10-18).
 
 Adding an edge: the target must already be lower in the graph (no cycle), and the edge must be
 about using the other feature (its domain types, providers, widgets), not about reaching into

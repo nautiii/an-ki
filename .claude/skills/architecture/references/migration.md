@@ -66,6 +66,7 @@ the target, except what this file lists. Keep it current: when a step lands, add
 | M9 | 2026-10-11 | auth split: session stream, biometric lock, `AuthController`; `App` waits for both before choosing a screen |
 | M8 | 2026-10-11 | concept names (`UserProfile`, `Birthday`, `Book`); every screen and widget test mirrors `lib/`; the data move stays open (§3) |
 | M7 | 2026-10-11 | go_router 17.5.0: router provider with access redirects, tabs as stateful branches, paths `/auth/login`, `/birthdays`, `/scanner` |
+| A16 | 2026-10-18 | `invalid-credential` → `AuthFailure.invalidCredentials`, offline → `AuthFailure.network`, with the welcome (UX step 5.1) |
 
 The commit messages of those days hold the details. Bugs found on the way (DST day counts,
 batches over 500 writes, books left behind by account deletion, blank names, error shown on a
@@ -78,15 +79,14 @@ account's session, a sign-out that left the session open) are fixed and tested.
 | # | Debt | Evidence | Consequence | Step |
 |---|------|----------|-------------|------|
 | A15 | Book lookup failures flattened | `BookRepository.fetchBookByIsbn` returns `null` for every failure but the quota (HTTP error, network, parsing), as for an unknown ISBN; a volume without title gets `'Unknown Title'`, an English UI string in the data layer | offline, a scan reads « Livre non trouvé »; untranslatable text | local fix: `BookFailure.network`, empty title worded by the UI |
-| A16 | `invalid-credential` worded as unknown | with email-enumeration protection (on by default for projects created since September 2023), Firebase Auth answers a wrong email or password with `invalid-credential`; `AuthRepository` maps it to `AuthFailure.unknown` | « Une erreur est survenue. » after a typo in the password (check on the phone) | local fix: `AuthFailure.invalidCredentials` and its ARB message |
 
 UX debt (contrast, 200 % text, labels, raw colors, dates without `DateFormat`) is tracked in the
 ux-ui backlog (`ux-backlog.md`), not here.
 
 ## 3. Remaining steps
 
-Recommended order: M10 only on a concrete need. Local fixes (A15, A16) go with any change
-touching their files. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent + review).
+Recommended order: M10 only on a concrete need. A local fix (A15) goes with any change
+touching its files. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent + review).
 
 ### With B3/B4 — notification taps open a page · S
 - Left out of M7 until a page exists to open: the payload of a reminder is a route path

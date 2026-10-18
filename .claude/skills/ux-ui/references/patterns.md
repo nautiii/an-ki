@@ -142,13 +142,14 @@ A spinner is acceptable only inside the control that triggered a short action.
 
 ## H. Onboarding, auth, permissions
 
-- **Value first, account later** (Duolingo lazy sign-up): « Continuer sans compte » stays prominent;
-  ask to save the account at a moment of value (after 3 birthdays added, or before reinstall risk),
-  never as a wall.
-- Order of sign-in options: Google (one tap) › Email › Guest. Biometric unlock prompt
-  automatically when enabled (already done).
-- Intro motion ≤ 600 ms, CTAs usable immediately; layout must scroll on small screens (current
-  auth screen overflows at 360×640).
+- **Value first, account later** (Duolingo lazy sign-up), shipped in step 5.1: signed out lands
+  on the welcome (`welcome_screen.dart`) — one promise on the night hero, « Commencer » opens an
+  anonymous session at once, « J'ai déjà un compte » pushes the sign-in above it. Ask to save
+  the account at a moment of value (from 3 birthdays, or before reinstall risk), never as a wall.
+- The sign-in (`auth_choice_screen.dart`, « Bon retour ») offers Google (one tap) › e-mail ›
+  sign-up; no guest there. Locked by the fingerprint, it stands alone, prompts at once and puts
+  « Déverrouiller » first so a dismissed prompt can be retried.
+- No intro motion: the CTAs are there from the first frame; layouts scroll on small screens.
 - **Permission priming** (Duolingo, Instagram): before the system prompt, a sheet explains the
   benefit in one line (« Pour vous prévenir 7 jours avant et le jour J ») with « Autoriser » /
   « Plus tard ». Ask in context (notifications after the first birthday is added; contacts when the
