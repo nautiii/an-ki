@@ -17,7 +17,7 @@ auth or dependencies → design brief + maintainer approval first.
 - Big bets (B4–B7) — structural redesigns with the highest impact
 - Foundation (F1, F4, F5) — design system, prerequisite for consistency
 - P1 — friction & states (Q4–Q7)
-- P2 — polish (D1, D3, D4, D6, D8–D18)
+- P2 — polish (D1, D3, D4, D6, D8–D19)
 - Suggested roadmap
 
 ---
@@ -121,6 +121,10 @@ auth or dependencies → design brief + maintainer approval first.
   declared at initialization, before the texts are localized) → add a category once iOS builds.
 - **D18 Wished elsewhere**: only the hero shows « ✓ Souhaité »; the calendar day sheet and the
   search results list today's people without it.
+- **D19 Elision**: « C'est l'anniversaire de {name} aujourd'hui » reads « de Achraf » (seen on the
+  emulator, 2026-10-18); French needs « d'Achraf » before a vowel or mute h → pick the article
+  in code (`de` / `d'`) or rephrase (« Achraf fête son anniversaire aujourd'hui »). Same trap in the snackbars
+  « Anniversaire de {name} supprimé / souhaité ».
 
 ## Suggested roadmap
 
@@ -129,5 +133,5 @@ auth or dependencies → design brief + maintainer approval first.
 3. ~~**B2** — capture without friction or invented ages (model change)~~ — shipped 2026-10-12.
 4. ~~**B3** — the birthday moment and the wish loop (new dependency)~~ — shipped 2026-10-18.
 5. **B5** — onboarding that lands on a populated agenda.
-6. **B4, B6, B7, F1, F4, F5, Q4–Q7, D1–D18** — depth and polish (F1 any time once approved);
+6. **B4, B6, B7, F1, F4, F5, Q4–Q7, D1–D19** — depth and polish (F1 any time once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
