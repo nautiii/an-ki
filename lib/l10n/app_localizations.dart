@@ -968,6 +968,18 @@ abstract class AppLocalizations {
   /// **'Mot de passe incorrect.'**
   String get errorWrongPassword;
 
+  /// No description provided for @errorInvalidCredentials.
+  ///
+  /// In fr, this message translates to:
+  /// **'E‑mail ou mot de passe incorrect.'**
+  String get errorInvalidCredentials;
+
+  /// No description provided for @errorNetwork.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de connexion. Vérifiez votre réseau et réessayez.'**
+  String get errorNetwork;
+
   /// No description provided for @errorUnknown.
   ///
   /// In fr, this message translates to:

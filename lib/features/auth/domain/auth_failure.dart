@@ -8,6 +8,13 @@ enum AuthFailure implements Exception {
   userNotFound,
   wrongPassword,
 
+  /// E-mail ou mot de passe refusé sans dire lequel : la protection contre
+  /// l'énumération des e-mails, active par défaut sur les projets récents.
+  invalidCredentials,
+
+  /// Serveur injoignable : pas de réseau.
+  network,
+
   /// Refus de Firebase Auth sans cas dédié.
   unknown,
 

@@ -520,6 +520,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorWrongPassword => 'Incorrect password.';
 
   @override
+  String get errorInvalidCredentials => 'Incorrect email or password.';
+
+  @override
+  String get errorNetwork =>
+      'You\'re offline. Check your connection and try again.';
+
+  @override
   String get errorUnknown => 'An error occurred.';
 
   @override

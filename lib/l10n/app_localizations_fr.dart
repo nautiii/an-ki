@@ -530,6 +530,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get errorWrongPassword => 'Mot de passe incorrect.';
 
   @override
+  String get errorInvalidCredentials => 'E‑mail ou mot de passe incorrect.';
+
+  @override
+  String get errorNetwork =>
+      'Pas de connexion. Vérifiez votre réseau et réessayez.';
+
+  @override
   String get errorUnknown => 'Une erreur est survenue.';
 
   @override

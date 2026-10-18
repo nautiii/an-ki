@@ -86,6 +86,19 @@ void main() {
       await expectFailure('invalid-email', AuthFailure.invalidEmail);
       await expectFailure('user-not-found', AuthFailure.userNotFound);
       await expectFailure('wrong-password', AuthFailure.wrongPassword);
+      // Protection contre l'énumération des e-mails : ni l'un ni l'autre.
+      await expectFailure('invalid-credential', AuthFailure.invalidCredentials);
+      await expectFailure('network-request-failed', AuthFailure.network);
+    });
+
+    test('translates an offline anonymous sign-in', () async {
+      final auth = MockFirebaseAuth();
+      whenCalling(Invocation.method(#signInAnonymously, null))
+          .on(auth)
+          .thenThrow(FirebaseAuthException(code: 'network-request-failed'));
+      final repo = build(auth, FakeFirebaseFirestore());
+
+      await expectLater(repo.signInAnonymously(), throwsA(AuthFailure.network));
     });
 
     test('maps any other code to unknown', () async {

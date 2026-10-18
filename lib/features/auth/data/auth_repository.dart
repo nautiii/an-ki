@@ -125,6 +125,8 @@ AuthFailure _failureFor(String code) => switch (code) {
   'invalid-email' => AuthFailure.invalidEmail,
   'user-not-found' => AuthFailure.userNotFound,
   'wrong-password' => AuthFailure.wrongPassword,
+  'invalid-credential' => AuthFailure.invalidCredentials,
+  'network-request-failed' => AuthFailure.network,
   _ => AuthFailure.unknown,
 };
 

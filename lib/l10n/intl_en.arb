@@ -167,6 +167,8 @@
   "errorInvalidEmail": "The email is not valid.",
   "errorUserNotFound": "User not found.",
   "errorWrongPassword": "Incorrect password.",
+  "errorInvalidCredentials": "Incorrect email or password.",
+  "errorNetwork": "You're offline. Check your connection and try again.",
   "errorUnknown": "An error occurred.",
   "errorGoogleLogin": "Google login error",
   "errorSignOut": "Sign out error",

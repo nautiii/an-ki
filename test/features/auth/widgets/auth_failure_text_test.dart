@@ -12,6 +12,14 @@ void main() {
       AuthFailure.wrongPassword.message(context),
       'Mot de passe incorrect.',
     );
+    expect(
+      AuthFailure.invalidCredentials.message(context),
+      'E‑mail ou mot de passe incorrect.',
+    );
+    expect(
+      AuthFailure.network.message(context),
+      'Pas de connexion. Vérifiez votre réseau et réessayez.',
+    );
     expect(AuthFailure.unknown.message(context), 'Une erreur est survenue.');
     expect(AuthFailure.signInFailed.message(context), 'Erreur de connexion');
     expect(
