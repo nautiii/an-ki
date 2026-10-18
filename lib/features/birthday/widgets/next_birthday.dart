@@ -10,6 +10,7 @@ import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_display.dart';
+import 'package:an_ki/features/birthday/widgets/blossom_rain.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:flutter/material.dart';
@@ -50,7 +51,7 @@ class NextBirthdayCard extends ConsumerWidget {
   }
 }
 
-class _HeroCard extends StatelessWidget {
+class _HeroCard extends ConsumerWidget {
   const _HeroCard({required this.birthday, required this.today});
 
   final Birthday birthday;
@@ -61,7 +62,7 @@ class _HeroCard extends StatelessWidget {
   );
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.ankiColors;
     final isToday = birthday.daysUntilNext(today) == 0;
     // Le jour J, le dégradé de fête (S1) et sa couleur de texte.
@@ -117,6 +118,43 @@ class _HeroCard extends StatelessWidget {
             ),
     );
 
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Toucher la personne ouvre sa fiche ; les actions du jour J
+        // restent des cibles à part pour les lecteurs d'écran.
+        MergeSemantics(
+          child: Semantics(
+            button: true,
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                BirthdayFormSheet.show(context, birthdayToEdit: birthday);
+              },
+              splashColor: onColor.withValues(alpha: 0.12),
+              highlightColor: onColor.withValues(alpha: 0.08),
+              child: identity,
+            ),
+          ),
+        ),
+        if (isToday)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.md,
+            ),
+            child: WishActions(
+              birthday: birthday,
+              wished: birthday.isWished(today),
+              onColor: onColor,
+            ),
+          ),
+      ],
+    );
+
     return DecoratedBox(
       decoration: ShapeDecoration(
         shape: _shape,
@@ -127,42 +165,32 @@ class _HeroCard extends StatelessWidget {
         type: MaterialType.transparency,
         shape: _shape,
         clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Toucher la personne ouvre sa fiche ; les actions du jour J
-            // restent des cibles à part pour les lecteurs d'écran.
-            MergeSemantics(
-              child: Semantics(
-                button: true,
-                child: InkWell(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    BirthdayFormSheet.show(context, birthdayToEdit: birthday);
-                  },
-                  splashColor: onColor.withValues(alpha: 0.12),
-                  highlightColor: onColor.withValues(alpha: 0.08),
-                  child: identity,
-                ),
-              ),
-            ),
-            if (isToday)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  0,
-                  AppSpacing.md,
-                  AppSpacing.md,
-                ),
-                child: WishActions(
-                  birthday: birthday,
-                  wished: birthday.isWished(today),
-                  onColor: onColor,
-                ),
-              ),
-          ],
-        ),
+        child: isToday
+            ? Stack(
+                children: [
+                  // Les pétales (S4) tombent derrière le texte, une fois
+                  // par personne et par jour.
+                  Positioned.fill(
+                    child: BlossomRain(
+                      key: ValueKey('blossom-${birthday.id}'),
+                      colors: colors.petals,
+                      play: !ref.watch(
+                        celebratedTodayProvider.select(
+                          (ids) => ids.contains(birthday.id),
+                        ),
+                      ),
+                      onPlay: () {
+                        HapticFeedback.mediumImpact();
+                        ref
+                            .read(celebratedTodayProvider.notifier)
+                            .add(birthday.id);
+                      },
+                    ),
+                  ),
+                  content,
+                ],
+              )
+            : content,
       ),
     );
   }

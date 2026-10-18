@@ -66,6 +66,24 @@ final nextBirthdaysProvider = Provider<List<Birthday>>((ref) {
   return birthdays.nextBirthdays(ref.watch(todayProvider));
 });
 
+/// Personnes dont la pluie de pétales (S4) est déjà tombée aujourd'hui : une
+/// fois par personne et par jour, tant que l'app tourne. Vide chaque jour et
+/// à chaque changement d'utilisateur.
+class CelebratedToday extends Notifier<Set<String>> {
+  @override
+  Set<String> build() {
+    ref.watch(todayProvider);
+    ref.watch(currentUidProvider);
+    return const {};
+  }
+
+  void add(String birthdayId) => state = {...state, birthdayId};
+}
+
+final celebratedTodayProvider = NotifierProvider<CelebratedToday, Set<String>>(
+  CelebratedToday.new,
+);
+
 /// L'agenda de l'accueil : les anniversaires que le héros n'affiche pas,
 /// « dans les 7 jours » puis par mois.
 final agendaProvider = Provider<List<AgendaSection>>((ref) {

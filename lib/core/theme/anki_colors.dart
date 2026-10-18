@@ -57,6 +57,7 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
     required this.celebration,
     required this.onCelebration,
     required this.onCelebrationAction,
+    required this.petals,
     required this.blossom,
     required this.success,
     required this.moonlight,
@@ -79,6 +80,7 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
   factory AnKiColors.from(ColorScheme scheme) {
     final isDark = scheme.brightness == Brightness.dark;
     final blossom = TonalColors.fromSeed(blossomSeed, scheme.brightness);
+    final moonlight = TonalColors.fromSeed(moonSeed, scheme.brightness);
     return AnKiColors(
       hero: LinearGradient(
         begin: Alignment.topLeft,
@@ -98,9 +100,22 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
       onCelebration: isDark ? blossom.onContainer : blossom.onColor,
       // Le départ du dégradé, sur un bouton plein [onCelebration].
       onCelebrationAction: isDark ? scheme.primaryContainer : scheme.primary,
+      // Pâles sur le crépuscule, plus lumineux sur la nuit : toujours visibles
+      // sur le dégradé de fête, jamais criards.
+      petals: isDark
+          ? [
+              blossom.color.withValues(alpha: 0.8),
+              blossom.onContainer.withValues(alpha: 0.5),
+              moonlight.color.withValues(alpha: 0.6),
+            ]
+          : [
+              blossom.container.withValues(alpha: 0.9),
+              blossom.onColor.withValues(alpha: 0.6),
+              moonlight.container.withValues(alpha: 0.75),
+            ],
       blossom: blossom,
       success: TonalColors.fromSeed(mintSeed, scheme.brightness),
-      moonlight: TonalColors.fromSeed(moonSeed, scheme.brightness),
+      moonlight: moonlight,
       glass: scheme.surfaceContainer.withValues(alpha: isDark ? 0.65 : 0.78),
       glassBorder: scheme.outlineVariant.withValues(alpha: isDark ? 0.5 : 0.6),
       floatingShadow: isDark
@@ -128,6 +143,9 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
   /// Texte et icône d'un bouton plein posé sur [celebration], dont le fond
   /// est [onCelebration] (« Souhaiter »).
   final Color onCelebrationAction;
+
+  /// Teintes de la pluie de pétales (S4) sur [celebration].
+  final List<Color> petals;
   final TonalColors blossom;
   final TonalColors success;
   final TonalColors moonlight;
@@ -146,6 +164,7 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
     LinearGradient? celebration,
     Color? onCelebration,
     Color? onCelebrationAction,
+    List<Color>? petals,
     TonalColors? blossom,
     TonalColors? success,
     TonalColors? moonlight,
@@ -159,6 +178,7 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
       celebration: celebration ?? this.celebration,
       onCelebration: onCelebration ?? this.onCelebration,
       onCelebrationAction: onCelebrationAction ?? this.onCelebrationAction,
+      petals: petals ?? this.petals,
       blossom: blossom ?? this.blossom,
       success: success ?? this.success,
       moonlight: moonlight ?? this.moonlight,
@@ -181,6 +201,11 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
         other.onCelebrationAction,
         t,
       )!,
+      // Même nombre de teintes dans les deux thèmes.
+      petals: [
+        for (final (index, color) in petals.indexed)
+          Color.lerp(color, other.petals[index], t)!,
+      ],
       blossom: TonalColors.lerp(blossom, other.blossom, t),
       success: TonalColors.lerp(success, other.success, t),
       moonlight: TonalColors.lerp(moonlight, other.moonlight, t),

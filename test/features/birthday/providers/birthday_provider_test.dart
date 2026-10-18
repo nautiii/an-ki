@@ -1,3 +1,4 @@
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/agenda.dart';
@@ -17,6 +18,16 @@ class _Session extends Notifier<String?> {
   String? build() => 'u1';
 
   void signIn(String? uid) => state = uid;
+}
+
+/// Jour courant pilotable par le test, sans minuterie de minuit.
+final _day = NotifierProvider<_Day, DateTime>(_Day.new);
+
+class _Day extends Notifier<DateTime> {
+  @override
+  DateTime build() => DateTime(2026, 10, 16);
+
+  void next() => state = DateTime(state.year, state.month, state.day + 1);
 }
 
 class _ErroringBirthdayRepository extends FakeBirthdayRepository {
@@ -236,6 +247,45 @@ void main() {
       container.read(_session.notifier).signIn('u2');
 
       expect(container.read(pendingDeletionsProvider), isEmpty);
+    });
+  });
+
+  group('celebratedTodayProvider', () {
+    ProviderContainer celebrationContainer() => ProviderContainer.test(
+      retry: (_, _) => null,
+      overrides: [
+        currentUidProvider.overrideWith((ref) => ref.watch(_session)),
+        todayProvider.overrideWith((ref) => ref.watch(_day)),
+      ],
+    );
+
+    test('remembers whose petals already fell', () {
+      final container = celebrationContainer();
+      container.listen(celebratedTodayProvider, (_, _) {});
+
+      container.read(celebratedTodayProvider.notifier).add('lea');
+
+      expect(container.read(celebratedTodayProvider), {'lea'});
+    });
+
+    test('starts empty again the next day', () {
+      final container = celebrationContainer();
+      container.listen(celebratedTodayProvider, (_, _) {});
+      container.read(celebratedTodayProvider.notifier).add('lea');
+
+      container.read(_day.notifier).next();
+
+      expect(container.read(celebratedTodayProvider), isEmpty);
+    });
+
+    test('starts empty again when the user changes', () {
+      final container = celebrationContainer();
+      container.listen(celebratedTodayProvider, (_, _) {});
+      container.read(celebratedTodayProvider.notifier).add('lea');
+
+      container.read(_session.notifier).signIn('u2');
+
+      expect(container.read(celebratedTodayProvider), isEmpty);
     });
   });
 

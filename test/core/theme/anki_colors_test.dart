@@ -69,6 +69,16 @@ void main() {
     }
   });
 
+  test('petals take three tones per theme, brighter on the night sky', () {
+    final day = AnKiColors.from(light);
+    final nightColors = AnKiColors.from(dark);
+
+    expect(day.petals, hasLength(3));
+    expect(nightColors.petals, hasLength(3));
+    expect(day.lerp(nightColors, 1).petals, nightColors.petals);
+    expect(day.copyWith(petals: const []).petals, isEmpty);
+  });
+
   test('floating elements cast a shadow in light only', () {
     expect(AnKiColors.from(light).floatingShadow, isNotEmpty);
     expect(AnKiColors.from(dark).floatingShadow, isEmpty);

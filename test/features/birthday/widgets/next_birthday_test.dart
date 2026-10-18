@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
@@ -10,9 +9,11 @@ import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/widgets/blossom_rain.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -232,6 +233,60 @@ void main() {
       expect(find.text('Souhaiter'), findsOneWidget);
       expect(find.text('Déjà souhaité'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  /// Relève les vibrations demandées pendant le test.
+  List<Object?> recordHaptics(WidgetTester tester) {
+    final haptics = <Object?>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'HapticFeedback.vibrate') {
+          haptics.add(call.arguments);
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    return haptics;
+  }
+
+  testWidgets('lets the petals fall once on the day', (tester) async {
+    final haptics = recordHaptics(tester);
+    await mockNetworkImages(() async {
+      await pumpCard(tester, birthdays: [relative(0)]);
+      await tester.pump();
+
+      expect(find.byType(BlossomRain), findsOneWidget);
+      expect(haptics, ['HapticFeedbackType.mediumImpact']);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(NextBirthdayCard)),
+      );
+      expect(container.read(celebratedTodayProvider), {'1'});
+      await tester.pumpAndSettle();
+    });
+  });
+
+  testWidgets('keeps the petals still when animations are off', (tester) async {
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    final haptics = recordHaptics(tester);
+    await mockNetworkImages(() async {
+      await pumpCard(tester, birthdays: [relative(0)]);
+      await tester.pump();
+
+      expect(haptics, isEmpty);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(NextBirthdayCard)),
+      );
+      expect(container.read(celebratedTodayProvider), isEmpty);
     });
   });
 
