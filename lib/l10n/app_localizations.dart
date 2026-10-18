@@ -506,6 +506,24 @@ abstract class AppLocalizations {
   /// **'Anniversaire de {name} souhaité'**
   String birthdayWished(String name);
 
+  /// Bouton du héros le jour J et de la notification : ouvre la feuille de partage avec un message prêt
+  ///
+  /// In fr, this message translates to:
+  /// **'Souhaiter'**
+  String get wish;
+
+  /// Message prêt à envoyer, modifiable dans l'app choisie. La voix de l'utilisateur à un proche : tutoiement
+  ///
+  /// In fr, this message translates to:
+  /// **'Joyeux anniversaire {name} ! 🎂 Je te souhaite une très belle journée.'**
+  String wishMessage(String name);
+
+  /// Snackbar quand la feuille de partage du système ne s'ouvre pas
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir le partage. Réessayez.'**
+  String get errorSharing;
+
   /// Action de la snackbar qui rétablit un anniversaire supprimé
   ///
   /// In fr, this message translates to:

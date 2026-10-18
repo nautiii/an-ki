@@ -56,6 +56,7 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
     required this.onHero,
     required this.celebration,
     required this.onCelebration,
+    required this.onCelebrationAction,
     required this.blossom,
     required this.success,
     required this.moonlight,
@@ -95,6 +96,8 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
             : [scheme.primary, blossom.color],
       ),
       onCelebration: isDark ? blossom.onContainer : blossom.onColor,
+      // Le départ du dégradé, sur un bouton plein [onCelebration].
+      onCelebrationAction: isDark ? scheme.primaryContainer : scheme.primary,
       blossom: blossom,
       success: TonalColors.fromSeed(mintSeed, scheme.brightness),
       moonlight: TonalColors.fromSeed(moonSeed, scheme.brightness),
@@ -121,6 +124,10 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
   /// Dégradé du jour J (nuit → lotus).
   final LinearGradient celebration;
   final Color onCelebration;
+
+  /// Texte et icône d'un bouton plein posé sur [celebration], dont le fond
+  /// est [onCelebration] (« Souhaiter »).
+  final Color onCelebrationAction;
   final TonalColors blossom;
   final TonalColors success;
   final TonalColors moonlight;
@@ -138,6 +145,7 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
     Color? onHero,
     LinearGradient? celebration,
     Color? onCelebration,
+    Color? onCelebrationAction,
     TonalColors? blossom,
     TonalColors? success,
     TonalColors? moonlight,
@@ -150,6 +158,7 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
       onHero: onHero ?? this.onHero,
       celebration: celebration ?? this.celebration,
       onCelebration: onCelebration ?? this.onCelebration,
+      onCelebrationAction: onCelebrationAction ?? this.onCelebrationAction,
       blossom: blossom ?? this.blossom,
       success: success ?? this.success,
       moonlight: moonlight ?? this.moonlight,
@@ -167,6 +176,11 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
       onHero: Color.lerp(onHero, other.onHero, t)!,
       celebration: LinearGradient.lerp(celebration, other.celebration, t)!,
       onCelebration: Color.lerp(onCelebration, other.onCelebration, t)!,
+      onCelebrationAction: Color.lerp(
+        onCelebrationAction,
+        other.onCelebrationAction,
+        t,
+      )!,
       blossom: TonalColors.lerp(blossom, other.blossom, t),
       success: TonalColors.lerp(success, other.success, t),
       moonlight: TonalColors.lerp(moonlight, other.moonlight, t),

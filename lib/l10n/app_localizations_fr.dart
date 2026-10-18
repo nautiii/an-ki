@@ -261,6 +261,17 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get wish => 'Souhaiter';
+
+  @override
+  String wishMessage(String name) {
+    return 'Joyeux anniversaire $name ! 🎂 Je te souhaite une très belle journée.';
+  }
+
+  @override
+  String get errorSharing => 'Impossible d\'ouvrir le partage. Réessayez.';
+
+  @override
   String get undo => 'Annuler';
 
   @override

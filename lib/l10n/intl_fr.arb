@@ -145,6 +145,23 @@
       }
     }
   },
+  "wish": "Souhaiter",
+  "@wish": {
+    "description": "Bouton du héros le jour J et de la notification : ouvre la feuille de partage avec un message prêt"
+  },
+  "wishMessage": "Joyeux anniversaire {name} ! 🎂 Je te souhaite une très belle journée.",
+  "@wishMessage": {
+    "description": "Message prêt à envoyer, modifiable dans l'app choisie. La voix de l'utilisateur à un proche : tutoiement",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "errorSharing": "Impossible d'ouvrir le partage. Réessayez.",
+  "@errorSharing": {
+    "description": "Snackbar quand la feuille de partage du système ne s'ouvre pas"
+  },
   "undo": "Annuler",
   "@undo": {
     "description": "Action de la snackbar qui rétablit un anniversaire supprimé"

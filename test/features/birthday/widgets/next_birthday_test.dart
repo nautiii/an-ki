@@ -210,6 +210,7 @@ void main() {
           hasTapAction: true,
         ),
       );
+      expect(find.bySemanticsLabel('Souhaiter'), findsOneWidget);
       expect(find.bySemanticsLabel('Déjà souhaité'), findsOneWidget);
       await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
@@ -228,6 +229,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Alice Wonderland'), findsOneWidget);
+      expect(find.text('Souhaiter'), findsOneWidget);
       expect(find.text('Déjà souhaité'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });

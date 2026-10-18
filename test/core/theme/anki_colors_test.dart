@@ -51,6 +51,11 @@ void main() {
           greaterThanOrEqualTo(4.5),
         );
       }
+      // « Souhaiter » : bouton plein [onCelebration], texte dessus.
+      expect(
+        _contrast(colors.onCelebrationAction, colors.onCelebration),
+        greaterThanOrEqualTo(4.5),
+      );
       for (final tones in [colors.blossom, colors.success, colors.moonlight]) {
         expect(
           _contrast(tones.onColor, tones.color),
@@ -83,6 +88,11 @@ void main() {
       day.lerp(nightColors, 1).success.container,
       nightColors.success.container,
     );
+    expect(
+      day.lerp(nightColors, 1).onCelebrationAction,
+      nightColors.onCelebrationAction,
+    );
+    expect(day.copyWith(onCelebrationAction: red).onCelebrationAction, red);
   });
 
   test('TonalColors.of caches one instance per seed and brightness', () {

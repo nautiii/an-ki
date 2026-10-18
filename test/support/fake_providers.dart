@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:an_ki/core/services/biometric_service.dart';
+import 'package:an_ki/core/services/share_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
@@ -501,6 +503,29 @@ class FakeAuthRepository extends Fake implements AuthRepository {
   }
 }
 
+/// Feuille de partage simulée : renvoie [outcome], ou l'issue que le test
+/// donne à [pending] (feuille restée ouverte), et relève les textes partagés.
+class FakeShareService extends Fake implements ShareService {
+  FakeShareService({this.outcome = ShareOutcome.shared, this.error});
+
+  ShareOutcome outcome;
+
+  /// Erreur levée à l'ouverture quand elle est définie.
+  final Exception? error;
+
+  /// Feuille ouverte jusqu'à ce que le test complète ce `Completer`.
+  Completer<ShareOutcome>? pending;
+
+  final shared = <String>[];
+
+  @override
+  Future<ShareOutcome> shareText(String text, {Rect? origin}) async {
+    shared.add(text);
+    if (error case final error?) throw error;
+    return pending?.future ?? outcome;
+  }
+}
+
 /// Service biométrique en mémoire : capteur [available] ou non, jeton et
 /// compte enregistrés sur l'appareil, empreinte acceptée si [authenticates].
 class FakeBiometricService extends Fake implements BiometricService {
@@ -559,4 +584,5 @@ List<Object> get defaultTestOverrides => [
   bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
   authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
   biometricServiceProvider.overrideWithValue(FakeBiometricService()),
+  shareServiceProvider.overrideWithValue(FakeShareService()),
 ];

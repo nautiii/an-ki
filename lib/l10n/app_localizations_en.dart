@@ -257,6 +257,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get wish => 'Send wishes';
+
+  @override
+  String wishMessage(String name) {
+    return 'Happy birthday $name! 🎂 Have a wonderful day.';
+  }
+
+  @override
+  String get errorSharing => 'Couldn\'t open sharing. Please try again.';
+
+  @override
   String get undo => 'Undo';
 
   @override
