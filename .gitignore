@@ -122,3 +122,6 @@ app.*.symbols
 /.artifacts/
 
 secrets.json
+
+# Notes locales (compte git, réglages du poste) : jamais dans le dépôt
+*.local.md
