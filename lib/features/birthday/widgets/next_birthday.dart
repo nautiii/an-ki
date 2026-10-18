@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Héros « prochain anniversaire » (signature S1) : la ou les personnes dont
 /// l'anniversaire arrive en premier, empilées quand elles tombent le même jour.
+/// Le jour J, il passe en fête : dégradé nuit → lotus et pleine lune.
 ///
 /// Squelette pendant le chargement ; rien sans anniversaire, l'accueil
 /// affichant alors son état vide.
@@ -60,18 +61,26 @@ class _HeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.ankiColors;
+    final isToday = birthday.daysUntilNext(today) == 0;
+    // Le jour J, le dégradé de fête (S1) et sa couleur de texte.
+    final onColor = isToday ? colors.onCelebration : colors.onHero;
     final picture = birthday.picture;
     final avatar = AnKiAvatar(
       name: birthday.fullName,
       image: picture != null ? MemoryImage(picture) : null,
       radius: 28,
     );
-    final details = _HeroDetails(birthday: birthday, today: today);
+    final details = _HeroDetails(
+      birthday: birthday,
+      today: today,
+      onColor: onColor,
+    );
     // Sans année de naissance, aucun âge : le texte prend la place.
     final age = switch (birthday.turningAge(today)) {
       final turning? => _HeroAge(
         age: turning,
-        isToday: birthday.daysUntilNext(today) == 0,
+        isToday: isToday,
+        onColor: onColor,
       ),
       null => null,
     };
@@ -81,7 +90,7 @@ class _HeroCard extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         shape: _shape,
-        gradient: colors.hero,
+        gradient: isToday ? colors.celebration : colors.hero,
         shadows: colors.floatingShadow,
       ),
       child: Material(
@@ -96,8 +105,8 @@ class _HeroCard extends StatelessWidget {
                 HapticFeedback.lightImpact();
                 BirthdayFormSheet.show(context, birthdayToEdit: birthday);
               },
-              splashColor: colors.onHero.withValues(alpha: 0.12),
-              highlightColor: colors.onHero.withValues(alpha: 0.08),
+              splashColor: onColor.withValues(alpha: 0.12),
+              highlightColor: onColor.withValues(alpha: 0.08),
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 child: reflow
@@ -129,25 +138,61 @@ class _HeroCard extends StatelessWidget {
   }
 }
 
-/// Qui et quand : surtitre, nom, lune et compte à rebours, date.
+/// Qui et quand : surtitre, nom, lune et compte à rebours, date. Le jour J,
+/// la pleine lune et « Aujourd'hui » suffisent : la date est celle du jour.
 class _HeroDetails extends StatelessWidget {
-  const _HeroDetails({required this.birthday, required this.today});
+  const _HeroDetails({
+    required this.birthday,
+    required this.today,
+    required this.onColor,
+  });
 
   final Birthday birthday;
   final DateTime today;
+  final Color onColor;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final onHero = context.ankiColors.onHero;
     // Texte secondaire à 85 % : contraste AA sur tout le dégradé.
-    final secondary = onHero.withValues(alpha: 0.85);
+    final secondary = onColor.withValues(alpha: 0.85);
     final days = birthday.daysUntilNext(today);
-    final countdown = switch (days) {
-      0 => context.l10n.today,
-      1 => context.l10n.tomorrow,
-      _ => context.l10n.inDays(days),
-    };
+    final moon = MoonPhase(
+      daysLeft: days,
+      size: 16,
+      litColor: onColor,
+      shadowColor: onColor.withValues(alpha: 0.25),
+    );
+    final name = Text(
+      birthday.fullName,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: textTheme.titleLarge?.copyWith(color: onColor),
+    );
+
+    if (days == 0) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              moon,
+              const SizedBox(width: AppSpacing.xs),
+              Flexible(
+                child: Text(
+                  context.l10n.today,
+                  style: textTheme.labelLarge?.copyWith(color: onColor),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+          name,
+        ],
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,12 +203,7 @@ class _HeroDetails extends StatelessWidget {
           style: textTheme.labelMedium?.copyWith(color: secondary),
         ),
         const SizedBox(height: AppSpacing.xxs),
-        Text(
-          birthday.fullName,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: textTheme.titleLarge?.copyWith(color: onHero),
-        ),
+        name,
         const SizedBox(height: AppSpacing.xxs),
         // La date passe à la ligne plutôt que de déborder (grand texte).
         Wrap(
@@ -173,17 +213,14 @@ class _HeroDetails extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                MoonPhase(
-                  daysLeft: days,
-                  size: 16,
-                  litColor: onHero,
-                  shadowColor: onHero.withValues(alpha: 0.25),
-                ),
+                moon,
                 const SizedBox(width: AppSpacing.xs),
                 Flexible(
                   child: Text(
-                    countdown,
-                    style: textTheme.labelLarge?.copyWith(color: onHero),
+                    days == 1
+                        ? context.l10n.tomorrow
+                        : context.l10n.inDays(days),
+                    style: textTheme.labelLarge?.copyWith(color: onColor),
                   ),
                 ),
               ],
@@ -200,19 +237,23 @@ class _HeroDetails extends StatelessWidget {
 }
 
 /// Âge atteint au prochain anniversaire, en grand : « aura » au-dessus avant
-/// le jour J, l'unité dessous.
+/// le jour J, l'unité accordée dessous.
 class _HeroAge extends StatelessWidget {
-  const _HeroAge({required this.age, required this.isToday});
+  const _HeroAge({
+    required this.age,
+    required this.isToday,
+    required this.onColor,
+  });
 
   final int age;
   final bool isToday;
+  final Color onColor;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final onHero = context.ankiColors.onHero;
     final secondary = textTheme.labelMedium?.copyWith(
-      color: onHero.withValues(alpha: 0.85),
+      color: onColor.withValues(alpha: 0.85),
     );
 
     return Column(
@@ -223,11 +264,11 @@ class _HeroAge extends StatelessWidget {
         Text(
           '$age',
           style: textTheme.headlineSmall?.copyWith(
-            color: onHero,
+            color: onColor,
             fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
-        Text(context.l10n.yearsOld, style: secondary),
+        Text(context.l10n.heroAgeUnit(age), style: secondary),
       ],
     );
   }

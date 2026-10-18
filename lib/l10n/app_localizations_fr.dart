@@ -140,7 +140,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get editBirthday => 'Modifier';
 
   @override
-  String get yearsOld => 'ans';
+  String heroAgeUnit(int age) {
+    String _temp0 = intl.Intl.pluralLogic(
+      age,
+      locale: localeName,
+      other: 'ans',
+      one: 'an',
+    );
+    return '$_temp0';
+  }
 
   @override
   String ageInYears(int age) {

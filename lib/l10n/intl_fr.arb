@@ -67,8 +67,16 @@
   "add": "Ajouter",
   "newBirthday": "Nouvel anniversaire",
   "editBirthday": "Modifier",
-  "yearsOld": "ans",
-  "ageInYears": "{age, plural, one{{age} an} other{{age} ans}}",
+  "heroAgeUnit": "{age, plural, one{an} other{ans}}",
+  "@heroAgeUnit": {
+    "description": "Unité sous l'âge en grand du héros, accordée (« 1 an », « 34 ans »)",
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "ageInYears":"{age, plural, one{{age} an} other{{age} ans}}",
   "@ageInYears": {
     "description": "Âge accordé (« 1 an », « 34 ans »)",
     "placeholders": {

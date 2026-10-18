@@ -314,11 +314,11 @@ abstract class AppLocalizations {
   /// **'Modifier'**
   String get editBirthday;
 
-  /// No description provided for @yearsOld.
+  /// Unité sous l'âge en grand du héros, accordée (« 1 an », « 34 ans »)
   ///
   /// In fr, this message translates to:
-  /// **'ans'**
-  String get yearsOld;
+  /// **'{age, plural, one{an} other{ans}}'**
+  String heroAgeUnit(int age);
 
   /// Âge accordé (« 1 an », « 34 ans »)
   ///

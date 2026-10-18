@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
@@ -113,14 +114,65 @@ void main() {
     });
   });
 
-  testWidgets('labels a birthday happening today', (tester) async {
+  /// Dégradé de la carte du héros, et les couleurs de marque attendues.
+  (Gradient?, AnKiColors) heroGradient(WidgetTester tester) {
+    final card = find
+        .descendant(
+          of: find.byType(NextBirthdayCard),
+          matching: find.byType(DecoratedBox),
+        )
+        .first;
+    final decoration =
+        tester.widget<DecoratedBox>(card).decoration as ShapeDecoration;
+    return (decoration.gradient, tester.element(card).ankiColors);
+  }
+
+  testWidgets('celebrates a birthday happening today', (tester) async {
     await mockNetworkImages(() async {
       await pumpCard(tester, birthdays: [relative(0, picture: _png)]);
       await tester.pumpAndSettle();
 
       expect(find.text("Aujourd'hui 🎉"), findsOneWidget);
+      expect(find.text('Alice Wonderland'), findsOneWidget);
       expect(find.text('36'), findsOneWidget);
+      expect(find.text('ans'), findsOneWidget);
+      // Le jour même : ni « aura », ni surtitre, ni la date du jour.
       expect(find.text('aura'), findsNothing);
+      expect(find.text('Prochain anniversaire'), findsNothing);
+      expect(find.text('12 mars'), findsNothing);
+      final (gradient, colors) = heroGradient(tester);
+      expect(gradient, colors.celebration);
+    });
+  });
+
+  testWidgets('keeps the dusk gradient before the day', (tester) async {
+    await mockNetworkImages(() async {
+      await pumpCard(tester, birthdays: [relative(3)]);
+      await tester.pumpAndSettle();
+
+      final (gradient, colors) = heroGradient(tester);
+      expect(gradient, colors.hero);
+    });
+  });
+
+  testWidgets('agrees the age unit for a first birthday', (tester) async {
+    await mockNetworkImages(() async {
+      await pumpCard(
+        tester,
+        birthdays: [
+          Birthday(
+            id: 'baby',
+            name: 'Nina',
+            surname: '',
+            date: BirthDate(year: 2025, month: today.month, day: today.day),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('1'), findsOneWidget);
+      expect(find.text('an'), findsOneWidget);
+      expect(find.text('ans'), findsNothing);
     });
   });
 
