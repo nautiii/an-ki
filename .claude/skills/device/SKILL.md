@@ -31,7 +31,7 @@ Sign-In needs the debug key's SHA-1 in Firebase (platform rule): e-mail works me
 Claude desktop is an MSIX app. In Claude's own shells (Bash and PowerShell tools), writes under
 `%APPDATA%` and `%LOCALAPPDATA%` are virtualized and Java NIO can't open a selector, so Gradle
 fails and downloaded packages stay invisible to the IDE. The app's **Terminal panel** runs
-outside that sandbox (checked 2026-10-16). So:
+outside that sandbox. So:
 - **Builds** (`flutter run`, `scripts/build_and_deploy.ps1`, `flutter pub get`) go to the
   Terminal panel with `run_in_terminal`: the maintainer sees the tab and can type `r`, `R`, `q`.
 - **adb, the emulator and `device.sh`** run from the Bash tool: no Java involved.
@@ -40,7 +40,7 @@ outside that sandbox (checked 2026-10-16). So:
 ## Workflow
 
 1. **Boot.** `bash .claude/skills/device/scripts/device.sh boot` prints the serial. It starts the
-   AVD detached when needed (≈ 10 s from the snapshot, ≈ 1 min cold), restores Europe/Paris and
+   AVD detached when needed (≈ 20 s from the snapshot, ≈ 1 min cold), restores Europe/Paris and
    lifts the lock screen. Phone: `adb devices`, then prefix each command with `DEVICE=<serial>`.
 2. **Launch** in the Terminal panel: `run_in_terminal` with
    `& '.\scripts\run.ps1' -d emulator-5554 --print-dtd`, titled « AnKi · <device> ». Poll
@@ -61,8 +61,10 @@ outside that sandbox (checked 2026-10-16). So:
    routes; a full relaunch (`stop_terminal_tab`, then step 2) for native code, plugins, the
    manifest or `pubspec.yaml`.
 6. **Vary.** `theme dark`, `text 2.0`, `size compact` (360 × 640 dp), `motion off`, `net off`,
-   `tz`, `time`, `perm`, `contact`. The first variation records the device's settings and
-   `reset` puts them back: run it before you finish, on every device you touched.
+   `tz`, `time`, `perm`, `contact`. The first display, motion, network, clock or time-zone
+   variation records the device's settings and `reset` puts them back: run it before you
+   finish, on every device you touched. `reset` leaves permissions and contacts alone: undo them
+   with `perm reset <permission>` and `contact clear`.
 7. **Clean up.** Close the run tab (`stop_terminal_tab`, `close: true`) when you are done. Leave
    the emulator running, the maintainer may be using it; `adb -s emulator-5554 emu kill` stops
    it and saves the quick-boot snapshot.
@@ -101,14 +103,15 @@ end, the phone, the Dart MCP setup.
 
 ## Gotchas
 
-- Revoking a permission (`perm revoke` or `reset`) makes Android kill the app: `flutter run`
+- Revoking a permission (`perm revoke` or `perm reset`) makes Android kill the app: `flutter run`
   prints « Lost connection to device », relaunch it.
 - A cold boot puts the emulator back on GMT (it can't read Windows' zone) and `boot` fixes it.
   Reminders fire at 10:00 *device* time.
 - The app's language comes from the profile (French by default), not from the system: the
   system language only changes Android's dialogs and pickers.
-- Switching the system theme while the app runs left the sign-in screen with dark status-bar
-  icons on its dark background (2026-10-16): cold-start in dark mode before judging the bars.
+- Switching the system theme while the app runs can leave dark status-bar icons on a dark
+  screen without an `AppBar` (the welcome screen sets its own through `AnnotatedRegion`):
+  cold-start in dark mode before judging the bars.
 - Outfit is downloaded on the first launch (into the app's `files/`): an offline first run shows
   the fallback font.
 - Debug timings are JIT timings (3 to 4.5 s to start on the emulator): measure startup in
@@ -124,8 +127,9 @@ end, the phone, the Dart MCP setup.
   `adb shell nc -z 8.8.8.8 53`.
 - The emulator renders with Impeller on OpenGL ES, the phone on Vulkan: settle a rendering doubt
   on the phone.
-- A build rewrites `lib/l10n/app_localizations*.dart` with CRLF: same content, not a change to
-  commit.
+- `flutter gen-l10n` (run by every build) writes `lib/l10n/app_localizations*.dart` with
+  `pubspec.yaml`'s line endings: keep `pubspec.yaml` in LF (`.gitattributes`), or every build
+  shows the l10n files as changed.
 
 ## Never
 

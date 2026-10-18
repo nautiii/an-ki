@@ -5,7 +5,7 @@ such as `/sdcard/x` get rewritten); from then on give Windows programs relative 
 for host files (`$(cygpath -w …)`), a `/c/…` path no longer reaches them. Use the SDK's adb
 (`"$LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe"`, called `adb` below), add `-s <serial>`
 when several devices are attached, and strip `\r` from adb output (`| tr -d '\r'`).
-Everything here ran on the emulator on 2026-10-16, except what §15 lists.
+Everything here was run on the emulator, except what §15 lists.
 
 1. [The AVD](#1-the-avd) · 2. [The phone](#2-the-phone) · 3. [Logs](#3-logs) ·
 4. [Screens and recordings](#4-screens-and-recordings) · 5. [Accessibility pass](#5-accessibility-pass) ·
@@ -17,11 +17,11 @@ Everything here ran on the emulator on 2026-10-16, except what §15 lists.
 
 ## 1. The AVD
 
-- Created by the maintainer on 2026-10-16 in Android Studio's Device Manager: hardware profile
-  « Honor Magic7 Pro » (`~/.android/devices.xml`), AVD `~/.android/avd/Honor_Magic7_Pro.avd/`
-  (`config.ini`): system image `android-36/google_apis/x86_64`, 2 GB RAM, 4 cores, quick boot,
-  WHPX acceleration. The screen was first entered as 2800 × 1280 (a landscape phone); both files
-  now say 1280 × 2800. If Android Studio offers to « repair » the AVD, check the size after.
+- Hardware profile « Honor Magic7 Pro » (`~/.android/devices.xml`), AVD
+  `~/.android/avd/Honor_Magic7_Pro.avd/` (`config.ini`): system image
+  `android-36/google_apis/x86_64`, 2 GB RAM, 4 cores, quick boot, WHPX acceleration, screen
+  1280 × 2800 (portrait). If Android Studio offers to « repair » the AVD, check the size after:
+  it was once saved as landscape.
 - Emulator flags (`"$LOCALAPPDATA/Android/Sdk/emulator/emulator.exe" -avd Honor_Magic7_Pro …`):
   `-no-snapshot-load` cold boot · `-no-snapshot-save` leave the snapshot as it is ·
   `-no-window` headless · `-timezone Europe/Paris` (`device.sh boot` passes it) ·
@@ -96,7 +96,7 @@ Finish with `device.sh reset`.
 
 ## 6. A reminder end to end
 
-Needs a signed-in session; not run yet (§15). `reminder_plan.dart` plans J-0 and J-7 at 10:00;
+Needs a signed-in session. `reminder_plan.dart` plans J-0 and J-7 at 10:00;
 a reminder whose 10:00 is already past moves to the next year.
 1. In the app, add a birthday for tomorrow and one 8 days from now: both remind tomorrow at
    10:00 (J-0 and J-7).
@@ -124,8 +124,8 @@ the same date every year (`DateTimeComponents.dateAndTime`), so a fired one stay
   contacts of the emulator; `device.sh contact clear` removes them all.
 - Check them in the Contacts app:
   `adb shell am start -n com.google.android.contacts/com.android.contacts.activities.PeopleActivity`.
-- Three fixtures exist on the AVD since 2026-10-16: Camille Martin (1990-03-15), Mamie
-  (--07-02), Léa Dupont (2001-10-23).
+- Fixtures seeded on the AVD: Camille Martin (1990-03-15), Mamie (--07-02), Léa Dupont
+  (2001-10-23); check the Contacts app before relying on them.
 
 ## 9. Fingerprint
 
@@ -177,9 +177,9 @@ JAVA_TOOL_OPTIONS="-Djdk.net.unixdomain.tmpdir=$(cygpath -w ~/.gradle/tmp-af)" \
 
 ## 14. Dart MCP server
 
-`dart mcp-server` ships with the Dart SDK (server 1.2.0 with Dart 3.13.5). Declared since
-2026-10-16 in `.mcp.json` at the repo root, which Claude Code asks to approve once (a session
-started before that file sees no `mcp__dart__*` tools until it restarts):
+`dart mcp-server` ships with the Dart SDK (server 1.2.0 with Dart 3.13.5). It is declared in
+`.mcp.json` at the repo root; Claude Code asks to approve it once, and only a session started
+after that sees the `mcp__dart__*` tools:
 ```json
 {
   "mcpServers": {
@@ -192,16 +192,14 @@ started before that file sees no `mcp__dart__*` tools until it restarts):
 - On by default: `dtd`, `hot_reload`, `hot_restart`, `get_runtime_errors`, `widget_inspector`,
   `vm_service`, `analyze_files`, `lsp`, package readers. `launch_app`, `run_tests` and
   `dart_format` stay off unless `--enable`d: keep it so (SKILL.md, Dart MCP server).
-- Checked on 2026-10-16 with the app launched from the Terminal panel: `listDtdUris` also lists
+- With the app launched from the Terminal panel, `listDtdUris` also lists
   Android Studio's daemon (its root is the Dart SDK), connect to the one whose root is the repo.
   `flutter_driver_command` needs the driver extension, which AnKi doesn't enable.
 
 ## 15. Not verified yet
 
-- §6 (a reminder firing): needs the maintainer's sign-in on the emulator.
-- Step 4 of the UX roadmap (2026-10-18): the J-0 hero and its petals, the share sheet of
-  « Souhaiter », the J-0 notification's « Souhaiter » button: the build installs and starts,
-  the rest waits for that sign-in.
+- The J-0 hero and its petals, the « Souhaiter » share sheet and the J-0 notification's
+  « Souhaiter » button (UX step 4): they need the maintainer's sign-in on the emulator.
 - §9 enrolment and AnKi's biometric prompt: the console accepted `finger touch`, nothing was
   enrolled.
 - §12 release build and timings, §2 on the phone (none was plugged in), §10 poster.

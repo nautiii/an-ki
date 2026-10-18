@@ -35,7 +35,7 @@ else: a signature seen everywhere stops being one.
 | S3 | **Moon-phase countdown** *(`lib/core/common/moon_phase.dart`)* | Next to "dans N jours" in hero and list rows | Waxing moon over the last 29 days, full moon = today; beyond 29 days an unlit disc. Always paired with text (decorative for TalkBack). On gradients pass `litColor: onHero`. |
 | S4 | **Blossom celebration** *(`features/birthday/widgets/blossom_rain.dart`)* | Hero on the birthday itself (J-0) | Soft falling lotus/plum petals ≤ 2.5 s (2.4 s), once per person per day, `mediumImpact`. Skipped when reduce-motion is on. Never generic confetti. Tones `AnKiColors.petals`. |
 | S5 | **Floating glass pill navigation** | Main tabs (`core/common/bottom_bar.dart`) | Blurred translucent pill, radius 32, content scrolls beneath. Labels must stay available to TalkBack. |
-| S6 | **Big tabular numerals** | Countdown, age, counts | Outfit w800, `FontFeature.tabularFigures()`, letter-spacing −1. One per card. |
+| S6 | **Big tabular numerals** | Countdown, age, counts | Outfit w800, `FontFeature.tabularFigures()`, letter-spacing −1, once Outfit is bundled (F1); until then the theme style at its native weight with tabular figures. One per card. |
 
 ## 3. Color
 
@@ -89,22 +89,21 @@ the one "moment" per screen). Spotify's rule: the accent means *act here* or *th
 - A filled button on the celebration (« Souhaiter »): fill `onCelebration`, text and icon
   `onCelebrationAction` — the start of the gradient, ≥ 6.5:1 in both themes.
 - Primary text on the gradient at 100 % (6.5:1 L, 7.3:1 D). Secondary text **≥ 85 % opacity**
-  (5.2 L, 5.8 D). **Never 70 %**: it measures 4.1 (L) / 3.9 (D) — fails AA. This is the current bug.
-- The current code uses `primary → tertiary` in dark too, which gives a pastel `#ABC7FF → #DDBCE0`
-  slab that glares on the night background. Dark hero = containers (night sky), always.
+  (5.2 L, 5.8 D). **Never 70 %**: it measures 4.1 (L) / 4.5 (D, 4.48) — fails AA (palette audit).
+- Dark hero = containers (night sky), always: `primary → tertiary` in dark is a pastel slab that
+  glares on the night background.
 - Direction `topLeft → bottomRight`. Light: soft tinted shadow (see §7). Dark: no shadow.
 
 ### 3.4 Category colors
 
-Today `BirthdayCategoryX.color` returns raw Material colors (`Colors.blue`…`Colors.yellow`):
-same value in both themes and 1.2–3.0:1 on the light surface (yellow 1.16, amber 1.55) → invisible
-dots and unreadable chips. Target: each category gets a **seed**; UI uses the derived
-`primaryContainer` / `onPrimaryContainer` (≈ 7.2:1 in both themes) for chips and badges, and the
-derived `primary` for dots (≥ 3:1). Color is never the only cue: keep the icon + label.
+Each category tone comes from a seed in `LabelTones` (`lib/core/theme/label_tones.dart`, read
+through `category.tones(context)` in `category_display.dart`), with values for both themes: the
+main tone for dots, rings and chip icons (≥ 3:1 on the surface), the container pair for chips and
+badges. Color is never the only cue: keep the icon + label.
 
 ### 3.5 Theme rules
 
-**Both themes**: colors only from `colorScheme` or `AnKiColors` — no `Colors.*`, no hex, no
+**Both themes**: colors only from `colorScheme`, `AnKiColors` or `LabelTones` — no `Colors.*`, no hex, no
 `isDark ? x : y` ternaries in widgets (put both values in the theme extension). Scrims =
 `colorScheme.scrim` with alpha; shadows = `colorScheme.shadow` with alpha.
 
@@ -136,7 +135,8 @@ static TTFs (OFL) as a pubspec family and use `ThemeData(fontFamily: 'Outfit')` 
 | labelMedium | Metadata (dates, countdown badges) | 500–600 |
 
 Rules:
-- **Minimum 12 sp** for any text (today: 9/10/11 sp exist — "ANS", badges, chip labels).
+- **Minimum 12 sp** for any text (the one exception left: `labelSmall`, 11 sp, for the published
+  date in `book_card.dart`).
 - Sentence case. No ALL-CAPS overlines (hard to read, louder than "calm"); if an overline is
   needed: labelMedium, sentence case, `onSurfaceVariant` or 85 % on gradients.
 - Tabular figures for anything that counts or aligns: `FontFeature.tabularFigures()`.
@@ -160,7 +160,8 @@ polish, unusual on Android — a quiet signature).
 | `AppRadii.xl` | 32 | Bottom-sheet top corners, nav pill |
 | `StadiumBorder()` | full | Buttons, chips, search field, segmented controls, FAB-like adds |
 
-Today 11 different radii coexist (2, 3, 4, 8, 12, 14, 16, 20, 24, 28, 32): migrate what you touch.
+Raw radii remain only in the screens of backlog F5 (12/16/24 written by hand, and an off-token 28
+in `AnKiTextField` and the login and sign-up buttons): migrate what you touch.
 
 ## 6. Spacing & layout
 
@@ -170,8 +171,9 @@ lg 24 · xl 32 · xxl 48`.
 - Inside a component (icon ↔ label, chip padding, list-row rhythm): 4, 8, 12 allowed.
 - Never 2, 6, 10, 14, 20 (except a 1–2 dp optical nudge, commented).
 - Screen gutter **24** (*ma*: calm needs air). Dense grids (calendar) may use 16.
-- Section gap 24–32; card-to-card 12; content above the floating nav pill: bottom padding =
-  pill height + its margin + safe area (compute it, don't hardcode 110).
+- Section gap 24–32; card-to-card 12; content above the floating nav pill: pad by
+  `MediaQuery.paddingOf(context).bottom` (the shell's `extendBody` puts the pill in it), never a
+  constant.
 - Thumb zone: primary actions in the bottom half or as a bottom CTA; top bar holds navigation and
   secondary actions. Sheets put the main CTA at the bottom, above the keyboard.
 
@@ -200,8 +202,8 @@ Use the M3 tokens shipped in Flutter (`Durations`, `Easing`) through `AppMotion`
 
 - Motion explains *where things come from and go*; it never decorates idle screens.
 - Intros: stagger ≤ 40 ms per item, whole sequence ≤ 600 ms, and **controls are visible and
-  interactive from the first frame** (today the auth screen only reveals its buttons after up
-  to ~1.8 s of staggered fades).
+  interactive from the first frame** (login and sign-up still stagger theirs over ~1 s,
+  backlog D3).
 - Animate opacity/transform (cheap), not layout of text blocks.
 - `MediaQuery.disableAnimationsOf(context)` → crossfade or no animation, no petals, no bounce.
 

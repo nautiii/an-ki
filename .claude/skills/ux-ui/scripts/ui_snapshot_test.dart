@@ -14,7 +14,8 @@
 //
 // Limites : Roboto remplace Outfit tant qu'elle n'est pas embarquée (métriques
 // proches, pas identiques) ; pas d'emoji ; les plugins natifs appelés au build
-// doivent être mockés via `prepare` (cf. test/support/platform_mocks.dart).
+// doivent être mockés via `prepare` (cf. test/support/platform_mocks.dart et
+// test/support/fake_mobile_scanner_platform.dart).
 
 import 'dart:convert';
 import 'dart:io';
@@ -57,13 +58,15 @@ import '../../../test/support/network_image_mock.dart';
 // UiVariant.compact (360×640) pour traquer les débordements.
 //
 // Recettes (ajouter l'import de l'écran) :
-//   onglet      → build: () => const AppAt(AppRoutes.scanner)   // l'app routée, barre comprise
+//   onglet      → build: () => const AppAt(AppRoutes.scanner),  // l'app routée, barre comprise
+//                 prepare: () => FakeMobileScannerPlatform.install()   // ../../../test/support/fake_mobile_scanner_platform.dart
 //   calendrier  → act: (t) => t.tap(find.byIcon(Icons.calendar_month_rounded))
 //   chargement  → overrides: sampleOverrides(isLoading: true)
 //   paramètres  → build: () => const SettingsScreen(),   // features/settings/screens/
 //                 prepare: () => FakeBiometricChannels().install()   // ../../../test/support/platform_mocks.dart
 //   connexion   → build: () => const AuthChoiceScreen()
-//   recherche   → act: (t) => t.enterText(find.byType(TextField).first, 'Lé')
+//   recherche   → build: () => const AppAt(AppRoutes.search),   // écran plein, sans onglets
+//                 act: (t) => t.enterText(find.byType(TextField), 'Lé')
 //   scroll      → act: (t) => t.drag(find.byType(Scrollable).first, const Offset(0, -400))
 
 final List<UiScene> scenes = [
@@ -186,6 +189,8 @@ List<Override> sampleOverrides({
   return [
     authAccessProvider.overrideWithValue(AuthAccess.granted),
     currentUidProvider.overrideWithValue('fake-uid'),
+    // Compte permanent : sans ça, la salutation lit la vraie session Firebase.
+    isGuestProvider.overrideWithValue(false),
     userProfileProvider.overrideWithValue(
       AsyncData(
         UserProfile(

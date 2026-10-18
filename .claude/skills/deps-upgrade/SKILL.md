@@ -123,8 +123,9 @@ Before each commit, all green: `dart format --output=none --set-exit-if-changed 
 stage yours and commit them alone with `git commit -F - -- <paths>`. Messages follow the
 git-workflow skill and name what actually moved (the titles below are patterns). Docs quoting
 current versions change in the commit that changes the version: `AGENTS.md` (Stack),
-`.claude/rules/platform.md` (Android toolchain), `.claude/rules/state.md` and the architecture
-skill's `decisions.md` (Riverpod, riverpod_lint).
+`README.md` (Stack), `.claude/rules/platform.md` (Android toolchain), `.claude/rules/navigation.md`
+and the architecture skill's `decisions.md` D9 (go_router), `.claude/rules/state.md` and
+`decisions.md` (Riverpod, riverpod_lint).
 
 ### a. Flutter — `BUILD: upgrade Flutter to <x.y.z>`
 

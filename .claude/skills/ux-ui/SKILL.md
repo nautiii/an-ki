@@ -169,7 +169,8 @@ flutter test build/ui_snapshots/_src/palette_audit_test.dart
 
 ## Review checklist
 
-- [ ] Light and dark checked on snapshots; colors only from `colorScheme` / `context.ankiColors`.
+- [ ] Light and dark checked on snapshots; colors only from `colorScheme`, `context.ankiColors`
+      or `LabelTones` (user labels).
 - [ ] Text ≥ 12 sp; contrast ≥ 4.5:1 (3:1 for large text and meaningful borders/icons), measured.
 - [ ] Targets ≥ 48 dp; icon-only controls have a tooltip; custom tappables expose `button` and a
       label; swipe actions also exist as semantic actions.

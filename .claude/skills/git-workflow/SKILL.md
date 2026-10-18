@@ -68,7 +68,7 @@ several areas (better no scope than a misleading one; never comma-separated list
 
 | Path | Scope |
 |---|---|
-| `lib/features/<feature>/` and its tests | `auth`, `birthday`, `book_scanner`, `home`, `user` |
+| `lib/features/<feature>/` and its tests | the feature's folder name: `auth`, `birthday`, `reminders`… |
 | `lib/core/theme/` | `theme` |
 | other `lib/core/` | `core` |
 | `lib/app/` (router, bootstrap, `MaterialApp`) | `app` |
@@ -78,7 +78,7 @@ several areas (better no scope than a misleading one; never comma-separated list
 | `firestore.rules`, `firebase.json`, Firebase config | `firebase` |
 | `lib/assets/`, launcher icons, splash | `assets` |
 | `scripts/` | `scripts` |
-| `AGENTS.md`, `CLAUDE.md`, `.claude/` | `agents` |
+| `AGENTS.md`, `.claude/` | `agents` |
 
 ### Breaking changes
 
@@ -93,6 +93,8 @@ BREAKING CHANGE: old `categories` arrays are no longer read;
 run scripts/migrate_categories.ps1 once per environment.
 ```
 
+(Illustrative: no such script exists.)
+
 ## Committing, step by step
 
 1. **Look before writing.** Run `git status`, `git diff --staged`, `git diff` and
@@ -106,7 +108,8 @@ run scripts/migrate_categories.ps1 once per environment.
    and the files in each, and let the user validate. Each commit should build and pass tests on
    its own, so that `git bisect` and reverts stay usable. Tests belong with the code they cover.
 4. **Check before recording.** For Dart changes, the commit must not break the build:
-   `dart format --output=none --set-exit-if-changed <files>` and `flutter analyze`, plus the
+   `dart format --output=none --set-exit-if-changed <files>`, `flutter analyze` and
+   `dart analyze` (only the latter runs `riverpod_lint`), plus the
    relevant `flutter test` targets when `lib/` or `test/` changed (skip what you already ran
    after the last edit in this session). If something fails, fix it or tell the user — don't
    commit red.
@@ -138,17 +141,23 @@ run scripts/migrate_categories.ps1 once per environment.
 - Integrate a branch by rebasing it onto `main`, never with a merge commit: `main` stays linear.
   Rebase the branch (or cherry-pick its commits, skipping any merge commit inside it), check the
   result, then fast-forward `main` (`git merge --ff-only`).
-- A PR title follows the commit format (it becomes the squash-merge commit):
-  `FEAT(book_scanner): suggest gifts from scanned books`.
+- A PR title follows the commit format: `FEAT(book_scanner): suggest gifts from scanned books`.
+  The PR lands by rebase, its commits as they are.
 - PR body, same terse spirit: **Why** (one or two lines), **What** (bullets), **How to test**
   (commands, manual checks on the phone), and any follow-up left out of scope.
 
 ## Safety
 
-Ask for an explicit yes before anything that publishes or rewrites history: `git push`,
-`--force` / `--force-with-lease`, rebasing or amending commits that are already pushed,
-`git reset --hard`, deleting branches. Prefer a new commit over `--amend` unless the user asks.
+Ask for an explicit yes before anything that publishes or rewrites history: `git push`, a
+forced push (`--force-with-lease` only, never plain `--force`), rebasing or amending commits that
+are already pushed, `git reset --hard`, deleting branches. Prefer a new commit over `--amend` unless the user asks.
 Never bypass hooks (`--no-verify`) or signing; if a hook fails, fix the cause.
+
+In Claude Code, `.claude/hooks/guard-git.sh` enforces this: it blocks merge commits, `git pull`
+without `--rebase`/`--ff-only`, blind `git add`, `git commit -a`, forced pushes without lease,
+`--no-verify` and `firebase deploy`, and makes the maintainer confirm a push, `reset --hard`,
+`clean -f`, discarding all changes, `branch -D`, `stash drop` or rewriting pushed commits. A
+blocked command is a signal to change approach, not to work around the guard.
 
 ## Examples
 
@@ -158,24 +167,23 @@ Rewriting past messages from this repo's history:
 |---|---|
 | `UPDATE - Big refacto architecture yolo` | `REFACTOR: move app wiring to lib/app` |
 | `FIX - Try fixing notifications + upgrade dependencies` | two commits: `FIX(core): request notification permission per OS` and `CHORE(deps): bump timezone, contacts, secure storage` |
-| `ADD - Settings screen` | `FEAT(user): add settings screen` |
+| `ADD - Settings screen` | `FEAT(settings): add settings screen` |
 | `UPDATE - Commentaries in source code in French` | `DOCS: translate code comments to French` |
 
 Too wordy vs. scannable:
 
 ```
 # Too wordy
-BUILD: upgrade the Flutter SDK, all the dependencies and the Android toolchain
+CHORE(deps): upgrade the google_fonts package to its new major version 9
 
-- AppTheme applies Outfit per style: the google_fonts 9 TextTheme
-  comes from material_ui and no longer matches flutter/material
+- AppTheme now applies Outfit per style, because the google_fonts 9
+  TextTheme comes from material_ui and no longer matches flutter/material
 
 # Scannable
-BUILD: upgrade Flutter, deps and Android toolchain
+CHORE(deps): upgrade google_fonts to 9.0.0
 
-- Flutter 3.47.6, Dart 3.13.5
-- Gradle 9.3.1, AGP 9.1.1, Kotlin 2.4.10
-- adapt AppTheme to google_fonts 9
+- apply Outfit per style in AppTheme
+- why: TextTheme now comes from material_ui
 ```
 
 A session that upgraded the stack, split into reviewable commits:

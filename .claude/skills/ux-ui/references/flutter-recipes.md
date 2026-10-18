@@ -5,7 +5,7 @@ rendering checked in light, dark and 200 % text). Adapt names, keep the shapes.
 
 ## Contents
 1. Shared components (`lib/core`)
-2. Wire the brand into `AppTheme`
+2. The brand in `AppTheme`
 3. Typography foundation — bundle Outfit
 4. Delete with « Annuler » (undo)
 5. Agenda grouped by time, sticky headers
@@ -37,131 +37,41 @@ import them from `package:an_ki/core/...`, extend them there, never fork them pe
 `anki_colors_test.dart` locks the identity's promise: every brand text/background pair stays
 ≥ 4.5:1 in both themes. If a seed change breaks it, the test fails — fix the color, not the test.
 
-## 2. Wire the brand into `AppTheme`
+## 2. The brand in `AppTheme`
 
-Target shape of `AppTheme._buildTheme` (`lib/core/theme/themes.dart`). Component themes remove
-ad-hoc styling from widgets: once they exist, delete per-widget `styleFrom`/radius overrides.
-Flutter 3.44+ uses the `*ThemeData` classes (`AppBarThemeData`, `InputDecorationThemeData`,
-`CardThemeData`, `DialogThemeData`).
+Shipped in `lib/core/theme/themes.dart` (tested by `test/core/theme/themes_test.dart`): read it
+rather than a copy. Its component themes carry the brand — stadium buttons at least 56 dp tall,
+pebble squircles for cards and dialogs, filled inputs, bottom sheets with their drag handle and
+`AppRadii.xl` top corners, floating snackbars, 48 dp minimum for text and segmented buttons, and
+the `AnKiColors` extension. A per-widget `styleFrom` or radius override duplicates the theme:
+delete it when you touch the widget (the leftovers are backlog F5). Flutter 3.44+ uses the
+`*ThemeData` classes (`AppBarThemeData`, `InputDecorationThemeData`, `CardThemeData`,
+`DialogThemeData`).
 
-```dart
-static ThemeData _buildTheme(Brightness brightness) {
-  final scheme = ColorScheme.fromSeed(
-    seedColor: seedColor,
-    brightness: brightness,
-  );
-  const pebble = RoundedSuperellipseBorder(
-    borderRadius: BorderRadius.all(Radius.circular(AppRadii.lg)),
-  );
-  const buttonPadding = EdgeInsets.symmetric(
-    horizontal: AppSpacing.lg,
-    vertical: AppSpacing.md,
-  );
-  return ThemeData(
-    useMaterial3: true,
-    colorScheme: scheme,
-    // fontFamily: 'Outfit', ← une fois la police embarquée (§3) ; d'ici là, garder textTheme actuel.
-    extensions: [AnKiColors.from(scheme)],
-    appBarTheme: AppBarThemeData(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      centerTitle: false,
-      systemOverlayStyle: brightness == Brightness.dark
-          ? SystemUiOverlayStyle.light
-          : SystemUiOverlayStyle.dark,
-    ),
-    filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        minimumSize: const Size(64, 56),
-        padding: buttonPadding,
-        shape: const StadiumBorder(),
-      ),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size(64, 56),
-        padding: buttonPadding,
-        shape: const StadiumBorder(),
-        side: BorderSide(color: scheme.outline),
-      ),
-    ),
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-    ),
-    cardTheme: CardThemeData(
-      elevation: 0,
-      color: scheme.surfaceContainerLow,
-      shape: pebble,
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-    ),
-    chipTheme: ChipThemeData(
-      shape: const StadiumBorder(),
-      side: BorderSide(color: scheme.outlineVariant),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-    ),
-    inputDecorationTheme: InputDecorationThemeData(
-      filled: true,
-      fillColor: scheme.surfaceContainerHigh,
-      contentPadding: const EdgeInsets.all(AppSpacing.md),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        borderSide: BorderSide(color: scheme.primary, width: 2),
-      ),
-    ),
-    bottomSheetTheme: BottomSheetThemeData(
-      showDragHandle: true,
-      backgroundColor: scheme.surfaceContainerLow,
-      shape: const RoundedSuperellipseBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.xl)),
-      ),
-    ),
-    snackBarTheme: SnackBarThemeData(
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
-    ),
-    dialogTheme: const DialogThemeData(shape: pebble),
-    listTileTheme: const ListTileThemeData(
-      minVerticalPadding: AppSpacing.sm,
-      contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
-    ),
-    segmentedButtonTheme: SegmentedButtonThemeData(
-      style: SegmentedButton.styleFrom(minimumSize: const Size(48, 48)),
-    ),
-  );
-}
-```
-
-Then in widgets: `context.ankiColors.hero` (gradient), `.onHero`, `.blossom.container`… and
-`Theme.of(context).colorScheme` for everything else. With the theme sheet in place, bottom sheets
-get their drag handle and shape for free — remove the hand-made handles/containers.
+In widgets: `context.ankiColors.hero` (gradient), `.onHero`, `.blossom.container`… and
+`Theme.of(context).colorScheme` for everything else. Sheets take their handle and shape from
+`bottomSheetTheme`: never draw your own.
 
 ## 3. Typography foundation — bundle Outfit
 
 Why: offline first launch, no runtime network call, and real weights (`copyWith(fontWeight:)` on a
 google_fonts style only fakes bold). Steps (downloading the font = ask the maintainer first):
-1. Static TTFs from Google Fonts (OFL) — Outfit 300…900 — into `assets/fonts/`.
+1. Static TTFs from Google Fonts (OFL) — Outfit 300…900 — into `lib/assets/fonts/`, next to the
+   app's other assets.
 2. `pubspec.yaml`:
    ```yaml
    flutter:
      fonts:
        - family: Outfit
          fonts:
-           - asset: assets/fonts/Outfit-Regular.ttf
-           - asset: assets/fonts/Outfit-Medium.ttf
+           - asset: lib/assets/fonts/Outfit-Regular.ttf
+           - asset: lib/assets/fonts/Outfit-Medium.ttf
              weight: 500
-           - asset: assets/fonts/Outfit-SemiBold.ttf
+           - asset: lib/assets/fonts/Outfit-SemiBold.ttf
              weight: 600
-           - asset: assets/fonts/Outfit-Bold.ttf
+           - asset: lib/assets/fonts/Outfit-Bold.ttf
              weight: 700
-           - asset: assets/fonts/Outfit-ExtraBold.ttf
+           - asset: lib/assets/fonts/Outfit-ExtraBold.ttf
              weight: 800
    ```
 3. `ThemeData(fontFamily: 'Outfit', …)`; remove `GoogleFonts.outfit…` from the theme (and the
@@ -208,12 +118,18 @@ Shipped in step 2 — read the code rather than a copy:
 
 ## 6. Large-text reflow
 
+Shipped in `next_birthday.dart` and `agenda_tile.dart`: beyond 150 %, avatar and number go on a
+row above the name.
+
 ```dart
 // Au-delà de 150 % de texte, empiler plutôt que compresser.
 final stacked = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
 final content = stacked
-    ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [identity, number])
-    : Row(children: [Expanded(child: identity), const SizedBox(width: AppSpacing.md), number]);
+    ? Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [Row(children: [avatar, const Spacer(), number]), identity],
+      )
+    : Row(children: [avatar, Expanded(child: identity), number]);
 ```
 No `height:` around text; `minHeight` via `ConstrainedBox` if a block needs presence.
 `SegmentedButton` labels wrap mid-word at 200 % (« Systè-me ») — beyond 1.5× prefer a vertical
@@ -230,10 +146,11 @@ Never build dates by hand (`'${d.day}/${d.month}/${d.year}'`, month arrays). A `
 without a year is formatted on a leap year (2000), so 29 February exists: use
 `date.formatted(context)` (`birthday_display.dart`) rather than a new `DateTime`. Typed birth
 dates: `BirthDateField` (mask, preview, errors) over the pure rules of `birth_date_input.dart`.
-Countdown with ICU plurals in the ARB files:
+Counts use ICU plurals; reuse the existing keys (`countdownDays`, `heroAgeUnit`, `agendaLine`,
+`inDays`) before adding one:
 ```json
-"countdown": "{days, plural, =0{Aujourd'hui} =1{Demain} other{Dans {days} jours}}",
-"turningAge": "{age, plural, =1{aura 1 an} other{aura {age} ans}}"
+"countdownDays": "{days, plural, =0{Aujourd'hui} =1{Demain} other{J-{days}}}",
+"heroAgeUnit": "{age, plural, one{an} other{ans}}"
 ```
 
 ## 8. Motion & haptics

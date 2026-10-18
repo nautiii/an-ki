@@ -21,7 +21,7 @@ haptics · 6. Focus & forms · 7. Testing
 | Labels | Every interactive element has an accessible name; icon-only → `tooltip` |
 | Color | Never the only carrier of meaning (selected, category, error, today) |
 | Motion | Respects reduce-motion; nothing flashes > 3×/s |
-| Time | No action requires speed; undo windows ≥ 4 s, persistent for screen-reader users |
+| Time | No action requires speed; undo windows ≥ 4 s, doubled for screen-reader users |
 | Structure | Headers marked, reading order = visual order, one announcement per logical item |
 
 ## 2. Flutter toolbox
@@ -53,24 +53,26 @@ haptics · 6. Focus & forms · 7. Testing
 
 ## 3. Large text (200 %)
 
-- **Never fix a height around text.** Use padding + `ConstrainedBox(minHeight:)`. (Today: hero
-  card `height: 110`, search bar `height: 48` → overflow at 200 %.)
+- **Never fix a height around text.** Use padding + `ConstrainedBox(minHeight:)`.
 - Text in a `Row` → `Expanded`/`Flexible`. Titles next to an action (sheet header) → title in
   `Expanded` with `maxLines: 2`.
 - Ellipsis only for secondary text whose full value is reachable elsewhere.
 - **Reflow** instead of shrinking: when `MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5`,
-  switch horizontal compositions to vertical (e.g. hero: big number under the name).
+  switch horizontal compositions to vertical (e.g. hero and agenda row: avatar and number on a
+  row above the name, `next_birthday.dart`, `agenda_tile.dart`).
 - Clamp only tiny decorative labels (badges) with
   `MediaQuery.withClampedTextScaling(maxScaleFactor: 1.3, child: …)`; never body text or buttons.
-- Screens must scroll when content can exceed the viewport (auth screen at 360×640 today).
+  Two deliberate exceptions: the calendar grid (numbers stay in their cells, like Material's date
+  picker) and the nav-pill labels (backlog D20).
+- Screens must scroll when content can exceed the viewport.
 - Verify with the snapshot variants `light-text200` and `compact-360x640`.
 
 ## 4. Color & contrast
 
 - Compute, don't eyeball: `scripts/palette_audit_test.dart` blends alpha onto the background and
   prints the real ratio for light and dark.
-- **Alpha text is a trap**: `onPrimary` at 70 % on the hero = 4.1 (L) / 3.9 (D). Use ≥ 85 % or a
-  dedicated role.
+- **Alpha text is a trap**: `onHero` at 70 % on the hero = 4.1 (L) / 4.5 (D, 4.48) — both fail.
+  Use ≥ 85 % or a dedicated role.
 - **Gradients**: check both ends (the audit has hero start/end pairs).
 - `outlineVariant` (1.6–2:1) is for decoration; borders that define a control use `outline`.
 - Pair color with a second cue: checkmark/filled tone for selected chips, icon + label for
@@ -81,9 +83,10 @@ haptics · 6. Focus & forms · 7. Testing
 - `MediaQuery.disableAnimationsOf(context)` → durations to zero or a simple crossfade; skip
   petals, bounces, staggered intros, parallax.
 - Undo snackbars: **since Flutter 3.44 a `SnackBar` with an `action` persists by default**
-  (`persist` defaults to `action != null`). For undo set `persist: false` and
-  `duration: 5 s`; with TalkBack/VoiceOver on (`accessibleNavigation`) Flutter keeps snackbars with
-  actions from timing out — good, keep it.
+  (`persist` defaults to `action != null`). For undo set `persist: false` and `duration: 5 s`.
+  With `persist: false` the snackbar times out under TalkBack too (Flutter 3.47 checks only
+  `persist`): double the duration when `MediaQuery.accessibleNavigationOf(context)` is true, as
+  `birthday_deletion.dart` does with `undoDelay`.
 - Haptics never carry information alone (many users disable them).
 
 ## 6. Focus & forms
@@ -104,7 +107,9 @@ there checks the default theme; real-theme contrast is the job of the palette au
 ```dart
 testWidgets('header actions are accessible', (tester) async {
   final semantics = tester.ensureSemantics();
-  await tester.pumpHarness(Header(userName: 'Camille', onOpenSettings: () {}));
+  await tester.pumpHarness(
+    Header(greeting: 'Bonjour', userName: 'Camille', onOpenSettings: () {}),
+  );
   await tester.pumpAndSettle();
 
   expect(find.bySemanticsLabel('Paramètres'), findsOneWidget);

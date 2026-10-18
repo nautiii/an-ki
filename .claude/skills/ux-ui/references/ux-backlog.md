@@ -37,12 +37,8 @@ auth or dependencies → design brief + maintainer approval first.
 - **Cost**: medium-high (ideas model with `personId`, navigation, scanner integration).
 
 ### B5 — Value-first onboarding (approved 2026-10-18, candidate B « directement chez soi »)
-- **Shipped, 5.1**: the auth wall is gone. Signed out lands on `welcome_screen.dart` (one
-  promise on the night hero, « Commencer » = anonymous session, « J'ai déjà un compte » pushes
-  the sign-in); `auth_choice_screen.dart` is « Bon retour » without the guest option, with
-  « Déverrouiller » first when the fingerprint locks the app; greetings use the first name or
-  pseudo, never « Invité » (`greetingNameProvider`).
-- **Next, each shippable alone** (brief and prototypes: `build/ui_snapshots/_src/etape5_test.dart`):
+- **Next, each shippable alone** (brief and prototypes: `build/ui_snapshots/_src/etape5_test.dart`,
+  local only — `flutter clean` wipes `build/`):
   - **5.2 Import choisi** — the empty home *is* the invite (« Qui voulez-vous fêter ? »,
     « Choisir dans mes contacts » first, a privacy line); a preview page pre-checked and sorted
     by next birthday, « Déjà dans AnKi » rows not importable (today a second import duplicates
@@ -70,7 +66,7 @@ auth or dependencies → design brief + maintainer approval first.
 - **Problem**: categories need a separate sheet (suggested + custom + icon grid) with quirky
   defaults (OG's, GOAT, Doggo, Internet…); creating one from the birthday form stacks a sheet on
   a sheet. Colors are tonal per theme (`LabelTones`, ring around each agenda avatar), but tied to
-  those 14 names: custom groups all share the neutral tone, so their ring stays invisible.
+  those 14 names: custom groups all share the neutral tone, so all their rings look alike.
 - **Proposal**: « Groupes » with 4 sensible defaults (Famille, Amis, Travail, Autres); create
   inline from the form's chip row (« + Nouveau groupe »); filters only when ≥ 2 groups are used;
   a tone picked per group (`LabelTones` seeds, identity §3.4).
@@ -84,7 +80,7 @@ auth or dependencies → design brief + maintainer approval first.
 - **F5 — Finish the token migration** in the screens step 1 didn't touch: `login_screen`,
   `signup_screen` (ad-hoc `fontSize`, faux bold, raw radii), `AnKiTextField` (own radii and
   sizes instead of the input theme), `BookCard` (`BorderRadius.circular(24/12)`, faux bold),
-  `settings_screen.dart:260` (radius 16).
+  the « Mettre à jour le pseudo » button in `settings_screen.dart` (radius 16).
 
 ## P1 — friction & states
 
@@ -99,7 +95,7 @@ auth or dependencies → design brief + maintainer approval first.
 ## P2 — polish
 
 - **D1 French typography**: dates now go through `DateFormat`; the ARB strings still use a plain
-  space before `?`/`!` (« … supprimer l'anniversaire de {name} ? », « … avec succès ! », and on
+  space before `?`/`!` (« … avec succès ! », and on
   the login and sign-up forms « Mot de passe oublié ? », « Pas encore de compte ? », « Vous avez
   déjà un compte ? ») → narrow no-break space (U+202F); the sign-in page's copy is done.
 - **D3 Motion**: `AnKiFadeIn` (login, signup) ignores reduce motion → `context.motion(...)`; its
@@ -142,11 +138,8 @@ auth or dependencies → design brief + maintainer approval first.
 
 ## Suggested roadmap
 
-1. ~~**F2 + F3 + A1–A8** — foundation and accessibility debt~~ — shipped 2026-10-12.
-2. ~~**B1 + Q1–Q2** — the home everyone sees daily (A9 with it)~~ — shipped 2026-10-12.
-3. ~~**B2** — capture without friction or invented ages (model change)~~ — shipped 2026-10-12.
-4. ~~**B3** — the birthday moment and the wish loop (new dependency)~~ — shipped 2026-10-18.
-5. **B5** — onboarding that lands on a populated agenda: ~~5.1 welcome~~ (shipped 2026-10-18),
-   then 5.2 import choisi, 5.3 rappels en contexte, 5.4 sauvegarde invité.
-6. **B4, B6, B7, F1, F4, F5, Q4, Q6, Q7, D1–D20** — depth and polish (F1 any time once approved);
+1. **B5** — onboarding that lands on a populated agenda: 5.2 import choisi, 5.3 rappels en
+   contexte, 5.4 sauvegarde invité.
+2. **B4, B6, B7, F1, F4, F5, Q4, Q6, Q7, D1, D3, D4, D6, D8–D20** — depth and polish (F1 any time
+   once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.

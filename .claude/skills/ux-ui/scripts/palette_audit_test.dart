@@ -11,6 +11,7 @@
 
 import 'dart:math' as math;
 
+import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/core/theme/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,20 +68,57 @@ final List<Pair> pairs = [
     (t) => t.colorScheme.surface,
     min: 1.0,
   ),
-  // Carte héros actuelle : dégradé primary → tertiary, texte onPrimary à 70 %.
+  // Héros (S1) : dégradé `AnKiColors.hero`, texte `onHero` ; les deux bouts.
   Pair(
-    'héros : texte 70 % (début dégradé)',
-    (t) => t.colorScheme.onPrimary,
-    (t) => t.colorScheme.primary,
-    alpha: 0.7,
+    'héros : texte (début)',
+    (t) => _brand(t).onHero,
+    (t) => _start(_brand(t).hero),
   ),
   Pair(
-    'héros : texte 70 % (fin dégradé)',
-    (t) => t.colorScheme.onPrimary,
-    (t) => t.colorScheme.tertiary,
+    'héros : texte (fin)',
+    (t) => _brand(t).onHero,
+    (t) => _end(_brand(t).hero),
+  ),
+  Pair(
+    'héros : texte secondaire (début)',
+    (t) => _brand(t).onHero,
+    (t) => _start(_brand(t).hero),
+    alpha: 0.85,
+  ),
+  Pair(
+    'héros : texte secondaire (fin)',
+    (t) => _brand(t).onHero,
+    (t) => _end(_brand(t).hero),
+    alpha: 0.85,
+  ),
+  // Repère : 70 % est trop faible, ne jamais l'utiliser.
+  Pair(
+    'héros : texte à 70 % (fin)',
+    (t) => _brand(t).onHero,
+    (t) => _end(_brand(t).hero),
     alpha: 0.7,
+  ),
+  // Célébration (J-0) et son bouton plein « Souhaiter ».
+  Pair(
+    'célébration : texte (début)',
+    (t) => _brand(t).onCelebration,
+    (t) => _start(_brand(t).celebration),
+  ),
+  Pair(
+    'célébration : texte (fin)',
+    (t) => _brand(t).onCelebration,
+    (t) => _end(_brand(t).celebration),
+  ),
+  Pair(
+    'célébration : bouton « Souhaiter »',
+    (t) => _brand(t).onCelebrationAction,
+    (t) => _brand(t).onCelebration,
   ),
 ];
+
+AnKiColors _brand(ThemeData theme) => theme.extension<AnKiColors>()!;
+Color _start(LinearGradient gradient) => gradient.colors.first;
+Color _end(LinearGradient gradient) => gradient.colors.last;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

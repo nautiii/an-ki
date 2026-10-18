@@ -48,8 +48,8 @@ Avoid: forms in dialogs, sheets stacked on sheets, full-screen spinners, new rou
 
 The home answers one question in < 2 s: *who, when, how old*. Pattern = **hero + time-bucketed
 agenda** (Netflix billboard + Todoist Upcoming / Google Calendar schedule).
-- **Hero** (S1): next birthday(s); several on the same day → `PageView`/`CarouselView` with
-  page dots *and* swipe hint; content: avatar, name, « aujourd'hui / demain / dans N jours »,
+- **Hero** (S1): next birthday(s); several on the same day → stacked cards, each with its own
+  state (§L, `next_birthday.dart`); content: avatar, name, « aujourd'hui / demain / dans N jours »,
   « aura N ans », moon phase (S3); on the day « Souhaiter » + « Déjà souhaité » (§L, shipped in
   step 4), « Idée cadeau » in the week before with B4.
 - **Agenda list** grouped by time: « Dans les 7 jours », then one section per month
@@ -107,8 +107,8 @@ the name, « Suivant », four digits, « OK ».
 
 ## E. Search & filters
 
-- Inline search that filters live (current) — keep it, but the whole 48 dp field must be tappable,
-  show a clear button with a tooltip, highlight matched text in results.
+- Full-screen search (`AppRoutes.search`, `birthday_search_screen.dart`) that filters live, with a
+  clear button and its tooltip; still missing: matched text highlighted in results (Q6).
 - Filters: horizontal `FilterChip` row (Airbnb, Google Photos, Spotify home chips) — selected state
   shows a checkmark or filled tone, not color alone; a « Tout » chip resets. Multi-select AND/OR
   semantics must be obvious (« Famille + Amis » = union).
@@ -125,7 +125,8 @@ the name, « Suivant », four digits, « OK ».
 - Swipe between months, « Aujourd'hui » chip when away from the current month, tap a day →
   bottom sheet with that day's people.
 - Refs: Google Calendar month view, Apple Calendar.
-- Avoid: grids that start on the 1st regardless of weekday (current bug), color-only markers.
+- Avoid: grids that start on the 1st regardless of weekday (the grid follows the locale's first
+  weekday), color-only markers.
 
 ## G. Empty, loading, error, offline
 
