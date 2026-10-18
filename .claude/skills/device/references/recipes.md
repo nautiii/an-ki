@@ -199,6 +199,9 @@ started before that file sees no `mcp__dart__*` tools until it restarts):
 ## 15. Not verified yet
 
 - §6 (a reminder firing): needs the maintainer's sign-in on the emulator.
+- Step 4 of the UX roadmap (2026-10-18): the J-0 hero and its petals, the share sheet of
+  « Souhaiter », the J-0 notification's « Souhaiter » button: the build installs and starts,
+  the rest waits for that sign-in.
 - §9 enrolment and AnKi's biometric prompt: the console accepted `finger touch`, nothing was
   enrolled.
 - §12 release build and timings, §2 on the phone (none was plugged in), §10 poster.

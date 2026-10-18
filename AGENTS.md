@@ -29,7 +29,8 @@ correct but hasn't been built on the current setup.
 
 Flutter 3.47.6 · Dart 3.13.5 · Material 3 · Riverpod 3.4 (hand-written providers, no codegen) ·
 Firebase Auth and Cloud Firestore (offline persistence on, no Storage) ·
-flutter_local_notifications with timezone · gen-l10n (French template, English).
+flutter_local_notifications with timezone · share_plus (system share sheet) · gen-l10n (French
+template, English).
 Every dependency is pinned to an exact version.
 
 ## Commands
@@ -116,12 +117,14 @@ code predates the target; the plan is `.claude/skills/architecture/references/mi
 ## Glossary
 
 - **Birthday** — a person (name, possibly empty surname, birth date whose year is optional),
-  category ids, optional photo stored as base64 in the document. Firestore `birthday/{id}`, owned
-  through its `uid` field; an unknown year is stored as 2000 with `yearKnown: false`.
+  category ids, optional photo stored as base64 in the document, the years it was wished
+  (`wishedYears`). Firestore `birthday/{id}`, owned through its `uid` field; an unknown year is
+  stored as 2000 with `yearKnown: false`.
 - **Category** (« catégorie ») — a label with an icon. Documents in the shared top-level
   `category` collection; each user picks theirs in `user/{uid}.categories`.
 - **User** — the profile document `user/{uid}`: name, pseudo, categories, theme, locale.
-- **Reminder** — local notifications on the day (J-0) and 7 days before (J-7), at 10:00 device time.
+- **Reminder** — local notifications on the day (J-0) and 7 days before (J-7), at 10:00 device time;
+  the J-0 one carries « Souhaiter » (Android), which opens AnKi on the share sheet.
 - **Book** — scanned by ISBN and looked up on Google Books; the seed of the gift-ideas feature.
 - **Session** — the signed-in Firebase user: Google, email or anonymous, with an optional
   biometric lock.

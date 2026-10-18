@@ -189,6 +189,9 @@ happens only when the snackbar closes without undo.
   action), its TalkBack `CustomSemanticsAction`, the edit sheet's delete button. No dialog.
 - Snackbars always render in the shell's root `Scaffold` (nested Scaffolds): the nav bar is that
   Scaffold's `bottomNavigationBar`, so floating snackbars sit above it.
+- « Souhaité » (`widgets/birthday_wish.dart`) reuses the snackbar but writes at once and undoes
+  with `unmarkWished` (`arrayRemove`): marking destroys nothing. It reads the messenger, the
+  strings and TalkBack's state before the share sheet opens, the context may be gone after.
 
 ## 5. Agenda grouped by time, sticky headers
 
@@ -247,6 +250,10 @@ AnimatedSwitcher(
   const Duration(milliseconds: 350), bounce: 0.2)` with `AnimationController.animateWith(
   SpringSimulation(spring, from, to, velocity))`.
 - Haptics per identity §9; call them where the user action is handled, once.
+- A one-shot celebration (`BlossomRain`, S4): an `AnimationController` started in
+  `didChangeDependencies` unless `MediaQuery.disableAnimationsOf`, a `CustomPainter` repainting
+  on it, `IgnorePointer` + `ExcludeSemantics`. Decide « play » once at mount, so marking it
+  played mid-animation doesn't cut it.
 - Never block input during an animation; long intros are skipped on reduce-motion.
 
 ## 9. Squircles

@@ -50,7 +50,8 @@ The home answers one question in < 2 s: *who, when, how old*. Pattern = **hero +
 agenda** (Netflix billboard + Todoist Upcoming / Google Calendar schedule).
 - **Hero** (S1): next birthday(s); several on the same day → `PageView`/`CarouselView` with
   page dots *and* swipe hint; content: avatar, name, « aujourd'hui / demain / dans N jours »,
-  « aura N ans », moon phase (S3), one primary action when ≤ 7 days (« Souhaiter », « Idée cadeau »).
+  « aura N ans », moon phase (S3); on the day « Souhaiter » + « Déjà souhaité » (§L, shipped in
+  step 4), « Idée cadeau » in the week before with B4.
 - **Agenda list** grouped by time: « Dans les 7 jours », then one section per month
   (« Novembre », « Janvier 2027 ») — chunking (Miller) that holds for a whole year, where
   « Plus tard » would become a flat list again. Sticky section headers. Each row: avatar ringed
@@ -156,8 +157,10 @@ A spinner is acceptable only inside the control that triggered a short action.
 ## I. Reminders & retention — ethical hooks
 
 People come back when AnKi saves them from forgetting and makes them look thoughtful.
-- Notification copy is personal and actionable: « Demain, Léa fête ses 30 ans 🎂 » with actions
-  « Souhaiter » (opens share/SMS/WhatsApp with a prefilled message) and « Idée cadeau ».
+- Notification copy is personal and actionable: « Demain, Léa fête ses 30 ans 🎂 ». The J-0
+  notification carries « Souhaiter » (shipped in step 4, Android: `AndroidNotificationAction`
+  with the birthday id as payload; `app/bootstrap` goes home and opens the share sheet).
+  « Idée cadeau » on J-7 comes with B4.
 - No age in a repeating notification: reminders repeat yearly (`DateTimeComponents.dateAndTime`)
   with the text written when scheduled, so an age goes stale if the app isn't reopened for a year.
   Today's texts carry none. Bringing it back means scheduling each occurrence as a one-shot
@@ -165,7 +168,7 @@ People come back when AnKi saves them from forgetting and makes them look though
   notifications; `ReminderNotification.age` is still computed for that.
 - Cadence: J-7 + J-0 (current) + optional J-1; per-person mute; quiet hours.
 - Weekly digest (opt-in) « Cette semaine : 2 anniversaires » — Monday morning.
-- Close the loop: « Marquer comme souhaité » → mint check, small celebration (peak-end rule).
+- Close the loop: « Souhaité » → mint check, light haptic, « Annuler » (peak-end rule; §L).
 - Yearly recap (Spotify Wrapped spirit) « Votre année en anniversaires » — shareable, delightful.
 - Home-screen widget (native, future) for the next birthday.
 - Forbidden: guilt copy (« Vous avez oublié… »), fake urgency, streak pressure, re-engagement
@@ -195,10 +198,22 @@ Every switch row is fully tappable (`SwitchListTile`), subtitles explain the eff
 
 ## L. The birthday moment
 
-On J-0 the hero switches to **celebration** (S1 celebration gradient + S4 petals once) with one
-primary CTA « Souhaiter » and a secondary « Idée cadeau ». After the wish: « Marqué comme
-souhaité » (mint) — the day ends on a high note (peak-end rule). Several birthdays today →
-carousel, each with its own state.
+Shipped in step 4 (`next_birthday.dart`, `birthday_wish.dart`, `blossom_rain.dart`,
+`birthday_wisher.dart`). On J-0 the hero switches to **celebration**: S1 celebration gradient,
+full moon + « Aujourd'hui 🎉 », the age (S6), and S4 petals once per person per day (2.4 s,
+`mediumImpact`, nothing with reduce motion).
+- « Souhaiter » (filled, `onCelebration` / `onCelebrationAction`) opens the system share sheet
+  (`share_plus`) with a ready message in the user's voice (« tu »), editable in the app chosen.
+  Once an app is chosen the birthday is marked wished — Android reports the app chosen, not the
+  sending, hence « Annuler ». A sheet closed without a choice changes nothing.
+- « Déjà souhaité » (text button) marks it at once, for a call or a wish in person.
+- Then the mint « ✓ Souhaité » pill takes the buttons' place, at their height: the card doesn't
+  jump. Snackbar « Anniversaire de Léa souhaité · Annuler » (`lightImpact`).
+- Several birthdays today → stacked cards, each with its own state. The person's identity stays
+  one button (opens the sheet); the actions are separate targets for TalkBack.
+- Model: `wishedYears` (`arrayUnion` / `arrayRemove`), rule `BirthdayWishes.isWished(today)` —
+  the year of the latest birthday, so a belated wish on 1 January counts for 31 December.
+- Later: « Idée cadeau » (B4), a belated wish (D15).
 
 ## M. 2025–2026 trends — adopt, adapt or skip
 

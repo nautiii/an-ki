@@ -6,33 +6,23 @@ below deliberately question structure, not just polish.
 
 Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, calendar, loading,
 scanner, settings, auth). Roadmap steps 1 (F2, F3, A1–A8), 2 (B1, Q1, Q2, A9) and 3 (B2)
-shipped on 2026-10-12: the items they fixed are gone from this list.
+shipped on 2026-10-12, step 4 (B3, D7) on 2026-10-18: the items they fixed are gone from this
+list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
 auth or dependencies → design brief + maintainer approval first.
 
 ## Contents
-- Big bets (B3–B7) — structural redesigns with the highest impact
+- Big bets (B4–B7) — structural redesigns with the highest impact
 - Foundation (F1, F4, F5) — design system, prerequisite for consistency
 - P1 — friction & states (Q4–Q7)
-- P2 — polish (D1, D3, D4, D6–D14)
+- P2 — polish (D1, D3, D4, D6, D8–D18)
 - Suggested roadmap
 
 ---
 
 ## Big bets
-
-### B3 — Close the loop: « Souhaiter » + the birthday moment (job 2: act)
-- **Problem**: AnKi reminds but doesn't help act. Notifications have no actions; J-0 is just a
-  label (« Aujourd'hui 🎉 ») on the same card.
-- **Proposal**: J-0 hero in celebration state (identity S1 + S4) with primary « Souhaiter » →
-  share sheet / SMS / WhatsApp prefilled with a warm, editable message; then « Marqué comme
-  souhaité » (mint ✓) for this year, visible in the agenda. Notification actions « Souhaiter » /
-  « Idée cadeau » (`AndroidNotificationAction`).
-- **Deps**: `share_plus` or `url_launcher` (new package → approval); `wishedYears` on the model.
-- **Refs**: Facebook birthday quick wish, Todoist completion delight, peak-end rule.
-- **Impact**: the reason to open AnKi on the day; a satisfying habit loop without dark patterns.
 
 ### B4 — Person page (view-first) + gift ideas per person
 - **Problem**: tapping a person opens the edit form (most taps mean « show me », not « edit »).
@@ -40,7 +30,9 @@ auth or dependencies → design brief + maintainer approval first.
 - **Proposal**: tap → person page (large avatar, countdown moon, age, date, groups, notes, gift
   ideas, wish history, per-person reminders; actions Souhaiter / Modifier). Tab 2 → « Idées »:
   ideas per person + an unassigned inbox; add by text, link or ISBN scan (the scanner becomes one
-  input). J-7 notification: « 2 idées pour Léa ».
+  input). J-7 notification: « 2 idées pour Léa ». « Idée cadeau » also joins the J-0 hero and
+  the J-7 notification (step 4 left it out); the page shows the wish history (`wishedYears`) and
+  undoes a wish once the snackbar is gone.
 - **Refs**: Apple/Google Contacts cards, wishlist apps, Pinterest boards (lightweight).
 - **Cost**: medium-high (ideas model with `personId`, navigation, scanner integration).
 
@@ -103,8 +95,6 @@ auth or dependencies → design brief + maintainer approval first.
 - **D3 Motion**: `AnKiFadeIn` (auth, login, signup) ignores reduce motion → `context.motion(...)`.
 - **D4 Haptics**: ad hoc (selection/light/medium mixed) → identity §9 map.
 - **D6 Predictive back**: manifest flag missing (recipes §10).
-- **D7 Age unit**: the hero splits « aura », the number and « ans » → « aura 1 ans » for a baby's
-  first birthday; agenda rows already use a plural (`agendaLine`).
 - **D8 Scanner tab**: the « Roman / BD / Cuisine / Tech » chips look like filters but do nothing;
   empty-state title ends with a period (« Aucun livre trouvé. ») → remove or make them real (B4).
 
@@ -123,13 +113,21 @@ auth or dependencies → design brief + maintainer approval first.
   A bulk repair can't tell them from real 2000 births: data migration, approval first.
 - **D14 Add confirmation**: saving closes the sheet silently; a birthday months away lands
   off-screen → snackbar « Léa ajoutée » with « Voir » (scroll to the row).
+- **D15 Belated wish**: at midnight the hero moves on; a birthday missed yesterday can no longer
+  be wished from AnKi → a calm « Hier : Léa · Souhaiter » for a day or two, never guilt copy.
+- **D16 Petals per run**: « once per person per day » lives in memory (`celebratedTodayProvider`);
+  a cold start the same day lets the petals fall again → persist the day if it bothers.
+- **D17 iOS wish button**: iOS notifications have no « Souhaiter » (Darwin categories are
+  declared at initialization, before the texts are localized) → add a category once iOS builds.
+- **D18 Wished elsewhere**: only the hero shows « ✓ Souhaité »; the calendar day sheet and the
+  search results list today's people without it.
 
 ## Suggested roadmap
 
 1. ~~**F2 + F3 + A1–A8** — foundation and accessibility debt~~ — shipped 2026-10-12.
 2. ~~**B1 + Q1–Q2** — the home everyone sees daily (A9 with it)~~ — shipped 2026-10-12.
 3. ~~**B2** — capture without friction or invented ages (model change)~~ — shipped 2026-10-12.
-4. **B3** — the birthday moment and the wish loop (new dependency).
+4. ~~**B3** — the birthday moment and the wish loop (new dependency)~~ — shipped 2026-10-18.
 5. **B5** — onboarding that lands on a populated agenda.
-6. **B4, B6, B7, F1, F4, F5, Q4–Q7, D1–D14** — depth and polish (F1 any time once approved);
+6. **B4, B6, B7, F1, F4, F5, Q4–Q7, D1–D18** — depth and polish (F1 any time once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.

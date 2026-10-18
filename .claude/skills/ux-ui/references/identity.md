@@ -33,7 +33,7 @@ else: a signature seen everywhere stops being one.
 | S1 | **Dusk / night hero gradient** | Next-birthday hero, celebration state, onboarding hero | Max one per screen. Light = dusk (`primary → tertiary`), dark = night (`primaryContainer → tertiaryContainer`), see §3.3. |
 | S2 | **Moon mascot** (`AppAssets.moon`) | Empty states, onboarding, success/zero-inbox moments | Never in dense screens or lists. Max one per screen. Shines on dark — no white plate behind it. |
 | S3 | **Moon-phase countdown** *(`lib/core/common/moon_phase.dart`)* | Next to "dans N jours" in hero and list rows | Waxing moon over the last 29 days, full moon = today; beyond 29 days an unlit disc. Always paired with text (decorative for TalkBack). On gradients pass `litColor: onHero`. |
-| S4 | **Blossom celebration** *(to build)* | Hero on the birthday itself (J-0) | Soft falling lotus/plum petals ≤ 2.5 s, once per person per day, `mediumImpact`. Skipped when reduce-motion is on. Never generic confetti. |
+| S4 | **Blossom celebration** *(`features/birthday/widgets/blossom_rain.dart`)* | Hero on the birthday itself (J-0) | Soft falling lotus/plum petals ≤ 2.5 s (2.4 s), once per person per day, `mediumImpact`. Skipped when reduce-motion is on. Never generic confetti. Tones `AnKiColors.petals`. |
 | S5 | **Floating glass pill navigation** | Main tabs (`core/common/bottom_bar.dart`) | Blurred translucent pill, radius 32, content scrolls beneath. Labels must stay available to TalkBack. |
 | S6 | **Big tabular numerals** | Countdown, age, counts | Outfit w800, `FontFeature.tabularFigures()`, letter-spacing −1. One per card. |
 
@@ -86,6 +86,8 @@ the one "moment" per screen). Spotify's rule: the accent means *act here* or *th
 | Hero (next birthday) | `primary → tertiary` `#425E91 → #705574` (dusk) | `primaryContainer → tertiaryContainer` `#284677 → #573E5C` (night sky) | L: `onPrimary` · D: `onPrimaryContainer` |
 | Celebration (J-0) | `primary → blossom.main` `#425E91 → #8E4954` | `primaryContainer → blossom.container` `#284677 → #72333D` | L: `#FFFFFF` · D: `blossom.onContainer` |
 
+- A filled button on the celebration (« Souhaiter »): fill `onCelebration`, text and icon
+  `onCelebrationAction` — the start of the gradient, ≥ 6.5:1 in both themes.
 - Primary text on the gradient at 100 % (6.5:1 L, 7.3:1 D). Secondary text **≥ 85 % opacity**
   (5.2 L, 5.8 D). **Never 70 %**: it measures 4.1 (L) / 3.9 (D) — fails AA. This is the current bug.
 - The current code uses `primary → tertiary` in dark too, which gives a pastel `#ABC7FF → #DDBCE0`
