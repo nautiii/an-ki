@@ -2,6 +2,7 @@ import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
 import 'package:an_ki/features/auth/screens/signup_screen.dart';
+import 'package:an_ki/features/auth/screens/welcome_screen.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -22,18 +23,36 @@ void main() {
     await tester.pumpApp(auth: _PendingAuthRepository());
     await tester.pump();
 
-    expect(find.byType(AuthChoiceScreen), findsNothing);
+    expect(find.byType(WelcomeScreen), findsNothing);
     expect(find.byType(MainShell), findsNothing);
   });
 
-  testWidgets('shows the sign-in screen when nobody is signed in', (
-    tester,
-  ) async {
+  testWidgets('welcomes whoever is not signed in', (tester) async {
     await tester.pumpApp(auth: FakeAuthRepository());
     await tester.settleApp();
 
-    expect(find.byType(AuthChoiceScreen), findsOneWidget);
+    expect(find.byType(WelcomeScreen), findsOneWidget);
+    expect(find.byType(AuthChoiceScreen), findsNothing);
   });
+
+  testWidgets(
+    '« Commencer » opens the app as a guest, greeted without a name',
+    (tester) async {
+      await mockNetworkImages(() async {
+        final auth = FakeAuthRepository();
+        await tester.pumpApp(auth: auth);
+        await tester.settleApp();
+
+        await tester.tap(find.text('Commencer'));
+        await tester.settleApp();
+
+        expect(auth.calls, ['signInAnonymously']);
+        expect(find.byType(WelcomeScreen), findsNothing);
+        expect(find.byType(MainShell), findsOneWidget);
+        expect(find.textContaining('Camille'), findsNothing);
+      });
+    },
+  );
 
   testWidgets('opens the app for a restored session', (tester) async {
     await mockNetworkImages(() async {
@@ -61,6 +80,8 @@ void main() {
     await tester.settleApp();
 
     expect(find.byType(AuthChoiceScreen), findsOneWidget);
+    // L'invite fermée se relance d'un geste.
+    expect(find.text('Déverrouiller'), findsOneWidget);
     expect(find.byType(MainShell), findsNothing);
   });
 
@@ -87,7 +108,9 @@ void main() {
       await tester.pumpApp(auth: FakeAuthRepository());
       await tester.settleApp();
 
-      await tester.tap(find.text('Connexion Email'));
+      await tester.tap(find.text("J'ai déjà un compte"));
+      await tester.settleApp();
+      await tester.tap(find.text('Continuer avec un e‑mail'));
       await tester.settleApp();
       await tester.enterText(find.byType(TextField).at(0), 'a@b.com');
       await tester.enterText(find.byType(TextField).at(1), 'password');
@@ -104,6 +127,8 @@ void main() {
       await tester.pumpApp(auth: FakeAuthRepository());
       await tester.settleApp();
 
+      await tester.tap(find.text("J'ai déjà un compte"));
+      await tester.settleApp();
       await tester.tap(find.text("S'inscrire"));
       await tester.settleApp();
       await tester.enterText(find.byType(TextField).at(0), 'John');
@@ -119,7 +144,7 @@ void main() {
     });
   });
 
-  testWidgets('signing out from the settings goes back to the sign-in', (
+  testWidgets('signing out from the settings goes back to the welcome', (
     tester,
   ) async {
     await mockNetworkImages(() async {
@@ -134,7 +159,7 @@ void main() {
       await tester.settleApp();
 
       expect(find.byType(SettingsScreen), findsNothing);
-      expect(find.byType(AuthChoiceScreen), findsOneWidget);
+      expect(find.byType(WelcomeScreen), findsOneWidget);
     });
   });
 }

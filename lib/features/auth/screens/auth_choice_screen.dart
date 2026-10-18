@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
@@ -14,6 +13,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+/// Connexion d'un compte existant : ouverte depuis la bienvenue (« J'ai déjà
+/// un compte »), où le retour ramène, ou seule quand l'empreinte verrouille
+/// AnKi. « Déverrouiller » passe alors en tête, et l'invite s'ouvre d'elle-même
+/// à l'arrivée.
 class AuthChoiceScreen extends ConsumerStatefulWidget {
   const AuthChoiceScreen({super.key});
 
@@ -29,16 +32,25 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (ref.read(authAccessProvider) == AuthAccess.locked) {
-        _handleBiometricSignIn();
+        unawaited(_unlock());
       }
     });
   }
 
-  void _handleBiometricSignIn() async {
+  /// Invite d'empreinte ; une invite fermée se relance par « Déverrouiller ».
+  Future<void> _unlock() async {
     final unlocked = await ref
         .read(authControllerProvider.notifier)
         .unlockWithBiometrics(reason: context.l10n.biometricReason);
     if (unlocked && mounted) unawaited(HapticFeedback.mediumImpact());
+  }
+
+  Future<void> _signInWithGoogle() async {
+    unawaited(HapticFeedback.lightImpact());
+    final success = await ref
+        .read(authControllerProvider.notifier)
+        .signInWithGoogle();
+    if (success && mounted) unawaited(HapticFeedback.mediumImpact());
   }
 
   /// Échec d'une connexion lancée ici ; un écran poussé au-dessus (connexion
@@ -62,65 +74,63 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
     final isLoading = ref.watch(
       authControllerProvider.select((s) => s.isLoading),
     );
+    final locked = ref.watch(
+      authAccessProvider.select((access) => access == AuthAccess.locked),
+    );
+    final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
+      // Le retour vers la bienvenue, quand elle est dessous.
+      appBar: AppBar(),
       body: SafeArea(
+        top: false,
         // Défile plutôt que de déborder : petit écran, grand texte.
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final illustrationSize = (constraints.maxHeight * 0.3).clamp(
-              120.0,
-              220.0,
+            final illustrationSize = (constraints.maxHeight * 0.25).clamp(
+              96.0,
+              180.0,
             );
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                0,
+                AppSpacing.lg,
+                AppSpacing.lg,
+              ),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 2 * AppSpacing.lg,
+                  minHeight: constraints.maxHeight - AppSpacing.lg,
                 ),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const SizedBox.shrink(),
                     Column(
                       children: [
-                        AnKiFadeIn(
-                          delay: const Duration(milliseconds: 100),
-                          child: ExcludeSemantics(
-                            child: SizedBox.square(
-                              dimension: illustrationSize,
-                              child: Image.asset(
-                                AppAssets.moon,
-                                fit: BoxFit.fill,
-                              ),
-                            ),
+                        ExcludeSemantics(
+                          child: SizedBox.square(
+                            dimension: illustrationSize,
+                            child: Image.asset(AppAssets.moon),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Semantics(
+                          header: true,
+                          child: Text(
+                            l10n.authTitle,
+                            textAlign: TextAlign.center,
+                            style: textTheme.headlineMedium,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.xs),
-                        AnKiFadeIn(
-                          delay: const Duration(milliseconds: 300),
-                          child: Text(
-                            context.l10n.appName,
-                            textAlign: TextAlign.center,
-                            style: textTheme.headlineLarge?.copyWith(
-                              color: colorScheme.primary,
-                              letterSpacing: -1,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        AnKiFadeIn(
-                          delay: const Duration(milliseconds: 500),
-                          child: Text(
-                            context.l10n.manageBirthdays,
-                            style: textTheme.bodyLarge?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            textAlign: TextAlign.center,
+                        Text(
+                          locked ? l10n.authLockedMessage : l10n.authMessage,
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -128,51 +138,48 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
                     Column(
                       children: [
                         const SizedBox(height: AppSpacing.xl),
-                        AnKiFadeIn(
-                          delay: const Duration(milliseconds: 700),
-                          child: _AuthButton(
-                            label: context.l10n.loginWithGoogle,
-                            icon: Icons.login_rounded,
+                        if (locked) ...[
+                          _AuthButton(
+                            label: l10n.authUnlock,
+                            icon: Icons.fingerprint_rounded,
                             onPressed: isLoading
                                 ? null
-                                : () => _handleGoogleSignIn(context, ref),
+                                : () => unawaited(_unlock()),
                             kind: _AuthButtonKind.primary,
                           ),
+                          const SizedBox(height: AppSpacing.sm),
+                        ],
+                        _AuthButton(
+                          label: l10n.loginWithGoogle,
+                          icon: Icons.login_rounded,
+                          onPressed: isLoading
+                              ? null
+                              : () => unawaited(_signInWithGoogle()),
+                          kind: locked
+                              ? _AuthButtonKind.tonal
+                              : _AuthButtonKind.primary,
                         ),
                         const SizedBox(height: AppSpacing.sm),
-                        AnKiFadeIn(
-                          delay: const Duration(milliseconds: 850),
-                          child: _AuthButton(
-                            label: context.l10n.loginWithEmail,
-                            icon: Icons.email_outlined,
-                            onPressed: isLoading
-                                ? null
-                                : () => context.go(AppRoutes.login),
-                            kind: _AuthButtonKind.tonal,
-                          ),
+                        _AuthButton(
+                          label: l10n.loginWithEmail,
+                          icon: Icons.email_outlined,
+                          onPressed: isLoading
+                              ? null
+                              : () => context.push(AppRoutes.login),
+                          kind: locked
+                              ? _AuthButtonKind.outlined
+                              : _AuthButtonKind.tonal,
                         ),
-                        const SizedBox(height: AppSpacing.sm),
-                        AnKiFadeIn(
-                          delay: const Duration(milliseconds: 1000),
-                          child: _AuthButton(
-                            label: context.l10n.continueWithoutAccount,
-                            icon: Icons.person_outline_rounded,
-                            onPressed: isLoading
-                                ? null
-                                : () => _handleAnonymousSignIn(context, ref),
-                            kind: _AuthButtonKind.outlined,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        AnKiFadeIn(
-                          delay: const Duration(milliseconds: 1200),
+                        // Verrouillée, AnKi a déjà un compte sur l'appareil.
+                        if (!locked) ...[
+                          const SizedBox(height: AppSpacing.lg),
                           // Passe à la ligne en grand texte au lieu de déborder.
-                          child: Wrap(
+                          Wrap(
                             alignment: WrapAlignment.center,
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
-                                context.l10n.noAccountYet,
+                                l10n.noAccountYet,
                                 textAlign: TextAlign.center,
                                 style: textTheme.bodyMedium?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
@@ -181,12 +188,12 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
                               TextButton(
                                 onPressed: isLoading
                                     ? null
-                                    : () => context.go(AppRoutes.signup),
-                                child: Text(context.l10n.signUp),
+                                    : () => context.push(AppRoutes.signup),
+                                child: Text(l10n.signUp),
                               ),
                             ],
                           ),
-                        ),
+                        ],
                         if (isLoading)
                           const Padding(
                             padding: EdgeInsets.only(top: AppSpacing.md),
@@ -205,26 +212,6 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
         ),
       ),
     );
-  }
-
-  void _handleGoogleSignIn(BuildContext context, WidgetRef ref) async {
-    unawaited(HapticFeedback.lightImpact());
-    final success = await ref
-        .read(authControllerProvider.notifier)
-        .signInWithGoogle();
-    if (success && context.mounted) {
-      unawaited(HapticFeedback.mediumImpact());
-    }
-  }
-
-  void _handleAnonymousSignIn(BuildContext context, WidgetRef ref) async {
-    unawaited(HapticFeedback.lightImpact());
-    final success = await ref
-        .read(authControllerProvider.notifier)
-        .signInAnonymously();
-    if (success && context.mounted) {
-      unawaited(HapticFeedback.mediumImpact());
-    }
   }
 }
 

@@ -14,9 +14,10 @@ import '../../../support/test_harness.dart';
 
 /// App verrouillée par l'empreinte, comme au démarrage d'une session
 /// restaurée : session `uid-1`, dont le profil connaît le jeton de
-/// l'appareil, sauf [revoked].
+/// l'appareil, sauf [revoked]. Sans [authenticates], l'invite est fermée.
 List<Object> lockedOverrides({
   bool revoked = false,
+  bool authenticates = true,
   Exception? tokenCheckFailure,
 }) => [
   ...authOverrides(
@@ -28,6 +29,7 @@ List<Object> lockedOverrides({
       available: true,
       token: 'tok',
       userId: 'uid-1',
+      authenticates: authenticates,
     ),
   ),
   // `App` attend la session et le verrou avant de monter cet écran.
@@ -38,19 +40,27 @@ List<Object> lockedOverrides({
 ];
 
 void main() {
-  final signupRoute = {
-    AppRoutes.signup: (BuildContext _) =>
-        const Scaffold(body: Text('SignUp Route')),
-  };
+  const google = 'Continuer avec Google';
+  const email = 'Continuer avec un e‑mail';
 
   group('AuthChoiceScreen', () {
-    testWidgets('renders every option', (tester) async {
+    testWidgets('signs in an existing account, without a guest option', (
+      tester,
+    ) async {
       await tester.pumpHarness(const AuthChoiceScreen());
       await tester.pumpAndSettle();
 
-      expect(find.text('Connexion Google'), findsOneWidget);
-      expect(find.text('Connexion Email'), findsOneWidget);
-      expect(find.text('Continuer sans compte'), findsOneWidget);
+      expect(find.text('Bon retour'), findsOneWidget);
+      expect(
+        find.text('Connectez-vous pour retrouver vos anniversaires.'),
+        findsOneWidget,
+      );
+      expect(find.text(google), findsOneWidget);
+      expect(find.text(email), findsOneWidget);
+      expect(find.text("S'inscrire"), findsOneWidget);
+      // L'invité commence depuis la bienvenue.
+      expect(find.text('Continuer sans compte'), findsNothing);
+      expect(find.text('Déverrouiller'), findsNothing);
     });
 
     testWidgets('scrolls instead of overflowing on a small phone at 200 %', (
@@ -82,13 +92,26 @@ void main() {
       semantics.dispose();
     });
 
-    testWidgets('navigates to the signup route', (tester) async {
-      await tester.pumpHarness(const AuthChoiceScreen(), routes: signupRoute);
+    testWidgets('opens the e-mail sign-in and the sign-up', (tester) async {
+      await tester.pumpHarness(
+        const AuthChoiceScreen(),
+        routes: {
+          AppRoutes.login: (_) =>
+              Scaffold(appBar: AppBar(), body: const Text('Login Route')),
+          AppRoutes.signup: (_) => const Scaffold(body: Text('SignUp Route')),
+        },
+      );
       await tester.pumpAndSettle();
 
+      await tester.tap(find.text(email));
+      await tester.pumpAndSettle();
+      expect(find.text('Login Route'), findsOneWidget);
+
+      // Poussées par-dessus : le retour revient ici.
+      await tester.tap(find.byTooltip('Retour'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text("S'inscrire"));
       await tester.pumpAndSettle();
-
       expect(find.text('SignUp Route'), findsOneWidget);
     });
 
@@ -101,25 +124,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Connexion Google'));
+      await tester.tap(find.text(google));
       await tester.pumpAndSettle();
 
       expect(find.text('Une erreur est survenue.'), findsOneWidget);
-    });
-
-    testWidgets('anonymous sign-in success path', (tester) async {
-      final repository = FakeAuthRepository();
-      await tester.pumpHarness(
-        const AuthChoiceScreen(),
-        overrides: authOverrides(repository),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Continuer sans compte'));
-      await tester.pumpAndSettle();
-
-      expect(repository.calls, ['signInAnonymously']);
-      expect(repository.currentUser?.isAnonymous, isTrue);
     });
 
     testWidgets('Google sign-in success path', (tester) async {
@@ -130,26 +138,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Connexion Google'));
+      await tester.tap(find.text(google));
       await tester.pumpAndSettle();
 
       expect(repository.calls, ['signInWithGoogle']);
       expect(repository.currentUser, isNotNull);
-    });
-
-    testWidgets('shows an error SnackBar when anonymous sign-in fails', (
-      tester,
-    ) async {
-      await tester.pumpHarness(
-        const AuthChoiceScreen(),
-        overrides: failingAuthOverrides(),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Continuer sans compte'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Une erreur est survenue.'), findsOneWidget);
     });
 
     testWidgets('unlocks with the fingerprint on startup', (tester) async {
@@ -169,6 +162,38 @@ void main() {
         biometrics.lastReason,
         'Veuillez scanner votre empreinte pour vous connecter',
       );
+    });
+
+    testWidgets('locked, puts « Déverrouiller » first and retries the prompt', (
+      tester,
+    ) async {
+      await tester.pumpHarness(
+        const AuthChoiceScreen(),
+        // L'invite du démarrage est fermée par l'utilisateur.
+        overrides: lockedOverrides(authenticates: false),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(AuthChoiceScreen)),
+      );
+      expect(container.read(authAccessProvider), AuthAccess.locked);
+
+      expect(
+        find.text('Déverrouillez AnKi pour retrouver vos anniversaires.'),
+        findsOneWidget,
+      );
+      // Un compte existe déjà sur l'appareil : pas d'inscription.
+      expect(find.text("S'inscrire"), findsNothing);
+      final unlock = tester.getTopLeft(find.text('Déverrouiller'));
+      expect(unlock.dy, lessThan(tester.getTopLeft(find.text(google)).dy));
+
+      (container.read(
+        biometricServiceProvider,
+      ) as FakeBiometricService).authenticates = true;
+      await tester.tap(find.text('Déverrouiller'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(authAccessProvider), AuthAccess.granted);
     });
 
     testWidgets('shows the biometric error on startup failure', (tester) async {
@@ -215,11 +240,17 @@ void main() {
         const AuthChoiceScreen(),
         overrides: loadingAuthOverrides(),
       );
-      // Advance past the staggered fade-in delays to flush their timers
-      // (cannot pumpAndSettle: the loading spinner animates indefinitely).
-      await tester.pump(const Duration(seconds: 2));
+      // Pas de pumpAndSettle : l'indicateur tourne tant que dure l'attente.
+      await tester.pump();
 
-      expect(find.byType(CircularProgressIndicator), findsWidgets);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      final googleButton = tester.widget<FilledButton>(
+        find.ancestor(
+          of: find.text(google),
+          matching: find.byType(FilledButton),
+        ),
+      );
+      expect(googleButton.onPressed, isNull);
     });
   });
 }

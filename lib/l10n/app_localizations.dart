@@ -98,12 +98,6 @@ abstract class AppLocalizations {
     Locale('fr'),
   ];
 
-  /// No description provided for @appName.
-  ///
-  /// In fr, this message translates to:
-  /// **'An Ki'**
-  String get appName;
-
   /// Salutation selon l'heure : Bonjour de 6 h 01 à 18 h, Bonsoir sinon
   ///
   /// In fr, this message translates to:
@@ -116,34 +110,70 @@ abstract class AppLocalizations {
   /// **'{period, select, day{Bonjour, {name}} other{Bonsoir, {name}}}'**
   String greetingName(String period, String name);
 
-  /// No description provided for @manageBirthdays.
+  /// Bienvenue, hors session : la promesse d'AnKi
   ///
   /// In fr, this message translates to:
-  /// **'Gérez vos anniversaires'**
-  String get manageBirthdays;
+  /// **'Ne ratez plus aucun anniversaire'**
+  String get welcomeTitle;
+
+  /// No description provided for @welcomeMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'AnKi vous prévient 7 jours avant et le jour J, et prépare votre message.'**
+  String get welcomeMessage;
+
+  /// Bienvenue : ouvre AnKi sans compte (invité), à sauvegarder plus tard
+  ///
+  /// In fr, this message translates to:
+  /// **'Commencer'**
+  String get welcomeStart;
+
+  /// No description provided for @welcomeHaveAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'ai déjà un compte'**
+  String get welcomeHaveAccount;
+
+  /// Titre de la connexion, ouverte depuis la bienvenue ou quand l'empreinte verrouille AnKi
+  ///
+  /// In fr, this message translates to:
+  /// **'Bon retour'**
+  String get authTitle;
+
+  /// No description provided for @authMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connectez-vous pour retrouver vos anniversaires.'**
+  String get authMessage;
+
+  /// No description provided for @authLockedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déverrouillez AnKi pour retrouver vos anniversaires.'**
+  String get authLockedMessage;
+
+  /// AnKi verrouillé par l'empreinte : relance l'invite d'empreinte
+  ///
+  /// In fr, this message translates to:
+  /// **'Déverrouiller'**
+  String get authUnlock;
 
   /// No description provided for @loginWithGoogle.
   ///
   /// In fr, this message translates to:
-  /// **'Connexion Google'**
+  /// **'Continuer avec Google'**
   String get loginWithGoogle;
 
   /// No description provided for @loginWithEmail.
   ///
   /// In fr, this message translates to:
-  /// **'Connexion Email'**
+  /// **'Continuer avec un e‑mail'**
   String get loginWithEmail;
-
-  /// No description provided for @continueWithoutAccount.
-  ///
-  /// In fr, this message translates to:
-  /// **'Continuer sans compte'**
-  String get continueWithoutAccount;
 
   /// No description provided for @noAccountYet.
   ///
   /// In fr, this message translates to:
-  /// **'Pas encore de compte ?'**
+  /// **'Pas encore de compte ?'**
   String get noAccountYet;
 
   /// No description provided for @signUp.

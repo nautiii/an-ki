@@ -1,5 +1,4 @@
 {
-  "appName": "An Ki",
   "greeting": "{period, select, day{Bonjour} other{Bonsoir}}",
   "@greeting": {
     "description": "Salutation selon l'heure : Bonjour de 6 h 01 à 18 h, Bonsoir sinon",
@@ -15,11 +14,29 @@
       "name": { "type": "String" }
     }
   },
-  "manageBirthdays": "Gérez vos anniversaires",
-  "loginWithGoogle": "Connexion Google",
-  "loginWithEmail": "Connexion Email",
-  "continueWithoutAccount": "Continuer sans compte",
-  "noAccountYet": "Pas encore de compte ?",
+  "welcomeTitle": "Ne ratez plus aucun anniversaire",
+  "@welcomeTitle": {
+    "description": "Bienvenue, hors session : la promesse d'AnKi"
+  },
+  "welcomeMessage": "AnKi vous prévient 7 jours avant et le jour J, et prépare votre message.",
+  "welcomeStart": "Commencer",
+  "@welcomeStart": {
+    "description": "Bienvenue : ouvre AnKi sans compte (invité), à sauvegarder plus tard"
+  },
+  "welcomeHaveAccount": "J'ai déjà un compte",
+  "authTitle": "Bon retour",
+  "@authTitle": {
+    "description": "Titre de la connexion, ouverte depuis la bienvenue ou quand l'empreinte verrouille AnKi"
+  },
+  "authMessage": "Connectez-vous pour retrouver vos anniversaires.",
+  "authLockedMessage": "Déverrouillez AnKi pour retrouver vos anniversaires.",
+  "authUnlock": "Déverrouiller",
+  "@authUnlock": {
+    "description": "AnKi verrouillé par l'empreinte : relance l'invite d'empreinte"
+  },
+  "loginWithGoogle": "Continuer avec Google",
+  "loginWithEmail": "Continuer avec un e\u2011mail",
+  "noAccountYet": "Pas encore de compte\u202f?",
   "signUp": "S'inscrire",
   "signIn": "Se connecter",
   "firstName": "Prénom",

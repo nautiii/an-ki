@@ -6,6 +6,7 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
 import 'package:an_ki/features/auth/screens/signup_screen.dart';
+import 'package:an_ki/features/auth/screens/welcome_screen.dart';
 import 'package:an_ki/features/birthday/screens/birthday_search_screen.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
@@ -36,6 +37,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (_, state) => accessRedirect(access.value, state.matchedLocation),
     routes: [
       GoRoute(path: _startup, builder: (_, _) => const _StartupScreen()),
+      GoRoute(
+        path: AppRoutes.welcome,
+        builder: (_, _) => const WelcomeScreen(),
+      ),
       GoRoute(
         path: AppRoutes.auth,
         builder: (_, _) => const AuthChoiceScreen(),
@@ -88,24 +93,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
 /// Où l'accès envoie [location] ; null pour y rester.
 ///
-/// Accès inconnu (démarrage) : l'écran neutre. Personne de connecté, ou app
-/// verrouillée : la connexion et ses sous-pages. Accès accordé : l'app, plus
-/// jamais la connexion ; les écrans ouverts par-dessus restent ouverts tant
-/// que l'accès ne change pas.
+/// Accès inconnu (démarrage) : l'écran neutre. Personne de connecté : la
+/// bienvenue, et la connexion ouverte par-dessus. App verrouillée : la
+/// connexion seule, jamais la bienvenue, dont « Commencer » remplacerait la
+/// session du compte. Accès accordé : l'app, plus jamais la bienvenue ni la
+/// connexion ; les écrans ouverts par-dessus restent ouverts tant que l'accès
+/// ne change pas.
 String? accessRedirect(AuthAccess? access, String location) {
   final inAuth =
       location == AppRoutes.auth || location.startsWith('${AppRoutes.auth}/');
+  final atWelcome = location == AppRoutes.welcome;
   return switch (access) {
     null => location == _startup ? null : _startup,
-    AuthAccess.signedOut || AuthAccess.locked => inAuth ? null : AppRoutes.auth,
+    AuthAccess.signedOut => inAuth || atWelcome ? null : AppRoutes.welcome,
+    AuthAccess.locked => inAuth ? null : AppRoutes.auth,
     AuthAccess.granted =>
-      inAuth || location == _startup ? AppRoutes.birthdays : null,
+      inAuth || atWelcome || location == _startup ? AppRoutes.birthdays : null,
   };
 }
 
 /// Démarrage : session et verrou biométrique pas encore connus (quelques
-/// millisecondes). Un fond neutre, plutôt que l'écran de connexion qui
-/// clignoterait avant l'app ou le verrou.
+/// millisecondes). Un fond neutre, plutôt que la bienvenue qui clignoterait
+/// avant l'app ou le verrou.
 class _StartupScreen extends StatelessWidget {
   const _StartupScreen();
 

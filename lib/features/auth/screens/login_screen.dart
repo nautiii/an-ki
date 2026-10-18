@@ -209,9 +209,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       style: TextStyle(color: colorScheme.onSurfaceVariant),
                     ),
                     TextButton(
+                      // Remplace la connexion : le retour ramène là d'où
+                      // elle a été ouverte (bienvenue, connexion).
                       onPressed: isLoading
                           ? null
-                          : () => context.go(AppRoutes.signup),
+                          : () => context.pushReplacement(AppRoutes.signup),
                       child: Text(
                         context.l10n.signUp,
                         style: TextStyle(

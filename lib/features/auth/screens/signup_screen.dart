@@ -273,9 +273,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       style: TextStyle(color: colorScheme.onSurfaceVariant),
                     ),
                     TextButton(
+                      // Remplace l'inscription : le retour ramène là d'où
+                      // elle a été ouverte.
                       onPressed: isLoading
                           ? null
-                          : () => context.go(AppRoutes.login),
+                          : () => context.pushReplacement(AppRoutes.login),
                       child: Text(
                         context.l10n.signIn,
                         style: TextStyle(

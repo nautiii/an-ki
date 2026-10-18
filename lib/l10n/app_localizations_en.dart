@@ -10,9 +10,6 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'An Ki';
-
-  @override
   String greeting(String period) {
     String _temp0 = intl.Intl.selectLogic(period, {
       'day': 'Hello',
@@ -31,16 +28,35 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get manageBirthdays => 'Manage your birthdays';
+  String get welcomeTitle => 'Never miss a birthday again';
 
   @override
-  String get loginWithGoogle => 'Login with Google';
+  String get welcomeMessage =>
+      'AnKi reminds you 7 days before and on the day, and gets your message ready.';
 
   @override
-  String get loginWithEmail => 'Login with Email';
+  String get welcomeStart => 'Get started';
 
   @override
-  String get continueWithoutAccount => 'Continue without account';
+  String get welcomeHaveAccount => 'I already have an account';
+
+  @override
+  String get authTitle => 'Welcome back';
+
+  @override
+  String get authMessage => 'Sign in to get back to your birthdays.';
+
+  @override
+  String get authLockedMessage => 'Unlock AnKi to get back to your birthdays.';
+
+  @override
+  String get authUnlock => 'Unlock';
+
+  @override
+  String get loginWithGoogle => 'Continue with Google';
+
+  @override
+  String get loginWithEmail => 'Continue with email';
 
   @override
   String get noAccountYet => 'No account yet?';

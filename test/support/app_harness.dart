@@ -101,8 +101,8 @@ extension AppTesterExt on WidgetTester {
     );
   }
 
-  /// Laisse le routeur choisir l'écran, puis écoule les fondus décalés de
-  /// l'écran de connexion (jusqu'à 1,2 s).
+  /// Laisse le routeur choisir l'écran, puis écoule les fondus décalés des
+  /// formulaires de connexion et d'inscription (jusqu'à 1 s).
   Future<void> settleApp() async {
     await pumpAndSettle();
     await pump(const Duration(seconds: 2));

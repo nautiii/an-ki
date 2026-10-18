@@ -7,7 +7,12 @@
 abstract final class AppRoutes {
   const AppRoutes._();
 
-  /// Connexion ; ses sous-pages s'empilent au-dessus d'elle.
+  /// Bienvenue, hors session : « Commencer » ou « J'ai déjà un compte ».
+  static const String welcome = '/welcome';
+
+  /// Connexion, ouverte par-dessus la bienvenue (`context.push`) ou seule
+  /// quand l'empreinte verrouille l'app ; ses sous-pages s'empilent
+  /// au-dessus d'elle.
   static const String auth = '/auth';
   static const String login = '/auth/login';
   static const String signup = '/auth/signup';
