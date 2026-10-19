@@ -44,7 +44,8 @@ Riverpod 3.4 with hand-written providers. Patterns with code: architecture skill
   through its controller (`ReminderPermission`, `ContactImport`), never at launch.
 - A one-off event between features (`BirthdaysAdded`): a `Notifier<Event?>` whose
   `updateShouldNotify` returns true, recorded by the controller that caused it and listened to
-  with `ref.listenManual` (`birthdayAdditionsProvider` → `ReminderPrompt`).
+  with `ref.listenManual` (`birthdayAdditionsProvider` → `ReminderPrompt`, `guestLinksProvider`
+  → `AppInitializer`).
 
 ## Auth state
 

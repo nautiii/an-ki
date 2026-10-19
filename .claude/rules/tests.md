@@ -18,7 +18,8 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
   (`tester.pumpLocalizedContext()` gives a French `BuildContext` for display extensions).
 - Never touch real Firebase, network or platform channels. Use `FakeFirebaseFirestore`,
   `MockFirebaseAuth` (firebase_auth_mocks), `MockClient` (http), `mock_exceptions`,
-  and the doubles in `test/support/`: `FakeBiometricChannels`, `FakeGoogleSignInPlatform`,
+  and the doubles in `test/support/`: `FakeBiometricChannels`, `FakeGoogleSignInPlatform`
+  (`account:` makes the Google picker return it),
   `FakeMobileScannerPlatform.install()`, `mockNetworkImages`.
 
 ## Per layer

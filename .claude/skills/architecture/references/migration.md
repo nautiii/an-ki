@@ -27,6 +27,11 @@ Delete each line once done:
   without a new one; the gallery, no camera needed), category created offline (the sheet closes
   at once), account deletion with the fingerprint on or off (birthdays, books and profile gone,
   no error) on a test account, birthdays tab shown again after signing back in.
+- Guest backup (UX step 5.4), behind a guest session the maintainer opens with 3 birthdays or
+  more, and the debug SHA-1 in Firebase: the card after the agenda, the Google picker, the link
+  (card gone, « Vos N anniversaires sont sauvegardés », the greeting with the Google first name),
+  a Google account already used by AnKi explained in the card, a retry offering every account
+  again. Checked on 2026-10-19: a saved account sees no card.
 
 Checked on the emulator on 2026-10-18 and removed from the list: reminders (120 planned for 60
 birthdays, J-0 and J-7 all at 10:00, no duplicate id, AlarmManager holding the same 120; a J-0

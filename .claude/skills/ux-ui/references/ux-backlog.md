@@ -7,18 +7,18 @@ below deliberately question structure, not just polish.
 Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, calendar, loading,
 scanner, settings, auth). Roadmap steps 1 (F2, F3, A1–A8), 2 (B1, Q1, Q2, A9) and 3 (B2)
 shipped on 2026-10-12, step 4 (B3, D7) and steps 5.1–5.2 (B5 welcome and contacts import, Q5)
-on 2026-10-18, step 5.3 (B5 reminders in context, D19 for the J-0 notification) on 2026-10-19:
-the items they fixed are gone from this list.
+on 2026-10-18, steps 5.3 (B5 reminders in context, D19 for the J-0 notification) and 5.4 (B5
+guest backup) on 2026-10-19: the items they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
 auth or dependencies → design brief + maintainer approval first.
 
 ## Contents
-- Big bets (B4–B7; B5 under way) — structural redesigns with the highest impact
+- Big bets (B4, B6, B7; B5 shipped but its merge) — structural redesigns with the highest impact
 - Foundation (F1, F4, F5) — design system, prerequisite for consistency
 - P1 — friction & states (Q4, Q6, Q7, Q8)
-- P2 — polish (D1, D3, D4, D6, D8–D20)
+- P2 — polish (D1, D3, D4, D6, D8–D21)
 - Suggested roadmap
 
 ---
@@ -43,11 +43,19 @@ auth or dependencies → design brief + maintainer approval first.
   anniversaires ajoutés / retrouvés », the cadence, the next real J-0 reminder); at most once per
   session; Settings › Rappels (`RemindersTile`); blocked → « Ouvrir les réglages ». Details:
   patterns §H, `.claude/rules/reminders.md`.
-- **Next** (brief and prototypes: `build/ui_snapshots/_src/etape5_test.dart`, local only —
-  `flutter clean` wipes `build/`):
-  - **5.4 Sauvegarde invité** — a calm card at the end of the agenda from 3 birthdays
-    (« Gardez vos 12 anniversaires… Sauvegarder avec Google »); `credential-already-in-use`
-    explained without losing anything; names taken from Google once linked.
+- **Shipped, 5.4** (2026-10-19): from 3 birthdays a guest finds `GuestBackupCard` after the
+  agenda's last month, never in the calendar (« Gardez vos 12 anniversaires » · « Sauvegarder
+  avec Google »); linked, the card goes, « Vos 12 anniversaires sont sauvegardés », and the
+  profile takes the Google names. A Google account AnKi already knows
+  (`credential-already-in-use`, or its address on an e-mail account) changes nothing: the card
+  explains it and offers « Choisir un autre compte ». Details: patterns §H. Not seen on a device
+  yet (architecture `migration.md` §1).
+- **Later — 5.5 merge** (option B, set aside on 2026-10-19): « Ouvrir ce compte avec mes 12
+  anniversaires » signs in to the existing account, then copies the guest's birthdays without
+  duplicates (the import's matching rule). A copy between accounts leaves the guest's documents
+  orphaned in Firestore, out of the app's reach → system change, brief and approval first.
+- Prototypes in `build/ui_snapshots/_src/` (local only — `flutter clean` wipes `build/`):
+  `etape5_test.dart` (the flow, Q8's card), `etape54_test.dart` (each state of the shipped card).
 - **Refs**: Duolingo lazy sign-up, Google Keep/Todoist empty-state onboarding, Instagram priming.
 
 ### B6 — Reminders you control
@@ -137,11 +145,15 @@ auth or dependencies → design brief + maintainer approval first.
 - **D20 Compact tab label**: at 360×640 with 130 % text the nav pill cuts « Anniversaires » to
   « Annivers… » (`bottom_bar.dart`, seen in the step 5 snapshots) → shorter label or the stacked
   layout earlier.
+- **D21 Guest card button**: the tonal « Sauvegarder avec Google » pill measures 1.0:1 against
+  the moonlight card in both themes (palette audit, step 5.4, as approved in the prototype): the
+  label carries it, the shape barely shows → a filled moonlight button (`moonlight.color` /
+  `onColor`) if people read it as plain text.
 
 ## Suggested roadmap
 
-1. **B5** — onboarding that lands on a populated agenda: 5.4 sauvegarde invité; Q8 with it or
-   right after (the reminders card shares the agenda's top).
-2. **B4, B6, B7, F1, F4, F5, Q4, Q6, Q7, D1, D3, D4, D6, D8–D20** — depth and polish (F1 any time
+1. **Q8** — the reminders-off card, B5's loose end (it shares the agenda's top); B5's 5.5 merge
+   once guests with an existing Google account show up.
+2. **B4, B6, B7, F1, F4, F5, Q4, Q6, Q7, D1, D3, D4, D6, D8–D21** — depth and polish (F1 any time
    once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.

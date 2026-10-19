@@ -149,8 +149,13 @@ A spinner is acceptable only inside the control that triggered a short action.
 
 - **Value first, account later** (Duolingo lazy sign-up), shipped in step 5.1: signed out lands
   on the welcome (`welcome_screen.dart`) — one promise on the night hero, « Commencer » opens an
-  anonymous session at once, « J'ai déjà un compte » pushes the sign-in above it. Ask to save
-  the account at a moment of value (from 3 birthdays, or before reinstall risk), never as a wall.
+  anonymous session at once, « J'ai déjà un compte » pushes the sign-in above it. Saving the
+  account comes at a moment of value, never as a wall — shipped in step 5.4: from 3 birthdays a
+  guest finds `GuestBackupCard` (`features/auth/widgets`) after the agenda's last month;
+  « Sauvegarder avec Google » links the anonymous account (same uid, same data), then the
+  profile takes the Google names. A Google account AnKi already knows changes nothing: the card
+  says so, keeps everything and offers « Choisir un autre compte »; other failures show under
+  its text, a closed picker says nothing.
 - The sign-in (`auth_choice_screen.dart`, « Bon retour ») offers Google (one tap) › e-mail ›
   sign-up; no guest there. Locked by the fingerprint, it stands alone, prompts at once and puts
   « Déverrouiller » first so a dismissed prompt can be retried.
