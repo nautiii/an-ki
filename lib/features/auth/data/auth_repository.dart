@@ -71,14 +71,47 @@ class AuthRepository {
     return credential.user;
   });
 
+  /// Lie le compte invité courant au compte Google choisi : même uid, mêmes
+  /// données. Sans nom, le compte prend celui du compte Google, que le profil
+  /// reprendra. Un compte Google déjà connu d'AnKi est refusé
+  /// ([AuthFailure.credentialAlreadyInUse]) sans rien changer.
   Future<User?> linkCurrentUserWithGoogle() => _guard(() async {
-    final credential = await _googleCredential();
-    final result = await _auth.currentUser?.linkWithCredential(credential);
-    return result?.user;
+    final user = _auth.currentUser;
+    if (user == null) return null;
+    final googleUser = await _googleSignIn.authenticate(scopeHint: ['email']);
+    final credential = await _credentialFor(googleUser);
+    final User? linked;
+    try {
+      linked = (await user.linkWithCredential(credential)).user;
+    } on FirebaseAuthException catch (error, stackTrace) {
+      // Son adresse est déjà celle d'un compte AnKi par e-mail : même refus.
+      if (error.code == 'email-already-in-use') {
+        Error.throwWithStackTrace(
+          AuthFailure.credentialAlreadyInUse,
+          stackTrace,
+        );
+      }
+      rethrow;
+    }
+    final googleName = googleUser.displayName?.trim() ?? '';
+    if (linked != null &&
+        (linked.displayName?.trim() ?? '').isEmpty &&
+        googleName.isNotEmpty) {
+      try {
+        await linked.updateDisplayName(googleName);
+        await linked.reload();
+      } on FirebaseAuthException {
+        // Au mieux : la liaison est faite, un nom manquant ne la défait pas
+        // (le profil garde alors ses noms vides, l'accueil salue sans nom).
+      }
+    }
+    return _auth.currentUser;
   });
 
-  Future<AuthCredential> _googleCredential() async {
-    final googleUser = await _googleSignIn.authenticate(scopeHint: ['email']);
+  Future<AuthCredential> _googleCredential() async =>
+      _credentialFor(await _googleSignIn.authenticate(scopeHint: ['email']));
+
+  Future<AuthCredential> _credentialFor(GoogleSignInAccount googleUser) async {
     final googleAuth = googleUser.authentication;
     final authorization = await googleUser.authorizationClient.authorizeScopes([
       'email',
@@ -122,6 +155,7 @@ class AuthRepository {
 AuthFailure _failureFor(String code) => switch (code) {
   'weak-password' => AuthFailure.weakPassword,
   'email-already-in-use' => AuthFailure.emailAlreadyInUse,
+  'credential-already-in-use' => AuthFailure.credentialAlreadyInUse,
   'invalid-email' => AuthFailure.invalidEmail,
   'user-not-found' => AuthFailure.userNotFound,
   'wrong-password' => AuthFailure.wrongPassword,

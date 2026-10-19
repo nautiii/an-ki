@@ -187,6 +187,29 @@ void main() {
     });
   });
 
+  test('updateNames replaces the names and keeps the rest', () async {
+    // Profil d'invité : sans nom, avec un pseudo choisi.
+    await firestore.collection('user').doc('user-1').set({
+      'name': '',
+      'surname': '',
+      'pseudo': 'Cam',
+      'isDark': true,
+      'locale': 'fr',
+    });
+
+    await repository.updateNames('user-1', name: 'Camille', surname: 'Martin');
+
+    final data = (await firestore.collection('user').doc('user-1').get())
+        .data()!;
+    expect(data, {
+      'name': 'Camille',
+      'surname': 'Martin',
+      'pseudo': 'Cam',
+      'isDark': true,
+      'locale': 'fr',
+    });
+  });
+
   test('addCategories adds ids without duplicates', () async {
     await repository.createUser(userWith(categories: ['fam']));
 

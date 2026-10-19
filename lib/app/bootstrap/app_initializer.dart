@@ -3,12 +3,15 @@ import 'dart:async';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/notification_service.dart';
+import 'package:an_ki/features/auth/domain/guest_linked.dart';
+import 'package:an_ki/features/auth/providers/guest_links.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
+import 'package:an_ki/features/user/domain/display_name.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +23,8 @@ import 'package:go_router/go_router.dart';
 ///
 /// Réagit au cycle de vie de la session : garde les textes des notifications
 /// dans la langue active, crée le profil Firestore au premier lancement d'un
-/// compte et attend le premier profil. Le bouton « Souhaiter » d'une
+/// compte et attend le premier profil ; un invité qui se lie à Google prend
+/// les noms de ce compte. Le bouton « Souhaiter » d'une
 /// notification ramène à l'accueil et ouvre la feuille de partage dès que la
 /// personne est chargée. Les données des features suivent la session seules ;
 /// l'autorisation des notifications se demande en contexte
@@ -69,6 +73,10 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
           (_) => unawaited(_createMissingProfile()),
         );
       }
+    });
+    // Invité lié à Google : son profil prend les noms du compte Google.
+    ref.listenManual(guestLinksProvider, (_, linked) {
+      if (linked != null) unawaited(_takeGoogleNames(linked));
     });
   }
 
@@ -124,13 +132,12 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
 
     final uid = user.uid;
     _creatingProfileFor = uid;
-    final typed = ref.read(signUpNamesProvider);
-    final (name, surname) = typed != null
-        ? (typed.name, typed.surname)
-        : _namesFromDisplayName(
-            user.displayName ?? '',
-            fallback: user.isAnonymous ? '' : '-',
-          );
+    final (:name, :surname) =
+        ref.read(signUpNamesProvider) ??
+        namesFromDisplayName(
+          user.displayName ?? '',
+          fallback: user.isAnonymous ? '' : '-',
+        );
     final profile = UserProfile(
       id: uid,
       name: name,
@@ -151,16 +158,20 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
     }
   }
 
-  /// Sépare « Prénom Nom… » ; [fallback] quand le nom affiché est vide.
-  static (String, String) _namesFromDisplayName(
-    String displayName, {
-    required String fallback,
-  }) {
-    final parts = displayName.split(' ');
-    return (
-      parts.first.isNotEmpty ? parts.first : fallback,
-      parts.length > 1 ? parts.sublist(1).join(' ') : '',
-    );
+  /// Donne au profil d'un invité qui vient de se lier à Google les noms de
+  /// ce compte : les siens étaient vides (ou « Invité », qu'écrivaient les
+  /// versions précédentes). Le pseudo, choisi par l'utilisateur, reste.
+  Future<void> _takeGoogleNames(GuestLinked linked) async {
+    final (:name, :surname) = namesFromDisplayName(linked.displayName);
+    if (name.isEmpty) return;
+    final users = ref.read(userRepositoryProvider);
+    try {
+      await users.updateNames(linked.uid, name: name, surname: surname);
+    } catch (error) {
+      // Profil absent : sa création reprendra le nom du compte, désormais
+      // celui de Google.
+      debugPrint('[AppInitializer] names update failed: $error');
+    }
   }
 
   @override

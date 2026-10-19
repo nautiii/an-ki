@@ -2,8 +2,10 @@ import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
+import 'package:an_ki/features/auth/domain/guest_linked.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/fresh_sign_in_provider.dart';
+import 'package:an_ki/features/auth/providers/guest_links.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -50,20 +52,26 @@ class _GoogleFailingAuthRepository extends AuthRepository {
 /// AuthRepository that links the anonymous account to Google without the
 /// plugin, or fails with [error].
 class _LinkingAuthRepository extends AuthRepository {
-  _LinkingAuthRepository({this.error})
+  _LinkingAuthRepository({this.error, MockFirebaseAuth? auth})
     : super(
-        auth: MockFirebaseAuth(),
+        auth: auth ?? MockFirebaseAuth(),
         googleSignIn: GoogleSignIn.instance,
         firestore: FakeFirebaseFirestore(),
       );
 
   final Exception? error;
 
+  /// Le compte Google choisi a été oublié (déconnexion du plugin).
+  bool googleSignedOut = false;
+
   @override
   Future<User?> linkCurrentUserWithGoogle() async {
     if (error case final error?) throw error;
     return MockUser(uid: 'uid-1');
   }
+
+  @override
+  Future<void> signOutGoogle() async => googleSignedOut = true;
 }
 
 const _reason = 'Empreinte ?';
@@ -357,17 +365,26 @@ void main() {
   });
 
   group('linking an anonymous account to Google', () {
+    late ProviderContainer container;
+
     Future<(bool, Object?)> link(_LinkingAuthRepository repository) async {
-      final container = makeContainer(
-        MockFirebaseAuth(),
-        repository: repository,
-      );
+      container = makeContainer(MockFirebaseAuth(), repository: repository);
       final ok = await controllerOf(container).linkWithGoogle();
       return (ok, failureOf(container));
     }
 
-    test('succeeds', () async {
-      expect(await link(_LinkingAuthRepository()), (true, null));
+    test('succeeds and records the link with the Google name', () async {
+      // La session du dépôt est déjà celle du compte lié.
+      final repository = _LinkingAuthRepository(
+        auth: MockFirebaseAuth(signedIn: true, mockUser: buildUser()),
+      );
+
+      expect(await link(repository), (true, null));
+      expect(
+        container.read(guestLinksProvider),
+        const GuestLinked(uid: 'uid-1', displayName: 'Test User'),
+      );
+      expect(repository.googleSignedOut, isFalse);
     });
 
     test('stays silent when the user cancels', () async {
@@ -378,6 +395,7 @@ void main() {
       );
 
       expect(await link(repository), (false, null));
+      expect(container.read(guestLinksProvider), isNull);
     });
 
     test('reports a plugin error', () async {
@@ -389,6 +407,23 @@ void main() {
 
       expect(await link(repository), (false, AuthFailure.googleSignInFailed));
     });
+
+    test(
+      'reports a Google account already used by AnKi, and forgets it',
+      () async {
+        final repository = _LinkingAuthRepository(
+          error: AuthFailure.credentialAlreadyInUse,
+        );
+
+        expect(await link(repository), (
+          false,
+          AuthFailure.credentialAlreadyInUse,
+        ));
+        // Un nouvel essai repropose tous les comptes Google.
+        expect(repository.googleSignedOut, isTrue);
+        expect(container.read(guestLinksProvider), isNull);
+      },
+    );
 
     test('reports a Firebase refusal', () async {
       final repository = _LinkingAuthRepository(

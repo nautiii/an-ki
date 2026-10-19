@@ -602,6 +602,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteAndLeave => 'Delete and leave';
 
   @override
+  String guestBackupTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Keep your $count birthdays',
+      one: 'Keep your birthday',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String guestBackupMessage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'For now, they only live on this phone. With your Google account, you\'ll find them everywhere.',
+      one: 'For now, it only lives on this phone. With your Google account, you\'ll find it everywhere.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get guestBackupAction => 'Save with Google';
+
+  @override
+  String get guestBackupTakenTitle =>
+      'This Google account is already used by AnKi';
+
+  @override
+  String guestBackupTakenMessage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Your $count birthdays stay on this phone: nothing is lost. To save them, choose another Google account.',
+      one: 'Your birthday stays on this phone: nothing is lost. To save it, choose another Google account.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get guestBackupOtherAccount => 'Choose another account';
+
+  @override
+  String guestBackupDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Your $count birthdays are saved',
+      one: 'Your birthday is saved',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get biometricEnabled => 'Biometric login enabled!';
 
   @override
@@ -633,7 +688,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorUnknown => 'An error occurred.';
 
   @override
-  String get errorGoogleLogin => 'Google login error';
+  String get errorGoogleLogin => 'Couldn\'t connect with Google. Try again.';
+
+  @override
+  String get errorGoogleAccountInUse =>
+      'This Google account is already used by AnKi. Choose another one to save your birthdays.';
 
   @override
   String get errorSignOut => 'Sign out error';

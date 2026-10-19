@@ -9,6 +9,7 @@ extension AuthFailureText on AuthFailure {
     return switch (this) {
       AuthFailure.weakPassword => l10n.errorWeakPassword,
       AuthFailure.emailAlreadyInUse => l10n.errorEmailAlreadyInUse,
+      AuthFailure.credentialAlreadyInUse => l10n.errorGoogleAccountInUse,
       AuthFailure.invalidEmail => l10n.errorInvalidEmail,
       AuthFailure.userNotFound => l10n.errorUserNotFound,
       AuthFailure.wrongPassword => l10n.errorWrongPassword,

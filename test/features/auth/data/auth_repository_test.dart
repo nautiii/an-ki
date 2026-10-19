@@ -5,7 +5,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:mock_exceptions/mock_exceptions.dart';
+
+import '../../../support/platform_mocks.dart';
 
 void main() {
   AuthRepository build(
@@ -103,6 +106,102 @@ void main() {
 
     test('maps any other code to unknown', () async {
       await expectFailure('too-many-requests', AuthFailure.unknown);
+    });
+  });
+
+  group('linking a guest to Google', () {
+    const camille = GoogleSignInUserData(
+      email: 'camille@example.com',
+      id: 'google-1',
+      displayName: 'Camille Martin',
+    );
+
+    late GoogleSignInPlatform previousPlatform;
+
+    setUp(() {
+      previousPlatform = GoogleSignInPlatform.instance;
+      GoogleSignInPlatform.instance = FakeGoogleSignInPlatform(
+        account: camille,
+      );
+    });
+
+    tearDown(() => GoogleSignInPlatform.instance = previousPlatform);
+
+    /// Session ouverte, prête à être liée. Le double de firebase_auth_mocks
+    /// ne lie qu'un compte non anonyme : le dépôt, lui, ne regarde pas.
+    (AuthRepository, MockUser) guestSession({
+      String uid = 'guest',
+      String? displayName,
+    }) {
+      final guest = MockUser(uid: uid, displayName: displayName);
+      final auth = MockFirebaseAuth(signedIn: true, mockUser: guest);
+      return (build(auth, FakeFirebaseFirestore()), guest);
+    }
+
+    test('keeps the account and takes the Google name', () async {
+      final (repo, _) = guestSession();
+
+      final linked = await repo.linkCurrentUserWithGoogle();
+
+      expect(linked?.uid, 'guest');
+      expect(linked?.displayName, 'Camille Martin');
+    });
+
+    test('keeps a name the account already has', () async {
+      final (repo, _) = guestSession(displayName: 'Cam');
+
+      final linked = await repo.linkCurrentUserWithGoogle();
+
+      expect(linked?.displayName, 'Cam');
+    });
+
+    test('a name it cannot write never undoes the link', () async {
+      final (repo, guest) = guestSession(uid: 'guest-offline-name');
+      whenCalling(Invocation.method(#reload, null))
+          .on(guest)
+          .thenThrow(FirebaseAuthException(code: 'network-request-failed'));
+
+      final linked = await repo.linkCurrentUserWithGoogle();
+
+      expect(linked?.uid, 'guest-offline-name');
+    });
+
+    /// Liaison refusée par Firebase avec [code] : l'échec traduit, et le
+    /// compte invité intact. Un compte par code : les refus programmés par
+    /// mock_exceptions survivent au test, attachés aux comptes égaux.
+    Future<void> expectRefused(String code, AuthFailure failure) async {
+      final (repo, guest) = guestSession(uid: 'guest-$code');
+      whenCalling(Invocation.method(#linkWithCredential, null))
+          .on(guest)
+          .thenThrow(FirebaseAuthException(code: code));
+
+      await expectLater(repo.linkCurrentUserWithGoogle(), throwsA(failure));
+      expect(repo.currentUser?.uid, 'guest-$code');
+      expect(repo.currentUser?.displayName, isNull);
+    }
+
+    test('translates a Google account already used by AnKi', () async {
+      await expectRefused(
+        'credential-already-in-use',
+        AuthFailure.credentialAlreadyInUse,
+      );
+    });
+
+    test('so is its address, used by an e-mail account', () async {
+      await expectRefused(
+        'email-already-in-use',
+        AuthFailure.credentialAlreadyInUse,
+      );
+    });
+
+    test('translates the other refusals as usual', () async {
+      await expectRefused('network-request-failed', AuthFailure.network);
+    });
+
+    test('without a session, links nothing', () async {
+      final repo = build(MockFirebaseAuth(), FakeFirebaseFirestore());
+
+      expect(await repo.linkCurrentUserWithGoogle(), isNull);
     });
   });
 

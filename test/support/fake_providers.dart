@@ -48,6 +48,13 @@ class FakeUserRepository extends Fake implements UserRepository {
   }) async {}
 
   @override
+  Future<void> updateNames(
+    String uid, {
+    required String name,
+    required String surname,
+  }) async {}
+
+  @override
   Future<void> addCategories(String uid, List<String> categoryIds) async {}
 
   @override
@@ -58,14 +65,16 @@ class FakeUserRepository extends Fake implements UserRepository {
 /// champs écrits : un argument null laisse le champ tel quel.
 UserProfile _merged(
   UserProfile user, {
+  String? name,
+  String? surname,
   String? pseudo,
   bool? isDark,
   String? locale,
   List<String>? categories,
 }) => UserProfile(
   id: user.id,
-  name: user.name,
-  surname: user.surname,
+  name: name ?? user.name,
+  surname: surname ?? user.surname,
   pseudo: pseudo ?? user.pseudo,
   categories: categories ?? user.categories,
   isDark: isDark ?? user.isDark,
@@ -128,6 +137,18 @@ class RecordingUserRepository extends FakeUserRepository {
       isDark: isDark,
       locale: locale,
     );
+    updated.add(user);
+    _emit(user);
+  }
+
+  @override
+  Future<void> updateNames(
+    String uid, {
+    required String name,
+    required String surname,
+  }) async {
+    _maybeFail();
+    final user = _merged(_stored!, name: name, surname: surname);
     updated.add(user);
     _emit(user);
   }
@@ -455,9 +476,12 @@ class FakeAuthRepository extends Fake implements AuthRepository {
   Future<firebase_auth.User?> signInAnonymously() =>
       _signIn('signInAnonymously', MockUser(isAnonymous: true));
 
+  /// Comme Firebase : le compte lié garde l'uid de l'invité.
   @override
-  Future<firebase_auth.User?> linkCurrentUserWithGoogle() =>
-      _signIn('linkCurrentUserWithGoogle', MockUser());
+  Future<firebase_auth.User?> linkCurrentUserWithGoogle() => _signIn(
+    'linkCurrentUserWithGoogle',
+    MockUser(uid: _user?.uid ?? 'fake-uid'),
+  );
 
   @override
   Future<void> signOutFirebase() async {

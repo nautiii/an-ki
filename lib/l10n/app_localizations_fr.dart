@@ -614,6 +614,60 @@ class AppLocalizationsFr extends AppLocalizations {
   String get deleteAndLeave => 'Supprimer et quitter';
 
   @override
+  String guestBackupTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Gardez vos $count anniversaires',
+      one: 'Gardez votre anniversaire',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String guestBackupMessage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Pour l\'instant, ils ne sont liés qu\'à ce téléphone. Avec votre compte Google, vous les retrouvez partout.',
+      one: 'Pour l\'instant, il n\'est lié qu\'à ce téléphone. Avec votre compte Google, vous le retrouvez partout.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get guestBackupAction => 'Sauvegarder avec Google';
+
+  @override
+  String get guestBackupTakenTitle => 'Ce compte Google a déjà son agenda AnKi';
+
+  @override
+  String guestBackupTakenMessage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Vos $count anniversaires restent sur ce téléphone : rien n\'est perdu. Pour les sauvegarder, choisissez un autre compte Google.',
+      one: 'Votre anniversaire reste sur ce téléphone : rien n\'est perdu. Pour le sauvegarder, choisissez un autre compte Google.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get guestBackupOtherAccount => 'Choisir un autre compte';
+
+  @override
+  String guestBackupDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vos $count anniversaires sont sauvegardés',
+      one: 'Votre anniversaire est sauvegardé',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get biometricEnabled => 'Connexion biométrique activée !';
 
   @override
@@ -645,7 +699,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get errorUnknown => 'Une erreur est survenue.';
 
   @override
-  String get errorGoogleLogin => 'Erreur lors de la connexion Google';
+  String get errorGoogleLogin =>
+      'La connexion avec Google n\'a pas abouti. Réessayez.';
+
+  @override
+  String get errorGoogleAccountInUse =>
+      'Ce compte Google a déjà son agenda AnKi. Choisissez-en un autre pour sauvegarder vos anniversaires.';
 
   @override
   String get errorSignOut => 'Erreur lors de la déconnexion';

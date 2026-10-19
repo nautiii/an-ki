@@ -24,7 +24,12 @@ void main() {
     expect(AuthFailure.signInFailed.message(context), 'Erreur de connexion');
     expect(
       AuthFailure.googleSignInFailed.message(context),
-      'Erreur lors de la connexion Google',
+      "La connexion avec Google n'a pas abouti. Réessayez.",
+    );
+    expect(
+      AuthFailure.credentialAlreadyInUse.message(context),
+      'Ce compte Google a déjà son agenda AnKi. Choisissez-en un autre pour '
+      'sauvegarder vos anniversaires.',
     );
 
     final messages = {

@@ -59,6 +59,14 @@ class UserRepository {
     'locale': ?locale,
   });
 
+  /// Remplace le prénom et le nom du profil : ceux du compte Google, quand
+  /// un invité vient de s'y lier.
+  Future<void> updateNames(
+    String uid, {
+    required String name,
+    required String surname,
+  }) => _users.doc(uid).update({'name': name, 'surname': surname});
+
   /// Ajoute des catégories au profil sans doublon (union côté Firestore).
   Future<void> addCategories(String uid, List<String> categoryIds) => _users
       .doc(uid)

@@ -4,6 +4,8 @@ import 'package:an_ki/app/bootstrap/app_initializer.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/notification_service.dart';
+import 'package:an_ki/features/auth/domain/guest_linked.dart';
+import 'package:an_ki/features/auth/providers/guest_links.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
@@ -138,6 +140,74 @@ void main() {
 
     expect(users.created, isEmpty);
     expect(find.text('Child ready'), findsOneWidget);
+  });
+
+  group('a guest linked to Google', () {
+    /// Profil d'invité : sans nom (ou « Invité », des anciennes versions),
+    /// avec un pseudo choisi.
+    UserProfile guestProfile({String name = ''}) => UserProfile(
+      id: 'u1',
+      name: name,
+      surname: '',
+      pseudo: 'Cam',
+      isDark: false,
+      locale: 'fr',
+    );
+
+    /// Lie l'invité au compte Google nommé [displayName].
+    Future<void> link(
+      WidgetTester tester,
+      RecordingUserRepository users, {
+      required String displayName,
+    }) async {
+      await pumpInitializer(tester, users: users, anonymous: true);
+      await tester.pumpAndSettle();
+      ProviderScope.containerOf(tester.element(find.byType(AppInitializer)))
+          .read(guestLinksProvider.notifier)
+          .record(GuestLinked(uid: 'u1', displayName: displayName));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('takes the names of the Google account, keeps the pseudo', (
+      tester,
+    ) async {
+      final users = RecordingUserRepository(stored: guestProfile());
+
+      await link(tester, users, displayName: 'Camille Martin');
+
+      expect(
+        users.stored,
+        const UserProfile(
+          id: 'u1',
+          name: 'Camille',
+          surname: 'Martin',
+          pseudo: 'Cam',
+          isDark: false,
+          locale: 'fr',
+        ),
+      );
+    });
+
+    testWidgets('replaces the « Invité » of earlier versions', (tester) async {
+      final users = RecordingUserRepository(
+        stored: guestProfile(name: 'Invité'),
+      );
+
+      await link(tester, users, displayName: 'Camille Martin');
+
+      expect(users.stored?.name, 'Camille');
+    });
+
+    testWidgets('leaves the profile alone without a Google name', (
+      tester,
+    ) async {
+      final users = RecordingUserRepository(stored: guestProfile());
+
+      await link(tester, users, displayName: '');
+
+      expect(users.updated, isEmpty);
+      expect(users.stored, guestProfile());
+    });
   });
 
   group('notification taps', () {

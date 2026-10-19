@@ -1052,6 +1052,48 @@ abstract class AppLocalizations {
   /// **'Supprimer et quitter'**
   String get deleteAndLeave;
 
+  /// Carte de sauvegarde d'un invité, en fin d'agenda.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Gardez votre anniversaire} other{Gardez vos {count} anniversaires}}'**
+  String guestBackupTitle(int count);
+
+  /// No description provided for @guestBackupMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Pour l\'instant, il n\'est lié qu\'à ce téléphone. Avec votre compte Google, vous le retrouvez partout.} other{Pour l\'instant, ils ne sont liés qu\'à ce téléphone. Avec votre compte Google, vous les retrouvez partout.}}'**
+  String guestBackupMessage(int count);
+
+  /// No description provided for @guestBackupAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvegarder avec Google'**
+  String get guestBackupAction;
+
+  /// No description provided for @guestBackupTakenTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce compte Google a déjà son agenda AnKi'**
+  String get guestBackupTakenTitle;
+
+  /// La carte de sauvegarde, quand le compte Google choisi est déjà celui d'un autre agenda AnKi.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Votre anniversaire reste sur ce téléphone : rien n\'est perdu. Pour le sauvegarder, choisissez un autre compte Google.} other{Vos {count} anniversaires restent sur ce téléphone : rien n\'est perdu. Pour les sauvegarder, choisissez un autre compte Google.}}'**
+  String guestBackupTakenMessage(int count);
+
+  /// No description provided for @guestBackupOtherAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir un autre compte'**
+  String get guestBackupOtherAccount;
+
+  /// No description provided for @guestBackupDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Votre anniversaire est sauvegardé} other{Vos {count} anniversaires sont sauvegardés}}'**
+  String guestBackupDone(int count);
+
   /// No description provided for @biometricEnabled.
   ///
   /// In fr, this message translates to:
@@ -1115,8 +1157,14 @@ abstract class AppLocalizations {
   /// No description provided for @errorGoogleLogin.
   ///
   /// In fr, this message translates to:
-  /// **'Erreur lors de la connexion Google'**
+  /// **'La connexion avec Google n\'a pas abouti. Réessayez.'**
   String get errorGoogleLogin;
+
+  /// No description provided for @errorGoogleAccountInUse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce compte Google a déjà son agenda AnKi. Choisissez-en un autre pour sauvegarder vos anniversaires.'**
+  String get errorGoogleAccountInUse;
 
   /// No description provided for @errorSignOut.
   ///

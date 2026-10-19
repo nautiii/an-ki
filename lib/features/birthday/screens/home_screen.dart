@@ -4,9 +4,11 @@ import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
+import 'package:an_ki/features/auth/widgets/guest_backup_card.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
+import 'package:an_ki/features/birthday/providers/guest_backup_provider.dart';
 import 'package:an_ki/features/birthday/providers/home_view_provider.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_list.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
@@ -51,6 +53,7 @@ class HomeScreen extends ConsumerWidget {
       birthdaysListProvider.select((birthdays) => birthdays.isNotEmpty),
     );
     final view = ref.watch(homeViewProvider);
+    final backupCount = ref.watch(guestBackupOfferProvider);
 
     return Scaffold(
       body: CustomScrollView(
@@ -86,9 +89,23 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            if (view == HomeView.agenda)
-              const AgendaSliver()
-            else
+            if (view == HomeView.agenda) ...[
+              const AgendaSliver(),
+              // Invité dont l'agenda vaut la peine d'être gardé : la
+              // sauvegarde, après le dernier mois, jamais en travers.
+              if (backupCount != null)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.gutter,
+                    AppSpacing.lg,
+                    AppSpacing.gutter,
+                    0,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: GuestBackupCard(count: backupCount),
+                  ),
+                ),
+            ] else
               // Marges réduites : des cases d'au moins 48 dp dès 360 dp.
               const SliverPadding(
                 padding: EdgeInsets.fromLTRB(

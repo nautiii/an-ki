@@ -71,9 +71,15 @@ class FakeBiometricChannels {
 }
 
 /// A no-op [GoogleSignInPlatform] so flows that call `signOut()`/`disconnect()`
-/// do not hit real platform channels. Interactive sign-in is not supported.
+/// do not hit real platform channels. Interactive sign-in returns [account]
+/// with fake tokens; without one, it is not supported.
 class FakeGoogleSignInPlatform extends GoogleSignInPlatform
     with MockPlatformInterfaceMixin {
+  FakeGoogleSignInPlatform({this.account});
+
+  /// Compte que rend le sélecteur Google.
+  final GoogleSignInUserData? account;
+
   @override
   Future<void> init(InitParameters params) async {}
 
@@ -86,8 +92,17 @@ class FakeGoogleSignInPlatform extends GoogleSignInPlatform
   bool supportsAuthenticate() => true;
 
   @override
-  Future<AuthenticationResults> authenticate(AuthenticateParameters params) {
-    throw UnimplementedError('authenticate is not supported in tests');
+  Future<AuthenticationResults> authenticate(
+    AuthenticateParameters params,
+  ) async {
+    final account = this.account;
+    if (account == null) {
+      throw UnimplementedError('authenticate is not supported in tests');
+    }
+    return AuthenticationResults(
+      user: account,
+      authenticationTokens: const AuthenticationTokenData(idToken: 'id-token'),
+    );
   }
 
   @override
@@ -96,7 +111,9 @@ class FakeGoogleSignInPlatform extends GoogleSignInPlatform
   @override
   Future<ClientAuthorizationTokenData?> clientAuthorizationTokensForScopes(
     ClientAuthorizationTokensForScopesParameters params,
-  ) async => null;
+  ) async => account != null && params.request.promptIfUnauthorized
+      ? const ClientAuthorizationTokenData(accessToken: 'access-token')
+      : null;
 
   @override
   Future<ServerAuthorizationTokenData?> serverAuthorizationTokensForScopes(

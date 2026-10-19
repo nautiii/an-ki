@@ -6,6 +6,7 @@ import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
@@ -77,12 +78,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             TextButton(
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
+                final messenger = ScaffoldMessenger.of(context);
+                final saved = context.l10n.dataSavedSuccess;
                 final success = await ref
                     .read(authControllerProvider.notifier)
                     .linkWithGoogle();
-                if (success && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(context.l10n.dataSavedSuccess)),
+                if (success) {
+                  messenger.showSnackBar(SnackBar(content: Text(saved)));
+                  return;
+                }
+                // Refusée, la sauvegarde dit pourquoi ; annulée, rien.
+                if (!mounted || !context.mounted) return;
+                final error = ref.read(authControllerProvider).error;
+                if (error != null) {
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(authErrorMessage(context, error))),
                   );
                 }
               },

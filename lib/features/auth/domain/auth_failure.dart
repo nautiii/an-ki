@@ -4,6 +4,10 @@ enum AuthFailure implements Exception {
   // Refus de Firebase Auth, traduits par `AuthRepository`.
   weakPassword,
   emailAlreadyInUse,
+
+  /// Compte Google déjà connu d'AnKi (lié à un autre compte, ou son adresse
+  /// est celle d'un compte e-mail) : un invité ne peut pas s'y lier.
+  credentialAlreadyInUse,
   invalidEmail,
   userNotFound,
   wrongPassword,

@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
+import 'package:an_ki/features/auth/domain/guest_linked.dart';
 import 'package:an_ki/features/auth/providers/fresh_sign_in_provider.dart';
+import 'package:an_ki/features/auth/providers/guest_links.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -65,11 +67,30 @@ class AuthController extends AsyncNotifier<void> {
     return _signIn(AuthFailure.signInFailed, repository.signInAnonymously);
   }
 
-  /// Lie le compte anonyme courant à un compte Google : ses données restent.
+  /// Lie le compte anonyme courant à un compte Google : ses données restent,
+  /// et la liaison se note ([guestLinksProvider]) pour que le profil prenne
+  /// les noms du compte Google. Refusée (compte Google déjà pris, réseau…),
+  /// rien ne change ; le compte Google choisi est oublié, pour qu'un nouvel
+  /// essai propose de nouveau tous les comptes.
   Future<bool> linkWithGoogle() {
     final repository = _repository;
+    final guestLinks = ref.read(guestLinksProvider.notifier);
     return _run(AuthFailure.googleSignInFailed, () async {
-      await repository.linkCurrentUserWithGoogle();
+      try {
+        await repository.linkCurrentUserWithGoogle();
+      } on AuthFailure {
+        try {
+          await repository.signOutGoogle();
+        } on Exception {
+          // Oubli au mieux : l'échec à annoncer reste celui de la liaison.
+        }
+        rethrow;
+      }
+      if (repository.currentUser case final user?) {
+        guestLinks.record(
+          GuestLinked(uid: user.uid, displayName: user.displayName ?? ''),
+        );
+      }
       return true;
     });
   }

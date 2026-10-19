@@ -3,6 +3,7 @@ import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
+import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
@@ -224,6 +225,32 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Compte sauvegardé avec succès !'), findsOneWidget);
+    });
+
+    testWidgets('says why the data could not be saved', (tester) async {
+      final auth = FakeAuthRepository(
+        user: _user(anonymous: true),
+        failure: AuthFailure.credentialAlreadyInUse,
+      );
+      await tester.pumpHarness(
+        const SettingsScreen(),
+        overrides: overridesWith(auth: auth),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Se déconnecter'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sauvegarder mes données'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Ce compte Google a déjà son agenda AnKi. Choisissez-en un autre '
+          'pour sauvegarder vos anniversaires.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Compte sauvegardé avec succès !'), findsNothing);
     });
 
     testWidgets('an anonymous account can delete and leave', (tester) async {

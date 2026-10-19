@@ -2,6 +2,7 @@ import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/auth/widgets/guest_backup_card.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
@@ -178,6 +179,65 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Bonsoir'), findsOneWidget);
+  });
+
+  group('guest backup', () {
+    List<dynamic> guestOverrides(List<Birthday> birthdays) => [
+      ...overrides(birthdays: birthdays),
+      isGuestProvider.overrideWithValue(true),
+    ];
+
+    testWidgets('offers a guest to save, after the last month', (tester) async {
+      await tester.pumpHarness(
+        const HomeScreen(),
+        overrides: guestOverrides(agenda),
+      );
+      await tester.pumpAndSettle();
+
+      final card = find.byType(GuestBackupCard, skipOffstage: false);
+      expect(card, findsOneWidget);
+      expect(tester.widget<GuestBackupCard>(card).count, 4);
+      // Sous le dernier mois de l'agenda, jamais devant.
+      expect(
+        tester.getTopLeft(card).dy,
+        greaterThan(
+          tester.getTopLeft(find.text('Janvier 2027', skipOffstage: false)).dy,
+        ),
+      );
+    });
+
+    testWidgets('waits for three birthdays', (tester) async {
+      await tester.pumpHarness(
+        const HomeScreen(),
+        overrides: guestOverrides(agenda.take(2).toList()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(GuestBackupCard, skipOffstage: false), findsNothing);
+    });
+
+    testWidgets('never shows for a saved account', (tester) async {
+      await tester.pumpHarness(
+        const HomeScreen(),
+        overrides: overrides(birthdays: agenda),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(GuestBackupCard, skipOffstage: false), findsNothing);
+    });
+
+    testWidgets('leaves the calendar alone', (tester) async {
+      await tester.pumpHarness(
+        const HomeScreen(),
+        overrides: guestOverrides(agenda),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Calendrier'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(GuestBackupCard, skipOffstage: false), findsNothing);
+    });
   });
 
   testWidgets('lists the agenda by period, the hero aside', (tester) async {
