@@ -87,8 +87,12 @@ the name, « Suivant », four digits, « OK ».
    save. Editing reuses the sheet, prefilled (« 15/10 » for a yearless birthday).
 - Without a year no age is shown anywhere (agenda line, hero, calendar day sheet): never an
   invented one.
-- Bulk path: **import from contacts** is the fastest value — surface it in the empty state and
-  onboarding, not only in settings. Show a preview list with checkboxes (pre-checked) before import.
+- Bulk path: **import from contacts** is the fastest value. Shipped in step 5.2: the empty home
+  is the invite (« Choisir dans mes contacts » first, a line on what AnKi reads), and
+  `contact_import_screen.dart` (also opened from Settings) asks for access on arrival, then lists
+  the contacts pre-checked, soonest first, with those already in AnKi apart and not importable
+  (`previewContactImport`: same name up to case, accents and dashes, same day). Denied →
+  « Autoriser l'accès »; blocked → « Ouvrir les réglages », re-read on return.
 - Stretch: natural-language single field « Léa 12 mars » (Todoist) parsed by a domain rule.
 - Avoid: photo picker as the first thing in the form, required fields that aren't needed to
   remind, validation only after pressing save, a date control that forces the year.

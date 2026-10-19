@@ -6,7 +6,7 @@ below deliberately question structure, not just polish.
 
 Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, calendar, loading,
 scanner, settings, auth). Roadmap steps 1 (F2, F3, A1–A8), 2 (B1, Q1, Q2, A9) and 3 (B2)
-shipped on 2026-10-12, step 4 (B3, D7) and step 5.1 (B5 welcome, Q5) on 2026-10-18: the items
+shipped on 2026-10-12, step 4 (B3, D7) and steps 5.1–5.2 (B5 welcome and contacts import, Q5) on 2026-10-18: the items
 they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
@@ -39,11 +39,6 @@ auth or dependencies → design brief + maintainer approval first.
 ### B5 — Value-first onboarding (approved 2026-10-18, candidate B « directement chez soi »)
 - **Next, each shippable alone** (brief and prototypes: `build/ui_snapshots/_src/etape5_test.dart`,
   local only — `flutter clean` wipes `build/`):
-  - **5.2 Import choisi** — the empty home *is* the invite (« Qui voulez-vous fêter ? »,
-    « Choisir dans mes contacts » first, a privacy line); a preview page pre-checked and sorted
-    by next birthday, « Déjà dans AnKi » rows not importable (today a second import duplicates
-    everyone, `contact_import.dart`), a denied state with « Ouvrir les réglages »; Settings opens
-    the same page.
   - **5.3 Rappels en contexte** — no permission request at launch (today `AppInitializer` asks
     on every start until answered twice); a sheet over the populated agenda after an import or a
     first manual add, and after signing in on a new device: « 12 anniversaires ajoutés », a real
@@ -138,8 +133,8 @@ auth or dependencies → design brief + maintainer approval first.
 
 ## Suggested roadmap
 
-1. **B5** — onboarding that lands on a populated agenda: 5.2 import choisi, 5.3 rappels en
-   contexte, 5.4 sauvegarde invité.
+1. **B5** — onboarding that lands on a populated agenda: 5.3 rappels en contexte, 5.4
+   sauvegarde invité.
 2. **B4, B6, B7, F1, F4, F5, Q4, Q6, Q7, D1, D3, D4, D6, D8–D20** — depth and polish (F1 any time
    once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
