@@ -7,7 +7,9 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
+import 'package:an_ki/features/birthday/domain/birthdays_added.dart';
 import 'package:an_ki/features/birthday/domain/contact_import_failure.dart';
+import 'package:an_ki/features/birthday/providers/birthday_additions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/contact_import.dart';
 import 'package:flutter/services.dart';
@@ -266,6 +268,37 @@ void main() {
       expect(names(repo.created), ['Hugo Bernard', 'Léa Martin']);
     });
 
+    test('reports the import, first birthdays of an empty agenda', () async {
+      final container = makeContainer(
+        FakeContactsService(contacts: const [_lea, _hugo]),
+      );
+      final notifier = container.read(contactImportProvider.notifier);
+      await notifier.load();
+
+      notifier.add(container.read(contactImportTickedProvider));
+
+      expect(
+        container.read(birthdayAdditionsProvider),
+        const BirthdaysAdded(count: 2, imported: true, first: true),
+      );
+    });
+
+    test('reports an import into a filled agenda', () async {
+      final container = makeContainer(
+        FakeContactsService(contacts: const [_hugo]),
+        existing: const [_savedLea],
+      );
+      final notifier = container.read(contactImportProvider.notifier);
+      await notifier.load();
+
+      notifier.add(container.read(contactImportTickedProvider));
+
+      expect(
+        container.read(birthdayAdditionsProvider),
+        const BirthdaysAdded(count: 1, imported: true, first: false),
+      );
+    });
+
     test('writes nothing without a session or a contact', () async {
       final noSession = makeContainer(
         FakeContactsService(contacts: const [_lea]),
@@ -279,6 +312,8 @@ void main() {
       expect(signedIn.read(contactImportProvider.notifier).add(const []), 0);
 
       expect(repo.created, isEmpty);
+      expect(noSession.read(birthdayAdditionsProvider), isNull);
+      expect(signedIn.read(birthdayAdditionsProvider), isNull);
     });
   });
 }

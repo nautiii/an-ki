@@ -18,12 +18,13 @@ import 'package:go_router/go_router.dart';
 /// Widget de bootstrap au niveau application, monté une fois l'utilisateur
 /// authentifié.
 ///
-/// Réagit au cycle de vie de la session : demande les permissions de
-/// notification, garde leurs textes dans la langue active, crée le profil
-/// Firestore au premier lancement d'un compte et attend le premier profil.
-/// Le bouton « Souhaiter » d'une notification ramène à l'accueil et ouvre la
-/// feuille de partage dès que la personne est chargée. Les données des
-/// features suivent la session seules. Il vit dans le composition root
+/// Réagit au cycle de vie de la session : garde les textes des notifications
+/// dans la langue active, crée le profil Firestore au premier lancement d'un
+/// compte et attend le premier profil. Le bouton « Souhaiter » d'une
+/// notification ramène à l'accueil et ouvre la feuille de partage dès que la
+/// personne est chargée. Les données des features suivent la session seules ;
+/// l'autorisation des notifications se demande en contexte
+/// (`ReminderPrompt`), jamais au lancement. Il vit dans le composition root
 /// `app/` car il dépend de plusieurs features — ce que `core/` ne doit
 /// jamais faire.
 class AppInitializer extends ConsumerStatefulWidget {
@@ -48,7 +49,6 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
   @override
   void initState() {
     super.initState();
-    unawaited(_requestNotificationPermissions());
     final notifications = ref.read(notificationServiceProvider);
     _notificationTaps = notifications.taps.listen(_onNotificationTap);
     unawaited(
@@ -110,18 +110,6 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) unawaited(wishBirthday(context, birthday));
     });
-  }
-
-  Future<void> _requestNotificationPermissions() async {
-    final granted = await ref
-        .read(notificationServiceProvider)
-        .requestPermissions();
-    if (!mounted) return;
-    if (!granted) {
-      debugPrint(
-        '[AppInitializer] Notification permission denied or only partially granted.',
-      );
-    }
   }
 
   /// Crée le profil du compte courant s'il n'existe pas encore : noms saisis

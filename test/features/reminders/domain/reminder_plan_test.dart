@@ -235,4 +235,70 @@ void main() {
       expect(plan.map((r) => r.id).toSet(), hasLength(2));
     });
   });
+
+  group('nextBirthdayReminder', () {
+    final now = DateTime(2026, 10, 19, 9);
+
+    Birthday person(String id, String name, DateTime date) => Birthday(
+      id: id,
+      name: name,
+      surname: '',
+      date: BirthDate.fromDate(date),
+    );
+
+    test('is the first reminder of the day itself to come', () {
+      final next = nextBirthdayReminder([
+        person('a', 'Louis', DateTime(1980, 12, 2)),
+        person('b', 'Hugo', DateTime(1992, 10, 21)),
+        // Son rappel d'une semaine avant (le 20) passe avant le jour J de
+        // Hugo : il ne compte pas.
+        person('c', 'Chloé', DateTime(2018, 10, 27)),
+      ], now: now)!;
+
+      expect(next.kind, ReminderKind.birthday);
+      expect(next.name, 'Hugo');
+      expect(next.at, DateTime(2026, 10, 21, ReminderPolicy.hour));
+    });
+
+    test('keeps today while 10:00 is still ahead, then moves on', () {
+      final birthdays = [
+        person('a', 'Léa', DateTime(1990, 10, 19)),
+        person('b', 'Hugo', DateTime(1992, 10, 21)),
+      ];
+
+      expect(nextBirthdayReminder(birthdays, now: now)!.name, 'Léa');
+      expect(
+        nextBirthdayReminder(birthdays, now: DateTime(2026, 10, 19, 11))!.name,
+        'Hugo',
+      );
+    });
+
+    test('breaks a tie by name', () {
+      final day = DateTime(1990, 11, 6);
+      final next = nextBirthdayReminder([
+        person('a', 'Sarah', day),
+        person('b', 'Nathan', day),
+      ], now: now);
+
+      expect(next!.name, 'Nathan');
+    });
+
+    test('is null without any birthday', () {
+      expect(nextBirthdayReminder(const [], now: now), isNull);
+    });
+  });
+
+  test('names the person as the notification does', () {
+    final reminders = planReminders([
+      _born(DateTime(1990, 6, 30)),
+      Birthday(
+        id: 'mamie',
+        name: 'Mamie',
+        surname: '',
+        date: BirthDate.fromDate(DateTime(1940, 6, 30)),
+      ),
+    ], now: DateTime(2026, 3));
+
+    expect(reminders.map((r) => r.fullName).toSet(), {'Léa Martin', 'Mamie'});
+  });
 }

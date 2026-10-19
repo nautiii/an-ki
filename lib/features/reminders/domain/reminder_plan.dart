@@ -38,6 +38,11 @@ class const PlannedReminder({
   /// Moment du rappel, heure locale.
   required final DateTime at,
 }) {
+  /// Prénom et nom réunis, sans espace de trop quand l'un manque
+  /// (« Mamie »), comme dans la notification.
+  String get fullName =>
+      [name, surname].where((part) => part.isNotEmpty).join(' ');
+
   @override
   bool operator ==(Object other) =>
       other is PlannedReminder &&
@@ -66,6 +71,25 @@ List<PlannedReminder> planReminders(
       for (final kind in ReminderKind.values)
         _plan(birthday, kind, slots[birthday.id]!, now),
   ];
+}
+
+/// Prochain rappel du jour J après [now] — le premier que l'app enverra —,
+/// ou null sans anniversaire. Deux le même jour : par ordre alphabétique.
+PlannedReminder? nextBirthdayReminder(
+  Iterable<Birthday> birthdays, {
+  required DateTime now,
+}) {
+  PlannedReminder? next;
+  for (final reminder in planReminders(birthdays, now: now)) {
+    if (reminder.kind != ReminderKind.birthday) continue;
+    if (next == null ||
+        reminder.at.isBefore(next.at) ||
+        (reminder.at == next.at &&
+            reminder.fullName.compareTo(next.fullName) < 0)) {
+      next = reminder;
+    }
+  }
+  return next;
 }
 
 PlannedReminder _plan(

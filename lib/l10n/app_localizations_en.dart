@@ -478,7 +478,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String contactImportAdded(int count) {
+  String birthdaysAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -675,4 +675,80 @@ class AppLocalizationsEn extends AppLocalizations {
   String notificationReminderBody(String fullName) {
     return '$fullName\'s birthday is in 7 days.';
   }
+
+  @override
+  String notificationBirthdayTitle(String fullName) {
+    return '🎂 $fullName';
+  }
+
+  @override
+  String get reminders => 'Reminders';
+
+  @override
+  String get enableReminders => 'Turn on reminders';
+
+  @override
+  String get remindersEnabled => 'Reminders on';
+
+  @override
+  String get later => 'Not now';
+
+  @override
+  String remindersOfferRestored(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count birthdays restored',
+      one: '1 birthday restored',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String remindersOfferTitle(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'A reminder $days days before, then on the day',
+      one: 'A reminder the day before, then on the day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String remindersOfferMessage(String time) {
+    return 'At $time, even offline.';
+  }
+
+  @override
+  String get remindersExample => 'Example reminder';
+
+  @override
+  String remindersExampleWhen(String date, String time) {
+    return 'AnKi · $date at $time';
+  }
+
+  @override
+  String get remindersBlockedTitle => 'Allow notifications in settings';
+
+  @override
+  String get remindersBlockedMessage =>
+      'Your phone blocks them for AnKi. Turn them on in settings, then come back here.';
+
+  @override
+  String remindersSchedule(int days, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days before and on the day, at $time',
+      one: 'The day before and on the day, at $time',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get remindersOff => 'Off: AnKi can\'t remind you.';
+
+  @override
+  String get remindersBlocked => 'Blocked in your phone\'s settings.';
 }

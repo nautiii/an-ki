@@ -1,4 +1,5 @@
 import 'package:an_ki/app/bootstrap/app_initializer.dart';
+import 'package:an_ki/app/bootstrap/reminder_prompt.dart';
 import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
@@ -52,8 +53,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       StatefulShellRoute(
-        builder: (_, _, shell) =>
-            AppInitializer(child: MainShell(navigationShell: shell)),
+        builder: (_, _, shell) => AppInitializer(
+          child: ReminderPrompt(child: MainShell(navigationShell: shell)),
+        ),
         navigatorContainerBuilder: (_, shell, branches) =>
             ShellBranches(currentIndex: shell.currentIndex, children: branches),
         branches: [

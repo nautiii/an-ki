@@ -6,8 +6,10 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
+import 'package:an_ki/features/birthday/domain/birthdays_added.dart';
 import 'package:an_ki/features/birthday/domain/contact_import_failure.dart';
 import 'package:an_ki/features/birthday/domain/contact_import_preview.dart';
+import 'package:an_ki/features/birthday/providers/birthday_additions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -69,10 +71,17 @@ class ContactImport extends AsyncNotifier<List<BirthdayDraft>?> {
       ref.read(contactsServiceProvider).openAppSettings();
 
   /// Ajoute [drafts] sans attendre le serveur : Firestore les montre tout de
-  /// suite, hors ligne compris. Renvoie leur nombre ; 0 sans session.
+  /// suite, hors ligne compris. Annonce l'ajout ([birthdayAdditionsProvider])
+  /// et renvoie leur nombre ; 0 sans session.
   int add(List<BirthdayDraft> drafts) {
     final uid = ref.read(currentUidProvider);
     if (uid == null || drafts.isEmpty) return 0;
+    final first = ref.read(birthdaysListProvider).isEmpty;
+    ref
+        .read(birthdayAdditionsProvider.notifier)
+        .record(
+          BirthdaysAdded(count: drafts.length, imported: true, first: first),
+        );
     unawaited(
       ref
           .read(birthdayRepositoryProvider)

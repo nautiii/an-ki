@@ -2,11 +2,93 @@ import 'dart:ui';
 
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
+
+/// Côté Android du plugin : l'autorisation telle que le test la règle.
+class FakeAndroidNotifications extends Fake
+    implements AndroidFlutterLocalNotificationsPlugin {
+  bool enabled = false;
+
+  /// Réponse de la boîte système, ou de son absence.
+  bool grants = true;
+  bool exactAlarms = true;
+  Exception? failure;
+
+  int requests = 0;
+  int exactRequests = 0;
+  int settingsOpened = 0;
+
+  @override
+  Future<bool?> areNotificationsEnabled() async {
+    if (failure case final error?) throw error;
+    return enabled;
+  }
+
+  @override
+  Future<bool?> requestNotificationsPermission() async {
+    requests++;
+    if (failure case final error?) throw error;
+    return enabled = grants;
+  }
+
+  @override
+  Future<bool?> requestExactAlarmsPermission() async {
+    exactRequests++;
+    return exactAlarms;
+  }
+
+  @override
+  Future<bool?> openAppNotificationSettings() async {
+    settingsOpened++;
+    return true;
+  }
+}
+
+/// Côté iOS du plugin.
+class FakeIosNotifications extends Fake
+    implements IOSFlutterLocalNotificationsPlugin {
+  bool enabled = false;
+  bool grants = true;
+  int requests = 0;
+  int settingsOpened = 0;
+
+  @override
+  Future<NotificationsEnabledOptions?> checkPermissions() async =>
+      NotificationsEnabledOptions(
+        isEnabled: enabled,
+        isSoundEnabled: enabled,
+        isAlertEnabled: enabled,
+        isBadgeEnabled: enabled,
+        isProvisionalEnabled: false,
+        isCriticalEnabled: false,
+        isProvidesAppNotificationSettingsEnabled: false,
+      );
+
+  @override
+  Future<bool?> requestPermissions({
+    bool sound = false,
+    bool alert = false,
+    bool badge = false,
+    bool provisional = false,
+    bool critical = false,
+    bool carPlay = false,
+    bool providesAppNotificationSettings = false,
+  }) async {
+    requests++;
+    return enabled = grants;
+  }
+
+  @override
+  Future<bool?> openAppNotificationSettings() async {
+    settingsOpened++;
+    return true;
+  }
+}
 
 /// A manual mock of [FlutterLocalNotificationsPlugin] using [Fake].
 class MockNotificationsPlugin extends Fake
@@ -16,6 +98,18 @@ class MockNotificationsPlugin extends Fake
   final List<ZonedScheduleCall> zonedScheduleCalls = [];
   bool allCancelled = false;
   bool throwOnSchedule = false;
+
+  final android = FakeAndroidNotifications();
+  final ios = FakeIosNotifications();
+
+  @override
+  T? resolvePlatformSpecificImplementation<
+    T extends FlutterLocalNotificationsPlatform
+  >() {
+    if (T == AndroidFlutterLocalNotificationsPlugin) return android as T;
+    if (T == IOSFlutterLocalNotificationsPlugin) return ios as T;
+    return null;
+  }
 
   /// Rappel du plugin pour un toucher pendant que l'app tourne.
   DidReceiveNotificationResponseCallback? onResponse;
@@ -215,8 +309,9 @@ void main() {
 
       final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
       expect(day.title, '🎂 John Doe');
-      // Sans âge : le texte se répète tel quel chaque année.
-      expect(day.body, "C'est l'anniversaire de John aujourd'hui !");
+      // Sans âge : le texte se répète tel quel chaque année. Le prénom en
+      // tête, sans « de » à élider devant une voyelle.
+      expect(day.body, 'John fête son anniversaire aujourd\'hui !');
       expect(weekBefore.title, '🎉 Anniversaire bientôt');
       expect(weekBefore.body, 'John Doe fête son anniversaire dans 7 jours.');
     });
@@ -245,6 +340,7 @@ void main() {
       ]);
 
       final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
+      expect(day.title, '🎂 John Doe');
       expect(day.body, "It's John's birthday today!");
       expect(weekBefore.title, '🎉 Birthday soon');
       expect(weekBefore.body, "John Doe's birthday is in 7 days.");
@@ -267,6 +363,110 @@ void main() {
       await service.scheduleAll([reminder(ReminderType.birthday)]);
 
       expect(mockPlugin.zonedScheduleCalls, isEmpty);
+    });
+  });
+
+  group('permission', () {
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+    /// `MainActivity` : Android reproposera-t-il sa boîte ?
+    void rationale(bool canAskAgain) {
+      messenger.setMockMethodCallHandler(
+        NotificationService.permissionChannel,
+        (call) async => call.method == 'canAskAgain' ? canAskAgain : null,
+      );
+      addTearDown(
+        () => messenger.setMockMethodCallHandler(
+          NotificationService.permissionChannel,
+          null,
+        ),
+      );
+    }
+
+    void onIos() {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    }
+
+    test('reads the permission without asking', () async {
+      expect(await service.access(), NotificationAccess.denied);
+
+      mockPlugin.android.enabled = true;
+      expect(await service.access(), NotificationAccess.granted);
+      expect(mockPlugin.android.requests, 0);
+    });
+
+    test('a granted request also asks for exact alarms', () async {
+      expect(await service.requestAccess(), NotificationAccess.granted);
+      expect(mockPlugin.android.requests, 1);
+      expect(mockPlugin.android.exactRequests, 1);
+    });
+
+    test('stays granted when exact alarms are refused', () async {
+      mockPlugin.android.exactAlarms = false;
+
+      expect(await service.requestAccess(), NotificationAccess.granted);
+    });
+
+    test('a first refusal can be asked again', () async {
+      mockPlugin.android.grants = false;
+      rationale(true);
+
+      expect(await service.requestAccess(), NotificationAccess.denied);
+      expect(mockPlugin.android.exactRequests, 0);
+    });
+
+    test('Android blocks after a second refusal', () async {
+      mockPlugin.android.grants = false;
+      rationale(false);
+
+      expect(await service.requestAccess(), NotificationAccess.blocked);
+    });
+
+    test('counts as blocked without the native rationale', () async {
+      // Pas de MainActivity (canal absent) : les réglages restent sûrs.
+      mockPlugin.android.grants = false;
+
+      expect(await service.requestAccess(), NotificationAccess.blocked);
+    });
+
+    test('a failing plugin reads and asks as denied', () async {
+      mockPlugin.android.failure = PlatformException(code: 'busy');
+
+      expect(await service.access(), NotificationAccess.denied);
+      expect(await service.requestAccess(), NotificationAccess.denied);
+    });
+
+    test('opens the notification settings of the app', () async {
+      await service.openSettings();
+
+      expect(mockPlugin.android.settingsOpened, 1);
+    });
+
+    test('iOS asks once: a refusal is final', () async {
+      onIos();
+      expect(await service.access(), NotificationAccess.denied);
+
+      mockPlugin.ios.grants = false;
+      expect(await service.requestAccess(), NotificationAccess.blocked);
+
+      mockPlugin.ios.grants = true;
+      expect(await service.requestAccess(), NotificationAccess.granted);
+      expect(await service.access(), NotificationAccess.granted);
+      await service.openSettings();
+      expect(mockPlugin.ios.settingsOpened, 1);
+    });
+
+    test('neither reads nor asks before initialization', () async {
+      final plugin = MockNotificationsPlugin()..android.enabled = true;
+      final fresh = NotificationService(plugin);
+
+      expect(await fresh.access(), NotificationAccess.denied);
+      expect(await fresh.requestAccess(), NotificationAccess.denied);
+      await fresh.openSettings();
+      expect(plugin.android.requests, 0);
+      expect(plugin.android.settingsOpened, 0);
     });
   });
 

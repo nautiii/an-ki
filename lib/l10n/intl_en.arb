@@ -137,7 +137,7 @@
   "contactImportKnown": "Already in AnKi",
   "contactImportDetail": "{days, plural, =0{{date} · today} =1{{date} · tomorrow} other{{date} · in {days} days}}",
   "contactImportAdd": "{count, plural, =0{Add} =1{Add 1 birthday} other{Add {count} birthdays}}",
-  "contactImportAdded": "{count, plural, =1{1 birthday added} other{{count} birthdays added}}",
+  "birthdaysAdded": "{count, plural, =1{1 birthday added} other{{count} birthdays added}}",
   "contactImportDeniedTitle": "AnKi can't see your contacts",
   "contactImportDeniedMessage": "Allow access to choose who to add, or add your people by hand.",
   "contactImportBlockedMessage": "Allow Contacts in the app's settings, then come back here. You can also add your people by hand.",
@@ -206,5 +206,20 @@
     "placeholders": {
       "fullName": { "type": "String" }
     }
-  }
+  },
+  "notificationBirthdayTitle": "🎂 {fullName}",
+  "reminders": "Reminders",
+  "enableReminders": "Turn on reminders",
+  "remindersEnabled": "Reminders on",
+  "later": "Not now",
+  "remindersOfferRestored": "{count, plural, =1{1 birthday restored} other{{count} birthdays restored}}",
+  "remindersOfferTitle": "{days, plural, =1{A reminder the day before, then on the day} other{A reminder {days} days before, then on the day}}",
+  "remindersOfferMessage": "At {time}, even offline.",
+  "remindersExample": "Example reminder",
+  "remindersExampleWhen": "AnKi · {date} at {time}",
+  "remindersBlockedTitle": "Allow notifications in settings",
+  "remindersBlockedMessage": "Your phone blocks them for AnKi. Turn them on in settings, then come back here.",
+  "remindersSchedule": "{days, plural, =1{The day before and on the day, at {time}} other{{days} days before and on the day, at {time}}}",
+  "remindersOff": "Off: AnKi can't remind you.",
+  "remindersBlocked": "Blocked in your phone's settings."
 }

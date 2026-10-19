@@ -18,7 +18,7 @@
   "@welcomeTitle": {
     "description": "Bienvenue, hors session : la promesse d'AnKi"
   },
-  "welcomeMessage": "AnKi vous prévient 7 jours avant et le jour J, et prépare votre message.",
+  "welcomeMessage": "AnKi vous prévient 7 jours avant et le jour\u00a0J, et prépare votre message.",
   "welcomeStart": "Commencer",
   "@welcomeStart": {
     "description": "Bienvenue : ouvre AnKi sans compte (invité), à sauvegarder plus tard"
@@ -349,8 +349,8 @@
       "count": { "type": "int" }
     }
   },
-  "contactImportAdded": "{count, plural, =1{1 anniversaire ajouté} other{{count} anniversaires ajoutés}}",
-  "@contactImportAdded": {
+  "birthdaysAdded": "{count, plural, =1{1 anniversaire ajouté} other{{count} anniversaires ajoutés}}",
+  "@birthdaysAdded": {
     "placeholders": {
       "count": { "type": "int" }
     }
@@ -412,7 +412,7 @@
   "notificationChannelName": "Anniversaires",
   "notificationChannelDescription": "Rappels d'anniversaire du jour",
   "notificationReminderTitle": "🎉 Anniversaire bientôt",
-  "notificationBirthdayBody": "C'est l'anniversaire de {name} aujourd'hui !",
+  "notificationBirthdayBody": "{name} fête son anniversaire aujourd'hui\u202f!",
   "@notificationBirthdayBody": {
     "description": "Sans âge : la notification se répète chaque année avec le même texte.",
     "placeholders": {
@@ -425,5 +425,56 @@
     "placeholders": {
       "fullName": { "type": "String" }
     }
-  }
+  },
+  "notificationBirthdayTitle": "🎂 {fullName}",
+  "@notificationBirthdayTitle": {
+    "description": "Titre de la notification du jour J.",
+    "placeholders": {
+      "fullName": { "type": "String" }
+    }
+  },
+  "reminders": "Rappels",
+  "enableReminders": "Activer les rappels",
+  "remindersEnabled": "Rappels activés",
+  "later": "Plus tard",
+  "remindersOfferRestored": "{count, plural, =1{1 anniversaire retrouvé} other{{count} anniversaires retrouvés}}",
+  "@remindersOfferRestored": {
+    "description": "En tête de la proposition des rappels, quand une connexion retrouve l'agenda sur un appareil.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "remindersOfferTitle": "{days, plural, =1{Un rappel la veille, puis le jour\u00a0J} other{Un rappel {days} jours avant, puis le jour\u00a0J}}",
+  "@remindersOfferTitle": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "remindersOfferMessage": "À {time}, même sans connexion.",
+  "@remindersOfferMessage": {
+    "description": "Heure des rappels, formatée dans la langue de l'app.",
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "remindersExample": "Exemple de rappel",
+  "remindersExampleWhen": "AnKi · {date} à {time}",
+  "@remindersExampleWhen": {
+    "description": "En-tête de l'exemple de notification : jour et heure du prochain vrai rappel.",
+    "placeholders": {
+      "date": { "type": "String" },
+      "time": { "type": "String" }
+    }
+  },
+  "remindersBlockedTitle": "Autorisez les notifications dans les réglages",
+  "remindersBlockedMessage": "Votre téléphone les bloque pour AnKi. Activez-les dans les réglages, puis revenez ici.",
+  "remindersSchedule": "{days, plural, =1{La veille et le jour\u00a0J, à {time}} other{{days} jours avant et le jour\u00a0J, à {time}}}",
+  "@remindersSchedule": {
+    "placeholders": {
+      "days": { "type": "int" },
+      "time": { "type": "String" }
+    }
+  },
+  "remindersOff": "Désactivés\u202f: AnKi ne peut pas vous prévenir.",
+  "remindersBlocked": "Bloqués dans les réglages du téléphone."
 }

@@ -23,8 +23,8 @@ import 'package:go_router/go_router.dart';
 /// Import des anniversaires du répertoire : l'accès se demande à l'arrivée,
 /// puis l'utilisateur choisit qui ajouter — cochés d'avance, du plus proche
 /// anniversaire au plus lointain, ceux qu'AnKi connaît déjà à part. Ouvert
-/// depuis l'accueil vide et les réglages ; « Ajouter » ferme l'écran et
-/// l'annonce sur l'écran d'origine.
+/// depuis l'accueil vide et les réglages ; « Ajouter » ferme l'écran, et
+/// l'app annonce l'ajout sur l'écran d'origine (`birthdayAdditionsProvider`).
 class ContactImportScreen extends ConsumerStatefulWidget {
   const ContactImportScreen({super.key});
 
@@ -60,17 +60,14 @@ class _ContactImportScreenState extends ConsumerState<ContactImportScreen> {
     super.dispose();
   }
 
-  /// Ajoute les contacts cochés, puis revient à l'écran d'origine, où le
-  /// message s'affiche (il survit à la fermeture de cet écran).
+  /// Ajoute les contacts cochés, puis revient à l'écran d'origine. L'app
+  /// annonce l'ajout : un message, ou la proposition des rappels qui le dit.
   void _add() {
     final added = ref
         .read(contactImportProvider.notifier)
         .add(ref.read(contactImportTickedProvider));
     if (added == 0) return;
     unawaited(HapticFeedback.lightImpact());
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.contactImportAdded(added))),
-    );
     context.pop();
   }
 

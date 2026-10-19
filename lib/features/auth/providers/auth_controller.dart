@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
+import 'package:an_ki/features/auth/providers/fresh_sign_in_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -180,14 +181,17 @@ class AuthController extends AsyncNotifier<void> {
     });
   }
 
-  /// Connexion explicite : elle passe aussi le verrou biométrique. L'empreinte
-  /// d'un autre compte est oubliée : sa session vient d'être remplacée.
+  /// Connexion explicite : elle passe aussi le verrou biométrique et se note
+  /// ([freshSignInProvider]). L'empreinte d'un autre compte est oubliée : sa
+  /// session vient d'être remplacée.
   Future<bool> _signIn(AuthFailure fallback, Future<Object?> Function() call) {
     final biometrics = _biometrics;
     final repository = _repository;
     final lock = _lock;
+    final freshSignIn = ref.read(freshSignInProvider.notifier);
     return _run(fallback, () async {
       await call();
+      if (repository.currentUser?.uid case final uid?) freshSignIn.record(uid);
       final fingerprintUid = await biometrics.getStoredUserId();
       if (fingerprintUid != null &&
           fingerprintUid != repository.currentUser?.uid) {

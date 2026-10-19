@@ -1,9 +1,11 @@
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
+import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -14,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../support/app_harness.dart';
 import '../../../support/fake_providers.dart';
 import '../../../support/test_harness.dart';
 
@@ -35,12 +38,16 @@ void main() {
     FakeAuthRepository? auth,
     RecordingUserRepository? users,
     FakeBiometricService? biometrics,
+    SilentNotificationService? notifications,
   }) => [
     authRepositoryProvider.overrideWithValue(
       auth ?? FakeAuthRepository(user: _user()),
     ),
     biometricServiceProvider.overrideWithValue(
       biometrics ?? FakeBiometricService(available: true),
+    ),
+    notificationServiceProvider.overrideWithValue(
+      notifications ?? SilentNotificationService(),
     ),
     // Comme dans l'app : le démarrage attend le premier profil, il est donc
     // déjà là quand les réglages s'ouvrent.
@@ -155,6 +162,26 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Import route'), findsOneWidget);
+  });
+
+  testWidgets('says whether reminders are on, and turns them on', (
+    tester,
+  ) async {
+    final notifications = SilentNotificationService(
+      access: NotificationAccess.denied,
+    );
+    await tester.pumpHarness(
+      const SettingsScreen(),
+      overrides: overridesWith(notifications: notifications),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RemindersTile), findsOneWidget);
+    await tester.tap(find.text('Activer les rappels'));
+    await tester.pumpAndSettle();
+
+    expect(notifications.requests, 1);
+    expect(find.text('7 jours avant et le jour J, à 10:00'), findsOneWidget);
   });
 
   group('sign out', () {

@@ -32,7 +32,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get welcomeMessage =>
-      'AnKi vous prévient 7 jours avant et le jour J, et prépare votre message.';
+      'AnKi vous prévient 7 jours avant et le jour J, et prépare votre message.';
 
   @override
   String get welcomeStart => 'Commencer';
@@ -487,7 +487,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String contactImportAdded(int count) {
+  String birthdaysAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -681,11 +681,88 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String notificationBirthdayBody(String name) {
-    return 'C\'est l\'anniversaire de $name aujourd\'hui !';
+    return '$name fête son anniversaire aujourd\'hui !';
   }
 
   @override
   String notificationReminderBody(String fullName) {
     return '$fullName fête son anniversaire dans 7 jours.';
   }
+
+  @override
+  String notificationBirthdayTitle(String fullName) {
+    return '🎂 $fullName';
+  }
+
+  @override
+  String get reminders => 'Rappels';
+
+  @override
+  String get enableReminders => 'Activer les rappels';
+
+  @override
+  String get remindersEnabled => 'Rappels activés';
+
+  @override
+  String get later => 'Plus tard';
+
+  @override
+  String remindersOfferRestored(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count anniversaires retrouvés',
+      one: '1 anniversaire retrouvé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String remindersOfferTitle(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Un rappel $days jours avant, puis le jour J',
+      one: 'Un rappel la veille, puis le jour J',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String remindersOfferMessage(String time) {
+    return 'À $time, même sans connexion.';
+  }
+
+  @override
+  String get remindersExample => 'Exemple de rappel';
+
+  @override
+  String remindersExampleWhen(String date, String time) {
+    return 'AnKi · $date à $time';
+  }
+
+  @override
+  String get remindersBlockedTitle =>
+      'Autorisez les notifications dans les réglages';
+
+  @override
+  String get remindersBlockedMessage =>
+      'Votre téléphone les bloque pour AnKi. Activez-les dans les réglages, puis revenez ici.';
+
+  @override
+  String remindersSchedule(int days, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days jours avant et le jour J, à $time',
+      one: 'La veille et le jour J, à $time',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get remindersOff => 'Désactivés : AnKi ne peut pas vous prévenir.';
+
+  @override
+  String get remindersBlocked => 'Bloqués dans les réglages du téléphone.';
 }

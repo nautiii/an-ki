@@ -1,8 +1,12 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
+import 'package:an_ki/features/birthday/domain/birthdays_added.dart';
+import 'package:an_ki/features/birthday/providers/birthday_additions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
+import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,16 +18,25 @@ BirthdayDraft _input() => BirthdayDraft(
   date: BirthDate.fromDate(DateTime(2000)),
 );
 
+const _lea = Birthday(
+  id: 'lea',
+  name: 'Léa',
+  surname: 'Martin',
+  date: BirthDate(month: 3, day: 12),
+);
+
 void main() {
   ProviderContainer makeContainer(
     RecordingBirthdayRepository repository, {
     String? uid = 'u1',
+    List<Birthday> existing = const [],
   }) {
     final container = ProviderContainer.test(
       retry: (_, _) => null,
       overrides: [
         birthdayRepositoryProvider.overrideWithValue(repository),
         currentUidProvider.overrideWithValue(uid),
+        birthdaysProvider.overrideWithValue(AsyncData(existing)),
       ],
     );
     // Provider autoDispose : un listener le garde en vie pendant le test.
@@ -76,6 +89,44 @@ void main() {
 
     expect(repo.created, isEmpty);
     expect(container.read(birthdayEditorProvider), isA<AsyncData<void>>());
+    expect(container.read(birthdayAdditionsProvider), isNull);
+  });
+
+  group('reports each creation', () {
+    test('the first birthday of an empty agenda', () async {
+      final container = makeContainer(RecordingBirthdayRepository());
+
+      await container.read(birthdayEditorProvider.notifier).create(_input());
+
+      expect(
+        container.read(birthdayAdditionsProvider),
+        const BirthdaysAdded(count: 1, imported: false, first: true),
+      );
+    });
+
+    test('one more birthday in a filled agenda', () async {
+      final container = makeContainer(
+        RecordingBirthdayRepository(),
+        existing: const [_lea],
+      );
+
+      await container.read(birthdayEditorProvider.notifier).create(_input());
+
+      expect(
+        container.read(birthdayAdditionsProvider),
+        const BirthdaysAdded(count: 1, imported: false, first: false),
+      );
+    });
+
+    test('but not an edit', () async {
+      final container = makeContainer(RecordingBirthdayRepository());
+
+      await container
+          .read(birthdayEditorProvider.notifier)
+          .edit('id-1', _input());
+
+      expect(container.read(birthdayAdditionsProvider), isNull);
+    });
   });
 
   test('publishes a failed write as an AsyncError', () async {

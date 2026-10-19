@@ -119,7 +119,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeMessage.
   ///
   /// In fr, this message translates to:
-  /// **'AnKi vous prévient 7 jours avant et le jour J, et prépare votre message.'**
+  /// **'AnKi vous prévient 7 jours avant et le jour J, et prépare votre message.'**
   String get welcomeMessage;
 
   /// Bienvenue : ouvre AnKi sans compte (invité), à sauvegarder plus tard
@@ -830,11 +830,11 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{Ajouter} =1{Ajouter 1 anniversaire} other{Ajouter {count} anniversaires}}'**
   String contactImportAdd(int count);
 
-  /// No description provided for @contactImportAdded.
+  /// No description provided for @birthdaysAdded.
   ///
   /// In fr, this message translates to:
   /// **'{count, plural, =1{1 anniversaire ajouté} other{{count} anniversaires ajoutés}}'**
-  String contactImportAdded(int count);
+  String birthdaysAdded(int count);
 
   /// No description provided for @contactImportDeniedTitle.
   ///
@@ -1181,7 +1181,7 @@ abstract class AppLocalizations {
   /// Sans âge : la notification se répète chaque année avec le même texte.
   ///
   /// In fr, this message translates to:
-  /// **'C\'est l\'anniversaire de {name} aujourd\'hui !'**
+  /// **'{name} fête son anniversaire aujourd\'hui !'**
   String notificationBirthdayBody(String name);
 
   /// Sans âge : la notification se répète chaque année avec le même texte.
@@ -1189,6 +1189,96 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{fullName} fête son anniversaire dans 7 jours.'**
   String notificationReminderBody(String fullName);
+
+  /// Titre de la notification du jour J.
+  ///
+  /// In fr, this message translates to:
+  /// **'🎂 {fullName}'**
+  String notificationBirthdayTitle(String fullName);
+
+  /// No description provided for @reminders.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels'**
+  String get reminders;
+
+  /// No description provided for @enableReminders.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer les rappels'**
+  String get enableReminders;
+
+  /// No description provided for @remindersEnabled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels activés'**
+  String get remindersEnabled;
+
+  /// No description provided for @later.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus tard'**
+  String get later;
+
+  /// En tête de la proposition des rappels, quand une connexion retrouve l'agenda sur un appareil.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 anniversaire retrouvé} other{{count} anniversaires retrouvés}}'**
+  String remindersOfferRestored(int count);
+
+  /// No description provided for @remindersOfferTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'{days, plural, =1{Un rappel la veille, puis le jour J} other{Un rappel {days} jours avant, puis le jour J}}'**
+  String remindersOfferTitle(int days);
+
+  /// Heure des rappels, formatée dans la langue de l'app.
+  ///
+  /// In fr, this message translates to:
+  /// **'À {time}, même sans connexion.'**
+  String remindersOfferMessage(String time);
+
+  /// No description provided for @remindersExample.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exemple de rappel'**
+  String get remindersExample;
+
+  /// En-tête de l'exemple de notification : jour et heure du prochain vrai rappel.
+  ///
+  /// In fr, this message translates to:
+  /// **'AnKi · {date} à {time}'**
+  String remindersExampleWhen(String date, String time);
+
+  /// No description provided for @remindersBlockedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autorisez les notifications dans les réglages'**
+  String get remindersBlockedTitle;
+
+  /// No description provided for @remindersBlockedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre téléphone les bloque pour AnKi. Activez-les dans les réglages, puis revenez ici.'**
+  String get remindersBlockedMessage;
+
+  /// No description provided for @remindersSchedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'{days, plural, =1{La veille et le jour J, à {time}} other{{days} jours avant et le jour J, à {time}}}'**
+  String remindersSchedule(int days, String time);
+
+  /// No description provided for @remindersOff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactivés : AnKi ne peut pas vous prévenir.'**
+  String get remindersOff;
+
+  /// No description provided for @remindersBlocked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bloqués dans les réglages du téléphone.'**
+  String get remindersBlocked;
 }
 
 class _AppLocalizationsDelegate

@@ -8,6 +8,8 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/domain/birthdays_added.dart';
+import 'package:an_ki/features/birthday/providers/birthday_additions.dart';
 import 'package:an_ki/features/birthday/screens/contact_import_screen.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -145,10 +147,15 @@ void main() {
     expect(addButton(tester).onPressed, isNull);
   });
 
-  testWidgets('adds the ticked contacts, says so and closes', (tester) async {
+  testWidgets('adds the ticked contacts, reports them and closes', (
+    tester,
+  ) async {
     await pumpImport(
       tester,
       FakeContactsService(contacts: const [_lea, _hugo]),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(ContactImportScreen)),
     );
 
     await tester.tap(find.text('Léa Martin'));
@@ -158,7 +165,11 @@ void main() {
 
     expect(repository.created.map((draft) => draft.fullName), ['Hugo Bernard']);
     expect(find.byType(ContactImportScreen), findsNothing);
-    expect(find.text('1 anniversaire ajouté'), findsOneWidget);
+    // L'app l'annonce (`ReminderPrompt`) : un message, ou les rappels.
+    expect(
+      container.read(birthdayAdditionsProvider),
+      const BirthdaysAdded(count: 1, imported: true, first: true),
+    );
   });
 
   testWidgets('all known: says so and adds nothing', (tester) async {

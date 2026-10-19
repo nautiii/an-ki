@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
+import 'package:an_ki/features/birthday/domain/birthdays_added.dart';
+import 'package:an_ki/features/birthday/providers/birthday_additions.dart';
+import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Écritures sur les anniversaires (ViewModel des actions) et état de la
@@ -17,9 +20,24 @@ class BirthdayEditor extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
 
-  Future<void> create(BirthdayDraft draft) => _write(
-    (uid) => ref.read(birthdayRepositoryProvider).createBirthday(uid, draft),
-  );
+  /// Crée [draft] et annonce l'ajout ([birthdayAdditionsProvider]), en
+  /// disant si l'agenda était vide.
+  Future<void> create(BirthdayDraft draft) {
+    if (ref.read(currentUidProvider) != null) {
+      ref
+          .read(birthdayAdditionsProvider.notifier)
+          .record(
+            BirthdaysAdded(
+              count: 1,
+              imported: false,
+              first: ref.read(birthdaysListProvider).isEmpty,
+            ),
+          );
+    }
+    return _write(
+      (uid) => ref.read(birthdayRepositoryProvider).createBirthday(uid, draft),
+    );
+  }
 
   Future<void> edit(String birthdayId, BirthdayDraft draft) => _write(
     (uid) => ref

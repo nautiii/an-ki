@@ -21,12 +21,28 @@ import 'package:go_router/go_router.dart';
 import 'fake_providers.dart';
 
 /// Notifications sans plugin : aucun toucher, sauf ceux que le test envoie
-/// par [tap] ou donne comme [launch].
+/// par [tap] ou donne comme [launch]. L'autorisation vaut [access] (accordée
+/// par défaut, donc sans proposition des rappels) ; une demande renvoie
+/// [answer] et la retient. Relève les demandes et les ouvertures des
+/// réglages.
 class SilentNotificationService extends Fake implements NotificationService {
-  SilentNotificationService({this.launch});
+  SilentNotificationService({
+    this.launch,
+    NotificationAccess access = NotificationAccess.granted,
+    this.answer = NotificationAccess.granted,
+  }) : current = access;
 
   /// Toucher qui aurait lancé l'app.
   final NotificationTap? launch;
+
+  /// Autorisation actuelle, telle que le téléphone la dirait.
+  NotificationAccess current;
+
+  /// Réponse à la prochaine demande d'autorisation.
+  NotificationAccess answer;
+
+  int requests = 0;
+  int settingsOpened = 0;
 
   final _taps = StreamController<NotificationTap>.broadcast();
 
@@ -37,7 +53,20 @@ class SilentNotificationService extends Fake implements NotificationService {
   void configure(NotificationStrings strings) {}
 
   @override
-  Future<bool> requestPermissions() async => true;
+  Future<NotificationAccess> access() async => current;
+
+  @override
+  Future<NotificationAccess> requestAccess() async {
+    requests++;
+    // Le blocage ne se voit qu'à la demande : la lecture dit « refusée ».
+    current = answer == NotificationAccess.blocked
+        ? NotificationAccess.denied
+        : answer;
+    return answer;
+  }
+
+  @override
+  Future<void> openSettings() async => settingsOpened++;
 
   @override
   Future<void> scheduleAll(List<ReminderNotification> reminders) async {}

@@ -6,6 +6,7 @@ import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/features/user/providers/user_profile_editor.dart';
@@ -269,6 +270,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             const Divider(),
           ],
+          // L'état des rappels, et de quoi les rétablir s'ils sont coupés.
+          const RemindersTile(),
+          const Divider(),
           ListTile(
             leading: const Icon(Icons.contact_page_rounded),
             title: Text(context.l10n.importContacts),

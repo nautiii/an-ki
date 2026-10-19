@@ -3,6 +3,7 @@ import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
+import 'package:an_ki/features/auth/providers/fresh_sign_in_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -145,6 +146,8 @@ void main() {
       expect(container.read(currentUidProvider), 'uid-1');
       expect(container.read(authAccessProvider), AuthAccess.granted);
       expect(container.read(authControllerProvider), isA<AsyncData<void>>());
+      // Ouverte ici : l'agenda du compte arrive sur cet appareil.
+      expect(container.read(freshSignInProvider), 'uid-1');
     });
 
     test('signIn maps FirebaseAuthException codes to failures', () async {
@@ -159,6 +162,7 @@ void main() {
 
       expect(ok, isFalse);
       expect(failureOf(container), AuthFailure.wrongPassword);
+      expect(container.read(freshSignInProvider), isNull);
     });
 
     test('signIn maps unexpected errors to a generic failure', () async {
@@ -332,6 +336,8 @@ void main() {
 
       expect(container.read(authAccessProvider), AuthAccess.granted);
       expect(container.read(currentUidProvider), 'uid-1');
+      // Restaurée, pas ouverte ici : rien de neuf sur cet appareil.
+      expect(container.read(freshSignInProvider), isNull);
     });
 
     test(

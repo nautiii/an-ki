@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -20,6 +21,7 @@ class NotificationStrings {
   // Pas d'âge dans les textes : la notification se répète chaque année avec
   // le texte écrit à la planification, l'âge serait faux l'année suivante si
   // l'app n'est pas rouverte.
+  final String Function(String fullName) birthdayTitle;
   final String Function(String name) birthdayBody;
   final String Function(String fullName) reminderBody;
 
@@ -30,6 +32,7 @@ class NotificationStrings {
     required this.channelName,
     required this.channelDescription,
     required this.reminderTitle,
+    required this.birthdayTitle,
     required this.birthdayBody,
     required this.reminderBody,
     required this.wishAction,
@@ -39,7 +42,8 @@ class NotificationStrings {
     channelName: 'Anniversaires',
     channelDescription: 'Rappels d\'anniversaire du jour',
     reminderTitle: '🎉 Anniversaire bientôt',
-    birthdayBody: (name) => 'C\'est l\'anniversaire de $name aujourd\'hui !',
+    birthdayTitle: (fullName) => '🎂 $fullName',
+    birthdayBody: (name) => '$name fête son anniversaire aujourd\'hui !',
     reminderBody: (fullName) => '$fullName fête son anniversaire dans 7 jours.',
     wishAction: 'Souhaiter',
   );
@@ -49,10 +53,25 @@ class NotificationStrings {
         channelName: l10n.notificationChannelName,
         channelDescription: l10n.notificationChannelDescription,
         reminderTitle: l10n.notificationReminderTitle,
+        birthdayTitle: l10n.notificationBirthdayTitle,
         birthdayBody: l10n.notificationBirthdayBody,
         reminderBody: l10n.notificationReminderBody,
         wishAction: l10n.wish,
       );
+}
+
+/// Autorisation d'afficher les notifications de l'app, donc les rappels.
+enum NotificationAccess {
+  /// Accordée : les rappels s'affichent.
+  granted,
+
+  /// Pas accordée, mais la boîte système peut encore la proposer : jamais
+  /// demandée, ou refusée une seule fois sur Android.
+  denied,
+
+  /// Refusée pour de bon (deux refus sur Android, un sur iOS) ou coupée dans
+  /// les réglages : seuls les réglages de l'app peuvent l'accorder.
+  blocked,
 }
 
 /// Type de rappel ; il choisit le texte de la notification.
@@ -139,6 +158,13 @@ class NotificationService {
 
   static const String _channelId = 'birthday_channel';
 
+  /// Canal de `MainActivity` (Android) : le plugin ne dit pas si Android
+  /// peut encore afficher sa boîte de permission après un refus.
+  @visibleForTesting
+  static const MethodChannel permissionChannel = MethodChannel(
+    'an_ki/notification_permission',
+  );
+
   NotificationStrings _strings = NotificationStrings.french;
 
   final _taps = StreamController<NotificationTap>.broadcast();
@@ -206,43 +232,104 @@ class NotificationService {
     _initialized = true;
   }
 
-  /// Demande les permissions nécessaires selon la plateforme courante.
-  Future<bool> requestPermissions() async {
-    if (!_initialized) return false;
+  AndroidFlutterLocalNotificationsPlugin? get _android => _plugin
+      .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin
+      >();
 
-    bool granted = false;
+  IOSFlutterLocalNotificationsPlugin? get _ios => _plugin
+      .resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin
+      >();
 
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      final android = _plugin
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >();
-
-      if (android != null) {
-        final notifGranted =
-            await android.requestNotificationsPermission() ?? false;
-        final exactGranted =
-            await android.requestExactAlarmsPermission() ?? false;
-        granted = notifGranted && exactGranted;
-      }
-    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      final ios = _plugin
-          .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin
-          >();
-
-      if (ios != null) {
-        granted =
-            await ios.requestPermissions(
-              alert: true,
-              badge: true,
-              sound: true,
-            ) ??
-            false;
-      }
+  /// Autorisation actuelle, sans rien demander. Le blocage ne se révèle qu'à
+  /// une demande ([requestAccess]) : avant, une autorisation absente vaut
+  /// [NotificationAccess.denied].
+  Future<NotificationAccess> access() async {
+    if (!_initialized) return NotificationAccess.denied;
+    try {
+      final enabled = switch (defaultTargetPlatform) {
+        TargetPlatform.android => await _android?.areNotificationsEnabled(),
+        TargetPlatform.iOS => (await _ios?.checkPermissions())?.isEnabled,
+        _ => null,
+      };
+      return enabled ?? false
+          ? NotificationAccess.granted
+          : NotificationAccess.denied;
+    } catch (e) {
+      debugPrint('[NotificationService] Failed to read the permission: $e');
+      return NotificationAccess.denied;
     }
+  }
 
-    return granted;
+  /// Demande l'autorisation : la boîte système quand elle peut encore
+  /// s'afficher, sinon l'autorisation telle qu'elle est. Accordée sur
+  /// Android, les alarmes exactes suivent (`USE_EXACT_ALARM` les accorde dès
+  /// l'installation).
+  Future<NotificationAccess> requestAccess() async {
+    if (!_initialized) return NotificationAccess.denied;
+    try {
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+          final android = _android;
+          if (android == null) return NotificationAccess.denied;
+          if (!(await android.requestNotificationsPermission() ?? false)) {
+            return await _canAskAgain()
+                ? NotificationAccess.denied
+                : NotificationAccess.blocked;
+          }
+          if (!(await android.requestExactAlarmsPermission() ?? false)) {
+            debugPrint('[NotificationService] Exact alarms not permitted.');
+          }
+          return NotificationAccess.granted;
+        case TargetPlatform.iOS:
+          final granted = await _ios?.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+          // iOS ne pose la question qu'une fois : un refus est définitif.
+          return granted ?? false
+              ? NotificationAccess.granted
+              : NotificationAccess.blocked;
+        default:
+          return NotificationAccess.denied;
+      }
+    } catch (e) {
+      debugPrint('[NotificationService] Permission request failed: $e');
+      return NotificationAccess.denied;
+    }
+  }
+
+  /// Après un refus, Android ne repropose sa boîte que s'il juge utile de
+  /// s'expliquer (`shouldShowRequestPermissionRationale`) : un seul refus
+  /// jusqu'ici. Sinon (deux refus, ou Android 12 et avant, sans boîte),
+  /// seuls les réglages restent.
+  Future<bool> _canAskAgain() async {
+    try {
+      return await permissionChannel.invokeMethod<bool>('canAskAgain') ?? false;
+    } catch (e) {
+      debugPrint('[NotificationService] Rationale unavailable: $e');
+      return false;
+    }
+  }
+
+  /// Ouvre les réglages de notification de l'app, seule issue quand
+  /// l'autorisation est bloquée.
+  Future<void> openSettings() async {
+    if (!_initialized) return;
+    try {
+      final opened = switch (defaultTargetPlatform) {
+        TargetPlatform.android => await _android?.openAppNotificationSettings(),
+        TargetPlatform.iOS => await _ios?.openAppNotificationSettings(),
+        _ => null,
+      };
+      if (opened != true) {
+        debugPrint('[NotificationService] Settings could not be opened.');
+      }
+    } catch (e) {
+      debugPrint('[NotificationService] Failed to open the settings: $e');
+    }
   }
 
   /// Remplace les rappels planifiés par [reminders] : annule ceux qui n'y
@@ -278,7 +365,7 @@ class NotificationService {
       await _plugin.zonedSchedule(
         id: reminder.id,
         title: switch (reminder.type) {
-          ReminderType.birthday => '🎂 $fullName',
+          ReminderType.birthday => _strings.birthdayTitle(fullName),
           ReminderType.weekBefore => _strings.reminderTitle,
         },
         body: switch (reminder.type) {
