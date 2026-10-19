@@ -165,7 +165,7 @@ feature and is not part of it.
 | `book_scanner` | auth, user | absorbed by `ideas` |
 | `reminders` | birthday | auth, birthday |
 | `ideas` | | auth, birthday |
-| `settings` | auth, user, birthday, book_scanner | auth, user, birthday, reminders, ideas |
+| `settings` | auth, user, birthday, book_scanner, reminders | auth, user, birthday, reminders, ideas |
 
 Reading the target: `auth` and `user` are foundations, `birthday` (people and their dates) is the
 core domain, everything else builds on it, and nothing builds on `settings`. Onboarding (B5) is

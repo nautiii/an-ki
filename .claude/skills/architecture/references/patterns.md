@@ -460,8 +460,9 @@ class AccountDeletion extends AsyncNotifier<void> {
 ```
 
 Nothing to "clear" afterwards: every session-scoped provider resets when `currentUidProvider`
-turns null. Flows triggered by the app lifecycle (create the profile on first sign-in, request
-notification permission) live in `app/bootstrap/` and react to `currentUidProvider`.
+turns null. Flows triggered by the app lifecycle (create the profile on first sign-in, offer the
+reminders after a capture or a sign-in) live in `app/bootstrap/` and react to providers
+(`currentUidProvider`, `birthdayAdditionsProvider`, `freshSignInProvider`).
 
 ## 14. Tests per layer
 

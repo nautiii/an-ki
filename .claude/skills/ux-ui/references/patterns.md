@@ -155,10 +155,15 @@ A spinner is acceptable only inside the control that triggered a short action.
   sign-up; no guest there. Locked by the fingerprint, it stands alone, prompts at once and puts
   « Déverrouiller » first so a dismissed prompt can be retried.
 - No intro motion: the CTAs are there from the first frame; layouts scroll on small screens.
-- **Permission priming** (Duolingo, Instagram): before the system prompt, a sheet explains the
-  benefit in one line (« Pour vous prévenir 7 jours avant et le jour J ») with « Autoriser » /
-  « Plus tard ». Ask in context (notifications after the first birthday is added; contacts when the
-  user taps import). If denied: explain how to enable, link to settings, never nag twice a week.
+- **Permission priming** (Duolingo, Instagram), shipped in step 5.3: never a system prompt at
+  launch. `ReminderPrompt` (`app/bootstrap`) opens `ReminderOfferSheet` over the agenda at a
+  moment of value — an import, the first birthdays added by hand, a sign-in that brings an agenda
+  to this phone — at most once per session: what just happened (« 12 anniversaires ajoutés »),
+  the cadence from `ReminderPolicy`, the next real J-0 reminder as the notification will show it,
+  « Activer les rappels » / « Plus tard ». A refusal is respected (the sheet closes); blocked
+  (two refusals on Android, one on iOS), the sheet and Settings › Rappels lead to the app's
+  notification settings. Contacts are asked when the user taps import, with the same denied /
+  blocked states.
 
 ## I. Reminders & retention — ethical hooks
 
@@ -187,7 +192,8 @@ with grouped rounded containers):
 1. **Profil** — avatar, pseudo (edit inline, save on submit with a check, no separate button).
 2. **Préférences** — Thème `SegmentedButton` Système / Clair / Sombre (default Système);
    Langue `SegmentedButton` FR / EN (2 options don't deserve a dropdown).
-3. **Rappels** — notification toggles and times.
+3. **Rappels** — today one row (`RemindersTile`): the state on this phone, and « Activer les
+   rappels » or « Ouvrir les réglages » when off; cadence and times come with B6.
 4. **Données** — Importer mes contacts, Exporter (future).
 5. **Sécurité** — Biométrie.
 6. **Zone sensible** (separated, error color only on the destructive row) — Se déconnecter,

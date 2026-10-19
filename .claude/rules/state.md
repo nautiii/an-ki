@@ -39,8 +39,12 @@ Riverpod 3.4 with hand-written providers. Patterns with code: architecture skill
   id; several family arguments → a record.
 - Side effects on data changes (rescheduling notifications): a provider activated from `app/`
   by `ref.watch` in an always-mounted widget — Riverpod 3 pauses providers nobody listens to.
-- Lifecycle reactions (profile creation, permission requests) belong to `app/bootstrap`, never
-  to a screen.
+- Lifecycle reactions (profile creation, offering the reminders after a capture or a sign-in)
+  belong to `app/bootstrap`, never to a screen. A permission is asked only on a user action,
+  through its controller (`ReminderPermission`, `ContactImport`), never at launch.
+- A one-off event between features (`BirthdaysAdded`): a `Notifier<Event?>` whose
+  `updateShouldNotify` returns true, recorded by the controller that caused it and listened to
+  with `ref.listenManual` (`birthdayAdditionsProvider` → `ReminderPrompt`).
 
 ## Auth state
 

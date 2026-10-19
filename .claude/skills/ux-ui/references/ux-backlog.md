@@ -6,8 +6,9 @@ below deliberately question structure, not just polish.
 
 Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, calendar, loading,
 scanner, settings, auth). Roadmap steps 1 (F2, F3, A1–A8), 2 (B1, Q1, Q2, A9) and 3 (B2)
-shipped on 2026-10-12, step 4 (B3, D7) and steps 5.1–5.2 (B5 welcome and contacts import, Q5) on 2026-10-18: the items
-they fixed are gone from this list.
+shipped on 2026-10-12, step 4 (B3, D7) and steps 5.1–5.2 (B5 welcome and contacts import, Q5)
+on 2026-10-18, step 5.3 (B5 reminders in context, D19 for the J-0 notification) on 2026-10-19:
+the items they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
@@ -16,7 +17,7 @@ auth or dependencies → design brief + maintainer approval first.
 ## Contents
 - Big bets (B4–B7; B5 under way) — structural redesigns with the highest impact
 - Foundation (F1, F4, F5) — design system, prerequisite for consistency
-- P1 — friction & states (Q4, Q6, Q7)
+- P1 — friction & states (Q4, Q6, Q7, Q8)
 - P2 — polish (D1, D3, D4, D6, D8–D20)
 - Suggested roadmap
 
@@ -37,13 +38,13 @@ auth or dependencies → design brief + maintainer approval first.
 - **Cost**: medium-high (ideas model with `personId`, navigation, scanner integration).
 
 ### B5 — Value-first onboarding (approved 2026-10-18, candidate B « directement chez soi »)
-- **Next, each shippable alone** (brief and prototypes: `build/ui_snapshots/_src/etape5_test.dart`,
-  local only — `flutter clean` wipes `build/`):
-  - **5.3 Rappels en contexte** — no permission request at launch (today `AppInitializer` asks
-    on every start until answered twice); a sheet over the populated agenda after an import or a
-    first manual add, and after signing in on a new device: « 12 anniversaires ajoutés », a real
-    J-0 example, « Activer les rappels »; at most once per session; a « Rappels » row in Settings;
-    blocked twice → « Ouvrir les réglages ».
+- **Shipped, 5.3** (2026-10-19): no permission request at launch; `ReminderOfferSheet` after an
+  import, the first birthdays added by hand or a sign-in that brings an agenda (« 12
+  anniversaires ajoutés / retrouvés », the cadence, the next real J-0 reminder); at most once per
+  session; Settings › Rappels (`RemindersTile`); blocked → « Ouvrir les réglages ». Details:
+  patterns §H, `.claude/rules/reminders.md`.
+- **Next** (brief and prototypes: `build/ui_snapshots/_src/etape5_test.dart`, local only —
+  `flutter clean` wipes `build/`):
   - **5.4 Sauvegarde invité** — a calm card at the end of the agenda from 3 birthdays
     (« Gardez vos 12 anniversaires… Sauvegarder avec Google »); `credential-already-in-use`
     explained without losing anything; names taken from Google once linked.
@@ -86,6 +87,11 @@ auth or dependencies → design brief + maintainer approval first.
   « Ajouter « … » » when nothing matches).
 - **Q7 Category sheet**: save always enabled then errors via snackbar → disable until valid,
   inline guidance.
+- **Q8 Reminders off, day after day**: whoever answered « Plus tard » or « Ne pas autoriser »
+  sees nothing more until the next import or sign-in, and AnKi's one promise silently fails;
+  the way back sits in Settings › Rappels only → the calm card of the step 5 prototypes above
+  the hero (« Rappels désactivés · Activer », `e5_rappels_off`), shown once the offer was
+  declined, dismissable, never a dialog.
 
 ## P2 — polish
 
@@ -114,7 +120,9 @@ auth or dependencies → design brief + maintainer approval first.
   born in 2000 and still show an age; each can be fixed in the sheet (« 12/03/2000 » → « 12/03 »).
   A bulk repair can't tell them from real 2000 births: data migration, approval first.
 - **D14 Add confirmation**: saving closes the sheet silently; a birthday months away lands
-  off-screen → snackbar « Léa ajoutée » with « Voir » (scroll to the row).
+  off-screen → snackbar « Léa ajoutée » with « Voir » (scroll to the row). Imports are already
+  announced by `ReminderPrompt` (`app/bootstrap`, from `birthdayAdditionsProvider`): the same
+  place can announce a single add.
 - **D15 Belated wish**: at midnight the hero moves on; a birthday missed yesterday can no longer
   be wished from AnKi → a calm « Hier : Léa · Souhaiter » for a day or two, never guilt copy.
 - **D16 Petals per run**: « once per person per day » lives in memory (`celebratedTodayProvider`);
@@ -123,18 +131,17 @@ auth or dependencies → design brief + maintainer approval first.
   declared at initialization, before the texts are localized) → add a category once iOS builds.
 - **D18 Wished elsewhere**: only the hero shows « ✓ Souhaité »; the calendar day sheet and the
   search results list today's people without it.
-- **D19 Elision**: « C'est l'anniversaire de {name} aujourd'hui » reads « de Achraf » (seen on the
-  emulator, 2026-10-18); French needs « d'Achraf » before a vowel or mute h → pick the article
-  in code (`de` / `d'`) or rephrase (« Achraf fête son anniversaire aujourd'hui »). Same trap in the snackbars
-  « Anniversaire de {name} supprimé / souhaité ».
+- **D19 Elision**: the snackbars « Anniversaire de {name} supprimé / souhaité » read « de
+  Achraf »; French needs « d'Achraf » before a vowel or mute h → rephrase with the name first,
+  as the J-0 notification now does (« Achraf fête son anniversaire aujourd'hui », step 5.3).
 - **D20 Compact tab label**: at 360×640 with 130 % text the nav pill cuts « Anniversaires » to
   « Annivers… » (`bottom_bar.dart`, seen in the step 5 snapshots) → shorter label or the stacked
   layout earlier.
 
 ## Suggested roadmap
 
-1. **B5** — onboarding that lands on a populated agenda: 5.3 rappels en contexte, 5.4
-   sauvegarde invité.
+1. **B5** — onboarding that lands on a populated agenda: 5.4 sauvegarde invité; Q8 with it or
+   right after (the reminders card shares the agenda's top).
 2. **B4, B6, B7, F1, F4, F5, Q4, Q6, Q7, D1, D3, D4, D6, D8–D20** — depth and polish (F1 any time
    once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
