@@ -22,7 +22,7 @@ const featureDependencies = <String, Set<String>>{
   'user': {'auth'},
   'birthday': {'auth', 'user'},
   'book_scanner': {'auth', 'user'},
-  'reminders': {'birthday'},
+  'reminders': {'auth', 'birthday'},
   'settings': {'auth', 'user', 'birthday', 'book_scanner', 'reminders'},
 };
 

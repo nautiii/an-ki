@@ -2,12 +2,17 @@ import 'dart:async';
 
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/services/notification_service.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/reminders/providers/reminder_sync_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' show User;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../support/fake_providers.dart';
 
 /// Service de notifications qui enregistre chaque replanification.
 class _RecordingNotificationService extends Fake
@@ -32,7 +37,7 @@ void main() {
 
   setUp(() {
     notifications = _RecordingNotificationService();
-    birthdays = StreamController<List<Birthday>>();
+    birthdays = StreamController<List<Birthday>>.broadcast();
     addTearDown(birthdays.close);
   });
 
@@ -41,6 +46,7 @@ void main() {
       retry: (_, _) => null,
       overrides: [
         notificationServiceProvider.overrideWithValue(notifications),
+        authUserProvider.overrideWithValue(AsyncData(MockUser(uid: 'u1'))),
         birthdaysProvider.overrideWith((ref) => birthdays.stream),
         clockProvider.overrideWithValue(() => DateTime(2026, 3, 1, 9)),
       ],
@@ -92,6 +98,66 @@ void main() {
     await Future<void>.delayed(Duration.zero);
 
     expect(notifications.scheduled, isEmpty);
+  });
+
+  group('with the real session', () {
+    late StreamController<User?> auth;
+
+    setUp(() {
+      auth = StreamController<User?>.broadcast();
+      addTearDown(auth.close);
+    });
+
+    // Session restaurée par Firebase au rythme du test ; anniversaires dérivés
+    // de l'uid comme dans l'app.
+    void makeSessionContainer() {
+      final container = ProviderContainer.test(
+        retry: (_, _) => null,
+        overrides: [
+          notificationServiceProvider.overrideWithValue(notifications),
+          authUserProvider.overrideWith((ref) => auth.stream),
+          birthdayRepositoryProvider.overrideWithValue(
+            RecordingBirthdayRepository(initial: [lea]),
+          ),
+          clockProvider.overrideWithValue(() => DateTime(2026, 3, 1, 9)),
+        ],
+      );
+      container.listen(reminderSyncProvider, (_, _) {});
+    }
+
+    test('cancels nothing while the session is restored', () async {
+      makeSessionContainer();
+      await Future<void>.delayed(Duration.zero);
+      expect(notifications.scheduled, isEmpty);
+
+      auth.add(MockUser(uid: 'u1'));
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(notifications.scheduled.single, hasLength(2));
+    });
+
+    test('cancels every reminder on sign-out', () async {
+      makeSessionContainer();
+      auth.add(MockUser(uid: 'u1'));
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      auth.add(null);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(notifications.scheduled, [hasLength(2), isEmpty]);
+    });
+
+    test('cancels every reminder when no session is restored', () async {
+      makeSessionContainer();
+      auth.add(null);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(notifications.scheduled, [isEmpty]);
+    });
   });
 
   test('schedules both reminders of birthdays whose ids collide', () async {
