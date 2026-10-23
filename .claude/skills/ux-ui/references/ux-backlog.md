@@ -9,7 +9,8 @@ scanner, settings, auth). Roadmap steps 1 (F2, F3, A1–A8), 2 (B1, Q1, Q2, A9) 
 shipped on 2026-10-12, step 4 (B3, D7) and steps 5.1–5.2 (B5 welcome and contacts import, Q5)
 on 2026-10-18, steps 5.3 (B5 reminders in context, D19 for the J-0 notification) and 5.4 (B5
 guest backup) on 2026-10-19, small fixes D6, D19, D20 and D21, Q6 and D18, and the e-mail
-sign-in and sign-up forms (D3) on 2026-10-24: the items they fixed are gone from this list.
+sign-in and sign-up forms (D3, their part of F5) on 2026-10-24: the items they fixed are gone
+from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
@@ -18,7 +19,7 @@ auth or dependencies → design brief + maintainer approval first.
 ## Contents
 - Big bets (B4, B6, B7; B5 shipped but its merge) — structural redesigns with the highest impact
 - Foundation (F1, F4, F5) — design system, prerequisite for consistency
-- P1 — friction & states (Q4, Q7, Q8)
+- P1 — friction & states (Q4, Q7, Q8, Q9)
 - P2 — polish (D1, D4, D8–D17, D22)
 - Suggested roadmap
 
@@ -82,10 +83,9 @@ auth or dependencies → design brief + maintainer approval first.
 - **F1 — Bundle Outfit** (recipes §3): offline-correct typography, real weights (today
   `copyWith(fontWeight:)` fakes bold), deterministic snapshots. Needs font download approval.
 - **F4 — Theme mode « Système »** as default (today a binary switch derived from the user doc).
-- **F5 — Finish the token migration** in the screens step 1 didn't touch: `login_screen`,
-  `signup_screen` (ad-hoc `fontSize`, faux bold, raw radii), `AnKiTextField` (own radii and
-  sizes instead of the input theme), `BookCard` (`BorderRadius.circular(24/12)`, faux bold),
-  the « Mettre à jour le pseudo » button in `settings_screen.dart` (radius 16).
+- **F5 — Finish the token migration** in the screens step 1 didn't touch: `AnKiTextField` (own
+  radii and sizes instead of the input theme), `BookCard` (`BorderRadius.circular(24/12)`, faux
+  bold), the « Mettre à jour le pseudo » button in `settings_screen.dart` (radius 16).
 
 ## P1 — friction & states
 
@@ -99,6 +99,9 @@ auth or dependencies → design brief + maintainer approval first.
   the way back sits in Settings › Rappels only → the calm card of the step 5 prototypes above
   the hero (« Rappels désactivés · Activer », `e5_rappels_off`), shown once the offer was
   declined, dismissable, never a dialog.
+- **Q9 Forgotten password**: « Mot de passe oublié ? » on the e-mail sign-in does nothing
+  (`onPressed: () {}`, `login_screen.dart`), so whoever forgot it is stuck → Firebase's reset
+  e-mail to the typed address, then a calm « E‑mail envoyé à … »; a new auth action, brief first.
 
 ## P2 — polish
 
@@ -142,6 +145,6 @@ auth or dependencies → design brief + maintainer approval first.
 
 1. **Q8** — the reminders-off card, B5's loose end (it shares the agenda's top); B5's 5.5 merge
    once guests with an existing Google account show up.
-2. **B4, B6, B7, F1, F4, F5, Q4, Q7, D1, D4, D8–D17, D22** — depth and polish (F1 any time
+2. **B4, B6, B7, F1, F4, F5, Q4, Q7, Q9, D1, D4, D8–D17, D22** — depth and polish (F1 any time
    once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.

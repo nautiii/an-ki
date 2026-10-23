@@ -161,7 +161,7 @@ polish, unusual on Android — a quiet signature).
 | `StadiumBorder()` | full | Buttons, chips, search field, segmented controls, FAB-like adds |
 
 Raw radii remain only in the screens of backlog F5 (12/16/24 written by hand, and an off-token 28
-in `AnKiTextField` and the login and sign-up buttons): migrate what you touch.
+in `AnKiTextField`): migrate what you touch.
 
 ## 6. Spacing & layout
 
