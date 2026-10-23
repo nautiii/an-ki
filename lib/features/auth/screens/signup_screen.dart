@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
+import 'package:an_ki/features/auth/domain/sign_up_draft.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
@@ -27,8 +27,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
   late final TextEditingController _confirmPasswordController;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  final _surnameFocus = FocusNode();
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+  final _confirmPasswordFocus = FocusNode();
 
   @override
   void initState() {
@@ -38,6 +40,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
+    // Quitter la confirmation peut faire paraître l'écart des mots de passe.
+    _confirmPasswordFocus.addListener(_refresh);
   }
 
   @override
@@ -47,38 +51,41 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _surnameFocus.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
+    _confirmPasswordFocus.dispose();
     super.dispose();
   }
 
-  void _handleSignUp() async {
-    if (_nameController.text.isEmpty ||
-        _surnameController.text.isEmpty ||
-        _emailController.text.isEmpty) {
-      return;
-    }
+  SignUpDraft get _draft => SignUpDraft(
+    name: _nameController.text,
+    surname: _surnameController.text,
+    email: _emailController.text,
+    password: _passwordController.text,
+    confirmation: _confirmPasswordController.text,
+  );
 
-    if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.passwordsDoNotMatch),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-      return;
-    }
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
+
+  void _handleSignUp() async {
+    final draft = _draft;
+    if (!draft.isValid) return;
 
     unawaited(HapticFeedback.lightImpact());
     final controller = ref.read(authControllerProvider.notifier);
+    final name = draft.name.trim();
+    final surname = draft.surname.trim();
     // Le profil sera créé par app/bootstrap avec ces noms tels que saisis.
-    ref
-        .read(signUpNamesProvider.notifier)
-        .remember(_nameController.text.trim(), _surnameController.text.trim());
+    ref.read(signUpNamesProvider.notifier).remember(name, surname);
 
     final success = await controller.signUp(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-      name: _nameController.text.trim(),
-      surname: _surnameController.text.trim(),
+      email: draft.email.trim(),
+      password: draft.password,
+      name: name,
+      surname: surname,
     );
     if (success && mounted) unawaited(HapticFeedback.mediumImpact());
   }
@@ -104,21 +111,31 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       authControllerProvider.select((s) => s.isLoading),
     );
     final l10n = context.l10n;
+    final draft = _draft;
     // Au-delà de 150 % de texte, le prénom et le nom s'empilent plutôt que
     // de couper leurs libellés.
     final stackNames = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
 
-    final name = AnKiTextField(
+    final name = TextField(
       controller: _nameController,
-      label: l10n.firstName,
-      prefixIcon: Icons.person_outline_rounded,
       enabled: !isLoading,
+      textCapitalization: TextCapitalization.words,
+      textInputAction: TextInputAction.next,
+      autofillHints: const [AutofillHints.givenName],
+      onChanged: (_) => _refresh(),
+      onEditingComplete: _surnameFocus.requestFocus,
+      decoration: InputDecoration(labelText: l10n.firstName),
     );
-    final surname = AnKiTextField(
+    final surname = TextField(
       controller: _surnameController,
-      label: l10n.lastName,
-      prefixIcon: Icons.person_outline_rounded,
+      focusNode: _surnameFocus,
       enabled: !isLoading,
+      textCapitalization: TextCapitalization.words,
+      textInputAction: TextInputAction.next,
+      autofillHints: const [AutofillHints.familyName],
+      onChanged: (_) => _refresh(),
+      onEditingComplete: _emailFocus.requestFocus,
+      decoration: InputDecoration(labelText: l10n.lastName),
     );
 
     return Scaffold(
@@ -140,69 +157,77 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 message: l10n.createAccount,
               ),
               const SizedBox(height: AppSpacing.xl),
-              if (stackNames) ...[
-                name,
-                const SizedBox(height: AppSpacing.md),
-                surname,
-              ] else
-                Row(
+              // Le gestionnaire de mots de passe peut proposer un mot de
+              // passe, puis enregistrer le compte créé.
+              AutofillGroup(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(child: name),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(child: surname),
+                    if (stackNames) ...[
+                      name,
+                      const SizedBox(height: AppSpacing.md),
+                      surname,
+                    ] else
+                      Row(
+                        children: [
+                          Expanded(child: name),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(child: surname),
+                        ],
+                      ),
+                    const SizedBox(height: AppSpacing.md),
+                    TextField(
+                      controller: _emailController,
+                      focusNode: _emailFocus,
+                      enabled: !isLoading,
+                      keyboardType: TextInputType.emailAddress,
+                      autocorrect: false,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.email],
+                      onChanged: (_) => _refresh(),
+                      onEditingComplete: _passwordFocus.requestFocus,
+                      decoration: InputDecoration(labelText: l10n.email),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    PasswordField(
+                      controller: _passwordController,
+                      focusNode: _passwordFocus,
+                      label: l10n.password,
+                      enabled: !isLoading,
+                      autofillHints: const [AutofillHints.newPassword],
+                      textInputAction: TextInputAction.next,
+                      onChanged: (_) => _refresh(),
+                      // « Suivant » passe à la confirmation plutôt qu'à l'œil.
+                      onEditingComplete: _confirmPasswordFocus.requestFocus,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    PasswordField(
+                      controller: _confirmPasswordController,
+                      focusNode: _confirmPasswordFocus,
+                      label: l10n.confirmPassword,
+                      enabled: !isLoading,
+                      autofillHints: const [AutofillHints.newPassword],
+                      textInputAction: TextInputAction.done,
+                      errorText:
+                          draft.confirmationDiffers(
+                            typing: _confirmPasswordFocus.hasFocus,
+                          )
+                          ? l10n.passwordsDoNotMatch
+                          : null,
+                      onChanged: (_) => _refresh(),
+                      // « OK » inscrit, comme le bouton.
+                      onSubmitted: (_) => _handleSignUp(),
+                    ),
                   ],
-                ),
-              const SizedBox(height: AppSpacing.md),
-              AnKiTextField(
-                controller: _emailController,
-                label: l10n.email,
-                prefixIcon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-                enabled: !isLoading,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              AnKiTextField(
-                controller: _passwordController,
-                label: l10n.password,
-                prefixIcon: Icons.lock_outline_rounded,
-                obscureText: _obscurePassword,
-                enabled: !isLoading,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                  ),
-                  onPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              AnKiTextField(
-                controller: _confirmPasswordController,
-                label: l10n.confirmPassword,
-                prefixIcon: Icons.lock_reset_rounded,
-                obscureText: _obscureConfirmPassword,
-                enabled: !isLoading,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscureConfirmPassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                  ),
-                  onPressed: () {
-                    setState(
-                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                    );
-                  },
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
               AuthSubmitButton(
                 label: l10n.signUpButton,
                 loading: isLoading,
-                onPressed: _handleSignUp,
+                // Actif dès que tout est rempli, deux fois le même mot de
+                // passe.
+                onPressed: draft.isValid ? _handleSignUp : null,
               ),
               const SizedBox(height: AppSpacing.md),
               AuthSwitchPrompt(

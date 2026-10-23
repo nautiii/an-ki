@@ -43,7 +43,18 @@
   "lastName": "Nom",
   "email": "Email",
   "password": "Mot de passe",
-  "confirmPassword": "Confirmer le mot de passe",
+  "confirmPassword": "Confirmation",
+  "@confirmPassword": {
+    "description": "Champ de l'inscription sous « Mot de passe », le même retapé. Court : un libellé de champ tient sur une ligne, même en grand texte."
+  },
+  "showPassword": "Afficher le mot de passe",
+  "@showPassword": {
+    "description": "Bulle et libellé TalkBack de l'œil d'un mot de passe masqué"
+  },
+  "hidePassword": "Masquer le mot de passe",
+  "@hidePassword": {
+    "description": "Bulle et libellé TalkBack de l'œil d'un mot de passe affiché"
+  },
   "fullName": "Prénom et nom",
   "@fullName": {
     "description": "Champ unique de la feuille d'anniversaire : le premier mot devient le prénom"

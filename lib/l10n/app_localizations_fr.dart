@@ -81,7 +81,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get password => 'Mot de passe';
 
   @override
-  String get confirmPassword => 'Confirmer le mot de passe';
+  String get confirmPassword => 'Confirmation';
+
+  @override
+  String get showPassword => 'Afficher le mot de passe';
+
+  @override
+  String get hidePassword => 'Masquer le mot de passe';
 
   @override
   String get fullName => 'Prénom et nom';

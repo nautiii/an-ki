@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
+import 'package:an_ki/features/auth/domain/sign_in_draft.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
 import 'package:an_ki/features/auth/widgets/auth_form.dart';
@@ -24,7 +24,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
-  bool _obscurePassword = true;
+  final _passwordFocus = FocusNode();
 
   @override
   void initState() {
@@ -37,21 +37,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
+  SignInDraft get _draft => SignInDraft(
+    email: _emailController.text,
+    password: _passwordController.text,
+  );
+
+  void _refresh() => setState(() {});
+
   void _handleSignIn() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      return;
-    }
+    final draft = _draft;
+    if (!draft.isValid) return;
 
     unawaited(HapticFeedback.lightImpact());
     final success = await ref
         .read(authControllerProvider.notifier)
-        .signIn(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
+        .signIn(email: draft.email.trim(), password: draft.password);
     if (success && mounted) unawaited(HapticFeedback.mediumImpact());
   }
 
@@ -91,29 +95,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             children: [
               AuthFormHeader(title: l10n.loginTitle, message: l10n.signInText),
               const SizedBox(height: AppSpacing.xl),
-              AnKiTextField(
-                controller: _emailController,
-                label: l10n.email,
-                prefixIcon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-                enabled: !isLoading,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              AnKiTextField(
-                controller: _passwordController,
-                label: l10n.password,
-                prefixIcon: Icons.lock_outline_rounded,
-                obscureText: _obscurePassword,
-                enabled: !isLoading,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                  ),
-                  onPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
+              // Le gestionnaire de mots de passe remplit les deux champs, et
+              // propose d'enregistrer ceux d'une connexion réussie.
+              AutofillGroup(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: _emailController,
+                      enabled: !isLoading,
+                      keyboardType: TextInputType.emailAddress,
+                      autocorrect: false,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.email],
+                      onChanged: (_) => _refresh(),
+                      // « Suivant » passe au mot de passe, clavier ouvert,
+                      // plutôt qu'à son œil.
+                      onEditingComplete: _passwordFocus.requestFocus,
+                      decoration: InputDecoration(labelText: l10n.email),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    PasswordField(
+                      controller: _passwordController,
+                      focusNode: _passwordFocus,
+                      label: l10n.password,
+                      enabled: !isLoading,
+                      autofillHints: const [AutofillHints.password],
+                      textInputAction: TextInputAction.done,
+                      onChanged: (_) => _refresh(),
+                      // « OK » connecte, comme le bouton.
+                      onSubmitted: (_) => _handleSignIn(),
+                    ),
+                  ],
                 ),
               ),
               Align(
@@ -127,7 +140,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               AuthSubmitButton(
                 label: l10n.signInButton,
                 loading: isLoading,
-                onPressed: _handleSignIn,
+                // Actif dès que les deux champs sont remplis.
+                onPressed: _draft.isValid ? _handleSignIn : null,
               ),
               const SizedBox(height: AppSpacing.md),
               AuthSwitchPrompt(

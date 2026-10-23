@@ -9,25 +9,59 @@ import '../../../support/auth_overrides.dart';
 import '../../../support/fake_providers.dart';
 import '../../../support/test_harness.dart';
 
+const _mismatch = 'Les mots de passe ne correspondent pas';
+
+/// Bouton « S'inscrire » : null tant qu'il est désactivé.
+VoidCallback? _signUp(WidgetTester tester) => tester
+    .widget<FilledButton>(
+      find.ancestor(
+        of: find.text("S'inscrire"),
+        matching: find.byType(FilledButton),
+      ),
+    )
+    .onPressed;
+
+Future<void> _fill(WidgetTester tester, List<String> values) async {
+  for (final (index, value) in values.indexed) {
+    await tester.enterText(find.byType(TextField).at(index), value);
+  }
+  await tester.pump();
+}
+
 void main() {
   group('SignUpScreen', () {
-    testWidgets('shows an error when passwords do not match', (tester) async {
+    testWidgets('says under the confirmation when it differs', (tester) async {
       await tester.pumpHarness(const SignUpScreen());
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField).at(0), 'John');
-      await tester.enterText(find.byType(TextField).at(1), 'Doe');
-      await tester.enterText(find.byType(TextField).at(2), 'a@b.com');
-      await tester.enterText(find.byType(TextField).at(3), 'secret1');
-      await tester.enterText(find.byType(TextField).at(4), 'secret2');
+      await _fill(tester, ['John', 'Doe', 'a@b.com', 'secret1', 'secret2']);
 
-      await tester.tap(find.text("S'inscrire").last);
+      final confirmation = tester.widget<TextField>(
+        find.byType(TextField).at(4),
+      );
+      expect(confirmation.decoration?.errorText, _mismatch);
+      expect(find.text(_mismatch), findsOneWidget);
+      expect(_signUp(tester), isNull);
+    });
+
+    testWidgets('waits for the end of a right confirmation', (tester) async {
+      await tester.pumpHarness(const SignUpScreen());
       await tester.pumpAndSettle();
 
-      expect(
-        find.text('Les mots de passe ne correspondent pas'),
-        findsOneWidget,
-      );
+      await _fill(tester, ['John', 'Doe', 'a@b.com', 'secret', 'sec']);
+      // Juste mais inachevée, pendant la frappe : rien à dire.
+      expect(find.text(_mismatch), findsNothing);
+      expect(_signUp(tester), isNull);
+
+      // Quittée inachevée, elle diffère.
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pump();
+      expect(find.text(_mismatch), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).at(4), 'secret');
+      await tester.pump();
+      expect(find.text(_mismatch), findsNothing);
+      expect(_signUp(tester), isNotNull);
     });
 
     testWidgets('keeps the typed names for the profile on success', (
@@ -47,6 +81,7 @@ void main() {
       await tester.enterText(find.byType(TextField).at(2), 'a@b.com');
       await tester.enterText(find.byType(TextField).at(3), 'secret');
       await tester.enterText(find.byType(TextField).at(4), 'secret');
+      await tester.pump();
 
       await tester.tap(find.text("S'inscrire").last);
       await tester.pumpAndSettle();
@@ -73,6 +108,7 @@ void main() {
       await tester.enterText(find.byType(TextField).at(2), 'a@b.com');
       await tester.enterText(find.byType(TextField).at(3), 'secret');
       await tester.enterText(find.byType(TextField).at(4), 'secret');
+      await tester.pump();
 
       await tester.tap(find.text("S'inscrire").last);
       await tester.pumpAndSettle();
@@ -97,7 +133,9 @@ void main() {
       expect(find.byIcon(Icons.visibility_outlined), findsNWidgets(2));
     });
 
-    testWidgets('does nothing when mandatory fields are empty', (tester) async {
+    testWidgets('waits for a complete form before « S\'inscrire »', (
+      tester,
+    ) async {
       final repository = FakeAuthRepository();
       await tester.pumpHarness(
         const SignUpScreen(),
@@ -105,10 +143,78 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text("S'inscrire").last);
+      expect(_signUp(tester), isNull);
+      await tester.tap(find.text("S'inscrire"));
+      // Sans nom, rien ne part.
+      await _fill(tester, ['John', ' ', 'a@b.com', 'secret', 'secret']);
+      expect(_signUp(tester), isNull);
+
+      await tester.enterText(find.byType(TextField).at(1), 'Doe');
+      await tester.pump();
+      expect(_signUp(tester), isNotNull);
+      expect(repository.calls, isEmpty);
+    });
+
+    testWidgets('« Suivant » walks the fields, « OK » signs up', (
+      tester,
+    ) async {
+      final repository = FakeAuthRepository();
+      await tester.pumpHarness(
+        const SignUpScreen(),
+        overrides: authOverrides(repository),
+      );
+      await tester.pumpAndSettle();
+      bool hasFocus(int field) => tester
+          .widget<EditableText>(
+            find.descendant(
+              of: find.byType(TextField).at(field),
+              matching: find.byType(EditableText),
+            ),
+          )
+          .focusNode
+          .hasFocus;
+
+      const values = ['John', 'Doe', 'a@b.com', 'secret'];
+      for (final (index, value) in values.indexed) {
+        await tester.enterText(find.byType(TextField).at(index), value);
+        await tester.testTextInput.receiveAction(TextInputAction.next);
+        await tester.pump();
+        // Le champ suivant, jamais l'œil du mot de passe.
+        expect(hasFocus(index + 1), isTrue);
+      }
+      await tester.enterText(find.byType(TextField).at(4), 'secret');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
 
-      expect(repository.calls, isEmpty);
+      expect(repository.calls, ['signUp']);
+    });
+
+    testWidgets('lets the password manager fill and create the account', (
+      tester,
+    ) async {
+      await tester.pumpHarness(const SignUpScreen());
+      await tester.pumpAndSettle();
+      final fields = tester.widgetList<TextField>(find.byType(TextField));
+
+      expect(find.byType(AutofillGroup), findsOneWidget);
+      expect(fields.map((field) => field.autofillHints), [
+        [AutofillHints.givenName],
+        [AutofillHints.familyName],
+        [AutofillHints.email],
+        [AutofillHints.newPassword],
+        [AutofillHints.newPassword],
+      ]);
+      expect(fields.first.textCapitalization, TextCapitalization.words);
+    });
+
+    testWidgets('meets tap target and label guidelines', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpHarness(const SignUpScreen());
+      await tester.pumpAndSettle();
+
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
     });
 
     testWidgets('navigates to the login route', (tester) async {

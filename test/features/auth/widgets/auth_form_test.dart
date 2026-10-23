@@ -23,6 +23,67 @@ void main() {
     });
   });
 
+  group('PasswordField', () {
+    Future<TextEditingController> pumpField(
+      WidgetTester tester, {
+      String? errorText,
+    }) async {
+      final controller = TextEditingController(text: 'secret');
+      addTearDown(controller.dispose);
+      await tester.pumpHarness(
+        PasswordField(
+          controller: controller,
+          label: 'Mot de passe',
+          autofillHints: const [AutofillHints.password],
+          textInputAction: TextInputAction.done,
+          errorText: errorText,
+        ),
+      );
+      return controller;
+    }
+
+    bool obscured(WidgetTester tester) =>
+        tester.widget<TextField>(find.byType(TextField)).obscureText;
+
+    testWidgets('hides the password until the eye shows it', (tester) async {
+      await pumpField(tester);
+
+      expect(obscured(tester), isTrue);
+      await tester.tap(find.byTooltip('Afficher le mot de passe'));
+      await tester.pump();
+
+      expect(obscured(tester), isFalse);
+      await tester.tap(find.byTooltip('Masquer le mot de passe'));
+      await tester.pump();
+
+      expect(obscured(tester), isTrue);
+    });
+
+    testWidgets('never corrects nor learns the password', (tester) async {
+      await pumpField(tester);
+
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.autocorrect, isFalse);
+      expect(field.enableSuggestions, isFalse);
+      expect(field.autofillHints, [AutofillHints.password]);
+    });
+
+    testWidgets('says what is wrong under the field', (tester) async {
+      await pumpField(tester, errorText: 'Les mots de passe diffèrent');
+
+      expect(find.text('Les mots de passe diffèrent'), findsOneWidget);
+    });
+
+    testWidgets('meets tap target and label guidelines', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpField(tester);
+
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
+    });
+  });
+
   group('AuthSubmitButton', () {
     FilledButton button(WidgetTester tester) =>
         tester.widget<FilledButton>(find.byType(FilledButton));

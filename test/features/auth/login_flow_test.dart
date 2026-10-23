@@ -21,11 +21,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.enterText(
-      find.byType(TextFormField).at(0),
-      'test@example.com',
-    );
-    await tester.enterText(find.byType(TextFormField).at(1), 'password123');
+    await tester.enterText(find.byType(TextField).at(0), 'test@example.com');
+    await tester.enterText(find.byType(TextField).at(1), 'password123');
+    await tester.pump();
 
     await tester.tap(find.text('Se connecter').last);
     await tester.pumpAndSettle();

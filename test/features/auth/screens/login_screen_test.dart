@@ -19,6 +19,7 @@ void main() {
 
       await tester.enterText(find.byType(TextField).at(0), 'a@b.com');
       await tester.enterText(find.byType(TextField).at(1), 'password');
+      await tester.pump();
       await tester.tap(find.text('Se connecter').last);
       await tester.pumpAndSettle();
 
@@ -26,18 +27,90 @@ void main() {
       expect(repository.currentUser, isNotNull);
     });
 
-    testWidgets('does nothing when fields are empty', (tester) async {
+    testWidgets('waits for both fields before « Se connecter »', (
+      tester,
+    ) async {
       final repository = FakeAuthRepository();
       await tester.pumpHarness(
         const LoginScreen(),
         overrides: authOverrides(repository),
       );
       await tester.pumpAndSettle();
+      VoidCallback? signIn() => tester
+          .widget<FilledButton>(
+            find.ancestor(
+              of: find.text('Se connecter'),
+              matching: find.byType(FilledButton),
+            ),
+          )
+          .onPressed;
 
-      await tester.tap(find.text('Se connecter').last);
+      expect(signIn(), isNull);
+      await tester.tap(find.text('Se connecter'));
+      await tester.enterText(find.byType(TextField).at(0), '  ');
+      await tester.enterText(find.byType(TextField).at(1), 'password');
+      await tester.pump();
+      // Des espaces ne font pas une adresse.
+      expect(signIn(), isNull);
+
+      await tester.enterText(find.byType(TextField).at(0), 'a@b.com');
+      await tester.pump();
+      expect(signIn(), isNotNull);
+      expect(repository.calls, isEmpty);
+    });
+
+    testWidgets('« Suivant » goes to the password, « OK » signs in', (
+      tester,
+    ) async {
+      final repository = FakeAuthRepository();
+      await tester.pumpHarness(
+        const LoginScreen(),
+        overrides: authOverrides(repository),
+      );
+      await tester.pumpAndSettle();
+      bool hasFocus(int field) => tester
+          .widget<EditableText>(
+            find.descendant(
+              of: find.byType(TextField).at(field),
+              matching: find.byType(EditableText),
+            ),
+          )
+          .focusNode
+          .hasFocus;
+
+      await tester.enterText(find.byType(TextField).at(0), ' a@b.com ');
+      await tester.testTextInput.receiveAction(TextInputAction.next);
+      await tester.pump();
+      expect(hasFocus(1), isTrue);
+
+      await tester.enterText(find.byType(TextField).at(1), 'password');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
 
-      expect(repository.calls, isEmpty);
+      expect(repository.calls, ['signInWithEmail']);
+    });
+
+    testWidgets('fills both fields from the password manager', (tester) async {
+      await tester.pumpHarness(const LoginScreen());
+      await tester.pumpAndSettle();
+      final fields = tester.widgetList<TextField>(find.byType(TextField));
+
+      expect(find.byType(AutofillGroup), findsOneWidget);
+      expect(fields.map((field) => field.autofillHints), [
+        [AutofillHints.email],
+        [AutofillHints.password],
+      ]);
+      expect(fields.first.keyboardType, TextInputType.emailAddress);
+    });
+
+    testWidgets('meets tap target and label guidelines', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpHarness(const LoginScreen());
+      await tester.pumpAndSettle();
+
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
     });
 
     testWidgets('shows an error SnackBar on failure', (tester) async {
@@ -49,6 +122,7 @@ void main() {
 
       await tester.enterText(find.byType(TextField).at(0), 'a@b.com');
       await tester.enterText(find.byType(TextField).at(1), 'bad');
+      await tester.pump();
       await tester.tap(find.text('Se connecter').last);
       await tester.pumpAndSettle();
 
@@ -60,9 +134,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
-      await tester.tap(find.byIcon(Icons.visibility_off_outlined));
+      await tester.tap(find.byTooltip('Afficher le mot de passe'));
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
+      expect(find.byTooltip('Masquer le mot de passe'), findsOneWidget);
     });
 
     testWidgets('forgot-password button is tappable', (tester) async {

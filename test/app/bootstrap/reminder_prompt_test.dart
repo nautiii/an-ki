@@ -273,6 +273,7 @@ void main() {
         await tester.settleApp();
         await tester.enterText(find.byType(TextField).at(0), 'a@b.com');
         await tester.enterText(find.byType(TextField).at(1), 'password');
+        await tester.pump();
         await tester.tap(find.text('Se connecter').last);
         await tester.settleApp();
 

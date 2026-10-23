@@ -19,6 +19,8 @@
   "email": "Email",
   "password": "Password",
   "confirmPassword": "Confirm password",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
   "fullName": "Full name",
   "fullNameHint": "Lea Martin, Grandma…",
   "birthdayDate": "Birthday",

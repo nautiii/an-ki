@@ -212,11 +212,23 @@ abstract class AppLocalizations {
   /// **'Mot de passe'**
   String get password;
 
-  /// No description provided for @confirmPassword.
+  /// Champ de l'inscription sous « Mot de passe », le même retapé. Court : un libellé de champ tient sur une ligne, même en grand texte.
   ///
   /// In fr, this message translates to:
-  /// **'Confirmer le mot de passe'**
+  /// **'Confirmation'**
   String get confirmPassword;
+
+  /// Bulle et libellé TalkBack de l'œil d'un mot de passe masqué
+  ///
+  /// In fr, this message translates to:
+  /// **'Afficher le mot de passe'**
+  String get showPassword;
+
+  /// Bulle et libellé TalkBack de l'œil d'un mot de passe affiché
+  ///
+  /// In fr, this message translates to:
+  /// **'Masquer le mot de passe'**
+  String get hidePassword;
 
   /// Champ unique de la feuille d'anniversaire : le premier mot devient le prénom
   ///
