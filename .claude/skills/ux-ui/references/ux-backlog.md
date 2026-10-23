@@ -19,7 +19,7 @@ auth or dependencies → design brief + maintainer approval first.
 - Big bets (B4, B6, B7; B5 shipped but its merge) — structural redesigns with the highest impact
 - Foundation (F1, F4, F5) — design system, prerequisite for consistency
 - P1 — friction & states (Q4, Q7, Q8)
-- P2 — polish (D1, D3, D4, D8–D17)
+- P2 — polish (D1, D3, D4, D8–D17, D22)
 - Suggested roadmap
 
 ---
@@ -135,11 +135,15 @@ auth or dependencies → design brief + maintainer approval first.
   a cold start the same day lets the petals fall again → persist the day if it bothers.
 - **D17 iOS wish button**: iOS notifications have no « Souhaiter » (Darwin categories are
   declared at initialization, before the texts are localized) → add a category once iOS builds.
+- **D22 Cramped row of the day**: at 360×640 with 130 % text, the « Aujourd'hui » countdown
+  leaves a search row of the day about 90 dp, « Léa / Martin / 24 / octobre · / aura / 29 ans »
+  on six lines (`agenda_tile.dart`, `search_all` snapshot, 2026-10-24) → stack the row on its
+  available width (`LayoutBuilder`), not on the text scale alone.
 
 ## Suggested roadmap
 
 1. **Q8** — the reminders-off card, B5's loose end (it shares the agenda's top); B5's 5.5 merge
    once guests with an existing Google account show up.
-2. **B4, B6, B7, F1, F4, F5, Q4, Q7, D1, D3, D4, D8–D17** — depth and polish (F1 any time
+2. **B4, B6, B7, F1, F4, F5, Q4, Q7, D1, D3, D4, D8–D17, D22** — depth and polish (F1 any time
    once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
