@@ -202,8 +202,8 @@ Use the M3 tokens shipped in Flutter (`Durations`, `Easing`) through `AppMotion`
 
 - Motion explains *where things come from and go*; it never decorates idle screens.
 - Intros: stagger ≤ 40 ms per item, whole sequence ≤ 600 ms, and **controls are visible and
-  interactive from the first frame** (login and sign-up still stagger theirs over ~1 s,
-  backlog D3).
+  interactive from the first frame**. Forms and sign-in pages have none: the page transition
+  already says where they come from.
 - Animate opacity/transform (cheap), not layout of text blocks.
 - `MediaQuery.disableAnimationsOf(context)` → crossfade or no animation, no petals, no bounce.
 

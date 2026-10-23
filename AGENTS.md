@@ -58,8 +58,8 @@ rules by hand.
 ```
 lib/main.dart       process start: Firebase, notifications, ProviderScope
 lib/app/            composition root — MaterialApp, route table, shell (tabs), bootstrap; the only code that knows every feature
-lib/core/           feature-agnostic — common/ (dumb shared widgets), theme/, animations/, services/ (plugin
-                    wrappers), providers/, routing/ (route paths), extensions/, config/, constants/;
+lib/core/           feature-agnostic — common/ (dumb shared widgets), theme/, services/ (plugin wrappers),
+                    providers/, routing/ (route paths), extensions/, config/, constants/;
                     never imports app/ or a feature
 lib/features/<f>/   auth · user · birthday · book_scanner · reminders · settings — domain/, data/, providers/, screens/, widgets/
 lib/l10n/           intl_fr.arb (template) + intl_en.arb; app_localizations*.dart are generated

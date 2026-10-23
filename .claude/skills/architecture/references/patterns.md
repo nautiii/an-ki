@@ -557,8 +557,6 @@ test('streams the ideas of the signed-in user', () async {
 - go_router asserts when the last page is popped: the test harness shows the widget above a
   blank page, so a sheet that closes itself has somewhere to go. `tester.pageBack()` looks for
   the English « Back » tooltip: in the French tests, tap `find.byType(BackButton)`.
-- Widget tests that mount the sign-in screen pump 2 s past its staggered fade-ins (`AnKiFadeIn`
-  waits with `Future.delayed`), or a timer stays pending.
 - Test doubles: `fake_cloud_firestore` applies a transaction one tick late to snapshot listeners
   and enforces the 500-operation batch limit (a 501-document test proves batching);
   `firebase_auth_mocks` asserts that `signInAnonymously` gets an anonymous mock user.

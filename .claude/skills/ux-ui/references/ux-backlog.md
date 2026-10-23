@@ -8,8 +8,8 @@ Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, ca
 scanner, settings, auth). Roadmap steps 1 (F2, F3, A1–A8), 2 (B1, Q1, Q2, A9) and 3 (B2)
 shipped on 2026-10-12, step 4 (B3, D7) and steps 5.1–5.2 (B5 welcome and contacts import, Q5)
 on 2026-10-18, steps 5.3 (B5 reminders in context, D19 for the J-0 notification) and 5.4 (B5
-guest backup) on 2026-10-19, small fixes D6, D19, D20 and D21, and Q6 and D18 on 2026-10-24:
-the items they fixed are gone from this list.
+guest backup) on 2026-10-19, small fixes D6, D19, D20 and D21, Q6 and D18, and the e-mail
+sign-in and sign-up forms (D3) on 2026-10-24: the items they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
@@ -19,7 +19,7 @@ auth or dependencies → design brief + maintainer approval first.
 - Big bets (B4, B6, B7; B5 shipped but its merge) — structural redesigns with the highest impact
 - Foundation (F1, F4, F5) — design system, prerequisite for consistency
 - P1 — friction & states (Q4, Q7, Q8)
-- P2 — polish (D1, D3, D4, D8–D17, D22)
+- P2 — polish (D1, D4, D8–D17, D22)
 - Suggested roadmap
 
 ---
@@ -106,8 +106,6 @@ auth or dependencies → design brief + maintainer approval first.
   space before `?`/`!` (« … avec succès ! », and on
   the login and sign-up forms « Mot de passe oublié ? », « Pas encore de compte ? », « Vous avez
   déjà un compte ? ») → narrow no-break space (U+202F); the sign-in page's copy is done.
-- **D3 Motion**: `AnKiFadeIn` (login, signup) ignores reduce motion → `context.motion(...)`; its
-  staggers still hold the forms' buttons back ~1 s (the welcome and the sign-in have none).
 - **D4 Haptics**: ad hoc (selection/light/medium mixed) → identity §9 map.
 - **D8 Scanner tab**: the « Roman / BD / Cuisine / Tech » chips look like filters but do nothing;
   empty-state title ends with a period (« Aucun livre trouvé. ») → remove or make them real (B4).
@@ -144,6 +142,6 @@ auth or dependencies → design brief + maintainer approval first.
 
 1. **Q8** — the reminders-off card, B5's loose end (it shares the agenda's top); B5's 5.5 merge
    once guests with an existing Google account show up.
-2. **B4, B6, B7, F1, F4, F5, Q4, Q7, D1, D3, D4, D8–D17, D22** — depth and polish (F1 any time
+2. **B4, B6, B7, F1, F4, F5, Q4, Q7, D1, D4, D8–D17, D22** — depth and polish (F1 any time
    once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.

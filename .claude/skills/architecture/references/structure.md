@@ -28,7 +28,7 @@ lib/
 │   └── bootstrap/            # reactions to the app lifecycle: session start, permissions, eager providers
 ├── core/                     # feature-agnostic building blocks — never imports app/ or features/
 │   ├── common/               # dumb shared widgets (design system, see the ux-ui skill)
-│   ├── theme/  animations/   # AppTheme, tokens, AnKiColors, shared motion
+│   ├── theme/                # AppTheme, tokens (spacing, radii, motion), AnKiColors
 │   ├── routing/              # route paths only (no screens): what features navigate with
 │   ├── providers/            # infrastructure providers: Firebase instances, clock, config
 │   ├── services/             # thin plugin wrappers used app-wide: notifications, biometrics, contacts

@@ -5,7 +5,6 @@ paths:
   - "lib/app/shell/**"
   - "lib/core/common/**"
   - "lib/core/theme/**"
-  - "lib/core/animations/**"
 ---
 
 # UI code — screens, widgets, theme
