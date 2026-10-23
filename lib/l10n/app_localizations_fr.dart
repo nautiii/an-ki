@@ -244,10 +244,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get signInText => 'Connectez-vous';
 
   @override
-  String get haveAccount => 'Vous avez déjà un compte ? ';
-
-  @override
-  String get dontHaveAccount => 'Pas encore de compte ? ';
+  String get haveAccount => 'Vous avez déjà un compte ?';
 
   @override
   String get settings => 'Paramètres';
@@ -583,7 +580,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get couple => 'Couple';
 
   @override
-  String get forgotPassword => 'Mot de passe oublié ?';
+  String get forgotPassword => 'Mot de passe oublié ?';
 
   @override
   String get biometricConnexion => 'Connexion biométrique';

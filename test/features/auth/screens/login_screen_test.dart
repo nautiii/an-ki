@@ -144,8 +144,17 @@ void main() {
       await tester.pumpHarness(const LoginScreen());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Mot de passe oublié ?'));
+      await tester.tap(find.text('Mot de passe oublié ?'));
       await tester.pumpAndSettle();
+    });
+
+    testWidgets('sets its questions in French typography', (tester) async {
+      await tester.pumpHarness(const LoginScreen());
+      await tester.pumpAndSettle();
+
+      // Espace fine insécable avant « ? », rien après.
+      expect(find.text('Mot de passe oublié ?'), findsOneWidget);
+      expect(find.text('Pas encore de compte ?'), findsOneWidget);
     });
 
     testWidgets('navigates to the signup route', (tester) async {

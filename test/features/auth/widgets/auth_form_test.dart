@@ -132,13 +132,13 @@ void main() {
       var opened = 0;
       await tester.pumpHarness(
         AuthSwitchPrompt(
-          question: 'Pas encore de compte ?',
+          question: 'Pas encore de compte ?',
           action: "S'inscrire",
           onPressed: () => opened++,
         ),
       );
 
-      expect(find.text('Pas encore de compte ?'), findsOneWidget);
+      expect(find.text('Pas encore de compte ?'), findsOneWidget);
       await tester.tap(find.text("S'inscrire"));
 
       expect(opened, 1);
@@ -153,7 +153,7 @@ void main() {
           child: SizedBox(
             width: 312,
             child: AuthSwitchPrompt(
-              question: 'Vous avez déjà un compte ?',
+              question: 'Vous avez déjà un compte ?',
               action: 'Se connecter',
             ),
           ),
@@ -164,7 +164,7 @@ void main() {
       expect(
         tester.getTopLeft(find.text('Se connecter')).dy,
         greaterThan(
-          tester.getTopLeft(find.text('Vous avez déjà un compte ?')).dy,
+          tester.getTopLeft(find.text('Vous avez déjà un compte ?')).dy,
         ),
       );
     });

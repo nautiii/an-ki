@@ -239,10 +239,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInText => 'Sign in';
 
   @override
-  String get haveAccount => 'Already have an account? ';
-
-  @override
-  String get dontHaveAccount => 'No account yet? ';
+  String get haveAccount => 'Already have an account?';
 
   @override
   String get settings => 'Settings';

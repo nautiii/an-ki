@@ -145,7 +145,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               const SizedBox(height: AppSpacing.md),
               AuthSwitchPrompt(
-                question: l10n.dontHaveAccount,
+                question: l10n.noAccountYet,
                 action: l10n.signUp,
                 // Remplace la connexion : le retour ramène là d'où elle a
                 // été ouverte (bienvenue, connexion).

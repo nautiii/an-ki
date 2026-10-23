@@ -479,14 +479,8 @@ abstract class AppLocalizations {
   /// No description provided for @haveAccount.
   ///
   /// In fr, this message translates to:
-  /// **'Vous avez déjà un compte ? '**
+  /// **'Vous avez déjà un compte ?'**
   String get haveAccount;
-
-  /// No description provided for @dontHaveAccount.
-  ///
-  /// In fr, this message translates to:
-  /// **'Pas encore de compte ? '**
-  String get dontHaveAccount;
 
   /// No description provided for @settings.
   ///
@@ -1001,7 +995,7 @@ abstract class AppLocalizations {
   /// No description provided for @forgotPassword.
   ///
   /// In fr, this message translates to:
-  /// **'Mot de passe oublié ?'**
+  /// **'Mot de passe oublié ?'**
   String get forgotPassword;
 
   /// No description provided for @biometricConnexion.
