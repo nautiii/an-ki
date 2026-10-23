@@ -134,7 +134,7 @@ void main() {
       await tester.settleApp();
       expect(find.byType(SignUpScreen), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded));
+      await tester.tap(find.byTooltip('Retour'));
       await tester.settleApp();
       expect(find.byType(SignUpScreen), findsNothing);
       expect(find.byType(AuthChoiceScreen), findsOneWidget);

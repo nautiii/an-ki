@@ -146,7 +146,8 @@ void main() {
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded));
+      // Le retour standard, nommé pour TalkBack.
+      await tester.tap(find.byTooltip('Retour'));
       await tester.pumpAndSettle();
 
       expect(find.text('open'), findsOneWidget);
@@ -163,14 +164,67 @@ void main() {
       expect(find.text("S'inscrire"), findsOneWidget);
     });
 
-    testWidgets('disables inputs while loading', (tester) async {
+    testWidgets('keeps its label and disables the form while signing up', (
+      tester,
+    ) async {
       await tester.pumpHarness(
         const SignUpScreen(),
         overrides: loadingAuthOverrides(),
       );
+      // Pas de pumpAndSettle : l'indicateur tourne tant que dure l'attente.
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      final signUp = tester.widget<FilledButton>(
+        find.ancestor(
+          of: find.text("S'inscrire"),
+          matching: find.byType(FilledButton),
+        ),
+      );
+      expect(signUp.onPressed, isNull);
+      final signIn = tester.widget<TextButton>(
+        find.ancestor(
+          of: find.text('Se connecter'),
+          matching: find.byType(TextButton),
+        ),
+      );
+      expect(signIn.onPressed, isNull);
+    });
+
+    testWidgets('scrolls instead of overflowing on a small phone at 200 %', (
+      tester,
+    ) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await tester.pumpHarness(const SignUpScreen());
+      tester.view.physicalSize = const Size(360, 640);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      await tester.scrollUntilVisible(
+        find.text('Se connecter'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Se connecter'), findsOneWidget);
+    });
+
+    testWidgets('stacks the first and last names at large text', (
+      tester,
+    ) async {
+      Future<bool> namesSideBySide(double textScale) async {
+        tester.platformDispatcher.textScaleFactorTestValue = textScale;
+        await tester.pumpHarness(const SignUpScreen());
+        await tester.pumpAndSettle();
+        return tester.getTopLeft(find.text('Nom')).dy ==
+            tester.getTopLeft(find.text('Prénom')).dy;
+      }
+
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      expect(await namesSideBySide(1), isTrue);
+      // Côte à côte, leurs libellés seraient coupés.
+      expect(await namesSideBySide(2), isFalse);
     });
   });
 }

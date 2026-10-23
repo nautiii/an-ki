@@ -99,16 +99,50 @@ void main() {
       expect(find.text('Se connecter'), findsOneWidget);
     });
 
-    testWidgets('disables inputs and shows a spinner while loading', (
+    testWidgets('keeps its label and disables the form while signing in', (
       tester,
     ) async {
       await tester.pumpHarness(
         const LoginScreen(),
         overrides: loadingAuthOverrides(),
       );
+      // Pas de pumpAndSettle : l'indicateur tourne tant que dure l'attente.
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      final signIn = tester.widget<FilledButton>(
+        find.ancestor(
+          of: find.text('Se connecter'),
+          matching: find.byType(FilledButton),
+        ),
+      );
+      expect(signIn.onPressed, isNull);
+      final signUp = tester.widget<TextButton>(
+        find.ancestor(
+          of: find.text("S'inscrire"),
+          matching: find.byType(TextButton),
+        ),
+      );
+      expect(signUp.onPressed, isNull);
+    });
+
+    testWidgets('scrolls instead of overflowing on a small phone at 200 %', (
+      tester,
+    ) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await tester.pumpHarness(const LoginScreen());
+      tester.view.physicalSize = const Size(360, 640);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      await tester.scrollUntilVisible(
+        find.text("S'inscrire"),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text("S'inscrire"), findsOneWidget);
     });
 
     testWidgets('back button pops the page', (tester) async {
@@ -131,7 +165,8 @@ void main() {
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded));
+      // Le retour standard, nommé pour TalkBack.
+      await tester.tap(find.byTooltip('Retour'));
       await tester.pumpAndSettle();
 
       expect(find.text('open'), findsOneWidget);

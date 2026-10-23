@@ -3,13 +3,17 @@ import 'dart:async';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
+import 'package:an_ki/features/auth/widgets/auth_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+/// Connexion par e-mail, ouverte depuis la connexion (« Continuer avec un
+/// e-mail »), où le retour ramène.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -56,10 +60,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
           content: Text(authErrorMessage(context, error)),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
@@ -73,49 +73,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isLoading = ref.watch(
       authControllerProvider.select((s) => s.isLoading),
     );
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final l10n = context.l10n;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-        ),
-      ),
+      // Le retour vers la connexion, dessous.
+      appBar: AppBar(),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.gutter,
+            AppSpacing.xs,
+            AppSpacing.gutter,
+            AppSpacing.lg,
+          ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 20),
-              Text(
-                context.l10n.loginTitle,
-                style: textTheme.headlineLarge?.copyWith(
-                  color: colorScheme.primary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                context.l10n.signInText,
-                style: textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 48),
+              AuthFormHeader(title: l10n.loginTitle, message: l10n.signInText),
+              const SizedBox(height: AppSpacing.xl),
               AnKiTextField(
                 controller: _emailController,
-                label: context.l10n.email,
+                label: l10n.email,
                 prefixIcon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
                 enabled: !isLoading,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               AnKiTextField(
                 controller: _passwordController,
-                label: context.l10n.password,
+                label: l10n.password,
                 prefixIcon: Icons.lock_outline_rounded,
                 obscureText: _obscurePassword,
                 enabled: !isLoading,
@@ -124,8 +110,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     _obscurePassword
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
-                    color: colorScheme.onSurfaceVariant,
-                    size: 20,
                   ),
                   onPressed: () {
                     setState(() => _obscurePassword = !_obscurePassword);
@@ -133,75 +117,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               Align(
-                alignment: Alignment.centerRight,
+                alignment: AlignmentDirectional.centerEnd,
                 child: TextButton(
                   onPressed: isLoading ? null : () {},
-                  child: Text(
-                    context.l10n.forgotPassword,
-                    style: TextStyle(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: Text(l10n.forgotPassword),
                 ),
               ),
-              const SizedBox(height: 32),
-              Center(
-                child: SizedBox(
-                  width: 280,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: isLoading ? null : _handleSignIn,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                    ),
-                    child: isLoading
-                        ? SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: colorScheme.onPrimary,
-                            ),
-                          )
-                        : Text(
-                            context.l10n.signInButton,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                  ),
-                ),
+              const SizedBox(height: AppSpacing.lg),
+              AuthSubmitButton(
+                label: l10n.signInButton,
+                loading: isLoading,
+                onPressed: _handleSignIn,
               ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    context.l10n.dontHaveAccount,
-                    style: TextStyle(color: colorScheme.onSurfaceVariant),
-                  ),
-                  TextButton(
-                    // Remplace la connexion : le retour ramène là d'où
-                    // elle a été ouverte (bienvenue, connexion).
-                    onPressed: isLoading
-                        ? null
-                        : () => context.pushReplacement(AppRoutes.signup),
-                    child: Text(
-                      context.l10n.signUp,
-                      style: TextStyle(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: AppSpacing.md),
+              AuthSwitchPrompt(
+                question: l10n.dontHaveAccount,
+                action: l10n.signUp,
+                // Remplace la connexion : le retour ramène là d'où elle a
+                // été ouverte (bienvenue, connexion).
+                onPressed: isLoading
+                    ? null
+                    : () => context.pushReplacement(AppRoutes.signup),
               ),
             ],
           ),
