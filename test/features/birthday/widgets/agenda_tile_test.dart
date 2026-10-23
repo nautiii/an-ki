@@ -10,6 +10,7 @@ import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_tile.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -66,16 +67,22 @@ void main() {
     ),
   ];
 
-  Future<void> pumpTile(WidgetTester tester, Birthday birthday) =>
-      mockNetworkImages(() async {
-        await tester.pumpHarness(
-          Center(
-            child: SizedBox(width: 312, child: AgendaTile(birthday: birthday)),
-          ),
-          overrides: overrides(),
-        );
-        await tester.pumpAndSettle();
-      });
+  Future<void> pumpTile(
+    WidgetTester tester,
+    Birthday birthday, {
+    MatchRange? highlight,
+  }) => mockNetworkImages(() async {
+    await tester.pumpHarness(
+      Center(
+        child: SizedBox(
+          width: 312,
+          child: AgendaTile(birthday: birthday, highlight: highlight),
+        ),
+      ),
+      overrides: overrides(),
+    );
+    await tester.pumpAndSettle();
+  });
 
   testWidgets('shows who, when, how old and how soon', (tester) async {
     await pumpTile(tester, birthday());
@@ -99,6 +106,27 @@ void main() {
     await pumpTile(tester, birthday(surname: ''));
 
     expect(find.text('Alice'), findsOneWidget);
+  });
+
+  testWidgets('marks the letters a search found, on a tinted ground', (
+    tester,
+  ) async {
+    await pumpTile(tester, birthday(), highlight: (start: 6, end: 10));
+
+    final name = tester.widget<Text>(find.text('Alice Wonderland'));
+    final parts = (name.textSpan! as TextSpan).children!.cast<TextSpan>();
+    expect([for (final part in parts) part.text], ['Alice ', 'Wond', 'erland']);
+    expect(
+      [for (final part in parts) part.style?.backgroundColor != null],
+      [false, true, false],
+    );
+  });
+
+  testWidgets('shows the name plain outside a search', (tester) async {
+    await pumpTile(tester, birthday());
+
+    final name = tester.widget<Text>(find.text('Alice Wonderland'));
+    expect((name.textSpan! as TextSpan).children, isNull);
   });
 
   testWidgets('says tomorrow rather than J-1', (tester) async {

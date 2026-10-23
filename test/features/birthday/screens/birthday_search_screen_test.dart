@@ -5,6 +5,7 @@ import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/screens/birthday_search_screen.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_tile.dart';
@@ -85,6 +86,21 @@ void main() {
     await tester.pumpAndSettle();
     expect(listedNames(tester), ['Léa', 'Hugo']);
     expect(find.byTooltip('Effacer la recherche'), findsNothing);
+  });
+
+  testWidgets('highlights the letters found, accents aside', (tester) async {
+    await pumpSearch(tester);
+
+    MatchRange? highlightOf(String name) => tester
+        .widgetList<AgendaTile>(find.byType(AgendaTile))
+        .firstWhere((tile) => tile.birthday.name == name)
+        .highlight;
+    expect(highlightOf('Léa'), isNull);
+
+    await tester.enterText(find.byType(TextField), 'lea');
+    await tester.pumpAndSettle();
+    expect(listedNames(tester), ['Léa']);
+    expect(highlightOf('Léa'), (start: 0, end: 3));
   });
 
   testWidgets('filters by category, then clears the filters', (tester) async {

@@ -1,6 +1,7 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_tile.dart';
@@ -108,6 +109,7 @@ class _BirthdaySearchScreenState extends ConsumerState<BirthdaySearchScreen> {
                       itemBuilder: (context, index) => AgendaTile(
                         key: ValueKey(results[index].id),
                         birthday: results[index],
+                        highlight: results[index].nameMatch(query),
                       ),
                     ),
             ),

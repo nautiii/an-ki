@@ -2,10 +2,12 @@ import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/common/moon_phase.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
+import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
@@ -22,9 +24,13 @@ import 'package:intl/intl.dart';
 /// Toucher ouvre la modification. Glisser vers la gauche, ou l'action
 /// « Supprimer » des lecteurs d'écran, supprime avec « Annuler ».
 class AgendaTile extends ConsumerWidget {
-  const AgendaTile({super.key, required this.birthday});
+  const AgendaTile({super.key, required this.birthday, this.highlight});
 
   final Birthday birthday;
+
+  /// Lettres du nom trouvées par la recherche (`BirthdayNameMatch`),
+  /// surlignées ; null hors recherche.
+  final MatchRange? highlight;
 
   static const _radius = BorderRadius.all(Radius.circular(AppRadii.lg));
 
@@ -68,7 +74,7 @@ class AgendaTile extends ConsumerWidget {
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.sm),
-                  child: _TileContent(birthday: birthday),
+                  child: _TileContent(birthday: birthday, highlight: highlight),
                 ),
               ),
             ),
@@ -80,9 +86,10 @@ class AgendaTile extends ConsumerWidget {
 }
 
 class _TileContent extends ConsumerWidget {
-  const _TileContent({required this.birthday});
+  const _TileContent({required this.birthday, required this.highlight});
 
   final Birthday birthday;
+  final MatchRange? highlight;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -117,8 +124,8 @@ class _TileContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          fullName,
+        Text.rich(
+          _highlighted(context, fullName, highlight),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: textTheme.titleMedium?.copyWith(color: colorScheme.onSurface),
@@ -158,6 +165,27 @@ class _TileContent extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// [name] avec les lettres de [range] surlignées en clair de lune (le
+/// surlignage calme de l'identité), comme une recherche dans la page : le
+/// fond marque la plage sans dépendre de la seule couleur du texte.
+TextSpan _highlighted(BuildContext context, String name, MatchRange? range) {
+  if (range == null) return TextSpan(text: name);
+  final moonlight = context.ankiColors.moonlight;
+  return TextSpan(
+    children: [
+      TextSpan(text: name.substring(0, range.start)),
+      TextSpan(
+        text: name.substring(range.start, range.end),
+        style: TextStyle(
+          color: moonlight.color,
+          backgroundColor: moonlight.container,
+        ),
+      ),
+      TextSpan(text: name.substring(range.end)),
+    ],
+  );
 }
 
 /// Lune et pastille « J-12 » : la proximité d'un coup d'œil.
