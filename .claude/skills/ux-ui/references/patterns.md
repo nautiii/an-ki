@@ -159,6 +159,11 @@ A spinner is acceptable only inside the control that triggered a short action.
 - The sign-in (`auth_choice_screen.dart`, « Bon retour ») offers Google (one tap) › e-mail ›
   sign-up; no guest there. Locked by the fingerprint, it stands alone, prompts at once and puts
   « Déverrouiller » first so a dismissed prompt can be retried.
+- The e-mail forms (`login_screen.dart`, `signup_screen.dart`) share `widgets/auth_form.dart`:
+  themed fields in an `AutofillGroup`, `PasswordField` with a labelled eye, a submit enabled by
+  the draft (`SignInDraft`, `SignUpDraft`) that keeps its label while waiting. « Suivant » goes to
+  the next field, never to an eye; a different confirmation is said under it once it can no
+  longer match.
 - No intro motion: the CTAs are there from the first frame; layouts scroll on small screens.
 - **Permission priming** (Duolingo, Instagram), shipped in step 5.3: never a system prompt at
   launch. `ReminderPrompt` (`app/bootstrap`) opens `ReminderOfferSheet` over the agenda at a
