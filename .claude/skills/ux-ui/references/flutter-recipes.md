@@ -119,7 +119,10 @@ Shipped in step 2 — read the code rather than a copy:
 ## 6. Large-text reflow
 
 Shipped in `next_birthday.dart` and `agenda_tile.dart`: beyond 150 %, avatar and number go on a
-row above the name.
+row above the name. The nav pill (`bottom_bar.dart`) puts icons above labels beyond 150 %, and
+also as soon as a label, measured with `TextPainter`, wouldn't fit beside its icon
+(« Anniversaires » at 130 % on a 360 or 393 dp phone): when the width decides, measure rather
+than guess a threshold.
 
 ```dart
 // Au-delà de 150 % de texte, empiler plutôt que compresser.

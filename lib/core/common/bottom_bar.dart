@@ -34,7 +34,7 @@ class BottomBar extends StatelessWidget {
     final colors = context.ankiColors;
     const radius = BorderRadius.all(Radius.circular(AppRadii.xl));
     // Grand texte : icône au-dessus du libellé, pour garder les libellés entiers.
-    final stacked = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
+    final largeText = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
 
     return SafeArea(
       top: false,
@@ -68,25 +68,11 @@ class BottomBar extends StatelessWidget {
                     padding: const EdgeInsets.all(AppSpacing.xs),
                     child: MediaQuery.withClampedTextScaling(
                       maxScaleFactor: 1.3,
-                      child: Row(
-                        children: [
-                          for (final (index, destination)
-                              in destinations.indexed) ...[
-                            if (index > 0) const SizedBox(width: AppSpacing.xs),
-                            Expanded(
-                              child: _BottomBarItem(
-                                destination: destination,
-                                isSelected: index == selectedIndex,
-                                stacked: stacked,
-                                onTap: () {
-                                  if (index == selectedIndex) return;
-                                  HapticFeedback.selectionClick();
-                                  onSelected(index);
-                                },
-                              ),
-                            ),
-                          ],
-                        ],
+                      child: _BottomBarItems(
+                        destinations: destinations,
+                        selectedIndex: selectedIndex,
+                        onSelected: onSelected,
+                        largeText: largeText,
                       ),
                     ),
                   ),
@@ -97,6 +83,78 @@ class BottomBar extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Les destinations côte à côte, toutes en ligne ou toutes empilées.
+class _BottomBarItems extends StatelessWidget {
+  const _BottomBarItems({
+    required this.destinations,
+    required this.selectedIndex,
+    required this.onSelected,
+    required this.largeText,
+  });
+
+  final List<BottomBarDestination> destinations;
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+  final bool largeText;
+
+  @override
+  Widget build(BuildContext context) {
+    // Re-mesure quand une police finit de charger (Outfit, téléchargée).
+    return ListenableBuilder(
+      listenable: PaintingBinding.instance.systemFonts,
+      builder: (context, _) => LayoutBuilder(
+        builder: (context, constraints) {
+          // Écran étroit ou texte agrandi : empilé dès qu'un libellé serait
+          // coupé à côté de son icône.
+          final stacked =
+              largeText || !_labelsFitInline(context, constraints.maxWidth);
+          return Row(
+            children: [
+              for (final (index, destination) in destinations.indexed) ...[
+                if (index > 0) const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: _BottomBarItem(
+                    destination: destination,
+                    isSelected: index == selectedIndex,
+                    stacked: stacked,
+                    onTap: () {
+                      if (index == selectedIndex) return;
+                      HapticFeedback.selectionClick();
+                      onSelected(index);
+                    },
+                  ),
+                ),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// Vrai si chaque libellé tient à côté de son icône dans sa part de
+  /// [width], avec les marges de [_BottomBarItem] en ligne.
+  bool _labelsFitInline(BuildContext context, double width) {
+    final gaps = AppSpacing.xs * (destinations.length - 1);
+    final itemWidth = (width - gaps) / destinations.length;
+    final iconSize = IconTheme.of(context).size ?? 24;
+    final room = itemWidth - 2 * AppSpacing.sm - iconSize - AppSpacing.xs;
+    // Le style sélectionné, plus gras, est le plus large.
+    final style = _BottomBarItem.labelStyle(context, isSelected: true);
+    return destinations.every((destination) {
+      final painter = TextPainter(
+        text: TextSpan(text: destination.label, style: style),
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+        maxLines: 1,
+      )..layout();
+      final fits = painter.width <= room;
+      painter.dispose();
+      return fits;
+    });
   }
 }
 
@@ -111,9 +169,17 @@ class _BottomBarItem extends StatelessWidget {
   final BottomBarDestination destination;
   final bool isSelected;
 
-  /// Icône au-dessus du libellé (grand texte) plutôt qu'à côté.
+  /// Icône au-dessus du libellé (grand texte, libellé trop long) plutôt qu'à
+  /// côté.
   final bool stacked;
   final VoidCallback onTap;
+
+  /// Style du libellé ; sélectionné, il est plus gras.
+  static TextStyle? labelStyle(
+    BuildContext context, {
+    required bool isSelected,
+  }) => Theme.of(context).textTheme.labelLarge
+      ?.copyWith(fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500);
 
   @override
   Widget build(BuildContext context) {
@@ -135,10 +201,10 @@ class _BottomBarItem extends StatelessWidget {
           destination.label,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: color,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-          ),
+          style: labelStyle(
+            context,
+            isSelected: isSelected,
+          )?.copyWith(color: color),
         ),
       ),
     ];

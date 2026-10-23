@@ -4,6 +4,7 @@ import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/test_harness.dart';
@@ -137,6 +138,16 @@ void main() {
       return picked;
     }
 
+    // Libellé coupé par des points de suspension.
+    bool isCut(WidgetTester tester, String label) => tester
+        .renderObject<RenderParagraph>(find.text(label))
+        .didExceedMaxLines;
+
+    // Icône au-dessus de son libellé plutôt qu'à côté.
+    bool isStacked(WidgetTester tester) =>
+        tester.getBottomLeft(find.byIcon(Icons.cake_rounded)).dy <=
+        tester.getTopLeft(find.text('Birthdays')).dy;
+
     testWidgets('shows every destination with its label', (tester) async {
       await pumpBar(tester);
 
@@ -175,8 +186,33 @@ void main() {
 
       await pumpBar(tester);
 
-      expect(find.text('Birthdays'), findsOneWidget);
-      expect(find.text('Scanner'), findsOneWidget);
+      expect(isStacked(tester), isTrue);
+      expect(isCut(tester, 'Birthdays'), isFalse);
+      expect(isCut(tester, 'Scanner'), isFalse);
+    });
+
+    testWidgets('puts each label beside its icon when it fits', (tester) async {
+      await pumpBar(tester);
+
+      expect(isStacked(tester), isFalse);
+      expect(
+        tester.getCenter(find.byIcon(Icons.cake_rounded)).dy,
+        moreOrLessEquals(tester.getCenter(find.text('Birthdays')).dy),
+      );
+      expect(isCut(tester, 'Birthdays'), isFalse);
+    });
+
+    testWidgets('stacks the labels rather than cut one beside its icon', (
+      tester,
+    ) async {
+      await pumpBar(tester);
+      // Assez large pour « Birthdays » sous son icône, pas à côté.
+      tester.view.physicalSize = const Size(400, 800);
+      await tester.pumpAndSettle();
+
+      expect(isStacked(tester), isTrue);
+      expect(isCut(tester, 'Birthdays'), isFalse);
+      expect(isCut(tester, 'Scanner'), isFalse);
     });
 
     testWidgets('reports the destination tapped', (tester) async {
