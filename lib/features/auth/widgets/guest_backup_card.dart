@@ -118,8 +118,14 @@ class _GuestBackupCardState extends ConsumerState<GuestBackupCard> {
               _FailureLine(message: failure.message(context)),
             ],
             const SizedBox(height: AppSpacing.sm),
-            FilledButton.tonalIcon(
+            FilledButton.icon(
               onPressed: busy ? null : _save,
+              // Plein, dans l'accent de la carte : une pilule tonale s'y
+              // confondait (contraste 1:1 avec le fond moonlight).
+              style: FilledButton.styleFrom(
+                backgroundColor: tones.color,
+                foregroundColor: tones.onColor,
+              ),
               // Le temps du sélecteur Google puis de la liaison.
               icon: busy ? const _Progress() : null,
               label: Text(

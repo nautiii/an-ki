@@ -1,3 +1,4 @@
+import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/auth/widgets/guest_backup_card.dart';
 import 'package:flutter/material.dart';
@@ -49,6 +50,29 @@ void main() {
     await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
     semantics.dispose();
+  });
+
+  testWidgets('fills its button with the card accent, to stand out from it', (
+    tester,
+  ) async {
+    await pumpCard(tester);
+
+    final tones = tester
+        .element(find.byType(GuestBackupCard))
+        .ankiColors
+        .moonlight;
+    final style = tester
+        .widget<ButtonStyleButton>(
+          find.ancestor(
+            of: find.text(save),
+            matching: find.byWidgetPredicate(
+              (widget) => widget is ButtonStyleButton,
+            ),
+          ),
+        )
+        .style;
+    expect(style?.backgroundColor?.resolve({}), tones.color);
+    expect(style?.foregroundColor?.resolve({}), tones.onColor);
   });
 
   testWidgets('saves with Google, then says so', (tester) async {
