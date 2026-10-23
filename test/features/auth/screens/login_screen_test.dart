@@ -88,6 +88,17 @@ void main() {
       expect(find.text('SignUp Route'), findsOneWidget);
     });
 
+    testWidgets('shows the whole form at once, with no intro to wait for', (
+      tester,
+    ) async {
+      await tester.pumpHarness(const LoginScreen());
+
+      // Une seule image : une intro décalée laisserait ses minuteurs en
+      // attente, et le test échouerait.
+      expect(find.byType(TextField), findsNWidgets(2));
+      expect(find.text('Se connecter'), findsOneWidget);
+    });
+
     testWidgets('disables inputs and shows a spinner while loading', (
       tester,
     ) async {
@@ -95,7 +106,7 @@ void main() {
         const LoginScreen(),
         overrides: loadingAuthOverrides(),
       );
-      await tester.pump(const Duration(seconds: 2));
+      await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });

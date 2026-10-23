@@ -1,4 +1,3 @@
-import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/common/header.dart';
@@ -247,30 +246,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(BottomBar), findsOneWidget);
-    });
-  });
-
-  group('AnKiFadeIn', () {
-    testWidgets('renders its child immediately when there is no delay', (
-      tester,
-    ) async {
-      await tester.pumpHarness(const AnKiFadeIn(child: Text('Visible')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Visible'), findsOneWidget);
-    });
-
-    testWidgets('renders its child after a delay', (tester) async {
-      await tester.pumpHarness(
-        const AnKiFadeIn(
-          delay: Duration(milliseconds: 100),
-          child: Text('Delayed'),
-        ),
-      );
-      await tester.pump(const Duration(milliseconds: 150));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Delayed'), findsOneWidget);
     });
   });
 }

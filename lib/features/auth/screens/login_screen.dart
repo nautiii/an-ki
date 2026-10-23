@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:an_ki/core/animations/anki_fade_in.dart';
 import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
@@ -92,138 +91,117 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              AnKiFadeIn(
-                delay: const Duration(milliseconds: 100),
-                child: Text(
-                  context.l10n.loginTitle,
-                  style: textTheme.headlineLarge?.copyWith(
-                    color: colorScheme.primary,
-                  ),
+              Text(
+                context.l10n.loginTitle,
+                style: textTheme.headlineLarge?.copyWith(
+                  color: colorScheme.primary,
                 ),
               ),
               const SizedBox(height: 8),
-              AnKiFadeIn(
-                delay: const Duration(milliseconds: 200),
-                child: Text(
-                  context.l10n.signInText,
-                  style: textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+              Text(
+                context.l10n.signInText,
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 48),
-              AnKiFadeIn(
-                delay: const Duration(milliseconds: 400),
-                child: AnKiTextField(
-                  controller: _emailController,
-                  label: context.l10n.email,
-                  prefixIcon: Icons.email_outlined,
-                  keyboardType: TextInputType.emailAddress,
-                  enabled: !isLoading,
-                ),
+              AnKiTextField(
+                controller: _emailController,
+                label: context.l10n.email,
+                prefixIcon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                enabled: !isLoading,
               ),
               const SizedBox(height: 16),
-              AnKiFadeIn(
-                delay: const Duration(milliseconds: 550),
-                child: AnKiTextField(
-                  controller: _passwordController,
-                  label: context.l10n.password,
-                  prefixIcon: Icons.lock_outline_rounded,
-                  obscureText: _obscurePassword,
-                  enabled: !isLoading,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: colorScheme.onSurfaceVariant,
-                      size: 20,
-                    ),
-                    onPressed: () {
-                      setState(() => _obscurePassword = !_obscurePassword);
-                    },
+              AnKiTextField(
+                controller: _passwordController,
+                label: context.l10n.password,
+                prefixIcon: Icons.lock_outline_rounded,
+                obscureText: _obscurePassword,
+                enabled: !isLoading,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 20,
                   ),
+                  onPressed: () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
                 ),
               ),
-              AnKiFadeIn(
-                delay: const Duration(milliseconds: 650),
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: isLoading ? null : () {},
-                    child: Text(
-                      context.l10n.forgotPassword,
-                      style: TextStyle(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: isLoading ? null : () {},
+                  child: Text(
+                    context.l10n.forgotPassword,
+                    style: TextStyle(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 32),
-              AnKiFadeIn(
-                delay: const Duration(milliseconds: 800),
-                child: Center(
-                  child: SizedBox(
-                    width: 280,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: isLoading ? null : _handleSignIn,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
+              Center(
+                child: SizedBox(
+                  width: 280,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: isLoading ? null : _handleSignIn,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(28),
                       ),
-                      child: isLoading
-                          ? SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: colorScheme.onPrimary,
-                              ),
-                            )
-                          : Text(
-                              context.l10n.signInButton,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
                     ),
+                    child: isLoading
+                        ? SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.onPrimary,
+                            ),
+                          )
+                        : Text(
+                            context.l10n.signInButton,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              AnKiFadeIn(
-                delay: const Duration(milliseconds: 950),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      context.l10n.dontHaveAccount,
-                      style: TextStyle(color: colorScheme.onSurfaceVariant),
-                    ),
-                    TextButton(
-                      // Remplace la connexion : le retour ramène là d'où
-                      // elle a été ouverte (bienvenue, connexion).
-                      onPressed: isLoading
-                          ? null
-                          : () => context.pushReplacement(AppRoutes.signup),
-                      child: Text(
-                        context.l10n.signUp,
-                        style: TextStyle(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    context.l10n.dontHaveAccount,
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
+                  ),
+                  TextButton(
+                    // Remplace la connexion : le retour ramène là d'où
+                    // elle a été ouverte (bienvenue, connexion).
+                    onPressed: isLoading
+                        ? null
+                        : () => context.pushReplacement(AppRoutes.signup),
+                    child: Text(
+                      context.l10n.signUp,
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),
