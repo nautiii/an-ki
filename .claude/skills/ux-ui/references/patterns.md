@@ -238,7 +238,7 @@ full moon + « Aujourd'hui 🎉 », the age (S6), and S4 petals once per person 
 |-------|------------------|
 | **Material 3 Expressive** (springs, shape contrast, emphasized type, floating toolbars, button groups) | **Adapt the principles** with core Flutter: springs for drag/dismiss, bolder type for the key number, squircle/shape contrast. Flutter core is not implementing M3E; community packages (`material_3_expressive`, `m3e_core`) exist — never add one without the maintainer's approval. |
 | **Liquid Glass** (iOS 26 translucent floating chrome) | Already echoed by the nav pill. Glass stays limited to floating chrome. |
-| Edge-to-edge (enforced from Android 15) & predictive back | Adopt: `SafeArea` everywhere, transparent system bars with correct icon brightness per theme; Flutter's default Android transition (3.44+) is `PredictiveBackPageTransitionsBuilder` — enable `android:enableOnBackInvokedCallback="true"` in the manifest to get the gesture preview. |
+| Edge-to-edge (enforced from Android 15) & predictive back | Adopt: `SafeArea` everywhere, transparent system bars with correct icon brightness per theme; Flutter's default Android transition (3.44+) is `PredictiveBackPageTransitionsBuilder`, and `android:enableOnBackInvokedCallback="true"` in the manifest gives the gesture preview (adopted 2026-10-24). |
 | Skeletons, optimistic UI, micro-interactions + haptics | Adopt (G, identity §8–9). |
 | Natural-language / AI-assisted input | Adapt later: « Léa 12 mars » quick add (C). No chatbot. |
 | Bento-grid dashboards | Skip for the home (agenda beats tiles for time); possible for a yearly recap. |

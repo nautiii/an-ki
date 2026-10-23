@@ -198,8 +198,10 @@ DecoratedBox(
 - The floating nav pill adds the bottom inset itself (`SafeArea(top: false)`); scrollables beneath
   it pad by its real height.
 - Flutter's default Android page transition (3.44+) is `PredictiveBackPageTransitionsBuilder`; to
-  get the system back-gesture preview add `android:enableOnBackInvokedCallback="true"` on
-  `<application>` in `AndroidManifest.xml` (currently absent).
+  get the system back-gesture preview, `android:enableOnBackInvokedCallback="true"` sits on
+  `<application>` in `AndroidManifest.xml` (since 2026-10-24). No screen intercepts back
+  (`PopScope`): if one must, use `PopScope` with `onPopInvokedWithResult`, never the
+  deprecated `WillPopScope` (incompatible with predictive back).
 
 ## 11. Tests for UI changes
 
