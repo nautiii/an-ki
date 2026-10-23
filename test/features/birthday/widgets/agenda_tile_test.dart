@@ -37,6 +37,7 @@ void main() {
     Uint8List? picture,
     BirthDate date = const BirthDate(year: 1990, month: 10, day: 24),
     String surname = 'Wonderland',
+    List<int> wishedYears = const [],
   }) => Birthday(
     id: '1',
     name: 'Alice',
@@ -44,6 +45,7 @@ void main() {
     date: date,
     categories: categories,
     picture: picture,
+    wishedYears: wishedYears,
   );
 
   List<dynamic> overrides() => [
@@ -127,6 +129,47 @@ void main() {
 
     final name = tester.widget<Text>(find.text('Alice Wonderland'));
     expect((name.textSpan! as TextSpan).children, isNull);
+  });
+
+  testWidgets('shows the wish of the day once made, like the hero', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpTile(
+      tester,
+      birthday(
+        date: const BirthDate(year: 1990, month: 10, day: 12),
+        wishedYears: const [2026],
+      ),
+    );
+
+    expect(find.text('Souhaité'), findsOneWidget);
+    expect(
+      tester.getSemantics(find.text('Alice Wonderland')).label,
+      contains('Souhaité'),
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('shows no wish before it is made, nor after the day', (
+    tester,
+  ) async {
+    await pumpTile(
+      tester,
+      birthday(date: const BirthDate(year: 1990, month: 10, day: 12)),
+    );
+    expect(find.text('Souhaité'), findsNothing);
+
+    // Souhaité hier : le vœu compte toujours, mais la ligne n'est plus celle
+    // du jour.
+    await pumpTile(
+      tester,
+      birthday(
+        date: const BirthDate(year: 1990, month: 10, day: 11),
+        wishedYears: const [2026],
+      ),
+    );
+    expect(find.text('Souhaité'), findsNothing);
   });
 
   testWidgets('says tomorrow rather than J-1', (tester) async {

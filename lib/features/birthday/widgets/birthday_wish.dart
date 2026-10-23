@@ -44,7 +44,7 @@ class WishActions extends ConsumerWidget {
     if (wished) {
       return const Align(
         alignment: AlignmentDirectional.centerStart,
-        child: _WishedPill(),
+        child: WishedPill(),
       );
     }
     return Wrap(
@@ -82,43 +82,58 @@ class WishActions extends ConsumerWidget {
   }
 }
 
-/// « ✓ Souhaité » en menthe (accent de succès), haute comme une cible
-/// tactile.
-class _WishedPill extends StatelessWidget {
-  const _WishedPill();
+/// « ✓ Souhaité » en menthe (accent de succès). Dans le héros, haute comme
+/// une cible tactile : elle prend la place des boutons sans faire sauter la
+/// carte. [dense] dans une ligne (agenda, recherche, feuille du jour), à la
+/// taille du compte à rebours « J-12 ».
+class WishedPill extends StatelessWidget {
+  const WishedPill({super.key, this.dense = false});
+
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
     final success = context.ankiColors.success;
-
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
-      child: DecoratedBox(
-        decoration: ShapeDecoration(
-          color: success.container,
-          shape: const StadiumBorder(),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.xs,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.check_rounded, size: 18, color: success.onContainer),
-              const SizedBox(width: AppSpacing.xs),
-              Flexible(
-                child: Text(
-                  context.l10n.wished,
-                  style: Theme.of(context).textTheme.labelLarge
-                      ?.copyWith(color: success.onContainer),
-                ),
+    final pill = DecoratedBox(
+      decoration: ShapeDecoration(
+        color: success.container,
+        shape: const StadiumBorder(),
+      ),
+      child: Padding(
+        padding: dense
+            ? const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xs,
+                vertical: AppSpacing.xxs,
+              )
+            : const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
               ),
-            ],
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.check_rounded,
+              size: dense ? 16 : 18,
+              color: success.onContainer,
+            ),
+            SizedBox(width: dense ? AppSpacing.xxs : AppSpacing.xs),
+            Flexible(
+              child: Text(
+                context.l10n.wished,
+                style: Theme.of(context).textTheme.labelLarge
+                    ?.copyWith(color: success.onContainer),
+              ),
+            ),
+          ],
         ),
       ),
+    );
+
+    if (dense) return pill;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
+      child: pill,
     );
   }
 }

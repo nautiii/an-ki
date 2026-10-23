@@ -32,6 +32,7 @@ void main() {
     String id = '1',
     String name = 'Alice',
     Uint8List? picture,
+    List<int> wishedYears = const [],
   }) => Birthday(
     id: id,
     name: name,
@@ -39,6 +40,7 @@ void main() {
     date: BirthDate.fromDate(date),
     categories: const ['fam'],
     picture: picture,
+    wishedYears: wishedYears,
   );
 
   Birthday onDay(int day, {String id = '1', String name = 'Alice'}) =>
@@ -175,6 +177,65 @@ void main() {
 
     expect(find.text('Alice Wonderland'), findsOneWidget);
     expect(find.textContaining(RegExp(r'\d+ ans?$')), findsNothing);
+  });
+
+  testWidgets('day sheet shows who was wished today, like the hero', (
+    tester,
+  ) async {
+    await pumpCalendar(
+      tester,
+      birthdays: [
+        born(DateTime(1990, 10, 11), wishedYears: const [2026]),
+        born(DateTime(1990, 10, 11), id: '2', name: 'Bob'),
+      ],
+    );
+
+    await tester.tap(find.text('11'));
+    await tester.pumpAndSettle();
+
+    // Une pastille pour Alice, souhaitée ; aucune pour Bob.
+    expect(find.text('Souhaité'), findsOneWidget);
+    final aliceRow = find.ancestor(
+      of: find.text('Alice Wonderland'),
+      matching: find.byType(MergeSemantics),
+    );
+    expect(
+      find.descendant(of: aliceRow, matching: find.text('Souhaité')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('day sheet shows a wish only on the day itself', (tester) async {
+    final wished = born(DateTime(1990, 10, 10), wishedYears: const [2026]);
+    await pumpCalendar(tester, birthdays: [wished]);
+
+    // Souhaité hier : la feuille d'hier ne parle plus du vœu.
+    await tester.tap(find.text('10'));
+    await tester.pumpAndSettle();
+    expect(find.text('Alice Wonderland'), findsOneWidget);
+    expect(find.text('Souhaité'), findsNothing);
+  });
+
+  testWidgets('day sheet of the same date next year shows no wish', (
+    tester,
+  ) async {
+    await pumpCalendar(
+      tester,
+      birthdays: [
+        born(DateTime(1990, 10, 11), wishedYears: const [2026]),
+      ],
+    );
+
+    for (var month = 0; month < 12; month++) {
+      await tester.tap(find.byTooltip('Mois suivant'));
+      await tester.pumpAndSettle();
+    }
+    expect(find.text('Octobre 2027'), findsOneWidget);
+
+    await tester.tap(find.text('11'));
+    await tester.pumpAndSettle();
+    expect(find.text('11 octobre 2027'), findsOneWidget);
+    expect(find.text('Souhaité'), findsNothing);
   });
 
   testWidgets('day sheet lists multiple birthdays with a separator', (

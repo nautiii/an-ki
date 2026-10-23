@@ -36,7 +36,10 @@ void main() {
   final lea = person('1', 'Léa', 10, ['fam']);
   final hugo = person('2', 'Hugo', 12);
 
-  Future<void> pumpSearch(WidgetTester tester) async {
+  Future<void> pumpSearch(
+    WidgetTester tester, {
+    List<Birthday>? birthdays,
+  }) async {
     await tester.pumpHarness(
       const BirthdaySearchScreen(),
       overrides: [
@@ -54,7 +57,9 @@ void main() {
             ),
           ),
         ),
-        birthdaysProvider.overrideWithValue(AsyncData([hugo, lea])),
+        birthdaysProvider.overrideWithValue(
+          AsyncData(birthdays ?? [hugo, lea]),
+        ),
         birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
         categoryRepositoryProvider.overrideWithValue(
           RecordingCategoryRepository([family]),
@@ -101,6 +106,27 @@ void main() {
     await tester.pumpAndSettle();
     expect(listedNames(tester), ['Léa']);
     expect(highlightOf('Léa'), (start: 0, end: 3));
+  });
+
+  testWidgets('shows who was wished today, like the hero', (tester) async {
+    final rose = Birthday(
+      id: '3',
+      name: 'Rose',
+      surname: 'Martin',
+      date: BirthDate.fromDate(DateTime(1990, 10, 12)),
+      wishedYears: const [2026],
+    );
+    await pumpSearch(tester, birthdays: [hugo, lea, rose]);
+
+    expect(listedNames(tester), ['Rose', 'Léa', 'Hugo']);
+    expect(find.text('Souhaité'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.widgetWithText(AgendaTile, 'Rose Martin'),
+        matching: find.text('Souhaité'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('filters by category, then clears the filters', (tester) async {

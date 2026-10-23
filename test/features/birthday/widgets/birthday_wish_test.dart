@@ -177,6 +177,22 @@ void main() {
     );
   });
 
+  testWidgets('a dense wished pill fits a row, under a button height', (
+    tester,
+  ) async {
+    await tester.pumpHarness(
+      const Center(child: WishedPill(dense: true)),
+      overrides: [currentUidProvider.overrideWithValue('fake-uid')],
+    );
+
+    expect(find.text('Souhaité'), findsOneWidget);
+    expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+    expect(
+      tester.getSize(find.byType(WishedPill)).height,
+      lessThan(kMinInteractiveDimension),
+    );
+  });
+
   testWidgets('shows the wished pill at the height of a button', (
     tester,
   ) async {

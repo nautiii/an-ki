@@ -5,8 +5,10 @@ import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
+import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -348,6 +350,7 @@ class _DayBirthdaysSheet extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final locale = Localizations.localeOf(context).languageCode;
+    final isToday = DateUtils.isSameDay(date, today);
 
     return SafeArea(
       top: false,
@@ -404,6 +407,12 @@ class _DayBirthdaysSheet extends StatelessWidget {
                                     color: colorScheme.onSurfaceVariant,
                                   ),
                                 ),
+                              // Le jour J, le vœu fait se voit ici comme sur
+                              // le héros.
+                              if (isToday && birthday.isWished(today)) ...[
+                                const SizedBox(height: AppSpacing.xxs),
+                                const WishedPill(dense: true),
+                              ],
                             ],
                           ),
                         ),

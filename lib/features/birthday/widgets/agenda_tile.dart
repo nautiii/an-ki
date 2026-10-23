@@ -8,9 +8,11 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/domain/birthday_search.dart';
+import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
@@ -143,13 +145,23 @@ class _TileContent extends ConsumerWidget {
       ],
     );
     final countdown = _Countdown(days: days);
+    // Le jour J, le vœu fait se voit comme sur le héros, sous « Aujourd'hui » :
+    // moins large que lui, il ne prend rien à la place du nom.
+    final status = days == 0 && birthday.isWished(today)
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            spacing: AppSpacing.xxs,
+            children: [countdown, const WishedPill(dense: true)],
+          )
+        : countdown;
 
     // Grand texte : avatar et compte à rebours au-dessus, le texte en dessous.
     if (MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [avatar, const Spacer(), countdown]),
+          Row(children: [avatar, const Spacer(), status]),
           const SizedBox(height: AppSpacing.xs),
           identity,
         ],
@@ -161,7 +173,7 @@ class _TileContent extends ConsumerWidget {
         const SizedBox(width: AppSpacing.sm),
         Expanded(child: identity),
         const SizedBox(width: AppSpacing.xs),
-        countdown,
+        status,
       ],
     );
   }
