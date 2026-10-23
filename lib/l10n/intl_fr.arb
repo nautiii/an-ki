@@ -137,8 +137,9 @@
   "pseudo": "Pseudo",
   "pseudoUpdated": "Pseudo mis à jour avec succès !",
   "updatePseudo": "Mettre à jour le pseudo",
-  "birthdayDeleted": "Anniversaire de {name} supprimé",
+  "birthdayDeleted": "{name} n'est plus dans vos anniversaires",
   "@birthdayDeleted": {
+    "description": "Snackbar après une suppression, avec « Annuler » ; le nom en tête évite « de Achraf »",
     "placeholders": {
       "name": {
         "type": "String"
@@ -153,9 +154,9 @@
   "@wished": {
     "description": "Pastille du héros une fois l'anniversaire du jour souhaité"
   },
-  "birthdayWished": "Anniversaire de {name} souhaité",
+  "birthdayWished": "{name} a reçu vos vœux",
   "@birthdayWished": {
-    "description": "Snackbar après avoir souhaité un anniversaire, avec « Annuler »",
+    "description": "Snackbar après avoir souhaité un anniversaire, avec « Annuler » ; le nom en tête évite « de Achraf »",
     "placeholders": {
       "name": {
         "type": "String"

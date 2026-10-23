@@ -8,8 +8,8 @@ Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, ca
 scanner, settings, auth). Roadmap steps 1 (F2, F3, A1–A8), 2 (B1, Q1, Q2, A9) and 3 (B2)
 shipped on 2026-10-12, step 4 (B3, D7) and steps 5.1–5.2 (B5 welcome and contacts import, Q5)
 on 2026-10-18, steps 5.3 (B5 reminders in context, D19 for the J-0 notification) and 5.4 (B5
-guest backup) on 2026-10-19, small fixes D6, D20 and D21 on 2026-10-24: the items they fixed
-are gone from this list.
+guest backup) on 2026-10-19, small fixes D6, D19, D20 and D21 on 2026-10-24: the items they
+fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
@@ -19,7 +19,7 @@ auth or dependencies → design brief + maintainer approval first.
 - Big bets (B4, B6, B7; B5 shipped but its merge) — structural redesigns with the highest impact
 - Foundation (F1, F4, F5) — design system, prerequisite for consistency
 - P1 — friction & states (Q4, Q6, Q7, Q8)
-- P2 — polish (D1, D3, D4, D8–D19)
+- P2 — polish (D1, D3, D4, D8–D18)
 - Suggested roadmap
 
 ---
@@ -139,14 +139,11 @@ auth or dependencies → design brief + maintainer approval first.
   declared at initialization, before the texts are localized) → add a category once iOS builds.
 - **D18 Wished elsewhere**: only the hero shows « ✓ Souhaité »; the calendar day sheet and the
   search results list today's people without it.
-- **D19 Elision**: the snackbars « Anniversaire de {name} supprimé / souhaité » read « de
-  Achraf »; French needs « d'Achraf » before a vowel or mute h → rephrase with the name first,
-  as the J-0 notification now does (« Achraf fête son anniversaire aujourd'hui », step 5.3).
 
 ## Suggested roadmap
 
 1. **Q8** — the reminders-off card, B5's loose end (it shares the agenda's top); B5's 5.5 merge
    once guests with an existing Google account show up.
-2. **B4, B6, B7, F1, F4, F5, Q4, Q6, Q7, D1, D3, D4, D8–D19** — depth and polish (F1 any time
+2. **B4, B6, B7, F1, F4, F5, Q4, Q6, Q7, D1, D3, D4, D8–D18** — depth and polish (F1 any time
    once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.

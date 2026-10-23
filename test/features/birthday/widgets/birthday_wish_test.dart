@@ -80,7 +80,7 @@ void main() {
       ]);
       expect(repository.wished, [('lea', 2026)]);
       expect(haptics, ['HapticFeedbackType.lightImpact']);
-      expect(find.text('Anniversaire de Léa Martin souhaité'), findsOneWidget);
+      expect(find.text('Léa Martin a reçu vos vœux'), findsOneWidget);
     });
 
     testWidgets('changes nothing when the sheet is closed', (tester) async {
@@ -140,7 +140,7 @@ void main() {
 
     expect(repository.wished, [('lea', 2026)]);
     expect(haptics, ['HapticFeedbackType.lightImpact']);
-    expect(find.text('Anniversaire de Léa Martin souhaité'), findsOneWidget);
+    expect(find.text('Léa Martin a reçu vos vœux'), findsOneWidget);
 
     // La snackbar finit d'entrer avant qu'on touche « Annuler ».
     await tester.pumpAndSettle();

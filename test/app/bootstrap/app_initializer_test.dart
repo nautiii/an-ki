@@ -262,10 +262,7 @@ void main() {
         expect(find.byType(SettingsScreen), findsNothing);
         expect(find.byType(HomeScreen), findsOneWidget);
         expect(share.shared, [message]);
-        expect(
-          find.text('Anniversaire de Léa Martin souhaité'),
-          findsOneWidget,
-        );
+        expect(find.text('Léa Martin a reçu vos vœux'), findsOneWidget);
       });
     });
 

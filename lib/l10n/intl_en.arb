@@ -77,7 +77,7 @@
   "pseudo": "Nickname",
   "pseudoUpdated": "Nickname updated successfully!",
   "updatePseudo": "Update Nickname",
-  "birthdayDeleted": "{name}'s birthday deleted",
+  "birthdayDeleted": "{name} removed from your birthdays",
   "@birthdayDeleted": {
     "placeholders": {
       "name": {
@@ -87,7 +87,7 @@
   },
   "alreadyWished": "Already wished",
   "wished": "Wished",
-  "birthdayWished": "Wished {name} a happy birthday",
+  "birthdayWished": "{name} got your wishes",
   "wish": "Send wishes",
   "wishMessage": "Happy birthday {name}! 🎂 Have a wonderful day.",
   "errorSharing": "Couldn't open sharing. Please try again.",

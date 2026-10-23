@@ -512,10 +512,10 @@ abstract class AppLocalizations {
   /// **'Mettre à jour le pseudo'**
   String get updatePseudo;
 
-  /// No description provided for @birthdayDeleted.
+  /// Snackbar après une suppression, avec « Annuler » ; le nom en tête évite « de Achraf »
   ///
   /// In fr, this message translates to:
-  /// **'Anniversaire de {name} supprimé'**
+  /// **'{name} n\'est plus dans vos anniversaires'**
   String birthdayDeleted(String name);
 
   /// Bouton du héros le jour J : l'anniversaire a été souhaité hors d'AnKi (de vive voix, par téléphone)
@@ -530,10 +530,10 @@ abstract class AppLocalizations {
   /// **'Souhaité'**
   String get wished;
 
-  /// Snackbar après avoir souhaité un anniversaire, avec « Annuler »
+  /// Snackbar après avoir souhaité un anniversaire, avec « Annuler » ; le nom en tête évite « de Achraf »
   ///
   /// In fr, this message translates to:
-  /// **'Anniversaire de {name} souhaité'**
+  /// **'{name} a reçu vos vœux'**
   String birthdayWished(String name);
 
   /// Bouton du héros le jour J et de la notification : ouvre la feuille de partage avec un message prêt

@@ -357,7 +357,7 @@ void main() {
       // La feuille se ferme, sans boîte de dialogue ; rien n'est encore effacé.
       expect(find.byType(BirthdayFormSheet), findsNothing);
       expect(
-        find.text('Anniversaire de Alice Wonderland supprimé'),
+        find.text("Alice Wonderland n'est plus dans vos anniversaires"),
         findsOneWidget,
       );
       expect(repository.deleted, isEmpty);

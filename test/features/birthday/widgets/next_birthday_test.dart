@@ -163,10 +163,7 @@ void main() {
       await tester.pump();
 
       expect(repository.wished, [('1', 2026)]);
-      expect(
-        find.text('Anniversaire de Alice Wonderland souhaité'),
-        findsOneWidget,
-      );
+      expect(find.text('Alice Wonderland a reçu vos vœux'), findsOneWidget);
     });
   });
 

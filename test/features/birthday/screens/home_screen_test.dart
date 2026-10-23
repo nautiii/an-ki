@@ -450,7 +450,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Bob Builder'), findsNothing);
-      expect(find.text('Anniversaire de Bob Builder supprimé'), findsOneWidget);
+      expect(
+        find.text("Bob Builder n'est plus dans vos anniversaires"),
+        findsOneWidget,
+      );
       expect(repository.deleted, isEmpty);
 
       await tester.tap(find.text('Annuler'));
@@ -528,7 +531,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Anniversaire de Bob Builder supprimé'), findsOneWidget);
+      expect(
+        find.text("Bob Builder n'est plus dans vos anniversaires"),
+        findsOneWidget,
+      );
       await tester.pump(const Duration(seconds: 12));
       await tester.pumpAndSettle();
       expect(repository.deleted, ['listed']);

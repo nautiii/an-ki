@@ -258,7 +258,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String birthdayDeleted(String name) {
-    return '$name\'s birthday deleted';
+    return '$name removed from your birthdays';
   }
 
   @override
@@ -269,7 +269,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String birthdayWished(String name) {
-    return 'Wished $name a happy birthday';
+    return '$name got your wishes';
   }
 
   @override
