@@ -8,6 +8,7 @@ import 'package:an_ki/features/reminders/domain/reminder_offer.dart';
 import 'package:an_ki/features/reminders/domain/reminder_plan.dart';
 import 'package:an_ki/features/reminders/providers/next_birthday_reminder_provider.dart';
 import 'package:an_ki/features/reminders/providers/reminder_permission.dart';
+import 'package:an_ki/features/reminders/widgets/reminder_access_actions.dart';
 import 'package:an_ki/features/reminders/widgets/reminder_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -39,58 +40,19 @@ class ReminderOfferSheet extends ConsumerStatefulWidget {
   ConsumerState<ReminderOfferSheet> createState() => _ReminderOfferSheetState();
 }
 
-class _ReminderOfferSheetState extends ConsumerState<ReminderOfferSheet> {
-  late final AppLifecycleListener _lifecycle;
-
-  /// Vrai pendant un passage par les réglages ouverts d'ici.
-  bool _inSettings = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _lifecycle = AppLifecycleListener(onResume: _onResume);
-  }
-
-  @override
-  void dispose() {
-    _lifecycle.dispose();
-    super.dispose();
-  }
-
+class _ReminderOfferSheetState extends ConsumerState<ReminderOfferSheet>
+    with ReminderAccessActions {
+  /// Accordés, la feuille se ferme d'elle-même (voir [onRemindersGranted]) ;
+  /// bloqués, elle passe aux réglages, seule issue désormais.
   Future<void> _enable() async {
-    final access = await ref
-        .read(reminderPermissionProvider.notifier)
-        .request();
-    if (!mounted) return;
-    switch (access) {
-      case NotificationAccess.granted:
-        _closeEnabled();
-      case NotificationAccess.denied:
-        // « Ne pas autoriser » : la réponse est respectée, sans relance.
-        Navigator.pop(context);
-      case NotificationAccess.blocked:
-        // La feuille passe aux réglages, seule issue désormais.
-        break;
-    }
-  }
-
-  Future<void> _openSettings() async {
-    _inSettings = true;
-    await ref.read(reminderPermissionProvider.notifier).openSettings();
-  }
-
-  /// Retour dans l'app : l'autorisation a pu changer dans les réglages.
-  Future<void> _onResume() async {
-    final access = await ref
-        .read(reminderPermissionProvider.notifier)
-        .refresh();
-    if (!mounted) return;
-    if (_inSettings && access == NotificationAccess.granted) _closeEnabled();
-    _inSettings = false;
+    final access = await requestReminders();
+    // « Ne pas autoriser » : la réponse est respectée, sans relance.
+    if (mounted && access == NotificationAccess.denied) Navigator.pop(context);
   }
 
   /// Ferme la feuille et confirme : les rappels partiront.
-  void _closeEnabled() {
+  @override
+  void onRemindersGranted() {
     unawaited(HapticFeedback.lightImpact());
     final messenger = ScaffoldMessenger.of(context);
     final message = context.l10n.remindersEnabled;
@@ -146,7 +108,7 @@ class _ReminderOfferSheetState extends ConsumerState<ReminderOfferSheet> {
             onPressed: permission.isLoading
                 ? null
                 : blocked
-                ? _openSettings
+                ? openReminderSettings
                 : _enable,
             child: Text(blocked ? l10n.openAppSettings : l10n.enableReminders),
           ),

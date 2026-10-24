@@ -6,6 +6,7 @@ import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/reminders/domain/reminder_plan.dart';
 import 'package:an_ki/features/reminders/providers/reminder_permission.dart';
+import 'package:an_ki/features/reminders/widgets/reminder_access_actions.dart';
 import 'package:an_ki/features/reminders/widgets/reminder_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,16 +23,11 @@ class RemindersTile extends ConsumerStatefulWidget {
   ConsumerState<RemindersTile> createState() => _RemindersTileState();
 }
 
-class _RemindersTileState extends ConsumerState<RemindersTile> {
-  late final AppLifecycleListener _lifecycle;
-
-  /// Vrai pendant un passage par les réglages ouverts d'ici.
-  bool _inSettings = false;
-
+class _RemindersTileState extends ConsumerState<RemindersTile>
+    with ReminderAccessActions {
   @override
   void initState() {
     super.initState();
-    _lifecycle = AppLifecycleListener(onResume: _onResume);
     // L'autorisation a pu changer dans les réglages du téléphone depuis la
     // dernière lecture.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -42,34 +38,7 @@ class _RemindersTileState extends ConsumerState<RemindersTile> {
   }
 
   @override
-  void dispose() {
-    _lifecycle.dispose();
-    super.dispose();
-  }
-
-  Future<void> _enable() async {
-    final access = await ref
-        .read(reminderPermissionProvider.notifier)
-        .request();
-    if (mounted && access == NotificationAccess.granted) _confirm();
-  }
-
-  Future<void> _openSettings() async {
-    _inSettings = true;
-    await ref.read(reminderPermissionProvider.notifier).openSettings();
-  }
-
-  /// Retour dans l'app : l'autorisation a pu changer dans les réglages.
-  Future<void> _onResume() async {
-    final access = await ref
-        .read(reminderPermissionProvider.notifier)
-        .refresh();
-    if (!mounted) return;
-    if (_inSettings && access == NotificationAccess.granted) _confirm();
-    _inSettings = false;
-  }
-
-  void _confirm() {
+  void onRemindersGranted() {
     unawaited(HapticFeedback.lightImpact());
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(context.l10n.remindersEnabled)));
@@ -108,12 +77,12 @@ class _RemindersTileState extends ConsumerState<RemindersTile> {
         NotificationAccess.denied => _Off(
           status: l10n.remindersOff,
           action: l10n.enableReminders,
-          onAction: busy ? null : _enable,
+          onAction: busy ? null : requestReminders,
         ),
         NotificationAccess.blocked => _Off(
           status: l10n.remindersBlocked,
           action: l10n.openAppSettings,
-          onAction: busy ? null : _openSettings,
+          onAction: busy ? null : openReminderSettings,
         ),
       },
     );
