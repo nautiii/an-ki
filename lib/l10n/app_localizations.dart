@@ -1430,6 +1430,36 @@ abstract class AppLocalizations {
   /// **'Désactivés : AnKi ne peut pas vous prévenir.'**
   String get remindersOff;
 
+  /// Carte en haut de l'accueil : les notifications sont refusées ou bloquées sur ce téléphone
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels désactivés'**
+  String get remindersOffNotice;
+
+  /// Bouton de la carte « Rappels désactivés » : rouvre la boîte système
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer'**
+  String get remindersOffEnable;
+
+  /// Bouton de la carte quand les notifications sont bloquées : ouvre les réglages du téléphone
+  ///
+  /// In fr, this message translates to:
+  /// **'Réglages'**
+  String get remindersOffSettings;
+
+  /// Infobulle de la croix de la carte « Rappels désactivés »
+  ///
+  /// In fr, this message translates to:
+  /// **'Masquer'**
+  String get remindersOffHide;
+
+  /// Snackbar après avoir masqué la carte : où retrouver les rappels
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous pourrez toujours les activer dans les paramètres'**
+  String get remindersOffHidden;
+
   /// No description provided for @remindersBlocked.
   ///
   /// In fr, this message translates to:

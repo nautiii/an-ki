@@ -876,5 +876,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get remindersOff => 'Désactivés : AnKi ne peut pas vous prévenir.';
 
   @override
+  String get remindersOffNotice => 'Rappels désactivés';
+
+  @override
+  String get remindersOffEnable => 'Activer';
+
+  @override
+  String get remindersOffSettings => 'Réglages';
+
+  @override
+  String get remindersOffHide => 'Masquer';
+
+  @override
+  String get remindersOffHidden =>
+      'Vous pourrez toujours les activer dans les paramètres';
+
+  @override
   String get remindersBlocked => 'Bloqués dans les réglages du téléphone.';
 }

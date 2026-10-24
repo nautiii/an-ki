@@ -2,15 +2,19 @@ import 'dart:async';
 
 import 'package:an_ki/app/router/app_router.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
 import 'package:an_ki/features/auth/screens/signup_screen.dart';
 import 'package:an_ki/features/auth/screens/welcome_screen.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/screens/birthday_search_screen.dart';
 import 'package:an_ki/features/birthday/screens/contact_import_screen.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
+import 'package:an_ki/features/reminders/widgets/reminders_off_card.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -103,6 +107,38 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.byType(BookScannerScreen), findsOneWidget);
       });
+    });
+
+    testWidgets('the home says when reminders are off on this phone', (
+      tester,
+    ) async {
+      final notifications = SilentNotificationService(
+        access: NotificationAccess.denied,
+      );
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          birthdays: [
+            Birthday(
+              id: '1',
+              name: 'Léa',
+              surname: 'Martin',
+              date: BirthDate.fromDate(DateTime(1990, 3, 12)),
+            ),
+          ],
+          notifications: notifications,
+        );
+        await tester.settleApp();
+      });
+
+      expect(find.byType(RemindersOffCard), findsOneWidget);
+      expect(find.text('Rappels désactivés'), findsOneWidget);
+
+      await tester.tap(find.text('Activer'));
+      await tester.pumpAndSettle();
+
+      expect(notifications.requests, 1);
+      expect(find.text('Rappels désactivés'), findsNothing);
     });
 
     testWidgets('each sign-in path opens its screen', (tester) async {

@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/contacts_service.dart';
+import 'package:an_ki/core/services/device_settings.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
@@ -631,6 +632,27 @@ class FakeBiometricService extends Fake implements BiometricService {
   Future<void> clearBiometricData() async {
     token = null;
     userId = null;
+  }
+}
+
+/// Réglages de l'appareil en mémoire : la carte « Rappels désactivés »
+/// masquée ou non ([remindersOffDismissedValue]) ; [failure] fait échouer
+/// l'enregistrement. Relève les masquages.
+class FakeDeviceSettings extends Fake implements DeviceSettings {
+  FakeDeviceSettings({this.remindersOffDismissedValue = false, this.failure});
+
+  bool remindersOffDismissedValue;
+  final Exception? failure;
+  int dismissals = 0;
+
+  @override
+  Future<bool> remindersOffDismissed() async => remindersOffDismissedValue;
+
+  @override
+  Future<void> dismissRemindersOff() async {
+    dismissals++;
+    if (failure case final error?) throw error;
+    remindersOffDismissedValue = true;
   }
 }
 

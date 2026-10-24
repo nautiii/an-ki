@@ -13,6 +13,7 @@ import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_tile.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -173,6 +174,34 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Bonsoir'), findsOneWidget);
+  });
+
+  group('notice from another feature', () {
+    testWidgets('sits above the hero once someone is there', (tester) async {
+      await tester.pumpHarness(
+        const HomeScreen(notice: Text('Avis')),
+        overrides: overrides(birthdays: agenda),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Avis'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Avis')).dy,
+        lessThan(tester.getTopLeft(find.byType(NextBirthdayCard)).dy),
+      );
+    });
+
+    testWidgets('stays off the empty home', (tester) async {
+      await mockNetworkImages(() async {
+        await tester.pumpHarness(
+          const HomeScreen(notice: Text('Avis')),
+          overrides: overrides(birthdays: const []),
+        );
+        await tester.pumpAndSettle();
+      });
+
+      expect(find.text('Avis'), findsNothing);
+    });
   });
 
   group('guest backup', () {

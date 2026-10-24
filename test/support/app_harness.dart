@@ -4,6 +4,7 @@ import 'package:an_ki/app/app.dart';
 import 'package:an_ki/app/router/app_router.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/contacts_service.dart';
+import 'package:an_ki/core/services/device_settings.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
@@ -90,8 +91,8 @@ extension AppTesterExt on WidgetTester {
   /// L'app entière, routeur compris, sur un écran de la taille du harnais
   /// (800×1200) : la session de [auth], l'empreinte de [biometrics], des
   /// données factices (le carnet [birthdays], vide par défaut), des
-  /// notifications, un partage et un répertoire simulés ([notifications],
-  /// [share], [contacts]).
+  /// notifications, un partage, un répertoire et des réglages d'appareil
+  /// simulés ([notifications], [share], [contacts], [deviceSettings]).
   Future<void> pumpApp({
     required FakeAuthRepository auth,
     FakeBiometricService? biometrics,
@@ -99,6 +100,7 @@ extension AppTesterExt on WidgetTester {
     SilentNotificationService? notifications,
     FakeShareService? share,
     FakeContactsService? contacts,
+    FakeDeviceSettings? deviceSettings,
   }) {
     view.physicalSize = const Size(800, 1200);
     view.devicePixelRatio = 1.0;
@@ -118,6 +120,9 @@ extension AppTesterExt on WidgetTester {
           shareServiceProvider.overrideWithValue(share ?? FakeShareService()),
           contactsServiceProvider.overrideWithValue(
             contacts ?? FakeContactsService(),
+          ),
+          deviceSettingsProvider.overrideWithValue(
+            deviceSettings ?? FakeDeviceSettings(),
           ),
           userRepositoryProvider.overrideWithValue(
             RecordingUserRepository(stored: testProfile),

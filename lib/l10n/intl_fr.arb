@@ -619,5 +619,25 @@
     }
   },
   "remindersOff": "Désactivés\u202f: AnKi ne peut pas vous prévenir.",
+  "remindersOffNotice": "Rappels désactivés",
+  "@remindersOffNotice": {
+    "description": "Carte en haut de l'accueil : les notifications sont refusées ou bloquées sur ce téléphone"
+  },
+  "remindersOffEnable": "Activer",
+  "@remindersOffEnable": {
+    "description": "Bouton de la carte « Rappels désactivés » : rouvre la boîte système"
+  },
+  "remindersOffSettings": "Réglages",
+  "@remindersOffSettings": {
+    "description": "Bouton de la carte quand les notifications sont bloquées : ouvre les réglages du téléphone"
+  },
+  "remindersOffHide": "Masquer",
+  "@remindersOffHide": {
+    "description": "Infobulle de la croix de la carte « Rappels désactivés »"
+  },
+  "remindersOffHidden": "Vous pourrez toujours les activer dans les paramètres",
+  "@remindersOffHidden": {
+    "description": "Snackbar après avoir masqué la carte : où retrouver les rappels"
+  },
   "remindersBlocked": "Bloqués dans les réglages du téléphone."
 }

@@ -25,7 +25,13 @@ import 'package:go_router/go_router.dart';
 /// Une seule surface qui défile sous la barre d'app épinglée et sous la barre
 /// de navigation flottante, dont le padding du bas réserve la place.
 class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.notice});
+
+  /// Avis d'une autre feature au-dessus du héros, dès que l'agenda a des
+  /// anniversaires (les rappels désactivés) ; `app/router` le fournit, pour
+  /// que `birthday` n'importe pas `reminders`. Il dit lui-même s'il a
+  /// quelque chose à montrer, et porte l'écart qui le suit.
+  final Widget? notice;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -82,6 +88,7 @@ class HomeScreen extends ConsumerWidget {
               sliver: SliverToBoxAdapter(
                 child: Column(
                   children: [
+                    ?notice,
                     const NextBirthdayCard(),
                     const SizedBox(height: AppSpacing.md),
                     _ViewSwitch(view: view),

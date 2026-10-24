@@ -863,5 +863,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remindersOff => 'Off: AnKi can\'t remind you.';
 
   @override
+  String get remindersOffNotice => 'Reminders are off';
+
+  @override
+  String get remindersOffEnable => 'Turn on';
+
+  @override
+  String get remindersOffSettings => 'Settings';
+
+  @override
+  String get remindersOffHide => 'Hide';
+
+  @override
+  String get remindersOffHidden => 'You can still turn them on in Settings';
+
+  @override
   String get remindersBlocked => 'Blocked in your phone\'s settings.';
 }
