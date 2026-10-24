@@ -116,7 +116,7 @@
   "requiredField": "Champ obligatoire",
   "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
   "signOut": "Se déconnecter",
-  "signOutConfirmation": "Êtes-vous sûr de vouloir vous déconnecter ?",
+  "signOutConfirmation": "Êtes-vous sûr de vouloir vous déconnecter\u202f?",
   "errorSavingBirthday": "Erreur lors de l'enregistrement de l'anniversaire",
   "errorSavingCategory": "Erreur lors de l'enregistrement de la catégorie",
   "nextBirthday": "Prochain anniversaire",
@@ -148,7 +148,35 @@
   },
   "haveAccount": "Vous avez déjà un compte\u202f?",
   "settings": "Paramètres",
+  "settingsProfile": "Profil",
+  "@settingsProfile": {
+    "description": "Titre de bloc des réglages : le pseudo"
+  },
+  "settingsPreferences": "Préférences",
+  "@settingsPreferences": {
+    "description": "Titre de bloc des réglages : thème et langue"
+  },
+  "settingsBirthdays": "Anniversaires",
+  "@settingsBirthdays": {
+    "description": "Titre de bloc des réglages : rappels et import des contacts"
+  },
+  "settingsSecurity": "Sécurité",
+  "@settingsSecurity": {
+    "description": "Titre de bloc des réglages : connexion par empreinte"
+  },
+  "settingsAccount": "Compte",
+  "@settingsAccount": {
+    "description": "Titre de bloc des réglages : déconnexion et suppression du compte"
+  },
   "language": "Langue",
+  "languageFrench": "Français",
+  "@languageFrench": {
+    "description": "Nom de la langue, écrit dans cette langue quelle que soit celle de l'app"
+  },
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "Nom de la langue, écrit dans cette langue quelle que soit celle de l'app"
+  },
   "theme": "Thème",
   "themeSystem": "Système",
   "@themeSystem": {
@@ -163,8 +191,18 @@
     "description": "Thème des réglages : toujours sombre"
   },
   "pseudo": "Pseudo",
-  "pseudoUpdated": "Pseudo mis à jour avec succès !",
-  "updatePseudo": "Mettre à jour le pseudo",
+  "pseudoHelper": "Le nom qui vous salue sur l'accueil",
+  "@pseudoHelper": {
+    "description": "Sous le champ « Pseudo » des réglages : à quoi il sert"
+  },
+  "savePseudo": "Enregistrer le pseudo",
+  "@savePseudo": {
+    "description": "Infobulle de la coche du champ « Pseudo »"
+  },
+  "pseudoSaved": "Pseudo enregistré",
+  "@pseudoSaved": {
+    "description": "Snackbar après l'enregistrement du pseudo"
+  },
   "birthdayDeleted": "{name} n'est plus dans vos anniversaires",
   "@birthdayDeleted": {
     "description": "Snackbar après une suppression, avec « Annuler » ; le nom en tête évite « de Achraf »",
@@ -346,7 +384,7 @@
   "noBooksFound": "Aucun livre trouvé.",
   "deleteAccount": "Supprimer mon compte",
   "deleteAccountTitle": "Suppression du compte",
-  "deleteAccountConfirmation": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.",
+  "deleteAccountConfirmation": "Êtes-vous sûr de vouloir supprimer votre compte\u202f? Cette action est irréversible et supprimera toutes vos données.",
   "importContacts": "Importer les contacts",
   "contactImportTitle": "Vos contacts",
   "contactImportFound": "{count, plural, =1{1 anniversaire trouvé. Décochez-le si vous ne voulez pas le suivre.} other{{count} anniversaires trouvés. Décochez ceux que vous ne voulez pas suivre.}}",
@@ -416,9 +454,9 @@
   "biometricError": "Erreur lors de l'authentification biométrique",
   "biometricRevoked": "La connexion biométrique n'est plus valide. Reconnectez-vous pour continuer.",
   "attention": "Attention",
-  "signOutAnonymousWarning": "En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?",
+  "signOutAnonymousWarning": "En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer\u202f?",
   "saveMyData": "Sauvegarder mes données",
-  "dataSavedSuccess": "Compte sauvegardé avec succès !",
+  "dataSavedSuccess": "Compte sauvegardé",
   "deleteAndLeave": "Supprimer et quitter",
   "guestBackupTitle": "{count, plural, =1{Gardez votre anniversaire} other{Gardez vos {count} anniversaires}}",
   "@guestBackupTitle": {
@@ -449,8 +487,8 @@
       "count": { "type": "int" }
     }
   },
-  "biometricEnabled": "Connexion biométrique activée !",
-  "biometricDisabled": "Connexion biométrique désactivée.",
+  "biometricEnabled": "Connexion biométrique activée",
+  "biometricDisabled": "Connexion biométrique désactivée",
   "errorWeakPassword": "Le mot de passe est trop faible.",
   "errorEmailAlreadyInUse": "Cette adresse e\u2011mail a déjà un compte. Connectez-vous plutôt.",
   "errorInvalidEmail": "Cette adresse e\u2011mail n'est pas valide.",

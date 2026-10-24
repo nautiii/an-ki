@@ -195,7 +195,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get signOutConfirmation =>
-      'Êtes-vous sûr de vouloir vous déconnecter ?';
+      'Êtes-vous sûr de vouloir vous déconnecter ?';
 
   @override
   String get errorSavingBirthday =>
@@ -251,7 +251,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings => 'Paramètres';
 
   @override
+  String get settingsProfile => 'Profil';
+
+  @override
+  String get settingsPreferences => 'Préférences';
+
+  @override
+  String get settingsBirthdays => 'Anniversaires';
+
+  @override
+  String get settingsSecurity => 'Sécurité';
+
+  @override
+  String get settingsAccount => 'Compte';
+
+  @override
   String get language => 'Langue';
+
+  @override
+  String get languageFrench => 'Français';
+
+  @override
+  String get languageEnglish => 'English';
 
   @override
   String get theme => 'Thème';
@@ -269,10 +290,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pseudo => 'Pseudo';
 
   @override
-  String get pseudoUpdated => 'Pseudo mis à jour avec succès !';
+  String get pseudoHelper => 'Le nom qui vous salue sur l\'accueil';
 
   @override
-  String get updatePseudo => 'Mettre à jour le pseudo';
+  String get savePseudo => 'Enregistrer le pseudo';
+
+  @override
+  String get pseudoSaved => 'Pseudo enregistré';
 
   @override
   String birthdayDeleted(String name) {
@@ -442,7 +466,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get deleteAccountConfirmation =>
-      'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.';
+      'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.';
 
   @override
   String get importContacts => 'Importer les contacts';
@@ -615,13 +639,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get signOutAnonymousWarning =>
-      'En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?';
+      'En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?';
 
   @override
   String get saveMyData => 'Sauvegarder mes données';
 
   @override
-  String get dataSavedSuccess => 'Compte sauvegardé avec succès !';
+  String get dataSavedSuccess => 'Compte sauvegardé';
 
   @override
   String get deleteAndLeave => 'Supprimer et quitter';
@@ -681,10 +705,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get biometricEnabled => 'Connexion biométrique activée !';
+  String get biometricEnabled => 'Connexion biométrique activée';
 
   @override
-  String get biometricDisabled => 'Connexion biométrique désactivée.';
+  String get biometricDisabled => 'Connexion biométrique désactivée';
 
   @override
   String get errorWeakPassword => 'Le mot de passe est trop faible.';

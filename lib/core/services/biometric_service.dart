@@ -80,3 +80,9 @@ class BiometricService {
 final biometricServiceProvider = Provider<BiometricService>(
   (ref) => BiometricService.instance,
 );
+
+/// Empreinte utilisable sur ce téléphone. Relue par chaque écran qui la
+/// demande : un doigt a pu être enregistré entre-temps dans les réglages.
+final fingerprintAvailableProvider = FutureProvider.autoDispose<bool>(
+  (ref) => ref.watch(biometricServiceProvider).canUseFingerprint(),
+);

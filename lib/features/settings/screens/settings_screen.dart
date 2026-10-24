@@ -1,60 +1,142 @@
 import 'dart:async';
 
-import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
+import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/settings/widgets/preference_choices.dart';
-import 'package:an_ki/features/user/providers/locale_provider.dart';
+import 'package:an_ki/features/settings/widgets/pseudo_field.dart';
+import 'package:an_ki/features/settings/widgets/settings_section.dart';
 import 'package:an_ki/features/user/providers/user_profile_editor.dart';
-import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class SettingsScreen extends ConsumerStatefulWidget {
+/// Réglages en blocs : le profil, les préférences appliquées dès le toucher,
+/// les anniversaires (rappels, import), la sécurité quand l'appareil a une
+/// empreinte, puis le compte, la suppression en dernier.
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Échec d'une écriture optimiste du profil (pseudo, thème, langue).
+    ref.listen(userProfileEditorProvider, (_, next) {
+      if (next is AsyncError) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(context.l10n.errorUnknown)));
+      }
+    });
+    final l10n = context.l10n;
+    final hasFingerprint =
+        ref.watch(fingerprintAvailableProvider).value ?? false;
+    const gap = SizedBox(height: AppSpacing.lg);
+
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.settings)),
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.xs,
+            AppSpacing.md,
+            AppSpacing.xl,
+          ),
+          children: [
+            SettingsSection(
+              title: l10n.settingsProfile,
+              children: const [PseudoField()],
+            ),
+            gap,
+            SettingsSection(
+              title: l10n.settingsPreferences,
+              children: const [ThemeChoice(), LanguageChoice()],
+            ),
+            gap,
+            SettingsSection(
+              title: l10n.settingsBirthdays,
+              children: [
+                // L'état des rappels, et de quoi les rétablir s'ils sont coupés.
+                const RemindersTile(),
+                ListTile(
+                  leading: const Icon(Icons.contact_page_rounded),
+                  title: Text(l10n.importContacts),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  // L'aperçu de l'import, qui annonce lui-même ce qu'il ajoute.
+                  onTap: () => context.push(AppRoutes.contactImport),
+                ),
+              ],
+            ),
+            if (hasFingerprint) ...[
+              gap,
+              SettingsSection(
+                title: l10n.settingsSecurity,
+                children: const [_BiometricSwitch()],
+              ),
+            ],
+            gap,
+            SettingsSection(
+              title: l10n.settingsAccount,
+              children: const [_SignOutTile(), _DeleteAccountTile()],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  late TextEditingController _pseudoController;
-  bool _isBiometricAvailable = false;
+/// Connexion par empreinte : l'activer l'enregistre sur ce téléphone.
+class _BiometricSwitch extends ConsumerWidget {
+  const _BiometricSwitch();
 
   @override
-  void initState() {
-    super.initState();
-    final user = ref.read(userProfileProvider).value;
-    _pseudoController = TextEditingController(text: user?.pseudo);
-    _checkBiometrics();
-  }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final enabled = ref.watch(
+      biometricLockProvider.select((lock) => lock.value?.enabled ?? false),
+    );
 
-  Future<void> _checkBiometrics() async {
-    final available = await ref
-        .read(biometricServiceProvider)
-        .canUseFingerprint();
-    if (mounted) {
-      setState(() {
-        _isBiometricAvailable = available;
-      });
-    }
+    return SwitchListTile(
+      title: Text(l10n.biometricConnexion),
+      subtitle: Text(l10n.biometricConnexionDescription),
+      secondary: const Icon(Icons.fingerprint_rounded),
+      value: enabled,
+      onChanged: (value) async {
+        final controller = ref.read(authControllerProvider.notifier);
+        final done = value
+            ? await controller.enableBiometrics()
+            : await controller.disableBiometrics();
+        if (done && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                value ? l10n.biometricEnabled : l10n.biometricDisabled,
+              ),
+            ),
+          );
+        }
+      },
+    );
   }
+}
 
-  @override
-  void dispose() {
-    _pseudoController.dispose();
-    super.dispose();
-  }
+/// « Se déconnecter », confirmé par un dialogue. Un invité y apprend qu'il
+/// perdrait ses anniversaires, et peut d'abord les sauvegarder avec Google.
+class _SignOutTile extends ConsumerWidget {
+  const _SignOutTile();
 
-  Future<void> _handleSignOut(
-    BuildContext context, {
+  /// [isAnonymous] : un invité se voit proposer de sauvegarder ses données
+  /// avant de partir.
+  Future<void> _confirm(
+    BuildContext context,
+    WidgetRef ref, {
     required bool isAnonymous,
   }) async {
     await showDialog<void>(
@@ -89,7 +171,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   return;
                 }
                 // Refusée, la sauvegarde dit pourquoi ; annulée, rien.
-                if (!mounted || !context.mounted) return;
+                if (!context.mounted) return;
                 final error = ref.read(authControllerProvider).error;
                 if (error != null) {
                   messenger.showSnackBar(
@@ -123,7 +205,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               // Déconnexion : les données suivent la session et se vident
               // seules.
-
               await authController.signOut();
             },
             child: Text(
@@ -140,7 +221,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Future<void> _handleDeleteAccount(BuildContext context) async {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Écoutée ici, la session reste à jour pour les actions du compte.
+    final isAnonymous = ref.watch(isGuestProvider);
+
+    return ListTile(
+      leading: const Icon(Icons.logout_rounded),
+      title: Text(context.l10n.signOut),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: () => _confirm(context, ref, isAnonymous: isAnonymous),
+    );
+  }
+}
+
+/// « Supprimer mon compte », seule ligne à la couleur d'erreur : un dialogue
+/// nomme la conséquence avant d'effacer les données puis le compte.
+class _DeleteAccountTile extends ConsumerWidget {
+  const _DeleteAccountTile();
+
+  Future<void> _confirm(BuildContext context, WidgetRef ref) async {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -189,159 +289,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    // Échec d'une écriture optimiste du profil (pseudo, thème, langue).
-    ref.listen(userProfileEditorProvider, (_, next) {
-      if (next is AsyncError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text(context.l10n.errorUnknown),
-          ),
-        );
-      }
-    });
-    final colorScheme = Theme.of(context).colorScheme;
-    final currentLocale = ref.watch(localeProvider);
-    // Compte anonyme : on propose de sauvegarder ses données avant de partir.
-    final isAnonymous = ref.watch(
-      authUserProvider.select((user) => user.value?.isAnonymous ?? false),
-    );
-    final biometricsEnabled = ref.watch(
-      biometricLockProvider.select((lock) => lock.value?.enabled ?? false),
-    );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final error = Theme.of(context).colorScheme.error;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.settings)),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: AnKiTextField(
-              controller: _pseudoController,
-              label: context.l10n.pseudo,
-              prefixIcon: Icons.alternate_email_rounded,
-            ),
-          ),
-          const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed: () async {
-              final newPseudo = _pseudoController.text.trim();
-              if (newPseudo.isNotEmpty) {
-                // Écriture optimiste : un échec est signalé par l'écoute de
-                // l'éditeur de profil.
-                unawaited(
-                  ref
-                      .read(userProfileEditorProvider.notifier)
-                      .updatePseudo(newPseudo),
-                );
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    behavior: SnackBarBehavior.floating,
-                    content: Text(context.l10n.pseudoUpdated),
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            child: Text(context.l10n.updatePseudo),
-          ),
-          const SizedBox(height: 16),
-          const Divider(),
-          if (_isBiometricAvailable) ...[
-            SwitchListTile(
-              title: Text(context.l10n.biometricConnexion),
-              subtitle: Text(context.l10n.biometricConnexionDescription),
-              secondary: const Icon(Icons.fingerprint_rounded),
-              value: biometricsEnabled,
-              onChanged: (bool value) async {
-                final controller = ref.read(authControllerProvider.notifier);
-                final done = value
-                    ? await controller.enableBiometrics()
-                    : await controller.disableBiometrics();
-                if (done && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        value
-                            ? context.l10n.biometricEnabled
-                            : context.l10n.biometricDisabled,
-                      ),
-                    ),
-                  );
-                }
-              },
-            ),
-            const Divider(),
-          ],
-          // L'état des rappels, et de quoi les rétablir s'ils sont coupés.
-          const RemindersTile(),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.contact_page_rounded),
-            title: Text(context.l10n.importContacts),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            // L'aperçu de l'import, qui annonce lui-même ce qu'il ajoute.
-            onTap: () => context.push(AppRoutes.contactImport),
-          ),
-          const Divider(),
-          ListTile(
-            title: Text(context.l10n.language),
-            leading: const Icon(Icons.language_rounded),
-            trailing: DropdownButton<String>(
-              value: currentLocale.languageCode,
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  unawaited(
-                    ref
-                        .read(userProfileEditorProvider.notifier)
-                        .setLocale(newValue),
-                  );
-                }
-              },
-              items: const [
-                DropdownMenuItem(value: 'fr', child: Text('Français')),
-                DropdownMenuItem(value: 'en', child: Text('English')),
-              ],
-              underline: const SizedBox(),
-            ),
-          ),
-          const Divider(),
-          const ThemeChoice(),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout_rounded),
-            title: Text(context.l10n.signOut),
-            trailing: Icon(
-              Icons.chevron_right_rounded,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            onTap: () => _handleSignOut(context, isAnonymous: isAnonymous),
-          ),
-          const Divider(),
-          ListTile(
-            leading: Icon(
-              Icons.delete_forever_rounded,
-              color: colorScheme.error,
-            ),
-            title: Text(
-              context.l10n.deleteAccount,
-              style: TextStyle(color: colorScheme.error),
-            ),
-            trailing: Icon(
-              Icons.chevron_right_rounded,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            onTap: () => _handleDeleteAccount(context),
-          ),
-        ],
-      ),
+    return ListTile(
+      leading: Icon(Icons.delete_forever_rounded, color: error),
+      title: Text(context.l10n.deleteAccount, style: TextStyle(color: error)),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: () => _confirm(context, ref),
     );
   }
 }

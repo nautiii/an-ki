@@ -77,10 +77,57 @@ void main() {
     await tester.tap(find.byIcon(Icons.settings_rounded));
     await tester.pumpAndSettle();
 
-    expect(find.text('Mettre à jour le pseudo'), findsOneWidget);
+    expect(find.text('Paramètres'), findsOneWidget);
   });
 
-  testWidgets('updates the pseudo', (tester) async {
+  testWidgets('groups the settings in titled sections, account last', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpHarness(
+      const SettingsScreen(),
+      overrides: overridesWith(),
+    );
+    await tester.pumpAndSettle();
+
+    const titles = [
+      'Profil',
+      'Préférences',
+      'Anniversaires',
+      'Sécurité',
+      'Compte',
+    ];
+    for (final title in titles) {
+      expect(
+        tester.getSemantics(find.text(title)),
+        isSemantics(label: title, isHeader: true),
+      );
+    }
+    // Dans l'ordre de la page, la suppression du compte en dernier.
+    final tops = [
+      for (final text in [...titles, 'Supprimer mon compte'])
+        tester.getTopLeft(find.text(text)).dy,
+    ];
+    expect(tops, [...tops]..sort());
+    semantics.dispose();
+  });
+
+  testWidgets('hides the security section without a fingerprint', (
+    tester,
+  ) async {
+    // Le faux service n'a pas de capteur par défaut.
+    await tester.pumpHarness(
+      const SettingsScreen(),
+      overrides: overridesWith(biometrics: FakeBiometricService()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sécurité'), findsNothing);
+    expect(find.text('Connexion biométrique'), findsNothing);
+    expect(find.text('Compte'), findsOneWidget);
+  });
+
+  testWidgets('saves the pseudo in place', (tester) async {
     final users = RecordingUserRepository(stored: _profile);
     await tester.pumpHarness(
       const SettingsScreen(),
@@ -89,12 +136,31 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('OldPseudo'), findsOneWidget);
-    await tester.enterText(find.byType(TextFormField), 'NewPseudo');
-    await tester.tap(find.text('Mettre à jour le pseudo'));
+    await tester.enterText(find.byType(TextField), 'NewPseudo');
+    // La coche apparaît avec le changement.
+    await tester.pump();
+    await tester.tap(find.byTooltip('Enregistrer le pseudo'));
     await tester.pumpAndSettle();
 
     expect(users.stored?.pseudo, 'NewPseudo');
-    expect(find.text('Pseudo mis à jour avec succès !'), findsOneWidget);
+    expect(find.text('Pseudo enregistré'), findsOneWidget);
+  });
+
+  testWidgets('says when the profile could not be saved', (tester) async {
+    final users = RecordingUserRepository(
+      stored: _profile,
+      failure: Exception('permission-denied'),
+    );
+    await tester.pumpHarness(
+      const SettingsScreen(),
+      overrides: overridesWith(users: users),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sombre'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Une erreur est survenue.'), findsOneWidget);
   });
 
   testWidgets('toggles the biometric switch on and off', (tester) async {
@@ -110,14 +176,14 @@ void main() {
     await tester.tap(find.text('Connexion biométrique'));
     await tester.pumpAndSettle();
     expect(biometrics.token, isNotNull);
-    expect(find.text('Connexion biométrique activée !'), findsOneWidget);
+    expect(find.text('Connexion biométrique activée'), findsOneWidget);
 
     await tester.tap(find.text('Connexion biométrique'));
     await tester.pumpAndSettle();
     expect(biometrics.token, isNull);
   });
 
-  testWidgets('changes the language through the dropdown', (tester) async {
+  testWidgets('switches the language with one tap', (tester) async {
     final users = RecordingUserRepository(stored: _profile);
     await tester.pumpHarness(
       const SettingsScreen(),
@@ -125,9 +191,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Français'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('English').last);
+    await tester.tap(find.text('English'));
     await tester.pumpAndSettle();
 
     expect(users.stored?.locale, 'en');
@@ -203,7 +267,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+        find.text('Êtes-vous sûr de vouloir vous déconnecter\u202f?'),
         findsOneWidget,
       );
 
@@ -229,7 +293,7 @@ void main() {
       await tester.tap(find.text('Sauvegarder mes données'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Compte sauvegardé avec succès !'), findsOneWidget);
+      expect(find.text('Compte sauvegardé'), findsOneWidget);
     });
 
     testWidgets('says why the data could not be saved', (tester) async {
@@ -255,7 +319,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('Compte sauvegardé avec succès !'), findsNothing);
+      expect(find.text('Compte sauvegardé'), findsNothing);
     });
 
     testWidgets('an anonymous account can delete and leave', (tester) async {

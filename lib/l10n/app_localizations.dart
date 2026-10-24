@@ -389,7 +389,7 @@ abstract class AppLocalizations {
   /// No description provided for @signOutConfirmation.
   ///
   /// In fr, this message translates to:
-  /// **'Êtes-vous sûr de vouloir vous déconnecter ?'**
+  /// **'Êtes-vous sûr de vouloir vous déconnecter ?'**
   String get signOutConfirmation;
 
   /// No description provided for @errorSavingBirthday.
@@ -488,11 +488,53 @@ abstract class AppLocalizations {
   /// **'Paramètres'**
   String get settings;
 
+  /// Titre de bloc des réglages : le pseudo
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil'**
+  String get settingsProfile;
+
+  /// Titre de bloc des réglages : thème et langue
+  ///
+  /// In fr, this message translates to:
+  /// **'Préférences'**
+  String get settingsPreferences;
+
+  /// Titre de bloc des réglages : rappels et import des contacts
+  ///
+  /// In fr, this message translates to:
+  /// **'Anniversaires'**
+  String get settingsBirthdays;
+
+  /// Titre de bloc des réglages : connexion par empreinte
+  ///
+  /// In fr, this message translates to:
+  /// **'Sécurité'**
+  String get settingsSecurity;
+
+  /// Titre de bloc des réglages : déconnexion et suppression du compte
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte'**
+  String get settingsAccount;
+
   /// No description provided for @language.
   ///
   /// In fr, this message translates to:
   /// **'Langue'**
   String get language;
+
+  /// Nom de la langue, écrit dans cette langue quelle que soit celle de l'app
+  ///
+  /// In fr, this message translates to:
+  /// **'Français'**
+  String get languageFrench;
+
+  /// Nom de la langue, écrit dans cette langue quelle que soit celle de l'app
+  ///
+  /// In fr, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
 
   /// No description provided for @theme.
   ///
@@ -524,17 +566,23 @@ abstract class AppLocalizations {
   /// **'Pseudo'**
   String get pseudo;
 
-  /// No description provided for @pseudoUpdated.
+  /// Sous le champ « Pseudo » des réglages : à quoi il sert
   ///
   /// In fr, this message translates to:
-  /// **'Pseudo mis à jour avec succès !'**
-  String get pseudoUpdated;
+  /// **'Le nom qui vous salue sur l\'accueil'**
+  String get pseudoHelper;
 
-  /// No description provided for @updatePseudo.
+  /// Infobulle de la coche du champ « Pseudo »
   ///
   /// In fr, this message translates to:
-  /// **'Mettre à jour le pseudo'**
-  String get updatePseudo;
+  /// **'Enregistrer le pseudo'**
+  String get savePseudo;
+
+  /// Snackbar après l'enregistrement du pseudo
+  ///
+  /// In fr, this message translates to:
+  /// **'Pseudo enregistré'**
+  String get pseudoSaved;
 
   /// Snackbar après une suppression, avec « Annuler » ; le nom en tête évite « de Achraf »
   ///
@@ -803,7 +851,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteAccountConfirmation.
   ///
   /// In fr, this message translates to:
-  /// **'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.'**
+  /// **'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.'**
   String get deleteAccountConfirmation;
 
   /// No description provided for @importContacts.
@@ -1055,7 +1103,7 @@ abstract class AppLocalizations {
   /// No description provided for @signOutAnonymousWarning.
   ///
   /// In fr, this message translates to:
-  /// **'En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?'**
+  /// **'En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?'**
   String get signOutAnonymousWarning;
 
   /// No description provided for @saveMyData.
@@ -1067,7 +1115,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataSavedSuccess.
   ///
   /// In fr, this message translates to:
-  /// **'Compte sauvegardé avec succès !'**
+  /// **'Compte sauvegardé'**
   String get dataSavedSuccess;
 
   /// No description provided for @deleteAndLeave.
@@ -1121,13 +1169,13 @@ abstract class AppLocalizations {
   /// No description provided for @biometricEnabled.
   ///
   /// In fr, this message translates to:
-  /// **'Connexion biométrique activée !'**
+  /// **'Connexion biométrique activée'**
   String get biometricEnabled;
 
   /// No description provided for @biometricDisabled.
   ///
   /// In fr, this message translates to:
-  /// **'Connexion biométrique désactivée.'**
+  /// **'Connexion biométrique désactivée'**
   String get biometricDisabled;
 
   /// No description provided for @errorWeakPassword.

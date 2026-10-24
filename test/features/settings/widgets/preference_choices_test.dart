@@ -84,5 +84,74 @@ void main() {
       await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
     });
+
+    testWidgets('lays the segments side by side when the labels fit', (
+      tester,
+    ) async {
+      await tester.pumpHarness(
+        const ThemeChoice(),
+        overrides: overridesWith(RecordingUserRepository(stored: _profile)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<SegmentedButton<ThemePreference>>(
+              find.byType(SegmentedButton<ThemePreference>),
+            )
+            .direction,
+        Axis.horizontal,
+      );
+    });
+
+    testWidgets('stacks the segments rather than cut a label', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpHarness(
+        const Center(child: SizedBox(width: 320, child: ThemeChoice())),
+        overrides: overridesWith(RecordingUserRepository(stored: _profile)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<SegmentedButton<ThemePreference>>(
+              find.byType(SegmentedButton<ThemePreference>),
+            )
+            .direction,
+        Axis.vertical,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('LanguageChoice', () {
+    testWidgets('names each language in itself and writes the pick', (
+      tester,
+    ) async {
+      final users = RecordingUserRepository(stored: _profile);
+      await tester.pumpHarness(
+        const LanguageChoice(),
+        overrides: overridesWith(users),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Langue'), findsOneWidget);
+      expect(find.text('Français'), findsOneWidget);
+      expect(find.text('English'), findsOneWidget);
+      expect(
+        tester
+            .widget<SegmentedButton<String>>(
+              find.byType(SegmentedButton<String>),
+            )
+            .selected,
+        {'fr'},
+      );
+
+      await tester.tap(find.text('English'));
+      await tester.pumpAndSettle();
+
+      expect(users.stored?.locale, 'en');
+    });
   });
 }

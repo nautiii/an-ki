@@ -245,7 +245,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings => 'Settings';
 
   @override
+  String get settingsProfile => 'Profile';
+
+  @override
+  String get settingsPreferences => 'Preferences';
+
+  @override
+  String get settingsBirthdays => 'Birthdays';
+
+  @override
+  String get settingsSecurity => 'Security';
+
+  @override
+  String get settingsAccount => 'Account';
+
+  @override
   String get language => 'Language';
+
+  @override
+  String get languageFrench => 'Français';
+
+  @override
+  String get languageEnglish => 'English';
 
   @override
   String get theme => 'Theme';
@@ -263,10 +284,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pseudo => 'Nickname';
 
   @override
-  String get pseudoUpdated => 'Nickname updated successfully!';
+  String get pseudoHelper => 'The name AnKi greets you with';
 
   @override
-  String get updatePseudo => 'Update Nickname';
+  String get savePseudo => 'Save nickname';
+
+  @override
+  String get pseudoSaved => 'Nickname saved';
 
   @override
   String birthdayDeleted(String name) {
@@ -608,7 +632,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveMyData => 'Save my data';
 
   @override
-  String get dataSavedSuccess => 'Account saved successfully!';
+  String get dataSavedSuccess => 'Account saved';
 
   @override
   String get deleteAndLeave => 'Delete and leave';
@@ -669,10 +693,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get biometricEnabled => 'Biometric login enabled!';
+  String get biometricEnabled => 'Biometric login enabled';
 
   @override
-  String get biometricDisabled => 'Biometric login disabled.';
+  String get biometricDisabled => 'Biometric login disabled';
 
   @override
   String get errorWeakPassword => 'The password is too weak.';

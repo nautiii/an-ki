@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
+import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/features/user/providers/user_profile_editor.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -25,22 +27,10 @@ class ThemeChoice extends ConsumerWidget {
       icon: Icons.contrast_rounded,
       title: l10n.theme,
       selected: theme,
-      segments: [
-        ButtonSegment(
-          value: ThemePreference.system,
-          icon: const Icon(Icons.brightness_auto_rounded),
-          label: Text(l10n.themeSystem),
-        ),
-        ButtonSegment(
-          value: ThemePreference.light,
-          icon: const Icon(Icons.light_mode_rounded),
-          label: Text(l10n.themeLight),
-        ),
-        ButtonSegment(
-          value: ThemePreference.dark,
-          icon: const Icon(Icons.dark_mode_rounded),
-          label: Text(l10n.themeDark),
-        ),
+      options: [
+        (ThemePreference.system, l10n.themeSystem),
+        (ThemePreference.light, l10n.themeLight),
+        (ThemePreference.dark, l10n.themeDark),
       ],
       // Écriture optimiste : un échec est signalé par l'écran des réglages.
       onChanged: (theme) => unawaited(
@@ -50,44 +40,106 @@ class ThemeChoice extends ConsumerWidget {
   }
 }
 
+/// Langue de l'app, chacune écrite dans sa propre langue ; appliquée dès le
+/// toucher.
+class LanguageChoice extends ConsumerWidget {
+  const LanguageChoice({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+
+    return _ChoiceTile<String>(
+      icon: Icons.language_rounded,
+      title: l10n.language,
+      selected: ref.watch(localeProvider).languageCode,
+      options: [('fr', l10n.languageFrench), ('en', l10n.languageEnglish)],
+      onChanged: (languageCode) => unawaited(
+        ref.read(userProfileEditorProvider.notifier).setLocale(languageCode),
+      ),
+    );
+  }
+}
+
 /// Une préférence à quelques valeurs : son titre, puis les segments sur toute
-/// la largeur, pour tenir en grand texte.
+/// la largeur. Empilés quand un libellé ne tient plus sur une ligne (grand
+/// texte, petit écran), plutôt que coupés.
 class _ChoiceTile<T> extends StatelessWidget {
   const _ChoiceTile({
     required this.icon,
     required this.title,
     required this.selected,
-    required this.segments,
+    required this.options,
     required this.onChanged,
   });
 
   final IconData icon;
   final String title;
   final T selected;
-  final List<ButtonSegment<T>> segments;
+  final List<(T, String)> options;
   final ValueChanged<T> onChanged;
+
+  /// Vrai si chaque segment, d'une largeur égale, garde son libellé entier.
+  bool _fitsInRow(BuildContext context, double width) {
+    final style = Theme.of(context).textTheme.labelLarge;
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    var widest = 0.0;
+    for (final (_, label) in options) {
+      final painter = TextPainter(
+        text: TextSpan(text: label, style: style),
+        textScaler: scaler,
+        textDirection: direction,
+        maxLines: 1,
+      )..layout();
+      widest = math.max(widest, painter.width);
+      painter.dispose();
+    }
+    // Marges intérieures d'un segment et sa bordure, de chaque côté.
+    const chrome = 2 * (AppSpacing.sm + 1);
+    return (widest + chrome) * options.length <= width;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      // L'icône face au titre, pas au milieu des segments.
-      titleAlignment: ListTileTitleAlignment.titleHeight,
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: AppSpacing.xs),
-        child: SizedBox(
-          width: double.infinity,
-          child: SegmentedButton<T>(
-            showSelectedIcon: false,
-            segments: segments,
-            selected: {selected},
-            onSelectionChanged: (selection) {
-              unawaited(HapticFeedback.selectionClick());
-              onChanged(selection.single);
-            },
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: theme.colorScheme.onSurfaceVariant),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(child: Text(title, style: theme.textTheme.bodyLarge)),
+            ],
           ),
-        ),
+          const SizedBox(height: AppSpacing.sm),
+          LayoutBuilder(
+            builder: (context, constraints) => SegmentedButton<T>(
+              direction: _fitsInRow(context, constraints.maxWidth)
+                  ? Axis.horizontal
+                  : Axis.vertical,
+              showSelectedIcon: false,
+              segments: [
+                for (final (value, label) in options)
+                  ButtonSegment(value: value, label: Text(label)),
+              ],
+              selected: {selected},
+              onSelectionChanged: (selection) {
+                unawaited(HapticFeedback.selectionClick());
+                onChanged(selection.single);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
