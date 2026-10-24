@@ -1,0 +1,13 @@
+# Paquet jetable du skill `dead-code` : le skill le copie dans build/dead_code/
+# et l'y résout hors ligne. Jamais une dépendance de l'app ; `.claude/` est un
+# dossier caché que l'analyseur du dépôt ignore.
+name: dead_code_finder
+description: Lists AnKi declarations nobody uses, through resolved ASTs.
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  # Version déjà présente dans le cache pub (`dart pub get --offline`).
+  analyzer: 14.5.0
