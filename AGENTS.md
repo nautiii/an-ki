@@ -127,7 +127,7 @@ is in `.claude/skills/architecture/references/migration.md`.
 - **Category** (« catégorie ») — a label with an icon. Documents in the shared top-level
   `category` collection; each user picks theirs in `user/{uid}.categories`.
 - **User** — the profile document `user/{uid}`: name, surname, pseudo, categories, theme
-  (`isDark`), locale, biometric token.
+  (`themeMode`: system, light or dark; an older `isDark` still reads), locale, biometric token.
 - **Reminder** — local notifications on the day (J-0) and 7 days before (J-7), at 10:00 device time;
   the J-0 one carries « Souhaiter » (Android), which opens AnKi on the share sheet.
 - **Book** — scanned by ISBN and looked up on Google Books; the seed of the gift-ideas feature.

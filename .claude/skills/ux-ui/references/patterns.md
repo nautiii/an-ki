@@ -197,17 +197,22 @@ People come back when AnKi saves them from forgetting and makes them look though
 
 ## J. Settings
 
-Grouped sections with headers, instant apply, danger last (iOS Settings, recent Android settings
-with grouped rounded containers):
-1. **Profil** — avatar, pseudo (edit inline, save on submit with a check, no separate button).
-2. **Préférences** — Thème `SegmentedButton` Système / Clair / Sombre (default Système);
-   Langue `SegmentedButton` FR / EN (2 options don't deserve a dropdown).
-3. **Rappels** — today one row (`RemindersTile`): the state on this phone, and « Activer les
-   rappels » or « Ouvrir les réglages » when off; cadence and times come with B6.
-4. **Données** — Importer mes contacts, Exporter (future).
-5. **Sécurité** — Biométrie.
-6. **Zone sensible** (separated, error color only on the destructive row) — Se déconnecter,
-   Supprimer mon compte (dialog naming the consequence).
+Shipped on 2026-10-24 (`settings_screen.dart`, `features/settings/widgets/`): titled sections in
+rounded containers (`SettingsSection`, titles announced as headers), instant apply, the account
+last (iOS Settings, recent Android settings with grouped rounded containers):
+1. **Profil** — the pseudo edited in place (`PseudoField`): « OK » or the check saves it, no
+   separate button; emptied, it clears and the home greets by first name.
+2. **Préférences** — Thème Système / Clair / Sombre (default Système: `themeMode` in the profile,
+   an old `isDark` reads as Clair or Sombre) and Langue Français / English, each language named in
+   itself: `SegmentedButton`s without icons, stacked when a label no longer fits on one line
+   (200 % text, small screens) rather than cut.
+3. **Anniversaires** — Rappels (`RemindersTile`: the state on this phone, and « Activer les
+   rappels » or « Ouvrir les réglages » when off; cadence and times come with B6), Importer les
+   contacts; Exporter later.
+4. **Sécurité** — only when the phone has a fingerprint (`fingerprintAvailableProvider`, read
+   again at each visit): Connexion biométrique.
+5. **Compte** — Se déconnecter, Supprimer mon compte (the only row in the error color; a dialog
+   names the consequence).
 Every switch row is fully tappable (`SwitchListTile`), subtitles explain the effect.
 
 ## K. Gift ideas / scanner
