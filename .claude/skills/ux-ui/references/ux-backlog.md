@@ -11,8 +11,8 @@ on 2026-10-18, steps 5.3 (B5 reminders in context, D19 for the J-0 notification)
 guest backup) on 2026-10-19, small fixes D6, D19, D20 and D21, Q6 and D18, the e-mail sign-in
 and sign-up forms (D3, their part of F5, D11 and D1, their copy), the settings (Q4, F4, the
 rest of D1, their part of F5 and D11), the groups (B7, Q7, the rest of D11) and the
-reminders-off card (Q8), the forgotten password link (Q9) on 2026-10-24: the items they
-fixed are gone from this list.
+reminders-off card (Q8), the forgotten password link (Q9) and the auth messages (D23) on
+2026-10-24: the items they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
@@ -22,7 +22,7 @@ auth or dependencies → design brief + maintainer approval first.
 - Big bets (B4, B6; B5 shipped but its merge) — structural redesigns with the highest impact
 - Foundation (F1, F5, F6) — design system, prerequisite for consistency
 - P1 — friction & states (Q10, Q11)
-- P2 — polish (D4, D8–D10, D12–D17, D22, D23)
+- P2 — polish (D4, D8–D10, D12–D17, D22, D24)
 - Suggested roadmap
 
 ---
@@ -122,15 +122,15 @@ auth or dependencies → design brief + maintainer approval first.
   leaves a search row of the day about 90 dp, « Léa / Martin / 24 / octobre · / aura / 29 ans »
   on six lines (`agenda_tile.dart`, `search_all` snapshot, 2026-10-24) → stack the row on its
   available width (`LayoutBuilder`), not on the text scale alone.
-- **D23 Vague auth errors**: a failed e-mail sign-in or sign-up that Firebase doesn't name shows
-  « Erreur de connexion », « Erreur d'inscription » or « Une erreur est survenue. »
-  (`connectionError`, `registrationError`, `errorUnknown`), and `errorUserNotFound` reads
-  « Utilisateur non trouvé. » → what happened and what to do, like `errorNetwork` (« Pas de
-  connexion. Vérifiez votre réseau et réessayez. »).
+- **D24 Vague save error**: a birthday that fails to save reads « Erreur lors de
+  l'enregistrement de l'anniversaire » (`errorSavingBirthday`, home snackbar), the last
+  « Erreur lors de … » left (found with D23, 2026-10-24) → what happened and what to do,
+  like `errorSavingGroup` (« Impossible d'enregistrer le groupe. Vérifiez votre connexion et
+  réessayez. »).
 
 ## Suggested roadmap
 
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **B4, B6, F1, F5, F6, Q10, Q11, D4, D8–D10, D12–D17, D22, D23** — depth and polish (F1 any
+2. **B4, B6, F1, F5, F6, Q10, Q11, D4, D8–D10, D12–D17, D22, D24** — depth and polish (F1 any
    time once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
