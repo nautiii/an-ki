@@ -3,7 +3,6 @@ import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
-import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_tile.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
@@ -119,7 +118,8 @@ class _BirthdaySearchScreenState extends ConsumerState<BirthdaySearchScreen> {
   }
 }
 
-/// Filtres par groupe (tous requis).
+/// Filtres par groupe (tous requis), seulement quand ils départagent : à
+/// partir de deux groupes portés par les anniversaires (`groupFilters`).
 class _CategoryFilters extends ConsumerWidget {
   const _CategoryFilters({required this.selected});
 
@@ -127,7 +127,10 @@ class _CategoryFilters extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<BirthdayCategory> groups = ref.watch(userCategoriesProvider);
+    final List<BirthdayCategory> groups = ref.watch(groupFiltersProvider);
+    if (groups.isEmpty) {
+      return const SizedBox(height: AppSpacing.sm);
+    }
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,

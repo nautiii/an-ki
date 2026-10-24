@@ -1,3 +1,5 @@
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -49,6 +51,69 @@ void main() {
       const twin = BirthdayCategory(id: 'fam2', name: 'Family', icon: 2);
 
       expect(userGroups(shared: [family, twin]), [family]);
+    });
+  });
+
+  group('groupFilters', () {
+    Birthday tagged(String id, List<String> categories) => Birthday(
+      id: id,
+      name: 'P$id',
+      surname: '',
+      date: const BirthDate(month: 1, day: 1),
+      categories: categories,
+    );
+
+    test('offers the groups the birthdays use, from two', () {
+      expect(
+        groupFilters(
+          [family, friend, work, other],
+          [
+            tagged('1', ['fam']),
+            tagged('2', ['oth', 'fam']),
+            tagged('3', []),
+          ],
+        ),
+        [family, other],
+      );
+    });
+
+    test('offers nothing while a single group is used', () {
+      expect(
+        groupFilters(
+          [family, friend],
+          [
+            tagged('1', ['fam']),
+            tagged('2', ['fam']),
+          ],
+        ),
+        isEmpty,
+      );
+    });
+
+    test('keeps a chosen group, to let it be cleared', () {
+      expect(
+        groupFilters(
+          [family, friend],
+          [
+            tagged('1', ['fam']),
+          ],
+          selected: ['fam'],
+        ),
+        [family],
+      );
+    });
+
+    test('ignores a category the user does not have', () {
+      expect(
+        groupFilters(
+          [family],
+          [
+            tagged('1', ['fam']),
+            tagged('2', ['unknown']),
+          ],
+        ),
+        isEmpty,
+      );
     });
   });
 

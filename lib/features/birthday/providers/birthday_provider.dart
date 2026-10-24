@@ -3,8 +3,11 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/agenda.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
+import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:an_ki/features/birthday/domain/birthday_search.dart';
+import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Anniversaires de l'utilisateur courant, en temps réel ; liste vide hors
@@ -135,6 +138,16 @@ final birthdayCategoryFilterProvider =
     NotifierProvider.autoDispose<BirthdayCategoryFilterNotifier, List<String>>(
       BirthdayCategoryFilterNotifier.new,
     );
+
+/// Groupes proposés comme filtres de la recherche (`groupFilters`) : ceux que
+/// portent les anniversaires, à partir de deux, et ceux déjà choisis.
+final groupFiltersProvider = Provider.autoDispose<List<BirthdayCategory>>(
+  (ref) => groupFilters(
+    ref.watch(userCategoriesProvider),
+    ref.watch(birthdaysListProvider),
+    selected: ref.watch(birthdayCategoryFilterProvider),
+  ),
+);
 
 /// Résultats de l'écran de recherche : texte et catégories appliqués à tout le
 /// carnet (héros compris), du plus proche au plus lointain.

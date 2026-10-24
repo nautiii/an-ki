@@ -165,6 +165,15 @@ void main() {
     );
   });
 
+  testWidgets('shows no filter while a single group is used', (tester) async {
+    await pumpSearch(tester, birthdays: [lea, person('2', 'Hugo', 12)]);
+
+    expect(find.byType(FilterChip), findsNothing);
+    // Créer un groupe se fait dans la feuille d'anniversaire.
+    expect(find.text('Nouveau groupe'), findsNothing);
+    expect(listedNames(tester), ['Léa', 'Hugo']);
+  });
+
   testWidgets('meets tap target and label guidelines', (tester) async {
     final semantics = tester.ensureSemantics();
     await pumpSearch(tester);

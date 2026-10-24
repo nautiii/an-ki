@@ -1,3 +1,4 @@
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 
@@ -43,6 +44,25 @@ List<BirthdayCategory> userGroups({
     ...mine,
     ?defaults[_trailingDefault],
   ];
+}
+
+/// Groupes à proposer comme filtres de la recherche : parmi [groups], ceux
+/// que portent des anniversaires et ceux déjà choisis ([selected]), dans
+/// l'ordre de [groups]. Aucun tant qu'un seul groupe sert et que rien n'est
+/// choisi : filtrer ne départagerait personne.
+List<BirthdayCategory> groupFilters(
+  Iterable<BirthdayCategory> groups,
+  Iterable<Birthday> birthdays, {
+  Iterable<String> selected = const [],
+}) {
+  final used = {for (final birthday in birthdays) ...birthday.categories};
+  final chosen = selected.toSet();
+  final filters = [
+    for (final group in groups)
+      if (used.contains(group.id) || chosen.contains(group.id)) group,
+  ];
+  final usedCount = filters.where((group) => used.contains(group.id)).length;
+  return usedCount >= 2 || chosen.isNotEmpty ? filters : const [];
 }
 
 /// Teinte proposée pour un nouveau groupe : la première de [palette] qu'aucun
