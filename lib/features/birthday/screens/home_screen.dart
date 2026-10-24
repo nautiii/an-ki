@@ -43,9 +43,9 @@ class HomeScreen extends ConsumerWidget {
     });
     ref.listen(categoryEditorProvider, (_, next) {
       if (next is AsyncError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.errorSavingCategory)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.errorSavingGroup)));
       }
     });
     final isLoading = ref.watch(birthdaysLoadingProvider);

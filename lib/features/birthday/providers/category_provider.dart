@@ -1,29 +1,40 @@
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final categoriesProvider = StreamProvider<List<BirthdayCategory>>((ref) {
-  return ref.watch(categoryRepositoryProvider).watchCategories().map((
-    categories,
-  ) {
-    final sorted = List<BirthdayCategory>.from(categories);
-    sorted.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    return sorted;
-  });
+/// Catégories partagées : prédéfinies, et groupes créés avant qu'ils soient
+/// privés.
+final sharedCategoriesProvider = StreamProvider<List<BirthdayCategory>>(
+  (ref) => ref.watch(categoryRepositoryProvider).watchCategories(),
+);
+
+/// Groupes privés de l'utilisateur connecté ; aucun hors session.
+final ownCategoriesProvider = StreamProvider<List<BirthdayCategory>>((ref) {
+  final uid = ref.watch(currentUidProvider);
+  if (uid == null) return Stream.value(const []);
+  return ref.watch(categoryRepositoryProvider).watchOwnCategories(uid);
 });
 
-/// Provider pour les catégories sélectionnées par l'utilisateur
+/// Toutes les catégories que les anniversaires peuvent porter, partagées et
+/// privées ; vide tant qu'elles chargent.
+final categoriesProvider = Provider<List<BirthdayCategory>>(
+  (ref) => [
+    ...?ref.watch(sharedCategoriesProvider).value,
+    ...?ref.watch(ownCategoriesProvider).value,
+  ],
+);
+
+/// Groupes de l'utilisateur, dans l'ordre de leur ligne de puces : ceux
+/// proposés à tous, puis les siens (`userGroups`).
 final userCategoriesProvider = Provider<List<BirthdayCategory>>((ref) {
-  final allCategories = ref.watch(categoriesProvider).value ?? [];
   final user = ref.watch(userProfileProvider).value;
-  if (user == null) return [];
-
-  final filtered = allCategories
-      .where((cat) => user.categories.contains(cat.id))
-      .toList();
-
-  // On trie par nom technique (puisque le context n'est pas disponible ici pour le localisé)
-  return filtered
-    ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  if (user == null) return const [];
+  return userGroups(
+    shared: ref.watch(sharedCategoriesProvider).value ?? const [],
+    pickedIds: user.categories,
+    own: ref.watch(ownCategoriesProvider).value ?? const [],
+  );
 });

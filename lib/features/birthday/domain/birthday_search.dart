@@ -52,6 +52,10 @@ extension BirthdayNameMatch on Birthday {
   }
 }
 
+/// Forme de comparaison de [text] : sans espaces autour, en minuscules et
+/// sans accents, comme la recherche compare (« Léa » et « lea » se valent).
+String searchKey(String text) => _fold(text.trim()).text;
+
 /// Lettre ou chiffre : ce qui continue un mot.
 final _wordCharacter = RegExp(r'[\p{L}\p{N}]', unicode: true);
 

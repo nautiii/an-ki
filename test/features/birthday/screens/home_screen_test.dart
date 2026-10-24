@@ -13,7 +13,6 @@ import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_tile.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
-import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -68,6 +67,7 @@ void main() {
     required List<Birthday> birthdays,
     bool isLoading = false,
     DateTime? now,
+    RecordingCategoryRepository? categories,
   }) => [
     clockProvider.overrideWithValue(() => now ?? evening),
     currentUidProvider.overrideWithValue('fake-uid'),
@@ -80,7 +80,7 @@ void main() {
       isLoading ? const AsyncLoading() : AsyncData(birthdays),
     ),
     categoryRepositoryProvider.overrideWithValue(
-      RecordingCategoryRepository(const []),
+      categories ?? RecordingCategoryRepository(const []),
     ),
   ];
 
@@ -362,29 +362,33 @@ void main() {
     expect(find.text('Dans les 7 jours', skipOffstage: false), findsOneWidget);
   });
 
-  testWidgets('announces a failed category write', (tester) async {
+  testWidgets('announces a failed group write', (tester) async {
     await mockNetworkImages(() async {
       await tester.pumpHarness(
         const HomeScreen(),
-        overrides: [
-          ...overrides(birthdays: const []),
-          userRepositoryProvider.overrideWithValue(
-            RecordingUserRepository(failure: Exception('rules')),
+        overrides: overrides(
+          birthdays: const [],
+          categories: RecordingCategoryRepository(
+            const [],
+            failure: Exception('rules'),
           ),
-        ],
+        ),
       );
       await tester.pumpAndSettle();
       final container = ProviderScope.containerOf(
         tester.element(find.byType(HomeScreen)),
       );
 
-      await container.read(categoryEditorProvider.notifier).addToProfile([
-        'fri',
-      ]);
+      container
+          .read(categoryEditorProvider.notifier)
+          .create('Voisins', icon: 1, tone: 4);
       await tester.pumpAndSettle();
 
       expect(
-        find.text("Erreur lors de l'enregistrement de la catégorie"),
+        find.text(
+          "Impossible d'enregistrer le groupe. Vérifiez votre connexion et "
+          'réessayez.',
+        ),
         findsOneWidget,
       );
     });

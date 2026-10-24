@@ -133,19 +133,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get birthDateFuture => 'Cette date est dans le futur';
 
   @override
-  String get categories => 'Catégories';
+  String get groups => 'Groupes';
 
   @override
   String get family => 'Famille';
 
   @override
-  String get friend => 'Ami';
+  String get friend => 'Amis';
 
   @override
-  String get colleague => 'Collègue';
+  String get colleague => 'Travail';
 
   @override
-  String get other => 'Autre';
+  String get other => 'Autres';
 
   @override
   String get save => 'Enregistrer';
@@ -202,8 +202,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Erreur lors de l\'enregistrement de l\'anniversaire';
 
   @override
-  String get errorSavingCategory =>
-      'Erreur lors de l\'enregistrement de la catégorie';
+  String get errorSavingGroup =>
+      'Impossible d\'enregistrer le groupe. Vérifiez votre connexion et réessayez.';
 
   @override
   String get nextBirthday => 'Prochain anniversaire';
@@ -332,18 +332,46 @@ class AppLocalizationsFr extends AppLocalizations {
   String get delete => 'Supprimer';
 
   @override
-  String get newCategory => 'Nouvelle catégorie';
+  String get newGroup => 'Nouveau groupe';
 
   @override
-  String get categoryName => 'Nom de la catégorie';
+  String get groupName => 'Nom du groupe';
 
   @override
-  String get chooseIcon => 'Choisir une icône';
+  String get groupNameHint => 'Voisins, club de lecture…';
 
   @override
-  String iconOption(int number) {
-    return 'Icône $number';
-  }
+  String get groupNameTaken => 'Ce groupe existe déjà';
+
+  @override
+  String get createGroup => 'Créer';
+
+  @override
+  String get groupTone => 'Teinte';
+
+  @override
+  String get toneBlue => 'Bleu';
+
+  @override
+  String get toneGreen => 'Vert';
+
+  @override
+  String get toneOrange => 'Orange';
+
+  @override
+  String get toneViolet => 'Violet';
+
+  @override
+  String get toneCyan => 'Cyan';
+
+  @override
+  String get tonePink => 'Rose';
+
+  @override
+  String get toneAmber => 'Ambre';
+
+  @override
+  String get toneTeal => 'Sarcelle';
 
   @override
   String get tabBirthdays => 'Anniversaires';
@@ -566,19 +594,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get retry => 'Réessayer';
-
-  @override
-  String get suggestedCategories => 'Catégories suggérées';
-
-  @override
-  String get createCustomCategory => 'Ou créer une catégorie personnalisée';
-
-  @override
-  String get noMoreSuggestions => 'Aucune autre catégorie suggérée';
-
-  @override
-  String get selectOrCreateCategory =>
-      'Veuillez sélectionner ou créer une catégorie';
 
   @override
   String get sport => 'Sport';

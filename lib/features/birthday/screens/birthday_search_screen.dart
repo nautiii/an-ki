@@ -7,14 +7,13 @@ import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_tile.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
-import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// Recherche dans tout le carnet (héros compris) : par nom, filtrée par
-/// catégories. Sans résultat, propose de créer la personne cherchée.
+/// groupes. Sans résultat, propose de créer la personne cherchée.
 ///
 /// Le texte et les filtres vivent dans des providers `autoDispose` : ils
 /// repartent de zéro à chaque ouverture.
@@ -120,7 +119,7 @@ class _BirthdaySearchScreenState extends ConsumerState<BirthdaySearchScreen> {
   }
 }
 
-/// Filtres par catégorie (toutes requises), puis la création d'une catégorie.
+/// Filtres par groupe (tous requis).
 class _CategoryFilters extends ConsumerWidget {
   const _CategoryFilters({required this.selected});
 
@@ -128,7 +127,7 @@ class _CategoryFilters extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<BirthdayCategory> categories = ref.watch(userCategoriesProvider);
+    final List<BirthdayCategory> groups = ref.watch(userCategoriesProvider);
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -139,22 +138,17 @@ class _CategoryFilters extends ConsumerWidget {
       child: Row(
         spacing: AppSpacing.xs,
         children: [
-          for (final category in categories)
+          for (final group in groups)
             FilterChip(
-              label: Text(category.localizedName(context)),
-              selected: selected.contains(category.id),
+              label: Text(group.localizedName(context)),
+              selected: selected.contains(group.id),
               onSelected: (_) {
                 HapticFeedback.selectionClick();
                 ref
                     .read(birthdayCategoryFilterProvider.notifier)
-                    .toggle(category.id);
+                    .toggle(group.id);
               },
             ),
-          ActionChip(
-            avatar: const Icon(Icons.add_rounded),
-            label: Text(context.l10n.newCategory),
-            onPressed: () => CategoryFormSheet.show(context),
-          ),
         ],
       ),
     );

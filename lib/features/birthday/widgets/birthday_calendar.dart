@@ -36,7 +36,7 @@ class _BirthdayCalendarState extends ConsumerState<BirthdayCalendar> {
   @override
   Widget build(BuildContext context) {
     final birthdays = ref.watch(birthdaysListProvider);
-    final categories = ref.watch(categoriesProvider).value ?? const [];
+    final categories = ref.watch(categoriesProvider);
     final today = ref.watch(todayProvider);
 
     return Column(

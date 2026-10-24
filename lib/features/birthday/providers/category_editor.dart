@@ -3,49 +3,40 @@ import 'dart:async';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
-import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Catégories du profil (ViewModel des actions de la feuille des catégories)
-/// et état de la dernière écriture : `AsyncLoading`, puis `AsyncData` ou
-/// `AsyncError`.
+/// Création des groupes (ViewModel de la ligne de groupes de la feuille
+/// d'anniversaire) et état de la dernière écriture : `AsyncLoading`, puis
+/// `AsyncData` ou `AsyncError`.
 ///
-/// Écritures optimistes : la feuille se ferme sans attendre (Firestore
-/// applique tout au cache local, hors ligne compris) ; l'écran d'accueil
-/// écoute ce provider pour signaler un échec.
+/// Écriture optimiste : le groupe apparaît aussitôt (Firestore l'applique au
+/// cache local, hors ligne compris) ; l'écran d'accueil écoute ce provider
+/// pour signaler un échec.
 class CategoryEditor extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
 
-  /// Ajoute au profil des catégories existantes, sans doublon.
-  Future<void> addToProfile(List<String> categoryIds) => _write(
-    (uid) => ref.read(userRepositoryProvider).addCategories(uid, categoryIds),
-  );
-
-  /// Crée une catégorie et l'ajoute au profil. Son id est généré localement :
-  /// le profil la référence sans attendre le serveur.
-  Future<void> create(String name, int icon) => _write((uid) {
+  /// Crée un groupe privé et rend son id tout de suite : la feuille le coche
+  /// sans attendre le serveur. Hors session, rien n'est créé (null).
+  String? create(String name, {required int icon, required int tone}) {
+    final uid = ref.read(currentUidProvider);
+    if (uid == null) return null;
     final categories = ref.read(categoryRepositoryProvider);
-    final users = ref.read(userRepositoryProvider);
     final category = BirthdayCategory(
       id: categories.newCategoryId(),
-      name: name,
+      name: name.trim(),
       icon: icon,
+      tone: tone,
     );
-    return Future.wait([
-      categories.createCategory(category),
-      users.addCategories(uid, [category.id]),
-    ]);
-  });
+    unawaited(_write(() => categories.createCategory(uid, category)));
+    return category.id;
+  }
 
-  /// Exécute une écriture pour l'utilisateur courant et publie son issue.
-  /// Hors session, ne fait rien.
-  Future<void> _write(Future<void> Function(String uid) write) async {
-    final uid = ref.read(currentUidProvider);
-    if (uid == null) return;
+  /// Exécute une écriture et publie son issue.
+  Future<void> _write(Future<void> Function() write) async {
     state = const AsyncLoading();
-    final result = await AsyncValue.guard(() => write(uid));
-    // Le provider a pu être libéré pendant l'attente (écran fermé).
+    final result = await AsyncValue.guard(write);
+    // Le provider a pu être libéré pendant l'attente (feuille fermée).
     if (ref.mounted) state = result;
   }
 }

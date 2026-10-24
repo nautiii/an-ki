@@ -6,14 +6,11 @@ import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birth_date_input.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
-import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
-import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birth_date_field.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
-import 'package:an_ki/features/birthday/widgets/category_display.dart';
-import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/group_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,7 +18,7 @@ import 'package:image_picker/image_picker.dart';
 
 /// Feuille d'ajout ou de modification d'un anniversaire, faite pour la saisie
 /// express : un seul champ « Prénom et nom », la date tapée au clavier
-/// (l'année est facultative), les catégories sur une ligne.
+/// (l'année est facultative), les groupes sur une ligne.
 ///
 /// Une création tient en « + », le nom, « Suivant », quatre chiffres, « OK ».
 class BirthdayFormSheet extends ConsumerStatefulWidget {
@@ -238,7 +235,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    l10n.categories,
+                    l10n.groups,
                     style: textTheme.labelLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -247,8 +244,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                 ],
               ),
             ),
-            _CategoryRow(
-              categories: ref.watch(userCategoriesProvider),
+            GroupPicker(
               selectedIds: _categories,
               onToggle: _toggleCategory,
               padding: _gutter,
@@ -358,75 +354,6 @@ class _PhotoButton extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Catégories sur une ligne qui défile, « Nouvelle catégorie » au bout pour
-/// créer celle qui manque sans quitter la saisie.
-class _CategoryRow extends StatelessWidget {
-  const _CategoryRow({
-    required this.categories,
-    required this.selectedIds,
-    required this.onToggle,
-    required this.padding,
-  });
-
-  final List<BirthdayCategory> categories;
-  final List<String> selectedIds;
-  final ValueChanged<String> onToggle;
-  final EdgeInsetsGeometry padding;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: padding,
-      child: Row(
-        spacing: AppSpacing.xs,
-        children: [
-          for (final category in categories)
-            _CategoryChip(
-              category: category,
-              selected: selectedIds.contains(category.id),
-              onToggle: () => onToggle(category.id),
-            ),
-          ActionChip(
-            avatar: const Icon(Icons.add_rounded),
-            label: Text(context.l10n.newCategory),
-            onPressed: () => CategoryFormSheet.show(context),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Une catégorie à cocher : son icône à sa couleur, remplacée par la coche
-/// une fois choisie.
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({
-    required this.category,
-    required this.selected,
-    required this.onToggle,
-  });
-
-  final BirthdayCategory category;
-  final bool selected;
-  final VoidCallback onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    return FilterChip(
-      avatar: selected
-          ? null
-          : Icon(category.iconData, color: category.tones(context).color),
-      label: Text(category.localizedName(context)),
-      selected: selected,
-      onSelected: (_) {
-        HapticFeedback.selectionClick();
-        onToggle();
-      },
     );
   }
 }

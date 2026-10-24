@@ -10,7 +10,6 @@ import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/screens/birthday_search_screen.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_tile.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
-import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +22,7 @@ import '../../../support/test_harness.dart';
 void main() {
   final today = DateTime(2026, 10, 12);
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
+  const friend = BirthdayCategory(id: 'fri', name: 'friend', icon: 0xe1bf);
 
   Birthday person(String id, String name, int month, [List<String>? cats]) =>
       Birthday(
@@ -34,7 +34,7 @@ void main() {
       );
 
   final lea = person('1', 'Léa', 10, ['fam']);
-  final hugo = person('2', 'Hugo', 12);
+  final hugo = person('2', 'Hugo', 12, ['fri']);
 
   Future<void> pumpSearch(
     WidgetTester tester, {
@@ -61,7 +61,7 @@ void main() {
         ),
         birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
         categoryRepositoryProvider.overrideWithValue(
-          RecordingCategoryRepository([family]),
+          RecordingCategoryRepository([family, friend]),
         ),
       ],
     );
@@ -128,8 +128,9 @@ void main() {
     );
   });
 
-  testWidgets('filters by category, then clears the filters', (tester) async {
+  testWidgets('filters by group, then clears the filters', (tester) async {
     await pumpSearch(tester);
+    expect(find.byType(FilterChip), findsNWidgets(2));
 
     await tester.tap(find.widgetWithText(FilterChip, 'Famille'));
     await tester.pumpAndSettle();
@@ -162,15 +163,6 @@ void main() {
       ),
       findsOneWidget,
     );
-  });
-
-  testWidgets('creates a category from the filter row', (tester) async {
-    await pumpSearch(tester);
-
-    await tester.tap(find.widgetWithText(ActionChip, 'Nouvelle catégorie'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(CategoryFormSheet), findsOneWidget);
   });
 
   testWidgets('meets tap target and label guidelines', (tester) async {

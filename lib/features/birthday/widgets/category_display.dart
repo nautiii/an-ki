@@ -31,26 +31,42 @@ extension CategoryDisplay on BirthdayCategory {
     return name;
   }
 
-  /// Teinte des catégories prédéfinies ; neutre pour les catégories créées.
-  int get toneIndex => switch (name.toLowerCase()) {
-    'family' => 0,
-    'friend' => 1,
-    'colleague' => 2,
-    'sport' => 3,
-    'school' => 4,
-    'ogs' => 5,
-    'gaming' => 6,
-    'goat' => 7,
-    'doggo' => 8,
-    'internet' => 9,
-    'bff' => 10,
-    'celebrity' => 11,
-    'favorite' => 12,
-    'couple' => 13,
-    _ => LabelTones.neutral,
-  };
+  /// Teinte de la catégorie : celle choisie à la création, sinon celle d'une
+  /// catégorie prédéfinie (gris pour « Autres »), sinon une teinte tirée de
+  /// son id, stable : les anciens groupes ne se confondent plus.
+  int get toneIndex =>
+      tone ??
+      switch (name.toLowerCase()) {
+        'family' => 0,
+        'friend' => 1,
+        'colleague' => 2,
+        'sport' => 3,
+        'school' => 4,
+        'ogs' => 5,
+        'gaming' => 6,
+        'goat' => 7,
+        'doggo' => 8,
+        'internet' => 9,
+        'bff' => 10,
+        'celebrity' => 11,
+        'favorite' => 12,
+        'couple' => 13,
+        'other' => LabelTones.neutral,
+        _ => LabelTones.pickable[_stableHash(id) % LabelTones.pickable.length],
+      };
 
   /// Paire tonale (pastille, puce) de la catégorie pour le thème courant.
   TonalColors tones(BuildContext context) =>
       LabelTones.of(toneIndex, Theme.of(context).brightness);
+}
+
+/// Hachage FNV-1a de [text], identique d'un lancement à l'autre
+/// (contrairement à `String.hashCode`, que Dart ne garantit pas) et bien
+/// réparti même entre des ids proches.
+int _stableHash(String text) {
+  var hash = 0x811c9dc5;
+  for (final unit in text.codeUnits) {
+    hash = ((hash ^ unit) * 0x01000193) & 0xffffffff;
+  }
+  return hash;
 }

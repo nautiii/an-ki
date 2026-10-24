@@ -105,9 +105,7 @@ class _TileContent extends ConsumerWidget {
     final fullName = birthday.fullName;
     final picture = birthday.picture;
 
-    final categories = birthday.categoriesFrom(
-      ref.watch(categoriesProvider).value ?? const [],
-    );
+    final categories = birthday.categoriesFrom(ref.watch(categoriesProvider));
 
     // L'anneau est muet pour TalkBack : les catégories sont lues en clair.
     final avatar = Semantics(

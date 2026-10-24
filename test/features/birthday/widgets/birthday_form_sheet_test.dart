@@ -10,7 +10,6 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
-import 'package:an_ki/features/birthday/widgets/category_form_sheet.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -39,12 +38,15 @@ void main() {
     picture: picture,
   );
 
-  List<dynamic> overrides(RecordingBirthdayRepository repository) => [
+  List<dynamic> overrides(
+    RecordingBirthdayRepository repository, {
+    RecordingCategoryRepository? categories,
+  }) => [
     clockProvider.overrideWithValue(() => DateTime(2026, 10, 12, 9)),
     currentUidProvider.overrideWithValue('fake-uid'),
     birthdayRepositoryProvider.overrideWithValue(repository),
     categoryRepositoryProvider.overrideWithValue(
-      RecordingCategoryRepository([family, friend]),
+      categories ?? RecordingCategoryRepository([family, friend]),
     ),
     userProfileProvider.overrideWithValue(
       const AsyncData(
@@ -64,10 +66,11 @@ void main() {
     RecordingBirthdayRepository repository, {
     Birthday? toEdit,
     String? initialName,
+    RecordingCategoryRepository? categories,
   }) => mockNetworkImages(() async {
     await tester.pumpHarness(
       BirthdayFormSheet(birthdayToEdit: toEdit, initialName: initialName),
-      overrides: overrides(repository),
+      overrides: overrides(repository, categories: categories),
     );
     await tester.pumpAndSettle();
   });
@@ -249,14 +252,13 @@ void main() {
       expect(repository.created.single.surname, 'de la Tour');
     });
 
-    testWidgets('picks categories, the check replacing the icon', (
-      tester,
-    ) async {
+    testWidgets('picks groups, the check replacing the icon', (tester) async {
       final repository = RecordingBirthdayRepository();
       await pumpSheet(tester, repository);
       await tester.enterText(nameField, 'Léa');
       await tester.enterText(dateField, '1203');
 
+      expect(find.text('Groupes'), findsOneWidget);
       final familyChip = find.widgetWithText(FilterChip, 'Famille');
       expect(tester.widget<FilterChip>(familyChip).avatar, isNotNull);
 
@@ -265,8 +267,8 @@ void main() {
       expect(tester.widget<FilterChip>(familyChip).selected, isTrue);
       expect(tester.widget<FilterChip>(familyChip).avatar, isNull);
 
-      await tester.tap(find.widgetWithText(FilterChip, 'Ami'));
-      await tester.tap(find.widgetWithText(FilterChip, 'Ami'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Amis'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Amis'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Ajouter'));
@@ -274,15 +276,125 @@ void main() {
       expect(repository.created.single.categories, ['fam']);
     });
 
-    testWidgets('creates a missing category without leaving the form', (
-      tester,
-    ) async {
-      await pumpSheet(tester, RecordingBirthdayRepository());
+    group('a new group, created in place', () {
+      final newGroup = find.widgetWithText(ActionChip, 'Nouveau groupe');
+      final groupField = find.widgetWithText(TextField, 'Nom du groupe');
 
-      await tester.tap(find.widgetWithText(ActionChip, 'Nouvelle catégorie'));
-      await tester.pumpAndSettle();
+      bool createEnabled(WidgetTester tester) => tester
+          .widget<FilledButton>(
+            find.ancestor(
+              of: find.text('Créer'),
+              matching: find.byWidgetPredicate((w) => w is FilledButton),
+            ),
+          )
+          .enabled;
 
-      expect(find.byType(CategoryFormSheet), findsOneWidget);
+      testWidgets('arrives ticked on the person', (tester) async {
+        final repository = RecordingBirthdayRepository();
+        final categories = RecordingCategoryRepository([family, friend]);
+        await pumpSheet(tester, repository, categories: categories);
+        await tester.enterText(nameField, 'Léa');
+        await tester.enterText(dateField, '1203');
+
+        await tester.tap(newGroup);
+        await tester.pumpAndSettle();
+        expect(groupField, findsOneWidget);
+        // La saisie passe du nom de la personne à celui du groupe.
+        expect(hasFocus(tester, groupField), isTrue);
+        expect(createEnabled(tester), isFalse);
+
+        await tester.enterText(groupField, 'Voisins');
+        await tester.pump();
+        expect(createEnabled(tester), isTrue);
+        await tester.tap(find.text('Créer'));
+        await tester.pumpAndSettle();
+
+        expect(groupField, findsNothing);
+        final chip = find.widgetWithText(FilterChip, 'Voisins');
+        expect(tester.widget<FilterChip>(chip).selected, isTrue);
+        expect(categories.created.single.name, 'Voisins');
+        expect(categories.createdFor, ['fake-uid']);
+
+        await tester.tap(find.text('Ajouter'));
+        await tester.pumpAndSettle();
+        expect(repository.created.single.categories, ['new-cat-1']);
+      });
+
+      testWidgets('takes the first free tone, or the one picked', (
+        tester,
+      ) async {
+        final categories = RecordingCategoryRepository([family, friend]);
+        await pumpSheet(
+          tester,
+          RecordingBirthdayRepository(),
+          categories: categories,
+        );
+        await tester.tap(newGroup);
+        await tester.pumpAndSettle();
+
+        // Famille et Amis portent le bleu et le vert : l'orange suit.
+        expect(
+          tester.getSemantics(find.bySemanticsLabel('Orange')),
+          isSemantics(isChecked: true, isInMutuallyExclusiveGroup: true),
+        );
+
+        await tester.tap(find.bySemanticsLabel('Violet'));
+        await tester.enterText(groupField, 'Voisins');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+
+        expect(categories.created.single.tone, 4);
+      });
+
+      testWidgets('refuses a name already taken, accents aside', (
+        tester,
+      ) async {
+        final categories = RecordingCategoryRepository([family, friend]);
+        await pumpSheet(
+          tester,
+          RecordingBirthdayRepository(),
+          categories: categories,
+        );
+        await tester.tap(newGroup);
+        await tester.pumpAndSettle();
+
+        await tester.enterText(groupField, ' famillé ');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Ce groupe existe déjà'), findsOneWidget);
+        expect(createEnabled(tester), isFalse);
+        expect(categories.created, isEmpty);
+      });
+
+      testWidgets('cancel closes it without creating', (tester) async {
+        final categories = RecordingCategoryRepository([family, friend]);
+        await pumpSheet(
+          tester,
+          RecordingBirthdayRepository(),
+          categories: categories,
+        );
+        await tester.tap(newGroup);
+        await tester.pumpAndSettle();
+        await tester.enterText(groupField, 'Voisins');
+
+        await tester.tap(find.text('Annuler'));
+        await tester.pumpAndSettle();
+
+        expect(groupField, findsNothing);
+        expect(categories.created, isEmpty);
+      });
+
+      testWidgets('keeps labelled 48 dp targets', (tester) async {
+        final semantics = tester.ensureSemantics();
+        await pumpSheet(tester, RecordingBirthdayRepository());
+        await tester.tap(newGroup);
+        await tester.pumpAndSettle();
+
+        await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+        await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+        semantics.dispose();
+      });
     });
 
     testWidgets('close button is wired', (tester) async {

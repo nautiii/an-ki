@@ -71,11 +71,6 @@ class UserRepository {
     required String surname,
   }) => _users.doc(uid).update({'name': name, 'surname': surname});
 
-  /// Ajoute des catégories au profil sans doublon (union côté Firestore).
-  Future<void> addCategories(String uid, List<String> categoryIds) => _users
-      .doc(uid)
-      .update({'categories': FieldValue.arrayUnion(categoryIds)});
-
   Future<void> deleteUser(String uid) async {
     await _users.doc(uid).delete();
   }

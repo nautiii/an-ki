@@ -1,3 +1,4 @@
+import 'package:an_ki/core/extensions/firestore_extensions.dart';
 import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,26 +8,47 @@ final categoryRepositoryProvider = Provider<CategoryRepository>(
   (ref) => CategoryRepository(firestore: ref.watch(firestoreProvider)),
 );
 
-/// Catégories : collection Firestore `category`, partagée par tous les
-/// utilisateurs connectés (chacun choisit les siennes dans son profil).
+/// Catégories, présentées comme des groupes : la collection partagée
+/// `category` (prédéfinies, et groupes créés avant qu'ils soient privés),
+/// lue par tous les utilisateurs connectés ; les groupes créés désormais,
+/// privés, sous `user/{uid}/categories`.
 class CategoryRepository {
   CategoryRepository({required FirebaseFirestore firestore}) : _db = firestore;
 
   final FirebaseFirestore _db;
+
+  CollectionReference<Map<String, dynamic>> _own(String uid) =>
+      _db.collection('user').doc(uid).collection('categories');
 
   Stream<List<BirthdayCategory>> watchCategories() => _db
       .collection('category')
       .snapshots()
       .map((snapshot) => snapshot.docs.map(_categoryFromDoc).toList());
 
-  /// Id d'une nouvelle catégorie, généré localement : le profil peut la
+  /// Groupes privés de [uid], en temps réel.
+  Stream<List<BirthdayCategory>> watchOwnCategories(String uid) =>
+      _own(uid)
+          .snapshots()
+          .map((snapshot) => snapshot.docs.map(_categoryFromDoc).toList());
+
+  /// Id d'un nouveau groupe, généré localement : un anniversaire peut le
   /// référencer avant que le serveur ait répondu.
   String newCategoryId() => _db.collection('category').doc().id;
 
-  /// Crée [category] sous son id. Le Future se résout à l'accusé du serveur :
-  /// l'UI ne l'attend pas.
-  Future<void> createCategory(BirthdayCategory category) =>
-      _db.collection('category').doc(category.id).set(_categoryToMap(category));
+  /// Crée le groupe privé [category] de [uid] sous son id. Le Future se
+  /// résout à l'accusé du serveur : l'UI ne l'attend pas.
+  Future<void> createCategory(String uid, BirthdayCategory category) =>
+      _own(uid).doc(category.id).set(_categoryToMap(category));
+
+  /// Efface les groupes privés de [uid] (suppression du compte) : Firestore
+  /// ne supprime pas une sous-collection avec son document parent.
+  Future<void> deleteAllUserCategories(String uid) async {
+    final snapshot = await _own(uid).get();
+    await _db.writeInBatches(
+      snapshot.docs,
+      (batch, doc) => batch.delete(doc.reference),
+    );
+  }
 }
 
 /// Point de code de `Icons.category`, icône d'une catégorie qui n'en a pas.
@@ -40,10 +62,12 @@ BirthdayCategory _categoryFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     id: doc.id,
     name: data['name'] as String? ?? '',
     icon: data['icon'] as int? ?? _defaultIcon,
+    tone: data['tone'] as int?,
   );
 }
 
 Map<String, Object> _categoryToMap(BirthdayCategory category) => {
   'name': category.name,
   'icon': category.icon,
+  'tone': ?category.tone,
 };

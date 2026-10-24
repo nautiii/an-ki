@@ -251,16 +251,6 @@ void main() {
     });
   });
 
-  test('addCategories adds ids without duplicates', () async {
-    await repository.createUser(userWith(categories: ['fam']));
-
-    await repository.addCategories('user-1', ['fam', 'friend']);
-
-    final data = (await firestore.collection('user').doc('user-1').get())
-        .data()!;
-    expect(data['categories'], ['fam', 'friend']);
-  });
-
   test('deleteUser removes the document', () async {
     await repository.createUser(user);
 

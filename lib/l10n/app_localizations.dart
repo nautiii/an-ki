@@ -296,11 +296,11 @@ abstract class AppLocalizations {
   /// **'Cette date est dans le futur'**
   String get birthDateFuture;
 
-  /// No description provided for @categories.
+  /// Feuille d'anniversaire : titre de la ligne des groupes de la personne
   ///
   /// In fr, this message translates to:
-  /// **'Catégories'**
-  String get categories;
+  /// **'Groupes'**
+  String get groups;
 
   /// No description provided for @family.
   ///
@@ -311,19 +311,19 @@ abstract class AppLocalizations {
   /// No description provided for @friend.
   ///
   /// In fr, this message translates to:
-  /// **'Ami'**
+  /// **'Amis'**
   String get friend;
 
   /// No description provided for @colleague.
   ///
   /// In fr, this message translates to:
-  /// **'Collègue'**
+  /// **'Travail'**
   String get colleague;
 
   /// No description provided for @other.
   ///
   /// In fr, this message translates to:
-  /// **'Autre'**
+  /// **'Autres'**
   String get other;
 
   /// No description provided for @save.
@@ -398,11 +398,11 @@ abstract class AppLocalizations {
   /// **'Erreur lors de l\'enregistrement de l\'anniversaire'**
   String get errorSavingBirthday;
 
-  /// No description provided for @errorSavingCategory.
+  /// Snackbar de l'accueil : la création d'un groupe a échoué
   ///
   /// In fr, this message translates to:
-  /// **'Erreur lors de l\'enregistrement de la catégorie'**
-  String get errorSavingCategory;
+  /// **'Impossible d\'enregistrer le groupe. Vérifiez votre connexion et réessayez.'**
+  String get errorSavingGroup;
 
   /// No description provided for @nextBirthday.
   ///
@@ -638,29 +638,89 @@ abstract class AppLocalizations {
   /// **'Supprimer'**
   String get delete;
 
-  /// No description provided for @newCategory.
+  /// Puce au bout des groupes : ouvre la création d'un groupe sur place
   ///
   /// In fr, this message translates to:
-  /// **'Nouvelle catégorie'**
-  String get newCategory;
+  /// **'Nouveau groupe'**
+  String get newGroup;
 
-  /// No description provided for @categoryName.
+  /// Champ de la création d'un groupe
   ///
   /// In fr, this message translates to:
-  /// **'Nom de la catégorie'**
-  String get categoryName;
+  /// **'Nom du groupe'**
+  String get groupName;
 
-  /// No description provided for @chooseIcon.
+  /// Exemples dans le champ vide du nom d'un groupe
   ///
   /// In fr, this message translates to:
-  /// **'Choisir une icône'**
-  String get chooseIcon;
+  /// **'Voisins, club de lecture…'**
+  String get groupNameHint;
 
-  /// Nom lu par les lecteurs d'écran pour une icône de catégorie (numéro dans la grille)
+  /// Sous le nom d'un nouveau groupe : un groupe porte déjà ce nom
   ///
   /// In fr, this message translates to:
-  /// **'Icône {number}'**
-  String iconOption(int number);
+  /// **'Ce groupe existe déjà'**
+  String get groupNameTaken;
+
+  /// Bouton de la création d'un groupe
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer'**
+  String get createGroup;
+
+  /// Teinte d'un groupe, pour TalkBack quand elle n'a pas de nom
+  ///
+  /// In fr, this message translates to:
+  /// **'Teinte'**
+  String get groupTone;
+
+  /// Nom d'une teinte de groupe, lu par TalkBack
+  ///
+  /// In fr, this message translates to:
+  /// **'Bleu'**
+  String get toneBlue;
+
+  /// Nom d'une teinte de groupe, lu par TalkBack
+  ///
+  /// In fr, this message translates to:
+  /// **'Vert'**
+  String get toneGreen;
+
+  /// Nom d'une teinte de groupe, lu par TalkBack
+  ///
+  /// In fr, this message translates to:
+  /// **'Orange'**
+  String get toneOrange;
+
+  /// Nom d'une teinte de groupe, lu par TalkBack
+  ///
+  /// In fr, this message translates to:
+  /// **'Violet'**
+  String get toneViolet;
+
+  /// Nom d'une teinte de groupe, lu par TalkBack
+  ///
+  /// In fr, this message translates to:
+  /// **'Cyan'**
+  String get toneCyan;
+
+  /// Nom d'une teinte de groupe, lu par TalkBack
+  ///
+  /// In fr, this message translates to:
+  /// **'Rose'**
+  String get tonePink;
+
+  /// Nom d'une teinte de groupe, lu par TalkBack
+  ///
+  /// In fr, this message translates to:
+  /// **'Ambre'**
+  String get toneAmber;
+
+  /// Nom d'une teinte de groupe, lu par TalkBack
+  ///
+  /// In fr, this message translates to:
+  /// **'Sarcelle'**
+  String get toneTeal;
 
   /// Libellé de l'onglet des anniversaires (barre du bas)
   ///
@@ -967,30 +1027,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Réessayer'**
   String get retry;
-
-  /// No description provided for @suggestedCategories.
-  ///
-  /// In fr, this message translates to:
-  /// **'Catégories suggérées'**
-  String get suggestedCategories;
-
-  /// No description provided for @createCustomCategory.
-  ///
-  /// In fr, this message translates to:
-  /// **'Ou créer une catégorie personnalisée'**
-  String get createCustomCategory;
-
-  /// No description provided for @noMoreSuggestions.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aucune autre catégorie suggérée'**
-  String get noMoreSuggestions;
-
-  /// No description provided for @selectOrCreateCategory.
-  ///
-  /// In fr, this message translates to:
-  /// **'Veuillez sélectionner ou créer une catégorie'**
-  String get selectOrCreateCategory;
 
   /// No description provided for @sport.
   ///

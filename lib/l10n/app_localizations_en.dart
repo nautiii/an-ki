@@ -131,16 +131,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get birthDateFuture => 'This date is in the future';
 
   @override
-  String get categories => 'Categories';
+  String get groups => 'Groups';
 
   @override
   String get family => 'Family';
 
   @override
-  String get friend => 'Friend';
+  String get friend => 'Friends';
 
   @override
-  String get colleague => 'Colleague';
+  String get colleague => 'Work';
 
   @override
   String get other => 'Other';
@@ -198,7 +198,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorSavingBirthday => 'Error saving birthday';
 
   @override
-  String get errorSavingCategory => 'Error saving category';
+  String get errorSavingGroup =>
+      'Couldn\'t save the group. Check your connection and try again.';
 
   @override
   String get nextBirthday => 'Next birthday';
@@ -326,18 +327,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delete => 'Delete';
 
   @override
-  String get newCategory => 'New category';
+  String get newGroup => 'New group';
 
   @override
-  String get categoryName => 'Category\'s name';
+  String get groupName => 'Group name';
 
   @override
-  String get chooseIcon => 'Choose an icon';
+  String get groupNameHint => 'Neighbours, book club…';
 
   @override
-  String iconOption(int number) {
-    return 'Icon $number';
-  }
+  String get groupNameTaken => 'This group already exists';
+
+  @override
+  String get createGroup => 'Create';
+
+  @override
+  String get groupTone => 'Colour';
+
+  @override
+  String get toneBlue => 'Blue';
+
+  @override
+  String get toneGreen => 'Green';
+
+  @override
+  String get toneOrange => 'Orange';
+
+  @override
+  String get toneViolet => 'Violet';
+
+  @override
+  String get toneCyan => 'Cyan';
+
+  @override
+  String get tonePink => 'Pink';
+
+  @override
+  String get toneAmber => 'Amber';
+
+  @override
+  String get toneTeal => 'Teal';
 
   @override
   String get tabBirthdays => 'Birthdays';
@@ -556,18 +585,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retry => 'Try again';
-
-  @override
-  String get suggestedCategories => 'Suggested categories';
-
-  @override
-  String get createCustomCategory => 'Or create a custom category';
-
-  @override
-  String get noMoreSuggestions => 'No more suggested categories';
-
-  @override
-  String get selectOrCreateCategory => 'Please select or create a category';
 
   @override
   String get sport => 'Sport';

@@ -85,11 +85,14 @@
   "birthYearDigits": "L'année s'écrit avec 4 chiffres",
   "birthDateInvalid": "Cette date n'existe pas",
   "birthDateFuture": "Cette date est dans le futur",
-  "categories": "Catégories",
+  "groups": "Groupes",
+  "@groups": {
+    "description": "Feuille d'anniversaire : titre de la ligne des groupes de la personne"
+  },
   "family": "Famille",
-  "friend": "Ami",
-  "colleague": "Collègue",
-  "other": "Autre",
+  "friend": "Amis",
+  "colleague": "Travail",
+  "other": "Autres",
   "save": "Enregistrer",
   "cancel": "Annuler",
   "add": "Ajouter",
@@ -118,7 +121,10 @@
   "signOut": "Se déconnecter",
   "signOutConfirmation": "Êtes-vous sûr de vouloir vous déconnecter\u202f?",
   "errorSavingBirthday": "Erreur lors de l'enregistrement de l'anniversaire",
-  "errorSavingCategory": "Erreur lors de l'enregistrement de la catégorie",
+  "errorSavingGroup": "Impossible d'enregistrer le groupe. Vérifiez votre connexion et réessayez.",
+  "@errorSavingGroup": {
+    "description": "Snackbar de l'accueil : la création d'un groupe a échoué"
+  },
   "nextBirthday": "Prochain anniversaire",
   "today": "Aujourd'hui 🎉",
   "tomorrow": "Demain",
@@ -251,17 +257,61 @@
     "description": "Action de la snackbar qui rétablit un anniversaire supprimé"
   },
   "delete": "Supprimer",
-  "newCategory": "Nouvelle catégorie",
-  "categoryName": "Nom de la catégorie",
-  "chooseIcon": "Choisir une icône",
-  "iconOption": "Icône {number}",
-  "@iconOption": {
-    "description": "Nom lu par les lecteurs d'écran pour une icône de catégorie (numéro dans la grille)",
-    "placeholders": {
-      "number": {
-        "type": "int"
-      }
-    }
+  "newGroup": "Nouveau groupe",
+  "@newGroup": {
+    "description": "Puce au bout des groupes : ouvre la création d'un groupe sur place"
+  },
+  "groupName": "Nom du groupe",
+  "@groupName": {
+    "description": "Champ de la création d'un groupe"
+  },
+  "groupNameHint": "Voisins, club de lecture…",
+  "@groupNameHint": {
+    "description": "Exemples dans le champ vide du nom d'un groupe"
+  },
+  "groupNameTaken": "Ce groupe existe déjà",
+  "@groupNameTaken": {
+    "description": "Sous le nom d'un nouveau groupe : un groupe porte déjà ce nom"
+  },
+  "createGroup": "Créer",
+  "@createGroup": {
+    "description": "Bouton de la création d'un groupe"
+  },
+  "groupTone": "Teinte",
+  "@groupTone": {
+    "description": "Teinte d'un groupe, pour TalkBack quand elle n'a pas de nom"
+  },
+  "toneBlue": "Bleu",
+  "@toneBlue": {
+    "description": "Nom d'une teinte de groupe, lu par TalkBack"
+  },
+  "toneGreen": "Vert",
+  "@toneGreen": {
+    "description": "Nom d'une teinte de groupe, lu par TalkBack"
+  },
+  "toneOrange": "Orange",
+  "@toneOrange": {
+    "description": "Nom d'une teinte de groupe, lu par TalkBack"
+  },
+  "toneViolet": "Violet",
+  "@toneViolet": {
+    "description": "Nom d'une teinte de groupe, lu par TalkBack"
+  },
+  "toneCyan": "Cyan",
+  "@toneCyan": {
+    "description": "Nom d'une teinte de groupe, lu par TalkBack"
+  },
+  "tonePink": "Rose",
+  "@tonePink": {
+    "description": "Nom d'une teinte de groupe, lu par TalkBack"
+  },
+  "toneAmber": "Ambre",
+  "@toneAmber": {
+    "description": "Nom d'une teinte de groupe, lu par TalkBack"
+  },
+  "toneTeal": "Sarcelle",
+  "@toneTeal": {
+    "description": "Nom d'une teinte de groupe, lu par TalkBack"
   },
   "tabBirthdays": "Anniversaires",
   "@tabBirthdays": {
@@ -432,10 +482,6 @@
   "contactImportErrorTitle": "Impossible de lire vos contacts",
   "contactImportErrorMessage": "Réessayez dans un instant.",
   "retry": "Réessayer",
-  "suggestedCategories": "Catégories suggérées",
-  "createCustomCategory": "Ou créer une catégorie personnalisée",
-  "noMoreSuggestions": "Aucune autre catégorie suggérée",
-  "selectOrCreateCategory": "Veuillez sélectionner ou créer une catégorie",
   "sport": "Sport",
   "school": "École",
   "ogs": "OG's",

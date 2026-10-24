@@ -55,6 +55,13 @@ void main() {
     expect([helene].matching('hélène dupré'), [helene]);
   });
 
+  test('searchKey compares as the search does', () {
+    expect(searchKey('  Léa '), 'lea');
+    expect(searchKey('ŒUVRE'), 'oeuvre');
+    expect(searchKey('D’Amico'), "d'amico");
+    expect(searchKey('   '), isEmpty);
+  });
+
   group('nameMatch', () {
     test('finds the letters, ignoring case and accents', () {
       expect(lea.nameMatch('lea'), (start: 0, end: 3));

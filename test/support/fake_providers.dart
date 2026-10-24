@@ -55,9 +55,6 @@ class FakeUserRepository extends Fake implements UserRepository {
   }) async {}
 
   @override
-  Future<void> addCategories(String uid, List<String> categoryIds) async {}
-
-  @override
   Future<void> deleteUser(String uid) async {}
 }
 
@@ -70,13 +67,12 @@ UserProfile _merged(
   String? pseudo,
   ThemePreference? theme,
   String? locale,
-  List<String>? categories,
 }) => UserProfile(
   id: user.id,
   name: name ?? user.name,
   surname: surname ?? user.surname,
   pseudo: pseudo ?? user.pseudo,
-  categories: categories ?? user.categories,
+  categories: user.categories,
   theme: theme ?? user.theme,
   locale: locale ?? user.locale,
   biometricToken: user.biometricToken,
@@ -149,17 +145,6 @@ class RecordingUserRepository extends FakeUserRepository {
   }) async {
     _maybeFail();
     final user = _merged(_stored!, name: name, surname: surname);
-    updated.add(user);
-    _emit(user);
-  }
-
-  @override
-  Future<void> addCategories(String uid, List<String> categoryIds) async {
-    _maybeFail();
-    final user = _merged(
-      _stored!,
-      categories: {..._stored!.categories, ...categoryIds}.toList(),
-    );
     updated.add(user);
     _emit(user);
   }
@@ -294,24 +279,47 @@ class FakeCategoryRepository extends Fake implements CategoryRepository {
   @override
   Stream<List<BirthdayCategory>> watchCategories() => Stream.multi((_) {});
 
+  /// Ne publie jamais : les groupes privés restent en chargement.
+  @override
+  Stream<List<BirthdayCategory>> watchOwnCategories(String uid) =>
+      Stream.multi((_) {});
+
   @override
   String newCategoryId() => 'new-cat-id';
 
   @override
-  Future<void> createCategory(BirthdayCategory category) async {}
+  Future<void> createCategory(String uid, BirthdayCategory category) async {}
+
+  @override
+  Future<void> deleteAllUserCategories(String uid) async {}
 }
 
-/// Dépôt de catégories qui sert [categories] (ou [watchError]) et enregistre
-/// les créations, avec des ids locaux prévisibles (`new-cat-1`, `new-cat-2`…).
+/// Dépôt de catégories qui sert les partagées [categories] (ou [watchError])
+/// et les groupes privés [own], et enregistre les créations avec des ids
+/// locaux prévisibles (`new-cat-1`, `new-cat-2`…). [watchOwnCategories]
+/// reflète chaque création, comme le cache local de Firestore.
 class RecordingCategoryRepository extends Fake implements CategoryRepository {
-  RecordingCategoryRepository(this.categories, {this.watchError});
+  RecordingCategoryRepository(
+    this.categories, {
+    this.watchError,
+    List<BirthdayCategory> own = const [],
+    this.failure,
+  }) : _own = [...own];
 
   final List<BirthdayCategory> categories;
 
   /// Erreur émise par [watchCategories] à la place des catégories.
   final Exception? watchError;
 
+  /// Erreur levée par chaque écriture quand elle est définie.
+  final Exception? failure;
+
+  final List<BirthdayCategory> _own;
+  final _changes = StreamController<List<BirthdayCategory>>.broadcast();
+
   final created = <BirthdayCategory>[];
+  final createdFor = <String>[];
+  final erasedUids = <String>[];
   var _lastId = 0;
 
   @override
@@ -321,11 +329,37 @@ class RecordingCategoryRepository extends Fake implements CategoryRepository {
   };
 
   @override
+  Stream<List<BirthdayCategory>> watchOwnCategories(String uid) {
+    // Abonnement immédiat : aucune création n'est perdue entre deux émissions.
+    final controller = StreamController<List<BirthdayCategory>>();
+    final changes = _changes.stream.listen(controller.add);
+    controller
+      ..onCancel = () async {
+        await changes.cancel();
+        await controller.close();
+      }
+      ..add([..._own]);
+    return controller.stream;
+  }
+
+  @override
   String newCategoryId() => 'new-cat-${++_lastId}';
 
   @override
-  Future<void> createCategory(BirthdayCategory category) async =>
-      created.add(category);
+  Future<void> createCategory(String uid, BirthdayCategory category) async {
+    created.add(category);
+    createdFor.add(uid);
+    // Comme Firestore : le cache local montre le groupe avant l'accusé.
+    _own.add(category);
+    _changes.add([..._own]);
+    if (failure case final error?) throw error;
+  }
+
+  @override
+  Future<void> deleteAllUserCategories(String uid) async {
+    if (failure case final error?) throw error;
+    erasedUids.add(uid);
+  }
 }
 
 class FakeBookRepository extends Fake implements BookRepository {

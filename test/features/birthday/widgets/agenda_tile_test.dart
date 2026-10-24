@@ -210,7 +210,8 @@ void main() {
     expect(
       tester.getSemantics(find.text('Alice Wonderland')),
       isSemantics(
-        label: 'Ami, Famille\nAlice Wonderland\n24 octobre · aura 36 ans\nJ-12',
+        label:
+            'Amis, Famille\nAlice Wonderland\n24 octobre · aura 36 ans\nJ-12',
         isButton: true,
         hasTapAction: true,
         customActions: [const CustomSemanticsAction(label: 'Supprimer')],

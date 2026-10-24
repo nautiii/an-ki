@@ -7,8 +7,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/test_harness.dart';
 
-BirthdayCategory _category(String name, {int icon = 0}) =>
-    BirthdayCategory(id: '1', name: name, icon: icon);
+BirthdayCategory _category(
+  String name, {
+  int icon = 0,
+  String id = '1',
+  int? tone,
+}) => BirthdayCategory(id: id, name: name, icon: icon, tone: tone);
 
 void main() {
   test('iconData is the MaterialIcons glyph of the stored code point', () {
@@ -42,9 +46,31 @@ void main() {
     expect(_category('FRIEND').toneIndex, _category('friend').toneIndex);
   });
 
-  test('toneIndex falls back to the neutral tone', () {
-    expect(_category('unknown').toneIndex, LabelTones.neutral);
+  test('« Autres » keeps the neutral tone', () {
     expect(_category('other').toneIndex, LabelTones.neutral);
+  });
+
+  test('toneIndex takes the tone picked at creation first', () {
+    expect(_category('Voisins', tone: 9).toneIndex, 9);
+    expect(_category('family', tone: 5).toneIndex, 5);
+  });
+
+  test('an older group without tone gets a pickable one from its id', () {
+    final groups = [
+      for (final id in ['a1', 'b2', 'c3', 'd4', 'e5', 'f6'])
+        _category('Club', id: id),
+    ];
+
+    for (final group in groups) {
+      expect(LabelTones.pickable, contains(group.toneIndex));
+      // Stable : le même id donne toujours la même teinte.
+      expect(_category('Autre nom', id: group.id).toneIndex, group.toneIndex);
+    }
+    // Des ids différents ne se confondent pas tous.
+    expect(
+      {for (final group in groups) group.toneIndex}.length,
+      greaterThan(1),
+    );
   });
 
   testWidgets('tones follow the theme brightness', (tester) async {

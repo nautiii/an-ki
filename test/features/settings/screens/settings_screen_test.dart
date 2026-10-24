@@ -5,6 +5,7 @@ import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
@@ -57,6 +58,9 @@ void main() {
     ),
     birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
     bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
+    categoryRepositoryProvider.overrideWithValue(
+      RecordingCategoryRepository(const []),
+    ),
   ];
 
   testWidgets('Header opens the settings screen', (tester) async {

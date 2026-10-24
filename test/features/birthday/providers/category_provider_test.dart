@@ -14,67 +14,97 @@ const _user = UserProfile(
   id: 'u',
   name: 'A',
   surname: 'B',
-  categories: ['fam'],
+  categories: ['goat'],
   locale: 'fr',
 );
 
 void main() {
-  const family = BirthdayCategory(id: 'fam', name: 'Family', icon: 1);
-  const friend = BirthdayCategory(id: 'fri', name: 'Apple', icon: 2);
+  const family = BirthdayCategory(id: 'fam', name: 'family', icon: 1);
+  const other = BirthdayCategory(id: 'oth', name: 'other', icon: 2);
+  const goat = BirthdayCategory(id: 'goat', name: 'goat', icon: 3);
+  const sport = BirthdayCategory(id: 'spo', name: 'sport', icon: 4);
+  const book = BirthdayCategory(id: 'book', name: 'Club de lecture', icon: 5);
 
-  /// Conteneur avec la session `u` ; attend le premier profil (Riverpod 3 met
-  /// en pause un flux sans listener, d'où l'écoute).
+  /// Conteneur avec la session [uid] ; attend le profil et les catégories
+  /// (Riverpod 3 met en pause un flux sans listener, d'où l'écoute).
   Future<ProviderContainer> makeContainer({
     required RecordingCategoryRepository categories,
-    required RecordingUserRepository users,
+    RecordingUserRepository? users,
+    String? uid = 'u',
   }) async {
     final container = ProviderContainer.test(
       retry: (_, _) => null,
       overrides: [
         categoryRepositoryProvider.overrideWithValue(categories),
-        userRepositoryProvider.overrideWithValue(users),
-        currentUidProvider.overrideWithValue('u'),
+        userRepositoryProvider.overrideWithValue(
+          users ?? RecordingUserRepository(stored: _user),
+        ),
+        currentUidProvider.overrideWithValue(uid),
       ],
     );
-    container.listen(userProfileProvider, (_, _) {});
-    container.listen(categoriesProvider, (_, _) {});
+    container
+      ..listen(userProfileProvider, (_, _) {})
+      ..listen(categoriesProvider, (_, _) {})
+      ..listen(userCategoriesProvider, (_, _) {});
     await container.read(userProfileProvider.future);
-    await container.read(categoriesProvider.future);
+    await container.read(sharedCategoriesProvider.future);
+    await container.read(ownCategoriesProvider.future);
     return container;
   }
 
   group('categoriesProvider', () {
-    test('emits categories sorted alphabetically (case-insensitive)', () async {
+    test('holds the shared categories and the private groups', () async {
       final container = await makeContainer(
-        categories: RecordingCategoryRepository([family, friend]),
-        users: RecordingUserRepository(),
+        categories: RecordingCategoryRepository([family, goat], own: [book]),
       );
 
-      final result = container.read(categoriesProvider).value!;
+      expect(container.read(categoriesProvider), [family, goat, book]);
+    });
 
-      expect(result.map((c) => c.name), ['Apple', 'Family']);
+    test('holds no private group without a session', () async {
+      final container = await makeContainer(
+        categories: RecordingCategoryRepository([family], own: [book]),
+        uid: null,
+      );
+
+      expect(container.read(categoriesProvider), [family]);
     });
   });
 
   group('userCategoriesProvider', () {
     test('is empty when there is no profile', () async {
       final container = await makeContainer(
-        categories: RecordingCategoryRepository([family, friend]),
+        categories: RecordingCategoryRepository([family, other]),
         users: RecordingUserRepository(),
       );
 
       expect(container.read(userCategoriesProvider), isEmpty);
     });
 
-    test('keeps only the categories selected by the user', () async {
+    test('offers the defaults, then the picked and private groups', () async {
       final container = await makeContainer(
-        categories: RecordingCategoryRepository([family, friend]),
-        users: RecordingUserRepository(stored: _user),
+        categories: RecordingCategoryRepository(
+          [family, other, goat, sport],
+          own: [book],
+        ),
       );
 
-      final result = container.read(userCategoriesProvider);
+      expect(container.read(userCategoriesProvider), [
+        family,
+        book,
+        goat,
+        other,
+      ]);
+    });
 
-      expect(result.map((c) => c.id), ['fam']);
+    test('shows a group as soon as it is created', () async {
+      final categories = RecordingCategoryRepository([family]);
+      final container = await makeContainer(categories: categories);
+
+      await categories.createCategory('u', book);
+      await pumpEventQueue();
+
+      expect(container.read(userCategoriesProvider), [family, book]);
     });
   });
 }

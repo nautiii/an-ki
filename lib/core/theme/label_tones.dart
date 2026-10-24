@@ -27,8 +27,12 @@ abstract final class LabelTones {
     Color(0xFF9E9E9E), // gris
   ];
 
-  /// Teinte des étiquettes sans couleur attitrée (catégories créées).
+  /// Teinte des étiquettes sans couleur attitrée.
   static const int neutral = 14;
+
+  /// Teintes proposées pour un nouveau groupe : des couleurs bien distinctes,
+  /// sans le rouge (lu comme une erreur), le jaune, le brun ni le gris.
+  static const List<int> pickable = [0, 1, 2, 4, 5, 10, 7, 9];
 
   /// Paire tonale de la graine [index] (modulo) pour [brightness].
   static TonalColors of(int index, Brightness brightness) =>
