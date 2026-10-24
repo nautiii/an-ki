@@ -32,7 +32,6 @@ const _profile = UserProfile(
   id: 'fake-uid',
   name: 'Camille',
   surname: 'Durand',
-  isDark: false,
   locale: 'fr',
 );
 

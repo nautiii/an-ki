@@ -28,7 +28,6 @@ void main() {
       name: 'A',
       surname: 'B',
       categories: userCategories,
-      isDark: false,
       locale: 'fr',
     );
     categories = RecordingCategoryRepository(all);

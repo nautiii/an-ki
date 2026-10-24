@@ -69,7 +69,6 @@ void main() {
               id: 'fake-uid',
               name: 'Camille',
               surname: 'Durand',
-              isDark: false,
               locale: 'fr',
             ),
           ),

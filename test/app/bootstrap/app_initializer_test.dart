@@ -39,7 +39,6 @@ const _profile = UserProfile(
   id: 'u1',
   name: 'Camille',
   surname: 'Durand',
-  isDark: false,
   locale: 'fr',
 );
 
@@ -150,7 +149,6 @@ void main() {
       name: name,
       surname: '',
       pseudo: 'Cam',
-      isDark: false,
       locale: 'fr',
     );
 
@@ -182,7 +180,6 @@ void main() {
           name: 'Camille',
           surname: 'Martin',
           pseudo: 'Cam',
-          isDark: false,
           locale: 'fr',
         ),
       );

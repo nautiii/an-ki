@@ -51,11 +51,15 @@ class UserRepository {
   Future<void> updatePreferences(
     String uid, {
     String? pseudo,
-    bool? isDark,
+    ThemePreference? theme,
     String? locale,
   }) => _users.doc(uid).update({
     'pseudo': ?pseudo,
-    'isDark': ?isDark,
+    if (theme != null) ...{
+      'themeMode': theme.name,
+      // L'ancien booléen cède sa place : le document prend sa nouvelle forme.
+      'isDark': FieldValue.delete(),
+    },
     'locale': ?locale,
   });
 
@@ -93,10 +97,25 @@ UserProfile _userFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     categories: List<String>.from(
       data['categories'] as List<dynamic>? ?? const [],
     ),
-    isDark: data['isDark'] as bool? ?? false,
+    theme: _themeFrom(data),
     locale: data['locale'] as String? ?? 'fr',
     biometricToken: data['biometricToken'] as String?,
   );
+}
+
+/// Thème du document : `themeMode`, sinon l'ancien `isDark`, gardé comme un
+/// choix clair ou sombre, sinon celui du téléphone.
+ThemePreference _themeFrom(Map<String, dynamic> data) {
+  if (data['themeMode'] case final String mode) {
+    if (ThemePreference.values.asNameMap()[mode] case final theme?) {
+      return theme;
+    }
+  }
+  return switch (data['isDark']) {
+    true => ThemePreference.dark,
+    false => ThemePreference.light,
+    _ => ThemePreference.system,
+  };
 }
 
 Map<String, Object> _userToMap(UserProfile user) => {
@@ -104,7 +123,7 @@ Map<String, Object> _userToMap(UserProfile user) => {
   'surname': user.surname,
   'pseudo': ?user.pseudo,
   'categories': user.categories,
-  'isDark': user.isDark,
+  'themeMode': user.theme.name,
   'locale': user.locale,
   'biometricToken': ?user.biometricToken,
 };

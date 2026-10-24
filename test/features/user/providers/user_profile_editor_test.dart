@@ -12,7 +12,6 @@ const _user = UserProfile(
   id: 'user-1',
   name: 'Quentin',
   surname: 'Maillard',
-  isDark: false,
   locale: 'fr',
 );
 
@@ -37,11 +36,11 @@ void main() {
     final editor = container.read(userProfileEditorProvider.notifier);
 
     await editor.updatePseudo('Q');
-    await editor.setDarkMode(true);
+    await editor.setTheme(ThemePreference.dark);
     await editor.setLocale('en');
 
     expect(repo.stored?.pseudo, 'Q');
-    expect(repo.stored?.isDark, isTrue);
+    expect(repo.stored?.theme, ThemePreference.dark);
     expect(repo.stored?.locale, 'en');
     expect(container.read(userProfileEditorProvider), isA<AsyncData<void>>());
   });
@@ -62,7 +61,9 @@ void main() {
     );
     final container = await makeContainer(repo);
 
-    await container.read(userProfileEditorProvider.notifier).setDarkMode(true);
+    await container
+        .read(userProfileEditorProvider.notifier)
+        .setTheme(ThemePreference.light);
 
     expect(container.read(userProfileEditorProvider).hasError, isTrue);
   });

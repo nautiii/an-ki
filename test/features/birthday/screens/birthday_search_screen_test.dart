@@ -52,7 +52,6 @@ void main() {
               name: 'A',
               surname: 'B',
               categories: ['fam'],
-              isDark: false,
               locale: 'fr',
             ),
           ),

@@ -16,7 +16,6 @@ void main() {
     id: 'user-1',
     name: 'Quentin',
     surname: 'Maillard',
-    isDark: false,
     locale: 'fr',
     biometricToken: 'token-abc',
   );
@@ -32,7 +31,6 @@ void main() {
     surname: 'Maillard',
     pseudo: pseudo,
     categories: categories,
-    isDark: false,
     locale: 'fr',
     biometricToken: biometricToken,
   );
@@ -59,7 +57,7 @@ void main() {
         'surname': 'Maillard',
         'pseudo': 'Q',
         'categories': ['family', 'friend'],
-        'isDark': true,
+        'themeMode': 'dark',
         'locale': 'en',
         'biometricToken': 'token-123',
       });
@@ -74,11 +72,44 @@ void main() {
           surname: 'Maillard',
           pseudo: 'Q',
           categories: ['family', 'friend'],
-          isDark: true,
+          theme: ThemePreference.dark,
           locale: 'en',
           biometricToken: 'token-123',
         ),
       );
+    });
+
+    test('reads an old isDark document as a light or dark choice', () async {
+      await firestore.collection('user').doc('dark').set({'isDark': true});
+      await firestore.collection('user').doc('light').set({'isDark': false});
+
+      final dark = await repository.watchUser('dark').first;
+      final light = await repository.watchUser('light').first;
+
+      expect(dark?.theme, ThemePreference.dark);
+      expect(light?.theme, ThemePreference.light);
+    });
+
+    test('themeMode wins over the old isDark field', () async {
+      await firestore.collection('user').doc('user-2').set({
+        'isDark': true,
+        'themeMode': 'system',
+      });
+
+      final watched = await repository.watchUser('user-2').first;
+
+      expect(watched?.theme, ThemePreference.system);
+    });
+
+    test('an unknown themeMode falls back to the old field', () async {
+      await firestore.collection('user').doc('user-2').set({
+        'isDark': true,
+        'themeMode': 'sepia',
+      });
+
+      final watched = await repository.watchUser('user-2').first;
+
+      expect(watched?.theme, ThemePreference.dark);
     });
 
     test('applies defaults to an old document missing fields', () async {
@@ -88,13 +119,7 @@ void main() {
 
       expect(
         watched,
-        const UserProfile(
-          id: 'user-3',
-          name: '',
-          surname: '',
-          isDark: false,
-          locale: 'fr',
-        ),
+        const UserProfile(id: 'user-3', name: '', surname: '', locale: 'fr'),
       );
     });
   });
@@ -108,7 +133,7 @@ void main() {
         'name': 'Quentin',
         'surname': 'Maillard',
         'categories': <String>[],
-        'isDark': false,
+        'themeMode': 'system',
         'locale': 'fr',
         'biometricToken': 'token-abc',
       });
@@ -134,7 +159,6 @@ void main() {
         id: 'user-1',
         name: 'guest',
         surname: '',
-        isDark: false,
         locale: 'fr',
       );
       final effective = await repository.createUser(blank);
@@ -176,14 +200,31 @@ void main() {
       await repository.createUser(user);
 
       await Future.wait([
-        repository.updatePreferences('user-1', isDark: true),
+        repository.updatePreferences('user-1', theme: ThemePreference.dark),
         repository.updatePreferences('user-1', locale: 'en'),
       ]);
 
       final data = (await firestore.collection('user').doc('user-1').get())
           .data()!;
-      expect(data['isDark'], isTrue);
+      expect(data['themeMode'], 'dark');
       expect(data['locale'], 'en');
+    });
+
+    test('writing the theme drops the old isDark field', () async {
+      await firestore.collection('user').doc('user-1').set({
+        'name': 'Quentin',
+        'isDark': true,
+        'locale': 'fr',
+      });
+
+      await repository.updatePreferences(
+        'user-1',
+        theme: ThemePreference.system,
+      );
+
+      final data = (await firestore.collection('user').doc('user-1').get())
+          .data()!;
+      expect(data, {'name': 'Quentin', 'themeMode': 'system', 'locale': 'fr'});
     });
   });
 

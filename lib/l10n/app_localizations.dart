@@ -500,6 +500,24 @@ abstract class AppLocalizations {
   /// **'Thème'**
   String get theme;
 
+  /// Thème des réglages : suit celui du téléphone
+  ///
+  /// In fr, this message translates to:
+  /// **'Système'**
+  String get themeSystem;
+
+  /// Thème des réglages : toujours clair
+  ///
+  /// In fr, this message translates to:
+  /// **'Clair'**
+  String get themeLight;
+
+  /// Thème des réglages : toujours sombre
+  ///
+  /// In fr, this message translates to:
+  /// **'Sombre'**
+  String get themeDark;
+
   /// No description provided for @pseudo.
   ///
   /// In fr, this message translates to:

@@ -11,7 +11,6 @@ const _user = UserProfile(
   id: 'user-1',
   name: 'Quentin',
   surname: 'Maillard',
-  isDark: false,
   locale: 'fr',
 );
 
@@ -79,7 +78,6 @@ void main() {
         id: 'user-1',
         name: 'Invité',
         surname: '',
-        isDark: false,
         locale: 'fr',
       );
 

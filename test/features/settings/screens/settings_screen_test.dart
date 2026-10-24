@@ -29,7 +29,6 @@ const _profile = UserProfile(
   name: 'Quentin',
   surname: 'Maillard',
   pseudo: 'OldPseudo',
-  isDark: false,
   locale: 'fr',
 );
 
@@ -134,7 +133,9 @@ void main() {
     expect(users.stored?.locale, 'en');
   });
 
-  testWidgets('toggles the theme', (tester) async {
+  testWidgets('applies the theme picked among system, light and dark', (
+    tester,
+  ) async {
     final users = RecordingUserRepository(stored: _profile);
     await tester.pumpHarness(
       const SettingsScreen(),
@@ -142,10 +143,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Thème'));
+    // Le profil épinglé suit le téléphone : chaque autre choix s'écrit.
+    await tester.tap(find.text('Sombre'));
     await tester.pumpAndSettle();
+    expect(users.stored?.theme, ThemePreference.dark);
 
-    expect(users.stored?.isDark, isTrue);
+    await tester.tap(find.text('Clair'));
+    await tester.pumpAndSettle();
+    expect(users.stored?.theme, ThemePreference.light);
   });
 
   testWidgets('opens the contacts import', (tester) async {

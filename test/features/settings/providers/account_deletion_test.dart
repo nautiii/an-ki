@@ -13,7 +13,6 @@ const _user = UserProfile(
   id: 'user-1',
   name: 'Quentin',
   surname: 'Maillard',
-  isDark: false,
   locale: 'fr',
 );
 

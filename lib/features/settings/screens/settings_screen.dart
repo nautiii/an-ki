@@ -9,6 +9,7 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
+import 'package:an_ki/features/settings/widgets/preference_choices.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/features/user/providers/user_profile_editor.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -201,7 +202,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
     });
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentLocale = ref.watch(localeProvider);
     // Compte anonyme : on propose de sauvegarder ses données avant de partir.
     final isAnonymous = ref.watch(
@@ -313,16 +313,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           const Divider(),
-          SwitchListTile(
-            title: Text(context.l10n.theme),
-            secondary: Icon(
-              isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-            ),
-            value: isDark,
-            onChanged: (value) => unawaited(
-              ref.read(userProfileEditorProvider.notifier).setDarkMode(value),
-            ),
-          ),
+          const ThemeChoice(),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout_rounded),

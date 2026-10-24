@@ -11,13 +11,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
 
-UserProfile _user({bool isDark = false, String locale = 'fr'}) => UserProfile(
-  id: 'u',
-  name: 'A',
-  surname: 'B',
-  isDark: isDark,
-  locale: locale,
-);
+UserProfile _user({
+  ThemePreference theme = ThemePreference.system,
+  String locale = 'fr',
+}) =>
+    UserProfile(id: 'u', name: 'A', surname: 'B', theme: theme, locale: locale);
 
 void main() {
   Future<ProviderContainer> makeContainer(UserProfile? stored) async {
@@ -43,20 +41,27 @@ void main() {
       expect(container.read(themeProvider), ThemeMode.system);
     });
 
-    test('reflects the profile preference', () async {
-      final container = await makeContainer(_user(isDark: true));
+    test('reflects each profile preference', () async {
+      final expected = {
+        ThemePreference.system: ThemeMode.system,
+        ThemePreference.light: ThemeMode.light,
+        ThemePreference.dark: ThemeMode.dark,
+      };
+      for (final MapEntry(key: theme, value: mode) in expected.entries) {
+        final container = await makeContainer(_user(theme: theme));
 
-      expect(container.read(themeProvider), ThemeMode.dark);
+        expect(container.read(themeProvider), mode, reason: '$theme');
+      }
     });
 
     test('switches as soon as the profile is edited', () async {
       final container = await makeContainer(_user());
       container.listen(userProfileEditorProvider, (_, _) {});
-      expect(container.read(themeProvider), ThemeMode.light);
+      expect(container.read(themeProvider), ThemeMode.system);
 
       await container
           .read(userProfileEditorProvider.notifier)
-          .setDarkMode(true);
+          .setTheme(ThemePreference.dark);
       await Future<void>.delayed(Duration.zero);
 
       expect(container.read(themeProvider), ThemeMode.dark);

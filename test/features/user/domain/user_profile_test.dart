@@ -14,7 +14,6 @@ void main() {
     surname: 'Maillard',
     pseudo: pseudo,
     categories: categories,
-    isDark: false,
     locale: locale,
     biometricToken: 'token',
   );

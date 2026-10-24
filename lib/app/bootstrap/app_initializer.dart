@@ -66,7 +66,7 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
       (_, birthdays) => _fulfilWishRequest(birthdays),
     );
     // Premier lancement d'un compte : pas encore de profil, on le crée (après
-    // la frame, pour disposer du contexte et de la langue).
+    // la frame, hors de la construction en cours).
     ref.listenManual(userProfileProvider, fireImmediately: true, (_, next) {
       if (next case AsyncData(value: null)) {
         WidgetsBinding.instance.addPostFrameCallback(
@@ -138,11 +138,11 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
           user.displayName ?? '',
           fallback: user.isAnonymous ? '' : '-',
         );
+    // Thème par défaut : celui du téléphone, qui suit ses changements.
     final profile = UserProfile(
       id: uid,
       name: name,
       surname: surname,
-      isDark: MediaQuery.platformBrightnessOf(context) == Brightness.dark,
       locale: 'fr',
     );
     final users = ref.read(userRepositoryProvider);

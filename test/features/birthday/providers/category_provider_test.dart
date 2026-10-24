@@ -15,7 +15,6 @@ const _user = UserProfile(
   name: 'A',
   surname: 'B',
   categories: ['fam'],
-  isDark: false,
   locale: 'fr',
 );
 

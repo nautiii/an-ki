@@ -199,7 +199,6 @@ List<Override> sampleOverrides({
           surname: 'Durand',
           pseudo: 'Camille',
           categories: [for (final c in cats) c.id],
-          isDark: false,
           locale: 'fr',
         ),
       ),

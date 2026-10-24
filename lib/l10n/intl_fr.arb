@@ -150,6 +150,18 @@
   "settings": "Paramètres",
   "language": "Langue",
   "theme": "Thème",
+  "themeSystem": "Système",
+  "@themeSystem": {
+    "description": "Thème des réglages : suit celui du téléphone"
+  },
+  "themeLight": "Clair",
+  "@themeLight": {
+    "description": "Thème des réglages : toujours clair"
+  },
+  "themeDark": "Sombre",
+  "@themeDark": {
+    "description": "Thème des réglages : toujours sombre"
+  },
   "pseudo": "Pseudo",
   "pseudoUpdated": "Pseudo mis à jour avec succès !",
   "updatePseudo": "Mettre à jour le pseudo",

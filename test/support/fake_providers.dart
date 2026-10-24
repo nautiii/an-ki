@@ -43,7 +43,7 @@ class FakeUserRepository extends Fake implements UserRepository {
   Future<void> updatePreferences(
     String uid, {
     String? pseudo,
-    bool? isDark,
+    ThemePreference? theme,
     String? locale,
   }) async {}
 
@@ -68,7 +68,7 @@ UserProfile _merged(
   String? name,
   String? surname,
   String? pseudo,
-  bool? isDark,
+  ThemePreference? theme,
   String? locale,
   List<String>? categories,
 }) => UserProfile(
@@ -77,7 +77,7 @@ UserProfile _merged(
   surname: surname ?? user.surname,
   pseudo: pseudo ?? user.pseudo,
   categories: categories ?? user.categories,
-  isDark: isDark ?? user.isDark,
+  theme: theme ?? user.theme,
   locale: locale ?? user.locale,
   biometricToken: user.biometricToken,
 );
@@ -127,14 +127,14 @@ class RecordingUserRepository extends FakeUserRepository {
   Future<void> updatePreferences(
     String uid, {
     String? pseudo,
-    bool? isDark,
+    ThemePreference? theme,
     String? locale,
   }) async {
     _maybeFail();
     final user = _merged(
       _stored!,
       pseudo: pseudo,
-      isDark: isDark,
+      theme: theme,
       locale: locale,
     );
     updated.add(user);
