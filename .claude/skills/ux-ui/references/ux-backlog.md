@@ -9,8 +9,8 @@ scanner, settings, auth). Roadmap steps 1 (F2, F3, A1–A8), 2 (B1, Q1, Q2, A9) 
 shipped on 2026-10-12, step 4 (B3, D7) and steps 5.1–5.2 (B5 welcome and contacts import, Q5)
 on 2026-10-18, steps 5.3 (B5 reminders in context, D19 for the J-0 notification) and 5.4 (B5
 guest backup) on 2026-10-19, small fixes D6, D19, D20 and D21, Q6 and D18, and the e-mail
-sign-in and sign-up forms (D3, their part of F5 and D11) on 2026-10-24: the items they fixed are
-gone from this list.
+sign-in and sign-up forms (D3, their part of F5, D11 and D1, their copy) on 2026-10-24: the
+items they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
@@ -20,7 +20,7 @@ auth or dependencies → design brief + maintainer approval first.
 - Big bets (B4, B6, B7; B5 shipped but its merge) — structural redesigns with the highest impact
 - Foundation (F1, F4, F5, F6) — design system, prerequisite for consistency
 - P1 — friction & states (Q4, Q7, Q8, Q9)
-- P2 — polish (D1, D4, D8–D17, D22)
+- P2 — polish (D1, D4, D8–D17, D22, D23)
 - Suggested roadmap
 
 ---
@@ -110,10 +110,10 @@ auth or dependencies → design brief + maintainer approval first.
 
 ## P2 — polish
 
-- **D1 French typography**: dates now go through `DateFormat`; the ARB strings still use a plain
-  space before `?`/`!` (« … avec succès ! », and on
-  the login and sign-up forms « Mot de passe oublié ? », « Pas encore de compte ? », « Vous avez
-  déjà un compte ? ») → narrow no-break space (U+202F); the sign-in page's copy is done.
+- **D1 French typography**: dates now go through `DateFormat`; the settings strings still use a
+  plain space before `?`/`!` (`signOutConfirmation`, `signOutAnonymousWarning`,
+  `deleteAccountConfirmation`, `pseudoUpdated`, `dataSavedSuccess`, `biometricEnabled`) → narrow
+  no-break space (U+202F); the sign-in pages and the e-mail forms are done.
 - **D4 Haptics**: ad hoc (selection/light/medium mixed) → identity §9 map.
 - **D8 Scanner tab**: the « Roman / BD / Cuisine / Tech » chips look like filters but do nothing;
   empty-state title ends with a period (« Aucun livre trouvé. ») → remove or make them real (B4).
@@ -146,11 +146,16 @@ auth or dependencies → design brief + maintainer approval first.
   leaves a search row of the day about 90 dp, « Léa / Martin / 24 / octobre · / aura / 29 ans »
   on six lines (`agenda_tile.dart`, `search_all` snapshot, 2026-10-24) → stack the row on its
   available width (`LayoutBuilder`), not on the text scale alone.
+- **D23 Vague auth errors**: a failed e-mail sign-in or sign-up that Firebase doesn't name shows
+  « Erreur de connexion », « Erreur d'inscription » or « Une erreur est survenue. »
+  (`connectionError`, `registrationError`, `errorUnknown`), and `errorUserNotFound` reads
+  « Utilisateur non trouvé. » → what happened and what to do, like `errorNetwork` (« Pas de
+  connexion. Vérifiez votre réseau et réessayez. »).
 
 ## Suggested roadmap
 
 1. **Q8** — the reminders-off card, B5's loose end (it shares the agenda's top); B5's 5.5 merge
    once guests with an existing Google account show up.
-2. **B4, B6, B7, F1, F4, F5, F6, Q4, Q7, Q9, D1, D4, D8–D17, D22** — depth and polish (F1 any
-   time once approved);
+2. **B4, B6, B7, F1, F4, F5, F6, Q4, Q7, Q9, D1, D4, D8–D17, D22, D23** — depth and polish
+   (F1 any time once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
