@@ -124,8 +124,10 @@ is in `.claude/skills/architecture/references/migration.md`.
   category ids, optional photo stored as base64 in the document, the years it was wished
   (`wishedYears`). Firestore `birthday/{id}`, owned through its `uid` field; an unknown year is
   stored as 2000 with `yearKnown: false`.
-- **Category** (« catégorie ») — a label with an icon. Documents in the shared top-level
-  `category` collection; each user picks theirs in `user/{uid}.categories`.
+- **Category** (« groupe » in the UI) — a name, an icon and, for groups created since
+  2026-10-24, a tone. Predefined ones live in the shared top-level `category` collection
+  (Famille, Amis, Travail and Autres offered to everyone); groups a user creates are private,
+  in `user/{uid}/categories`; `user/{uid}.categories` keeps the shared ones picked before.
 - **User** — the profile document `user/{uid}`: name, surname, pseudo, categories, theme
   (`themeMode`: system, light or dark; an older `isDark` still reads), locale, biometric token.
 - **Reminder** — local notifications on the day (J-0) and 7 days before (J-7), at 10:00 device time;

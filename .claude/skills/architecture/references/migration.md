@@ -24,9 +24,16 @@ Delete each line once done:
   biométrique n'est plus valide… », sign-out with the fingerprint on (lock only) and off,
   enabling and disabling the fingerprint in the settings (the switch shows only once a screen
   lock and a finger are enrolled, device recipes §9), birthday with a photo (kept when editing
-  without a new one; the gallery, no camera needed), category created offline (the sheet closes
-  at once), account deletion with the fingerprint on or off (birthdays, books and profile gone,
-  no error) on a test account, birthdays tab shown again after signing back in.
+  without a new one; the gallery, no camera needed), account deletion with the fingerprint on or
+  off (birthdays, books and profile gone, no error) on a test account, birthdays tab shown again
+  after signing back in.
+- Private groups (UX piste C, 2026-10-24), once the maintainer has deployed `firestore.rules`
+  (until then the server refuses the writes and the new group vanishes): a group created in the
+  birthday form lands in `user/{uid}/categories` and arrives ticked, offline too; account
+  deletion erases those groups.
+- Settings in sections and the Système / Clair / Sombre theme (UX piste B, 2026-10-24): an older
+  profile keeps its light or dark choice, Système follows the phone's dark mode live, the
+  security section shows only with an enrolled finger.
 - Guest backup (UX step 5.4), behind a guest session the maintainer opens with 3 birthdays or
   more, and the debug SHA-1 in Firebase: the card after the agenda, the Google picker, the link
   (card gone, « Vos N anniversaires sont sauvegardés », the greeting with the Google first name),
@@ -45,6 +52,7 @@ so « keeps its search » no longer applies.
 | # | Debt | Evidence | Consequence | Step |
 |---|------|----------|-------------|------|
 | A15 | Book lookup failures flattened | `BookRepository.fetchBookByIsbn` returns `null` for every failure but the quota (HTTP error, network, parsing), as for an unknown ISBN; a volume without title gets `'Unknown Title'`, an English UI string in the data layer | offline, a scan reads « Livre non trouvé »; untranslatable text | local fix: `BookFailure.network`, empty title worded by the UI |
+| A16 | Older groups still shared | groups created before 2026-10-24 sit in the top-level `category` collection, readable by any signed-in user, and `sharedCategoriesProvider` downloads every user's | their names leak to any account through the API; the stream grows with the user base | system: copy each into its owner's `user/{uid}/categories` (same id, so birthdays keep pointing at it), then restrict `category` reads to the predefined ones — data migration, brief and approval |
 
 UX debt (contrast, 200 % text, labels, raw colors, dates without `DateFormat`) is tracked in the
 ux-ui backlog (`ux-backlog.md`), not here.

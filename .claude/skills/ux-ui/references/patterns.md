@@ -35,7 +35,7 @@ a better pattern, score it with the rubric in SKILL.md and explain the choice.
 
 | Need | Pattern | AnKi examples |
 |------|---------|---------------|
-| Quick create/edit, ≤ ~6 fields, keep context | Modal bottom sheet (drag handle, `useSafeArea`, CTA pinned above keyboard) | Add/edit birthday, new category, day details |
+| Quick create/edit, ≤ ~6 fields, keep context | Modal bottom sheet (drag handle, `useSafeArea`, CTA pinned above keyboard) | Add/edit birthday, day details |
 | Rich content, deep linkable, long forms, multi-step | Full page with large title (`SliverAppBar.large`) | Person detail (future), settings |
 | Blocking decision, irreversible | Dialog (title = question with object, destructive button named by action) | Delete account, sign out as guest |
 | Transient feedback, undo | Floating `SnackBar` + `SnackBarAction` | Deleted · Annuler, Saved |
@@ -81,8 +81,11 @@ the name, « Suivant », four digits, « OK ».
    is a neutral hint while typing and an error once the field is left. Never default to « today −
    25 years », never a wheel or picker that forces the year.
 3. Avatar beside the name: live initials, tap → photo (never the first thing in the form).
-   Categories on one scrolling row of `FilterChip`s, icon in the category tone replaced by the
-   check once selected, « Nouvelle catégorie » last.
+   Groups on one scrolling row of `FilterChip`s (`group_picker.dart`): Famille, Amis, Travail,
+   the user's own by name, Autres; icon in the group tone, replaced by the check once selected.
+   « Nouveau groupe » last opens the creation right below the row, never a sheet on a sheet:
+   the name, the tone dots (the first free one already picked), « Créer » disabled while the
+   name is empty or already a group's; the new group arrives ticked (shipped 2026-10-24).
 4. CTA enabled as soon as name + day/month are valid; keyboard « OK » saves; `lightImpact` on
    save. Editing reuses the sheet, prefilled (« 15/10 » for a yearless birthday).
 - Without a year no age is shown anywhere (agenda line, hero, calendar day sheet): never an
@@ -112,10 +115,11 @@ the name, « Suivant », four digits, « OK ».
 ## E. Search & filters
 
 - Full-screen search (`AppRoutes.search`, `birthday_search_screen.dart`) that filters live, with a
-  clear button and its tooltip; still missing: matched text highlighted in results (Q6).
+  clear button and its tooltip; the matched letters are highlighted in the results.
 - Filters: horizontal `FilterChip` row (Airbnb, Google Photos, Spotify home chips) — selected state
   shows a checkmark or filled tone, not color alone; a « Tout » chip resets. Multi-select AND/OR
-  semantics must be obvious (« Famille + Amis » = union).
+  semantics must be obvious (« Famille + Amis » = union). Shown only once two groups are carried
+  by the birthdays (`groupFilters`): a single one would sort nobody out.
 - No results → « Aucun résultat pour « Lé » » + CTA « Ajouter « Lé » » prefilled (Notion/Linear
   create-from-search): zero dead ends.
 - If the list grows (100+), upgrade to `SearchAnchor` with recent searches.

@@ -101,6 +101,11 @@ through `category.tones(context)` in `category_display.dart`), with values for b
 main tone for dots, rings and chip icons (≥ 3:1 on the surface), the container pair for chips and
 badges. Color is never the only cue: keep the icon + label.
 
+A group's tone is the one picked at its creation among `LabelTones.pickable` (eight distinct
+tones: no red, read as an error, nor yellow, brown or grey; the first free one is preselected),
+else its predefined category's own (grey for « Autres »), else one derived from its id, so older
+groups no longer share one ring.
+
 ### 3.5 Theme rules
 
 **Both themes**: colors only from `colorScheme`, `AnKiColors` or `LabelTones` — no `Colors.*`, no hex, no
@@ -160,8 +165,8 @@ polish, unusual on Android — a quiet signature).
 | `AppRadii.xl` | 32 | Bottom-sheet top corners, nav pill |
 | `StadiumBorder()` | full | Buttons, chips, search field, segmented controls, FAB-like adds |
 
-Raw radii remain only in the screens of backlog F5 (12/16/24 written by hand, and an off-token 28
-in `AnKiTextField`): migrate what you touch.
+Raw radii remain only in `BookCard` (backlog F5: 24 and 12 written by hand): migrate what you
+touch.
 
 ## 6. Spacing & layout
 

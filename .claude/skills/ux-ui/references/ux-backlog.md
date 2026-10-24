@@ -9,19 +9,19 @@ scanner, settings, auth). Roadmap steps 1 (F2, F3, A1–A8), 2 (B1, Q1, Q2, A9) 
 shipped on 2026-10-12, step 4 (B3, D7) and steps 5.1–5.2 (B5 welcome and contacts import, Q5)
 on 2026-10-18, steps 5.3 (B5 reminders in context, D19 for the J-0 notification) and 5.4 (B5
 guest backup) on 2026-10-19, small fixes D6, D19, D20 and D21, Q6 and D18, the e-mail sign-in
-and sign-up forms (D3, their part of F5, D11 and D1, their copy), and the settings (Q4, F4, the
-rest of D1, their part of F5 and D11) on 2026-10-24: the items they fixed are gone from this
-list.
+and sign-up forms (D3, their part of F5, D11 and D1, their copy), the settings (Q4, F4, the
+rest of D1, their part of F5 and D11), and the groups (B7, Q7, the rest of D11) on 2026-10-24:
+the items they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
 auth or dependencies → design brief + maintainer approval first.
 
 ## Contents
-- Big bets (B4, B6, B7; B5 shipped but its merge) — structural redesigns with the highest impact
+- Big bets (B4, B6; B5 shipped but its merge) — structural redesigns with the highest impact
 - Foundation (F1, F5, F6) — design system, prerequisite for consistency
-- P1 — friction & states (Q7, Q8, Q9)
-- P2 — polish (D4, D8–D17, D22, D23)
+- P1 — friction & states (Q8, Q9, Q10)
+- P2 — polish (D4, D8–D10, D12–D17, D22, D23)
 - Suggested roadmap
 
 ---
@@ -69,23 +69,12 @@ auth or dependencies → design brief + maintainer approval first.
   §I).
 - **Cost**: medium (notification_service, per-person settings).
 
-### B7 — Groups, simplified
-- **Problem**: categories need a separate sheet (suggested + custom + icon grid) with quirky
-  defaults (OG's, GOAT, Doggo, Internet…); creating one from the birthday form stacks a sheet on
-  a sheet. Colors are tonal per theme (`LabelTones`, ring around each agenda avatar), but tied to
-  those 14 names: custom groups all share the neutral tone, so all their rings look alike.
-- **Proposal**: « Groupes » with 4 sensible defaults (Famille, Amis, Travail, Autres); create
-  inline from the form's chip row (« + Nouveau groupe »); filters only when ≥ 2 groups are used;
-  a tone picked per group (`LabelTones` seeds, identity §3.4).
-- **Cost**: low-medium.
-
 ## Foundation
 
 - **F1 — Bundle Outfit** (recipes §3): offline-correct typography, real weights (today
   `copyWith(fontWeight:)` fakes bold), deterministic snapshots. Needs font download approval.
-- **F5 — Finish the token migration** in the screens step 1 didn't touch: `AnKiTextField` (own
-  radii and sizes instead of the input theme), `BookCard` (`BorderRadius.circular(24/12)`, faux
-  bold).
+- **F5 — Finish the token migration** in the last screen step 1 didn't touch: `BookCard`
+  (`BorderRadius.circular(24/12)`, faux bold).
 - **F6 — Error ring on fields**: the input theme has no `errorBorder`/`focusedErrorBorder` and
   its `border` is `BorderSide.none`, so a focused field in error loses its focus ring (sign-up
   « Confirmation », birthday sheet name); the red label and message remain → error borders on the
@@ -93,8 +82,6 @@ auth or dependencies → design brief + maintainer approval first.
 
 ## P1 — friction & states
 
-- **Q7 Category sheet**: save always enabled then errors via snackbar → disable until valid,
-  inline guidance.
 - **Q8 Reminders off, day after day**: whoever answered « Plus tard » or « Ne pas autoriser »
   sees nothing more until the next import or sign-in, and AnKi's one promise silently fails;
   the way back sits in Settings › Rappels only → the calm card of the step 5 prototypes above
@@ -104,6 +91,10 @@ auth or dependencies → design brief + maintainer approval first.
   (`onPressed: () {}`, `login_screen.dart`), so whoever forgot it is stuck → Firebase's reset
   e-mail to the typed address, then a calm « E‑mail envoyé à … »; a new auth action, brief first.
   Once it exists, the sign-up's « Confirmation » field can go: the eye already guards typos.
+- **Q10 Managing groups**: a group is created in the birthday form (B7) but can't be renamed,
+  recoloured or deleted, and the older categories (GOAT, Doggo…) stay on whoever picked them
+  (found shipping B7, 2026-10-24) → a « Groupes » page from Settings › Anniversaires: rename,
+  tone, delete with « Annuler » (the birthdays drop it); a shared one only leaves the profile.
 
 ## P2 — polish
 
@@ -115,10 +106,6 @@ auth or dependencies → design brief + maintainer approval first.
   three app-bar actions (`home_app_bar.dart`); a longer pseudo does it on any phone.
 - **D10 Scanner header**: the scanner tab keeps the old two-line `Header` while the home has the
   pinned app bar → align the two tabs when B4 reworks the scanner.
-- **D11 Legacy text fields**: the category sheet still uses `AnKiTextField` (outlined, radius
-  28, sizes and error line drawn by hand) while the birthday sheet, the e-mail forms and the
-  settings use themed `TextField`s with inline `errorText` → migrate it with Q7, then delete
-  `AnKiTextField`.
 - **D12 Month-first locales**: the typed birth date reads day then month in every language (hint
   « DD/MM »); a US user typing « 03/12 » gets 3 December — the live preview shows it, an order
   taken from `DateFormat.yMd(locale)` would remove the trap.
@@ -149,6 +136,6 @@ auth or dependencies → design brief + maintainer approval first.
 
 1. **Q8** — the reminders-off card, B5's loose end (it shares the agenda's top); B5's 5.5 merge
    once guests with an existing Google account show up.
-2. **B4, B6, B7, F1, F5, F6, Q7, Q9, D4, D8–D17, D22, D23** — depth and polish (F1 any time
-   once approved);
+2. **B4, B6, F1, F5, F6, Q9, Q10, D4, D8–D10, D12–D17, D22, D23** — depth and polish (F1 any
+   time once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.

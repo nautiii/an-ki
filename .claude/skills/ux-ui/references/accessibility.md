@@ -94,8 +94,7 @@ haptics · 6. Focus & forms · 7. Testing
 - Fields have a visible `labelText` (hints disappear on typing), `keyboardType`,
   `textInputAction` (`next` … `done`), `autofillHints`, `textCapitalization` for names.
 - Errors inline (`errorText`), specific (« Indiquez au moins le jour et le mois »), announced;
-  don't hide the error text (today `AnKiTextField` zeroes `errorStyle` and draws its own text —
-  make sure the error stays in semantics).
+  never hide the error text or draw it apart from the field: it must stay in semantics.
 - Opening a sheet moves focus inside (autofocus first field or title); closing returns focus.
 - Keep M3 focus indicators; never remove overlay/focus colors.
 

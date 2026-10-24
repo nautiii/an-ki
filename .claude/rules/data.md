@@ -49,7 +49,9 @@ Patterns with code: architecture skill, `references/patterns.md` §1–4; decisi
 - New per-user collections live under `user/{uid}/<collection>`: isolation comes from the path.
 - The top-level `birthday` and `books` documents (until step M10) carry `uid`: every query filters
   `where('uid', isEqualTo: uid)` (rules are not filters — a query without it is rejected) and
-  every create sets it. `category` documents are shared: any signed-in user reads and creates.
+  every create sets it. `category` documents are shared: any signed-in user reads them
+  (predefined ones, and groups created before 2026-10-24); the app now creates groups in
+  `user/{uid}/categories` and erases them with the account.
 - A new collection or path changes `firestore.rules` in the same change; on update, the owner
   can't change (`request.resource.data.uid == resource.data.uid`).
 - The maintainer deploys rules (`firebase deploy --only firestore:rules`): say when a change needs
