@@ -219,6 +219,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectionError => 'Login error';
 
   @override
+  String get errorPasswordReset =>
+      'The link couldn\'t be sent. Try again in a moment.';
+
+  @override
   String get registrationError => 'Registration error';
 
   @override
@@ -621,6 +625,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get resetPasswordNeedsEmail => 'Enter your e-mail to get the link';
+
+  @override
+  String resetPasswordSent(String email) {
+    return 'E-mail sent to $email';
+  }
+
+  @override
+  String get resetPasswordSentHint =>
+      'Open its link to choose a new password. Nothing yet? Check the address and your spam folder.';
+
+  @override
+  String get resetPasswordResend => 'Send the link again';
 
   @override
   String get biometricConnexion => 'Biometric connexion';

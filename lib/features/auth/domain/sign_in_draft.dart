@@ -3,9 +3,13 @@ class const SignInDraft({
   required final String email,
   required final String password,
 }) {
+  /// Une adresse est tapée, hors espaces : de quoi envoyer le lien d'un mot
+  /// de passe oublié.
+  bool get hasEmail => email.trim().isNotEmpty;
+
   /// Règle de « Se connecter » : une adresse, hors espaces, et un mot de
   /// passe. Le formulaire l'applique à son bouton.
-  bool get isValid => email.trim().isNotEmpty && password.isNotEmpty;
+  bool get isValid => hasEmail && password.isNotEmpty;
 
   @override
   bool operator ==(Object other) =>

@@ -451,22 +451,37 @@ class RecordingBookRepository extends FakeBookRepository {
 /// (connexions, déconnexion, suppression) et [userChanges] la diffuse, comme
 /// Firebase. [failure] fait échouer les connexions et la liaison,
 /// [deleteFailure] la suppression, [tokenCheckFailure] la vérification du
-/// jeton d'empreinte.
+/// jeton d'empreinte, [resetFailure] l'envoi du lien du mot de passe oublié.
 class FakeAuthRepository extends Fake implements AuthRepository {
   FakeAuthRepository({
     this._user,
     this.failure,
     this.deleteFailure,
     this.tokenCheckFailure,
+    this.resetFailure,
   });
 
   firebase_auth.User? _user;
   final Exception? failure;
   final Exception? deleteFailure;
   final Exception? tokenCheckFailure;
+  final Exception? resetFailure;
 
   /// Méthodes appelées, dans l'ordre.
   final calls = <String>[];
+
+  /// Liens du mot de passe oublié envoyés : (adresse, langue de l'e-mail).
+  final passwordResets = <(String, String)>[];
+
+  @override
+  Future<void> sendPasswordReset(
+    String email, {
+    required String languageCode,
+  }) async {
+    calls.add('sendPasswordReset');
+    if (resetFailure case final error?) throw error;
+    passwordResets.add((email, languageCode));
+  }
 
   /// Jetons d'empreinte enregistrés sur les profils, par uid.
   final biometricTokens = <String, String?>{};

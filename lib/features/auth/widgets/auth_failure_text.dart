@@ -18,6 +18,7 @@ extension AuthFailureText on AuthFailure {
       AuthFailure.unknown => l10n.errorUnknown,
       AuthFailure.signUpFailed => l10n.registrationError,
       AuthFailure.signInFailed => l10n.connectionError,
+      AuthFailure.passwordResetFailed => l10n.errorPasswordReset,
       AuthFailure.googleSignInFailed => l10n.errorGoogleLogin,
       AuthFailure.biometricFailed => l10n.biometricError,
       AuthFailure.biometricRevoked => l10n.biometricRevoked,

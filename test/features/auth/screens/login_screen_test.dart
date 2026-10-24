@@ -1,4 +1,5 @@
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -140,12 +141,126 @@ void main() {
       expect(find.byTooltip('Masquer le mot de passe'), findsOneWidget);
     });
 
-    testWidgets('forgot-password button is tappable', (tester) async {
-      await tester.pumpHarness(const LoginScreen());
-      await tester.pumpAndSettle();
+    group('forgotten password', () {
+      final forgot = find.text('Mot de passe oublié\u202f?');
+      final sent = find.text('E\u2011mail envoyé à lea@exemple.fr');
+      const needsEmail = 'Saisissez votre e\u2011mail pour recevoir le lien';
 
-      await tester.tap(find.text('Mot de passe oublié ?'));
-      await tester.pumpAndSettle();
+      Future<FakeAuthRepository> pumpLogin(
+        WidgetTester tester, {
+        Exception? resetFailure,
+      }) async {
+        final repository = FakeAuthRepository(resetFailure: resetFailure);
+        await tester.pumpHarness(
+          const LoginScreen(),
+          overrides: authOverrides(repository),
+        );
+        await tester.pumpAndSettle();
+        return repository;
+      }
+
+      testWidgets('sends the link to the typed address, in the app language', (
+        tester,
+      ) async {
+        final repository = await pumpLogin(tester);
+
+        await tester.enterText(
+          find.byType(TextField).at(0),
+          ' lea@exemple.fr ',
+        );
+        await tester.tap(forgot);
+        await tester.pumpAndSettle();
+
+        expect(repository.passwordResets, [('lea@exemple.fr', 'fr')]);
+        expect(sent, findsOneWidget);
+        // Le clavier rangé laisse voir la confirmation.
+        expect(
+          FocusManager.instance.primaryFocus?.context?.widget,
+          isNot(isA<EditableText>()),
+        );
+        expect(
+          find.text(
+            'Ouvrez son lien pour choisir un nouveau mot de passe. Rien '
+            "reçu\u202f? Vérifiez l'adresse et vos courriers indésirables.",
+          ),
+          findsOneWidget,
+        );
+        // Ni connexion, ni « Se connecter » qui tourne.
+        expect(repository.calls, ['sendPasswordReset']);
+      });
+
+      testWidgets('without an address, says what is missing in the field', (
+        tester,
+      ) async {
+        final repository = await pumpLogin(tester);
+
+        await tester.tap(forgot);
+        await tester.pumpAndSettle();
+
+        expect(find.text(needsEmail), findsOneWidget);
+        expect(
+          tester
+              .widget<EditableText>(
+                find.descendant(
+                  of: find.byType(TextField).at(0),
+                  matching: find.byType(EditableText),
+                ),
+              )
+              .focusNode
+              .hasFocus,
+          isTrue,
+        );
+        expect(repository.calls, isEmpty);
+
+        // Une frappe efface la consigne.
+        await tester.enterText(find.byType(TextField).at(0), 'l');
+        await tester.pump();
+        expect(find.text(needsEmail), findsNothing);
+      });
+
+      testWidgets('sends it again to a corrected address', (tester) async {
+        final repository = await pumpLogin(tester);
+        await tester.enterText(find.byType(TextField).at(0), 'lea@exmple.fr');
+        await tester.tap(forgot);
+        await tester.pumpAndSettle();
+
+        await tester.enterText(find.byType(TextField).at(0), 'lea@exemple.fr');
+        await tester.tap(find.text('Renvoyer le lien'));
+        await tester.pumpAndSettle();
+
+        expect(repository.passwordResets, [
+          ('lea@exmple.fr', 'fr'),
+          ('lea@exemple.fr', 'fr'),
+        ]);
+        expect(sent, findsOneWidget);
+      });
+
+      testWidgets('says why the link could not leave', (tester) async {
+        await pumpLogin(tester, resetFailure: AuthFailure.network);
+        await tester.enterText(find.byType(TextField).at(0), 'lea@exemple.fr');
+
+        await tester.tap(forgot);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Pas de connexion. Vérifiez votre réseau et réessayez.'),
+          findsOneWidget,
+        );
+        expect(sent, findsNothing);
+        expect(forgot, findsOneWidget);
+      });
+
+      testWidgets('keeps labelled 48 dp targets once sent', (tester) async {
+        final semantics = tester.ensureSemantics();
+        await pumpLogin(tester);
+        await tester.enterText(find.byType(TextField).at(0), 'lea@exemple.fr');
+        await tester.tap(forgot);
+        await tester.pumpAndSettle();
+
+        await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+        await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+        semantics.dispose();
+      });
     });
 
     testWidgets('says which sign-in it is, in a header', (tester) async {

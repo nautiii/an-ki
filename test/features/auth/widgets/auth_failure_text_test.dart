@@ -23,6 +23,10 @@ void main() {
     expect(AuthFailure.unknown.message(context), 'Une erreur est survenue.');
     expect(AuthFailure.signInFailed.message(context), 'Erreur de connexion');
     expect(
+      AuthFailure.passwordResetFailed.message(context),
+      "Le lien n'a pas pu partir. Réessayez dans un instant.",
+    );
+    expect(
       AuthFailure.googleSignInFailed.message(context),
       "La connexion avec Google n'a pas abouti. Réessayez.",
     );

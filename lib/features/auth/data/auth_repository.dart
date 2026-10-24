@@ -60,6 +60,18 @@ class AuthRepository {
     return credential.user;
   });
 
+  /// Envoie à [email] le lien Firebase qui fait choisir un nouveau mot de
+  /// passe, rédigé dans la langue [languageCode] de l'app. Avec la protection
+  /// contre l'énumération des e-mails, une adresse sans compte ne dit rien :
+  /// l'envoi « réussit » sans e-mail.
+  Future<void> sendPasswordReset(
+    String email, {
+    required String languageCode,
+  }) => _guard(() async {
+    await _auth.setLanguageCode(languageCode);
+    await _auth.sendPasswordResetEmail(email: email);
+  });
+
   Future<User?> signInWithGoogle() => _guard(() async {
     final credential = await _googleCredential();
     final result = await _auth.signInWithCredential(credential);

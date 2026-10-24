@@ -10,6 +10,28 @@ import 'package:mock_exceptions/mock_exceptions.dart';
 
 import '../../../support/platform_mocks.dart';
 
+/// Firebase Auth simulé qui note, dans l'ordre, la langue réglée puis les
+/// liens de mot de passe oublié demandés.
+class _ResetRecordingAuth extends MockFirebaseAuth {
+  final events = <String>[];
+
+  @override
+  Future<void> setLanguageCode(String? languageCode) async =>
+      events.add('language:$languageCode');
+
+  @override
+  Future<void> sendPasswordResetEmail({
+    required String email,
+    ActionCodeSettings? actionCodeSettings,
+  }) {
+    events.add('reset:$email');
+    return super.sendPasswordResetEmail(
+      email: email,
+      actionCodeSettings: actionCodeSettings,
+    );
+  }
+}
+
 void main() {
   AuthRepository build(
     MockFirebaseAuth auth,
@@ -63,6 +85,37 @@ void main() {
       final user = await repo.signInAnonymously();
 
       expect(user, isNotNull);
+    });
+  });
+
+  group('password reset', () {
+    test('sends the link once the app language is set', () async {
+      final auth = _ResetRecordingAuth();
+      final repo = build(auth, FakeFirebaseFirestore());
+
+      await repo.sendPasswordReset('lea@exemple.fr', languageCode: 'fr');
+
+      expect(auth.events, ['language:fr', 'reset:lea@exemple.fr']);
+    });
+
+    test('translates a refusal', () async {
+      for (final (code, failure) in [
+        ('invalid-email', AuthFailure.invalidEmail),
+        ('network-request-failed', AuthFailure.network),
+        ('user-not-found', AuthFailure.userNotFound),
+      ]) {
+        final auth = _ResetRecordingAuth();
+        whenCalling(Invocation.method(#sendPasswordResetEmail, null))
+            .on(auth)
+            .thenThrow(FirebaseAuthException(code: code));
+        final repo = build(auth, FakeFirebaseFirestore());
+
+        await expectLater(
+          repo.sendPasswordReset('lea@exemple.fr', languageCode: 'en'),
+          throwsA(failure),
+          reason: code,
+        );
+      }
     });
   });
 

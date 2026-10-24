@@ -22,6 +22,14 @@ void main() {
       );
     });
 
+    test('has an address for the forgotten password link, spaces aside', () {
+      expect(
+        const SignInDraft(email: ' lea@exemple.fr ', password: '').hasEmail,
+        isTrue,
+      );
+      expect(const SignInDraft(email: '  ', password: 'x').hasEmail, isFalse);
+    });
+
     test('keeps a password made of spaces as typed', () {
       expect(
         const SignInDraft(email: 'lea@exemple.fr', password: '  ').isValid,

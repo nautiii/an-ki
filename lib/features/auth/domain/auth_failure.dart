@@ -25,6 +25,7 @@ enum AuthFailure implements Exception {
   // Autres échecs (réseau, plugin…), selon l'opération qui échoue.
   signUpFailed,
   signInFailed,
+  passwordResetFailed,
   googleSignInFailed,
   biometricFailed,
 

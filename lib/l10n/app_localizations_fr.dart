@@ -223,6 +223,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get connectionError => 'Erreur de connexion';
 
   @override
+  String get errorPasswordReset =>
+      'Le lien n\'a pas pu partir. Réessayez dans un instant.';
+
+  @override
   String get registrationError => 'Erreur d\'inscription';
 
   @override
@@ -630,6 +634,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get forgotPassword => 'Mot de passe oublié ?';
+
+  @override
+  String get resetPasswordNeedsEmail =>
+      'Saisissez votre e‑mail pour recevoir le lien';
+
+  @override
+  String resetPasswordSent(String email) {
+    return 'E‑mail envoyé à $email';
+  }
+
+  @override
+  String get resetPasswordSentHint =>
+      'Ouvrez son lien pour choisir un nouveau mot de passe. Rien reçu ? Vérifiez l\'adresse et vos courriers indésirables.';
+
+  @override
+  String get resetPasswordResend => 'Renvoyer le lien';
 
   @override
   String get biometricConnexion => 'Connexion biométrique';

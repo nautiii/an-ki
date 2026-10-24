@@ -64,6 +64,7 @@
     }
   },
   "connectionError": "Login error",
+  "errorPasswordReset": "The link couldn't be sent. Try again in a moment.",
   "registrationError": "Registration error",
   "loginTitle": "Sign in with email",
   "signUpTitle": "Create an account",
@@ -182,6 +183,15 @@
   "favorite": "Favorite",
   "couple": "Couple",
   "forgotPassword": "Forgot password?",
+  "resetPasswordNeedsEmail": "Enter your e-mail to get the link",
+  "resetPasswordSent": "E-mail sent to {email}",
+  "@resetPasswordSent": {
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "resetPasswordSentHint": "Open its link to choose a new password. Nothing yet? Check the address and your spam folder.",
+  "resetPasswordResend": "Send the link again",
   "biometricConnexion": "Biometric connexion",
   "biometricConnexionDescription": "Use your fingerprint to sign in",
   "biometricReason": "Scan your fingerprint to sign in",

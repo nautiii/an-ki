@@ -139,6 +139,10 @@
     }
   },
   "connectionError": "Erreur de connexion",
+  "errorPasswordReset": "Le lien n'a pas pu partir. Réessayez dans un instant.",
+  "@errorPasswordReset": {
+    "description": "L'envoi du lien du mot de passe oublié a échoué sans raison connue"
+  },
   "registrationError": "Erreur d'inscription",
   "loginTitle": "Connexion par e\u2011mail",
   "signUpTitle": "Créer un compte",
@@ -494,6 +498,25 @@
   "favorite": "Favori",
   "couple": "Couple",
   "forgotPassword": "Mot de passe oublié\u202f?",
+  "resetPasswordNeedsEmail": "Saisissez votre e\u2011mail pour recevoir le lien",
+  "@resetPasswordNeedsEmail": {
+    "description": "Sous le champ e-mail de la connexion : « Mot de passe oublié ? » touché sans adresse"
+  },
+  "resetPasswordSent": "E\u2011mail envoyé à {email}",
+  "@resetPasswordSent": {
+    "description": "Connexion par e-mail : le lien du mot de passe oublié est parti",
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "resetPasswordSentHint": "Ouvrez son lien pour choisir un nouveau mot de passe. Rien reçu\u202f? Vérifiez l'adresse et vos courriers indésirables.",
+  "@resetPasswordSentHint": {
+    "description": "Sous « E-mail envoyé à … » ; neutre, car Firebase ne dit pas si l'adresse a un compte"
+  },
+  "resetPasswordResend": "Renvoyer le lien",
+  "@resetPasswordResend": {
+    "description": "Renvoie le lien à l'adresse tapée, corrigée au besoin"
+  },
   "biometricConnexion": "Connexion biométrique",
   "biometricConnexionDescription": "Utiliser votre empreinte digitale pour vous connecter",
   "biometricReason": "Veuillez scanner votre empreinte pour vous connecter",

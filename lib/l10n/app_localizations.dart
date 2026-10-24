@@ -434,6 +434,12 @@ abstract class AppLocalizations {
   /// **'Erreur de connexion'**
   String get connectionError;
 
+  /// L'envoi du lien du mot de passe oublié a échoué sans raison connue
+  ///
+  /// In fr, this message translates to:
+  /// **'Le lien n\'a pas pu partir. Réessayez dans un instant.'**
+  String get errorPasswordReset;
+
   /// No description provided for @registrationError.
   ///
   /// In fr, this message translates to:
@@ -1099,6 +1105,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Mot de passe oublié ?'**
   String get forgotPassword;
+
+  /// Sous le champ e-mail de la connexion : « Mot de passe oublié ? » touché sans adresse
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez votre e‑mail pour recevoir le lien'**
+  String get resetPasswordNeedsEmail;
+
+  /// Connexion par e-mail : le lien du mot de passe oublié est parti
+  ///
+  /// In fr, this message translates to:
+  /// **'E‑mail envoyé à {email}'**
+  String resetPasswordSent(String email);
+
+  /// Sous « E-mail envoyé à … » ; neutre, car Firebase ne dit pas si l'adresse a un compte
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrez son lien pour choisir un nouveau mot de passe. Rien reçu ? Vérifiez l\'adresse et vos courriers indésirables.'**
+  String get resetPasswordSentHint;
+
+  /// Renvoie le lien à l'adresse tapée, corrigée au besoin
+  ///
+  /// In fr, this message translates to:
+  /// **'Renvoyer le lien'**
+  String get resetPasswordResend;
 
   /// No description provided for @biometricConnexion.
   ///
