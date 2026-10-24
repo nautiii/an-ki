@@ -148,6 +148,20 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('says which sign-in it is, in a header', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpHarness(const LoginScreen());
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getSemantics(find.text('Connexion par e‑mail')),
+        isSemantics(isHeader: true),
+      );
+      expect(find.text('Vos anniversaires vous attendent.'), findsOneWidget);
+      expect(find.text('E‑mail'), findsOneWidget);
+      semantics.dispose();
+    });
+
     testWidgets('sets its questions in French typography', (tester) async {
       await tester.pumpHarness(const LoginScreen());
       await tester.pumpAndSettle();

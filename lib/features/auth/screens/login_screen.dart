@@ -93,7 +93,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              AuthFormHeader(title: l10n.loginTitle, message: l10n.signInText),
+              AuthFormHeader(
+                title: l10n.loginTitle,
+                message: l10n.loginMessage,
+              ),
               const SizedBox(height: AppSpacing.xl),
               // Le gestionnaire de mots de passe remplit les deux champs, et
               // propose d'enregistrer ceux d'une connexion réussie.

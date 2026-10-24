@@ -221,10 +221,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registrationError => 'Registration error';
 
   @override
-  String get loginTitle => 'An Ki - Login';
+  String get loginTitle => 'Sign in with email';
 
   @override
-  String get signUpTitle => 'An Ki - Registration';
+  String get signUpTitle => 'Create an account';
 
   @override
   String get signInButton => 'Sign in';
@@ -233,10 +233,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signUpButton => 'Sign up';
 
   @override
-  String get createAccount => 'Create account';
+  String get signUpMessage => 'Your birthdays will follow you to every phone.';
 
   @override
-  String get signInText => 'Sign in';
+  String get loginMessage => 'Your birthdays are waiting for you.';
 
   @override
   String get haveAccount => 'Already have an account?';
@@ -669,10 +669,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorWeakPassword => 'The password is too weak.';
 
   @override
-  String get errorEmailAlreadyInUse => 'This email is already in use.';
+  String get errorEmailAlreadyInUse =>
+      'This email already has an account. Sign in instead.';
 
   @override
-  String get errorInvalidEmail => 'The email is not valid.';
+  String get errorInvalidEmail => 'This email address isn\'t valid.';
 
   @override
   String get errorUserNotFound => 'User not found.';

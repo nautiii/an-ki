@@ -154,7 +154,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             children: [
               AuthFormHeader(
                 title: l10n.signUpTitle,
-                message: l10n.createAccount,
+                message: l10n.signUpMessage,
               ),
               const SizedBox(height: AppSpacing.xl),
               // Le gestionnaire de mots de passe peut proposer un mot de

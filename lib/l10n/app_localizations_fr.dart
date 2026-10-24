@@ -75,7 +75,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get lastName => 'Nom';
 
   @override
-  String get email => 'Email';
+  String get email => 'E‑mail';
 
   @override
   String get password => 'Mot de passe';
@@ -226,10 +226,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get registrationError => 'Erreur d\'inscription';
 
   @override
-  String get loginTitle => 'An Ki - Connexion';
+  String get loginTitle => 'Connexion par e‑mail';
 
   @override
-  String get signUpTitle => 'An Ki - Inscription';
+  String get signUpTitle => 'Créer un compte';
 
   @override
   String get signInButton => 'Se connecter';
@@ -238,10 +238,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get signUpButton => 'S\'inscrire';
 
   @override
-  String get createAccount => 'Créer un compte';
+  String get signUpMessage =>
+      'Vos anniversaires vous suivront sur tous vos téléphones.';
 
   @override
-  String get signInText => 'Connectez-vous';
+  String get loginMessage => 'Vos anniversaires vous attendent.';
 
   @override
   String get haveAccount => 'Vous avez déjà un compte ?';
@@ -680,10 +681,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get errorWeakPassword => 'Le mot de passe est trop faible.';
 
   @override
-  String get errorEmailAlreadyInUse => 'Cet email est déjà utilisé.';
+  String get errorEmailAlreadyInUse =>
+      'Cette adresse e‑mail a déjà un compte. Connectez-vous plutôt.';
 
   @override
-  String get errorInvalidEmail => 'L\'email n\'est pas valide.';
+  String get errorInvalidEmail => 'Cette adresse e‑mail n\'est pas valide.';
 
   @override
   String get errorUserNotFound => 'Utilisateur non trouvé.';

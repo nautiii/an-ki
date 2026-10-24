@@ -41,7 +41,7 @@
   "signIn": "Se connecter",
   "firstName": "Prénom",
   "lastName": "Nom",
-  "email": "Email",
+  "email": "E\u2011mail",
   "password": "Mot de passe",
   "confirmPassword": "Confirmation",
   "@confirmPassword": {
@@ -134,12 +134,18 @@
   },
   "connectionError": "Erreur de connexion",
   "registrationError": "Erreur d'inscription",
-  "loginTitle": "An Ki - Connexion",
-  "signUpTitle": "An Ki - Inscription",
+  "loginTitle": "Connexion par e\u2011mail",
+  "signUpTitle": "Créer un compte",
   "signInButton": "Se connecter",
   "signUpButton": "S'inscrire",
-  "createAccount": "Créer un compte",
-  "signInText": "Connectez-vous",
+  "signUpMessage": "Vos anniversaires vous suivront sur tous vos téléphones.",
+  "@signUpMessage": {
+    "description": "Sous « Créer un compte » : ce que le compte apporte"
+  },
+  "loginMessage": "Vos anniversaires vous attendent.",
+  "@loginMessage": {
+    "description": "Sous « Connexion par e\u2011mail », après « Bon retour »"
+  },
   "haveAccount": "Vous avez déjà un compte\u202f?",
   "settings": "Paramètres",
   "language": "Langue",
@@ -434,8 +440,8 @@
   "biometricEnabled": "Connexion biométrique activée !",
   "biometricDisabled": "Connexion biométrique désactivée.",
   "errorWeakPassword": "Le mot de passe est trop faible.",
-  "errorEmailAlreadyInUse": "Cet email est déjà utilisé.",
-  "errorInvalidEmail": "L'email n'est pas valide.",
+  "errorEmailAlreadyInUse": "Cette adresse e\u2011mail a déjà un compte. Connectez-vous plutôt.",
+  "errorInvalidEmail": "Cette adresse e\u2011mail n'est pas valide.",
   "errorUserNotFound": "Utilisateur non trouvé.",
   "errorWrongPassword": "Mot de passe incorrect.",
   "errorInvalidCredentials": "E\u2011mail ou mot de passe incorrect.",

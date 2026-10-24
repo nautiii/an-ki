@@ -217,6 +217,22 @@ void main() {
       semantics.dispose();
     });
 
+    testWidgets('says what the account brings, in a header', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpHarness(const SignUpScreen());
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getSemantics(find.text('Créer un compte')),
+        isSemantics(isHeader: true),
+      );
+      expect(
+        find.text('Vos anniversaires vous suivront sur tous vos téléphones.'),
+        findsOneWidget,
+      );
+      semantics.dispose();
+    });
+
     testWidgets('sets its question in French typography', (tester) async {
       await tester.pumpHarness(const SignUpScreen());
       await tester.pumpAndSettle();

@@ -203,7 +203,7 @@ abstract class AppLocalizations {
   /// No description provided for @email.
   ///
   /// In fr, this message translates to:
-  /// **'Email'**
+  /// **'E‑mail'**
   String get email;
 
   /// No description provided for @password.
@@ -443,13 +443,13 @@ abstract class AppLocalizations {
   /// No description provided for @loginTitle.
   ///
   /// In fr, this message translates to:
-  /// **'An Ki - Connexion'**
+  /// **'Connexion par e‑mail'**
   String get loginTitle;
 
   /// No description provided for @signUpTitle.
   ///
   /// In fr, this message translates to:
-  /// **'An Ki - Inscription'**
+  /// **'Créer un compte'**
   String get signUpTitle;
 
   /// No description provided for @signInButton.
@@ -464,17 +464,17 @@ abstract class AppLocalizations {
   /// **'S\'inscrire'**
   String get signUpButton;
 
-  /// No description provided for @createAccount.
+  /// Sous « Créer un compte » : ce que le compte apporte
   ///
   /// In fr, this message translates to:
-  /// **'Créer un compte'**
-  String get createAccount;
+  /// **'Vos anniversaires vous suivront sur tous vos téléphones.'**
+  String get signUpMessage;
 
-  /// No description provided for @signInText.
+  /// Sous « Connexion par e‑mail », après « Bon retour »
   ///
   /// In fr, this message translates to:
-  /// **'Connectez-vous'**
-  String get signInText;
+  /// **'Vos anniversaires vous attendent.'**
+  String get loginMessage;
 
   /// No description provided for @haveAccount.
   ///
@@ -1121,13 +1121,13 @@ abstract class AppLocalizations {
   /// No description provided for @errorEmailAlreadyInUse.
   ///
   /// In fr, this message translates to:
-  /// **'Cet email est déjà utilisé.'**
+  /// **'Cette adresse e‑mail a déjà un compte. Connectez-vous plutôt.'**
   String get errorEmailAlreadyInUse;
 
   /// No description provided for @errorInvalidEmail.
   ///
   /// In fr, this message translates to:
-  /// **'L\'email n\'est pas valide.'**
+  /// **'Cette adresse e‑mail n\'est pas valide.'**
   String get errorInvalidEmail;
 
   /// No description provided for @errorUserNotFound.
