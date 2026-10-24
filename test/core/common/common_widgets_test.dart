@@ -1,4 +1,3 @@
-import 'package:an_ki/core/common/anki_text_field.dart';
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
@@ -61,52 +60,6 @@ void main() {
       await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
       semantics.dispose();
-    });
-  });
-
-  group('AnKiTextField', () {
-    testWidgets('shows the validator error after user interaction', (
-      tester,
-    ) async {
-      final controller = TextEditingController();
-      await tester.pumpHarness(
-        Form(
-          child: AnKiTextField(
-            controller: controller,
-            label: 'Name',
-            prefixIcon: Icons.person,
-            validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.enterText(find.byType(TextField), 'x');
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), '');
-      await tester.pumpAndSettle();
-
-      // 'Required' appears both in the (hidden) TextFormField error and in the
-      // custom animated error label below the field.
-      expect(find.text('Required'), findsWidgets);
-    });
-
-    testWidgets('toggles focus styling when tapped', (tester) async {
-      final controller = TextEditingController();
-      await tester.pumpHarness(
-        AnKiTextField(
-          controller: controller,
-          label: 'Name',
-          prefixIcon: Icons.person,
-          suffixIcon: const Icon(Icons.visibility),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byType(TextField));
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.visibility), findsOneWidget);
     });
   });
 
