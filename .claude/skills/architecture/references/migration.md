@@ -38,6 +38,9 @@ Delete each line once done:
   (`perm reset`, then « Ne pas autoriser »), « Activer » reopening the system box, « Réglages »
   once blocked and the card gone on the way back, the cross keeping it hidden after a restart
   (stored with `flutter_secure_storage`).
+- The forgotten password link (UX Q9, 2026-10-24): the Firebase reset e-mail reaching a real
+  inbox in the app's language (French and English templates in the console), its link
+  setting a new password, and the confirmation shown for an unknown address too.
 - Guest backup (UX step 5.4), behind a guest session the maintainer opens with 3 birthdays or
   more, and the debug SHA-1 in Firebase: the card after the agenda, the Google picker, the link
   (card gone, « Vos N anniversaires sont sauvegardés », the greeting with the Google first name),
