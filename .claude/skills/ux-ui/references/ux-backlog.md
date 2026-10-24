@@ -10,8 +10,8 @@ shipped on 2026-10-12, step 4 (B3, D7) and steps 5.1–5.2 (B5 welcome and conta
 on 2026-10-18, steps 5.3 (B5 reminders in context, D19 for the J-0 notification) and 5.4 (B5
 guest backup) on 2026-10-19, small fixes D6, D19, D20 and D21, Q6 and D18, the e-mail sign-in
 and sign-up forms (D3, their part of F5, D11 and D1, their copy), the settings (Q4, F4, the
-rest of D1, their part of F5 and D11), and the groups (B7, Q7, the rest of D11) on 2026-10-24:
-the items they fixed are gone from this list.
+rest of D1, their part of F5 and D11), the groups (B7, Q7, the rest of D11) and the
+reminders-off card (Q8) on 2026-10-24: the items they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
@@ -20,7 +20,7 @@ auth or dependencies → design brief + maintainer approval first.
 ## Contents
 - Big bets (B4, B6; B5 shipped but its merge) — structural redesigns with the highest impact
 - Foundation (F1, F5, F6) — design system, prerequisite for consistency
-- P1 — friction & states (Q8, Q9, Q10)
+- P1 — friction & states (Q9, Q10)
 - P2 — polish (D4, D8–D10, D12–D17, D22, D23)
 - Suggested roadmap
 
@@ -82,11 +82,6 @@ auth or dependencies → design brief + maintainer approval first.
 
 ## P1 — friction & states
 
-- **Q8 Reminders off, day after day**: whoever answered « Plus tard » or « Ne pas autoriser »
-  sees nothing more until the next import or sign-in, and AnKi's one promise silently fails;
-  the way back sits in Settings › Rappels only → the calm card of the step 5 prototypes above
-  the hero (« Rappels désactivés · Activer », `e5_rappels_off`), shown once the offer was
-  declined, dismissable, never a dialog.
 - **Q9 Forgotten password**: « Mot de passe oublié ? » on the e-mail sign-in does nothing
   (`onPressed: () {}`, `login_screen.dart`), so whoever forgot it is stuck → Firebase's reset
   e-mail to the typed address, then a calm « E‑mail envoyé à … »; a new auth action, brief first.
@@ -134,8 +129,7 @@ auth or dependencies → design brief + maintainer approval first.
 
 ## Suggested roadmap
 
-1. **Q8** — the reminders-off card, B5's loose end (it shares the agenda's top); B5's 5.5 merge
-   once guests with an existing Google account show up.
+1. **B5's 5.5 merge** once guests with an existing Google account show up.
 2. **B4, B6, F1, F5, F6, Q9, Q10, D4, D8–D10, D12–D17, D22, D23** — depth and polish (F1 any
    time once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.

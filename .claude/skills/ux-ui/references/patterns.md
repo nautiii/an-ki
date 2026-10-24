@@ -178,6 +178,11 @@ A spinner is acceptable only inside the control that triggered a short action.
   (two refusals on Android, one on iOS), the sheet and Settings › Rappels lead to the app's
   notification settings. Contacts are asked when the user taps import, with the same denied /
   blocked states.
+- **Reminders off, day after day** (shipped 2026-10-24): while the agenda has someone and the
+  notifications are refused or blocked, a calm card above the hero (`RemindersOffCard`, given to
+  the home's `notice` slot by `app/router`) says « Rappels désactivés » with « Activer », or
+  « Réglages » once blocked; its cross hides it for good on this phone (`DeviceSettings`) and
+  says Settings › Rappels stays the way back. A state, never a dialog or a relaunch.
 
 ## I. Reminders & retention — ethical hooks
 

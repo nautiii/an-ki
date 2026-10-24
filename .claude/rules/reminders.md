@@ -44,7 +44,11 @@ A missed reminder breaks the one promise AnKi makes: treat every change here as 
   launch. `ReminderPrompt` (`app/bootstrap`) offers `ReminderOfferSheet` after an import, the
   first birthdays added by hand (`BirthdaysAdded` from `birthdayAdditionsProvider`), or a sign-in
   made in this run (`freshSignInProvider`) that brings a filled agenda; at most once per
-  session, never when granted. Settings › Rappels (`RemindersTile`) is the way back.
+  session, never when granted. Settings › Rappels (`RemindersTile`) is the way back, and the
+  home says reminders are off with a calm card (`RemindersOffCard`, from
+  `remindersOffNoticeProvider`) that its cross hides for good on this phone.
+- The tile, the offer sheet and the card share `ReminderAccessActions`: the system box while it
+  can still show, else the app's settings, re-read on resume.
 - `ReminderPermission` (`reminderPermissionProvider`) holds `NotificationAccess`: `granted`,
   `denied` (the system box can still show) or `blocked` (only the app's settings can grant).
   Reading (`access`) can't see a block: only a request reveals it, and `refresh` keeps it.

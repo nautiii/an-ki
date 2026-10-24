@@ -34,6 +34,10 @@ Delete each line once done:
 - Settings in sections and the Système / Clair / Sombre theme (UX piste B, 2026-10-24): an older
   profile keeps its light or dark choice, Système follows the phone's dark mode live, the
   security section shows only with an enrolled finger.
+- The reminders-off card (UX Q8, 2026-10-24): above the hero once notifications are refused
+  (`perm reset`, then « Ne pas autoriser »), « Activer » reopening the system box, « Réglages »
+  once blocked and the card gone on the way back, the cross keeping it hidden after a restart
+  (stored with `flutter_secure_storage`).
 - Guest backup (UX step 5.4), behind a guest session the maintainer opens with 3 birthdays or
   more, and the debug SHA-1 in Firebase: the card after the agenda, the Google picker, the link
   (card gone, « Vos N anniversaires sont sauvegardés », the greeting with the Google first name),
