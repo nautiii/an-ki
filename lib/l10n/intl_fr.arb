@@ -138,12 +138,12 @@
       }
     }
   },
-  "connectionError": "Erreur de connexion",
+  "connectionError": "La connexion n'a pas abouti. Réessayez dans un instant.",
   "errorPasswordReset": "Le lien n'a pas pu partir. Réessayez dans un instant.",
   "@errorPasswordReset": {
     "description": "L'envoi du lien du mot de passe oublié a échoué sans raison connue"
   },
-  "registrationError": "Erreur d'inscription",
+  "registrationError": "L'inscription n'a pas abouti. Réessayez dans un instant.",
   "loginTitle": "Connexion par e\u2011mail",
   "signUpTitle": "Créer un compte",
   "signInButton": "Se connecter",
@@ -520,7 +520,7 @@
   "biometricConnexion": "Connexion biométrique",
   "biometricConnexionDescription": "Utiliser votre empreinte digitale pour vous connecter",
   "biometricReason": "Veuillez scanner votre empreinte pour vous connecter",
-  "biometricError": "Erreur lors de l'authentification biométrique",
+  "biometricError": "L'empreinte n'a pas pu être vérifiée. Réessayez.",
   "biometricRevoked": "La connexion biométrique n'est plus valide. Reconnectez-vous pour continuer.",
   "attention": "Attention",
   "signOutAnonymousWarning": "En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer\u202f?",
@@ -558,18 +558,26 @@
   },
   "biometricEnabled": "Connexion biométrique activée",
   "biometricDisabled": "Connexion biométrique désactivée",
-  "errorWeakPassword": "Le mot de passe est trop faible.",
+  "errorWeakPassword": "Mot de passe trop faible. Choisissez-en un plus long.",
   "errorEmailAlreadyInUse": "Cette adresse e\u2011mail a déjà un compte. Connectez-vous plutôt.",
   "errorInvalidEmail": "Cette adresse e\u2011mail n'est pas valide.",
-  "errorUserNotFound": "Utilisateur non trouvé.",
-  "errorWrongPassword": "Mot de passe incorrect.",
-  "errorInvalidCredentials": "E\u2011mail ou mot de passe incorrect.",
+  "errorUserNotFound": "Aucun compte AnKi avec cette adresse. Vérifiez-la, ou créez un compte.",
+  "errorTooManyRequests": "Trop d'essais d'affilée. Patientez quelques minutes, puis réessayez.",
+  "@errorTooManyRequests": {
+    "description": "Firebase bloque un moment après trop d'essais de connexion ou d'envois"
+  },
+  "errorUserDisabled": "Ce compte est désactivé. Connectez-vous avec un autre.",
+  "@errorUserDisabled": {
+    "description": "Compte désactivé dans la console Firebase"
+  },
+  "errorWrongPassword": "Mot de passe incorrect. Réessayez, ou demandez un nouveau mot de passe.",
+  "errorInvalidCredentials": "E\u2011mail ou mot de passe incorrect. Vérifiez-les, ou demandez un nouveau mot de passe.",
   "errorNetwork": "Pas de connexion. Vérifiez votre réseau et réessayez.",
-  "errorUnknown": "Une erreur est survenue.",
+  "errorUnknown": "Quelque chose s'est mal passé. Réessayez dans un instant.",
   "errorGoogleLogin": "La connexion avec Google n'a pas abouti. Réessayez.",
   "errorGoogleAccountInUse": "Ce compte Google a déjà son agenda AnKi. Choisissez-en un autre pour sauvegarder vos anniversaires.",
-  "errorSignOut": "Erreur lors de la déconnexion",
-  "deleteAccountError": "Erreur lors de la suppression du compte",
+  "errorSignOut": "La déconnexion n'a pas abouti. Réessayez.",
+  "deleteAccountError": "Le compte n'a pas pu être supprimé. Vérifiez votre connexion et réessayez.",
   "errorQuotaExceeded": "Limite de recherche atteinte. Veuillez réessayer plus tard.",
   "bookCategoryNovel": "Roman",
   "bookCategoryComics": "BD",

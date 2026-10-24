@@ -19,6 +19,12 @@ enum AuthFailure implements Exception {
   /// Serveur injoignable : pas de réseau.
   network,
 
+  /// Trop d'essais d'affilée : Firebase bloque l'appareil un moment.
+  tooManyRequests,
+
+  /// Compte désactivé dans la console Firebase.
+  userDisabled,
+
   /// Refus de Firebase Auth sans cas dédié.
   unknown,
 

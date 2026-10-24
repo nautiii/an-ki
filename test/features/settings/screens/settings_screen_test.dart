@@ -164,7 +164,10 @@ void main() {
     await tester.tap(find.text('Sombre'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Une erreur est survenue.'), findsOneWidget);
+    expect(
+      find.text("Quelque chose s'est mal passé. Réessayez dans un instant."),
+      findsOneWidget,
+    );
   });
 
   testWidgets('toggles the biometric switch on and off', (tester) async {
@@ -393,7 +396,13 @@ void main() {
     await tester.pumpAndSettle();
 
     // No error SnackBar means the deletion flow completed.
-    expect(find.text('Erreur lors de la suppression du compte'), findsNothing);
+    expect(
+      find.text(
+        "Le compte n'a pas pu être supprimé. Vérifiez votre connexion et "
+        'réessayez.',
+      ),
+      findsNothing,
+    );
     expect(users.deleted, ['uid-1']);
   });
 
@@ -414,7 +423,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Erreur lors de la suppression du compte'),
+      find.text(
+        "Le compte n'a pas pu être supprimé. Vérifiez votre connexion et "
+        'réessayez.',
+      ),
       findsOneWidget,
     );
   });

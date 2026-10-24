@@ -72,11 +72,20 @@ class AuthRepository {
     await _auth.sendPasswordResetEmail(email: email);
   });
 
-  Future<User?> signInWithGoogle() => _guard(() async {
-    final credential = await _googleCredential();
-    final result = await _auth.signInWithCredential(credential);
-    return result.user;
-  });
+  /// Un jeton Google refusé n'est pas un mot de passe erroné : il se dit
+  /// comme un échec de Google ([AuthFailure.googleSignInFailed]).
+  Future<User?> signInWithGoogle() async {
+    try {
+      return await _guard(() async {
+        final credential = await _googleCredential();
+        final result = await _auth.signInWithCredential(credential);
+        return result.user;
+      });
+    } on AuthFailure catch (failure, stackTrace) {
+      if (failure != AuthFailure.invalidCredentials) rethrow;
+      Error.throwWithStackTrace(AuthFailure.googleSignInFailed, stackTrace);
+    }
+  }
 
   Future<User?> signInAnonymously() => _guard(() async {
     final credential = await _auth.signInAnonymously();
@@ -173,6 +182,8 @@ AuthFailure _failureFor(String code) => switch (code) {
   'wrong-password' => AuthFailure.wrongPassword,
   'invalid-credential' => AuthFailure.invalidCredentials,
   'network-request-failed' => AuthFailure.network,
+  'too-many-requests' => AuthFailure.tooManyRequests,
+  'user-disabled' => AuthFailure.userDisabled,
   _ => AuthFailure.unknown,
 };
 

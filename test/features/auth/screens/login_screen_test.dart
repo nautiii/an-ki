@@ -127,7 +127,10 @@ void main() {
       await tester.tap(find.text('Se connecter').last);
       await tester.pumpAndSettle();
 
-      expect(find.text('Une erreur est survenue.'), findsOneWidget);
+      expect(
+        find.text("Quelque chose s'est mal passé. Réessayez dans un instant."),
+        findsOneWidget,
+      );
     });
 
     testWidgets('toggles password visibility', (tester) async {

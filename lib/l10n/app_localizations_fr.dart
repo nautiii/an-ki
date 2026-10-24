@@ -220,14 +220,16 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get connectionError => 'Erreur de connexion';
+  String get connectionError =>
+      'La connexion n\'a pas abouti. Réessayez dans un instant.';
 
   @override
   String get errorPasswordReset =>
       'Le lien n\'a pas pu partir. Réessayez dans un instant.';
 
   @override
-  String get registrationError => 'Erreur d\'inscription';
+  String get registrationError =>
+      'L\'inscription n\'a pas abouti. Réessayez dans un instant.';
 
   @override
   String get loginTitle => 'Connexion par e‑mail';
@@ -663,7 +665,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Veuillez scanner votre empreinte pour vous connecter';
 
   @override
-  String get biometricError => 'Erreur lors de l\'authentification biométrique';
+  String get biometricError =>
+      'L\'empreinte n\'a pas pu être vérifiée. Réessayez.';
 
   @override
   String get biometricRevoked =>
@@ -746,7 +749,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get biometricDisabled => 'Connexion biométrique désactivée';
 
   @override
-  String get errorWeakPassword => 'Le mot de passe est trop faible.';
+  String get errorWeakPassword =>
+      'Mot de passe trop faible. Choisissez-en un plus long.';
 
   @override
   String get errorEmailAlreadyInUse =>
@@ -756,20 +760,32 @@ class AppLocalizationsFr extends AppLocalizations {
   String get errorInvalidEmail => 'Cette adresse e‑mail n\'est pas valide.';
 
   @override
-  String get errorUserNotFound => 'Utilisateur non trouvé.';
+  String get errorUserNotFound =>
+      'Aucun compte AnKi avec cette adresse. Vérifiez-la, ou créez un compte.';
 
   @override
-  String get errorWrongPassword => 'Mot de passe incorrect.';
+  String get errorTooManyRequests =>
+      'Trop d\'essais d\'affilée. Patientez quelques minutes, puis réessayez.';
 
   @override
-  String get errorInvalidCredentials => 'E‑mail ou mot de passe incorrect.';
+  String get errorUserDisabled =>
+      'Ce compte est désactivé. Connectez-vous avec un autre.';
+
+  @override
+  String get errorWrongPassword =>
+      'Mot de passe incorrect. Réessayez, ou demandez un nouveau mot de passe.';
+
+  @override
+  String get errorInvalidCredentials =>
+      'E‑mail ou mot de passe incorrect. Vérifiez-les, ou demandez un nouveau mot de passe.';
 
   @override
   String get errorNetwork =>
       'Pas de connexion. Vérifiez votre réseau et réessayez.';
 
   @override
-  String get errorUnknown => 'Une erreur est survenue.';
+  String get errorUnknown =>
+      'Quelque chose s\'est mal passé. Réessayez dans un instant.';
 
   @override
   String get errorGoogleLogin =>
@@ -780,10 +796,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ce compte Google a déjà son agenda AnKi. Choisissez-en un autre pour sauvegarder vos anniversaires.';
 
   @override
-  String get errorSignOut => 'Erreur lors de la déconnexion';
+  String get errorSignOut => 'La déconnexion n\'a pas abouti. Réessayez.';
 
   @override
-  String get deleteAccountError => 'Erreur lors de la suppression du compte';
+  String get deleteAccountError =>
+      'Le compte n\'a pas pu être supprimé. Vérifiez votre connexion et réessayez.';
 
   @override
   String get errorQuotaExceeded =>

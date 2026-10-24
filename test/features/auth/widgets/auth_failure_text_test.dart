@@ -10,18 +10,34 @@ void main() {
 
     expect(
       AuthFailure.wrongPassword.message(context),
-      'Mot de passe incorrect.',
+      'Mot de passe incorrect. Réessayez, ou demandez un nouveau mot de '
+      'passe.',
     );
     expect(
       AuthFailure.invalidCredentials.message(context),
-      'E‑mail ou mot de passe incorrect.',
+      'E\u2011mail ou mot de passe incorrect. Vérifiez-les, ou demandez un '
+      'nouveau mot de passe.',
     );
     expect(
       AuthFailure.network.message(context),
       'Pas de connexion. Vérifiez votre réseau et réessayez.',
     );
-    expect(AuthFailure.unknown.message(context), 'Une erreur est survenue.');
-    expect(AuthFailure.signInFailed.message(context), 'Erreur de connexion');
+    expect(
+      AuthFailure.unknown.message(context),
+      "Quelque chose s'est mal passé. Réessayez dans un instant.",
+    );
+    expect(
+      AuthFailure.signInFailed.message(context),
+      "La connexion n'a pas abouti. Réessayez dans un instant.",
+    );
+    expect(
+      AuthFailure.userNotFound.message(context),
+      'Aucun compte AnKi avec cette adresse. Vérifiez-la, ou créez un compte.',
+    );
+    expect(
+      AuthFailure.tooManyRequests.message(context),
+      "Trop d'essais d'affilée. Patientez quelques minutes, puis réessayez.",
+    );
     expect(
       AuthFailure.passwordResetFailed.message(context),
       "Le lien n'a pas pu partir. Réessayez dans un instant.",

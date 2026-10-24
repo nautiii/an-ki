@@ -216,14 +216,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get connectionError => 'Login error';
+  String get connectionError => 'Couldn\'t sign you in. Try again in a moment.';
 
   @override
   String get errorPasswordReset =>
       'The link couldn\'t be sent. Try again in a moment.';
 
   @override
-  String get registrationError => 'Registration error';
+  String get registrationError =>
+      'Couldn\'t create your account. Try again in a moment.';
 
   @override
   String get loginTitle => 'Sign in with email';
@@ -651,7 +652,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get biometricReason => 'Scan your fingerprint to sign in';
 
   @override
-  String get biometricError => 'Error during biometric authentication';
+  String get biometricError => 'Couldn\'t check your fingerprint. Try again.';
 
   @override
   String get biometricRevoked =>
@@ -735,7 +736,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get biometricDisabled => 'Biometric login disabled';
 
   @override
-  String get errorWeakPassword => 'The password is too weak.';
+  String get errorWeakPassword => 'Password too weak. Choose a longer one.';
 
   @override
   String get errorEmailAlreadyInUse =>
@@ -745,20 +746,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorInvalidEmail => 'This email address isn\'t valid.';
 
   @override
-  String get errorUserNotFound => 'User not found.';
+  String get errorUserNotFound =>
+      'No AnKi account uses this address. Check it, or create an account.';
 
   @override
-  String get errorWrongPassword => 'Incorrect password.';
+  String get errorTooManyRequests =>
+      'Too many tries in a row. Wait a few minutes, then try again.';
 
   @override
-  String get errorInvalidCredentials => 'Incorrect email or password.';
+  String get errorUserDisabled =>
+      'This account is disabled. Sign in with another one.';
+
+  @override
+  String get errorWrongPassword =>
+      'Wrong password. Try again, or ask for a new one.';
+
+  @override
+  String get errorInvalidCredentials =>
+      'Wrong e-mail or password. Check them, or ask for a new password.';
 
   @override
   String get errorNetwork =>
       'You\'re offline. Check your connection and try again.';
 
   @override
-  String get errorUnknown => 'An error occurred.';
+  String get errorUnknown => 'Something went wrong. Try again in a moment.';
 
   @override
   String get errorGoogleLogin => 'Couldn\'t connect with Google. Try again.';
@@ -768,10 +780,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'This Google account is already used by AnKi. Choose another one to save your birthdays.';
 
   @override
-  String get errorSignOut => 'Sign out error';
+  String get errorSignOut => 'Couldn\'t sign you out. Try again.';
 
   @override
-  String get deleteAccountError => 'Error during account deletion';
+  String get deleteAccountError =>
+      'Couldn\'t delete the account. Check your connection and try again.';
 
   @override
   String get errorQuotaExceeded =>

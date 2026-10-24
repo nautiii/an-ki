@@ -145,6 +145,8 @@ void main() {
       // Protection contre l'énumération des e-mails : ni l'un ni l'autre.
       await expectFailure('invalid-credential', AuthFailure.invalidCredentials);
       await expectFailure('network-request-failed', AuthFailure.network);
+      await expectFailure('too-many-requests', AuthFailure.tooManyRequests);
+      await expectFailure('user-disabled', AuthFailure.userDisabled);
     });
 
     test('translates an offline anonymous sign-in', () async {
@@ -158,7 +160,45 @@ void main() {
     });
 
     test('maps any other code to unknown', () async {
-      await expectFailure('too-many-requests', AuthFailure.unknown);
+      await expectFailure('operation-not-allowed', AuthFailure.unknown);
+    });
+  });
+
+  group('signing in with Google', () {
+    late GoogleSignInPlatform previousPlatform;
+
+    setUp(() {
+      previousPlatform = GoogleSignInPlatform.instance;
+      GoogleSignInPlatform.instance = FakeGoogleSignInPlatform(
+        account: const GoogleSignInUserData(
+          email: 'lea@example.com',
+          id: 'google-lea',
+        ),
+      );
+    });
+
+    tearDown(() => GoogleSignInPlatform.instance = previousPlatform);
+
+    /// Connexion Google refusée par Firebase avec [code].
+    Future<void> expectRefused(String code, AuthFailure failure) async {
+      final auth = MockFirebaseAuth();
+      whenCalling(Invocation.method(#signInWithCredential, null))
+          .on(auth)
+          .thenThrow(FirebaseAuthException(code: code));
+
+      await expectLater(
+        build(auth, FakeFirebaseFirestore()).signInWithGoogle(),
+        throwsA(failure),
+      );
+    }
+
+    test('a refused Google token is no wrong password', () async {
+      await expectRefused('invalid-credential', AuthFailure.googleSignInFailed);
+    });
+
+    test('other refusals keep their meaning', () async {
+      await expectRefused('network-request-failed', AuthFailure.network);
+      await expectRefused('user-disabled', AuthFailure.userDisabled);
     });
   });
 

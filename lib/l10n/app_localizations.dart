@@ -431,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @connectionError.
   ///
   /// In fr, this message translates to:
-  /// **'Erreur de connexion'**
+  /// **'La connexion n\'a pas abouti. Réessayez dans un instant.'**
   String get connectionError;
 
   /// L'envoi du lien du mot de passe oublié a échoué sans raison connue
@@ -443,7 +443,7 @@ abstract class AppLocalizations {
   /// No description provided for @registrationError.
   ///
   /// In fr, this message translates to:
-  /// **'Erreur d\'inscription'**
+  /// **'L\'inscription n\'a pas abouti. Réessayez dans un instant.'**
   String get registrationError;
 
   /// No description provided for @loginTitle.
@@ -1151,7 +1151,7 @@ abstract class AppLocalizations {
   /// No description provided for @biometricError.
   ///
   /// In fr, this message translates to:
-  /// **'Erreur lors de l\'authentification biométrique'**
+  /// **'L\'empreinte n\'a pas pu être vérifiée. Réessayez.'**
   String get biometricError;
 
   /// No description provided for @biometricRevoked.
@@ -1247,7 +1247,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorWeakPassword.
   ///
   /// In fr, this message translates to:
-  /// **'Le mot de passe est trop faible.'**
+  /// **'Mot de passe trop faible. Choisissez-en un plus long.'**
   String get errorWeakPassword;
 
   /// No description provided for @errorEmailAlreadyInUse.
@@ -1265,19 +1265,31 @@ abstract class AppLocalizations {
   /// No description provided for @errorUserNotFound.
   ///
   /// In fr, this message translates to:
-  /// **'Utilisateur non trouvé.'**
+  /// **'Aucun compte AnKi avec cette adresse. Vérifiez-la, ou créez un compte.'**
   String get errorUserNotFound;
+
+  /// Firebase bloque un moment après trop d'essais de connexion ou d'envois
+  ///
+  /// In fr, this message translates to:
+  /// **'Trop d\'essais d\'affilée. Patientez quelques minutes, puis réessayez.'**
+  String get errorTooManyRequests;
+
+  /// Compte désactivé dans la console Firebase
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce compte est désactivé. Connectez-vous avec un autre.'**
+  String get errorUserDisabled;
 
   /// No description provided for @errorWrongPassword.
   ///
   /// In fr, this message translates to:
-  /// **'Mot de passe incorrect.'**
+  /// **'Mot de passe incorrect. Réessayez, ou demandez un nouveau mot de passe.'**
   String get errorWrongPassword;
 
   /// No description provided for @errorInvalidCredentials.
   ///
   /// In fr, this message translates to:
-  /// **'E‑mail ou mot de passe incorrect.'**
+  /// **'E‑mail ou mot de passe incorrect. Vérifiez-les, ou demandez un nouveau mot de passe.'**
   String get errorInvalidCredentials;
 
   /// No description provided for @errorNetwork.
@@ -1289,7 +1301,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorUnknown.
   ///
   /// In fr, this message translates to:
-  /// **'Une erreur est survenue.'**
+  /// **'Quelque chose s\'est mal passé. Réessayez dans un instant.'**
   String get errorUnknown;
 
   /// No description provided for @errorGoogleLogin.
@@ -1307,13 +1319,13 @@ abstract class AppLocalizations {
   /// No description provided for @errorSignOut.
   ///
   /// In fr, this message translates to:
-  /// **'Erreur lors de la déconnexion'**
+  /// **'La déconnexion n\'a pas abouti. Réessayez.'**
   String get errorSignOut;
 
   /// No description provided for @deleteAccountError.
   ///
   /// In fr, this message translates to:
-  /// **'Erreur lors de la suppression du compte'**
+  /// **'Le compte n\'a pas pu être supprimé. Vérifiez votre connexion et réessayez.'**
   String get deleteAccountError;
 
   /// No description provided for @errorQuotaExceeded.

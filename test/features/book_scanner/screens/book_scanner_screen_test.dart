@@ -180,7 +180,10 @@ void main() {
       await tester.tap(find.text('Ajouter'));
       await settleScan(tester);
 
-      expect(find.text('Une erreur est survenue.'), findsOneWidget);
+      expect(
+        find.text("Quelque chose s'est mal passé. Réessayez dans un instant."),
+        findsOneWidget,
+      );
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 

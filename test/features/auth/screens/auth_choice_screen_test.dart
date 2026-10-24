@@ -127,7 +127,10 @@ void main() {
       await tester.tap(find.text(google));
       await tester.pumpAndSettle();
 
-      expect(find.text('Une erreur est survenue.'), findsOneWidget);
+      expect(
+        find.text("Quelque chose s'est mal passé. Réessayez dans un instant."),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Google sign-in success path', (tester) async {
@@ -206,7 +209,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text("Erreur lors de l'authentification biométrique"),
+        find.text("L'empreinte n'a pas pu être vérifiée. Réessayez."),
         findsOneWidget,
       );
     });

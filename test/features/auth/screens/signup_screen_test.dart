@@ -113,7 +113,10 @@ void main() {
       await tester.tap(find.text("S'inscrire").last);
       await tester.pumpAndSettle();
 
-      expect(find.text('Une erreur est survenue.'), findsOneWidget);
+      expect(
+        find.text("Quelque chose s'est mal passé. Réessayez dans un instant."),
+        findsOneWidget,
+      );
       // Inscription ratée : rien ne doit rester pour une connexion suivante.
       expect(container.read(signUpNamesProvider), isNull);
     });
