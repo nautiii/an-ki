@@ -163,7 +163,7 @@ feature and is not part of it.
 | `user` | auth | auth |
 | `birthday` | auth, user | auth, user |
 | `book_scanner` | auth, user | absorbed by `ideas` |
-| `reminders` | birthday | auth, birthday |
+| `reminders` | auth, birthday | auth, birthday |
 | `ideas` | | auth, birthday |
 | `settings` | auth, user, birthday, book_scanner, reminders | auth, user, birthday, reminders, ideas |
 
