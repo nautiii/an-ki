@@ -45,7 +45,7 @@ A missed reminder breaks the one promise AnKi makes: treat every change here as 
   stays out of the texts). A one-shot with the age plus a yearly ageless fallback doesn't work
   with this plugin: on Android, `matchDateTimeComponents` drops the year and fires at the next
   matching date, so the fallback would fire the same day as the one-shot. The age needs a
-  background replan (WorkManager, a new plugin): B6 shipped without it.
+  background replan (WorkManager, a new plugin): brief in ux-backlog B8, not approved yet.
 - Android 12+ refuses more than 500 alarms per app, silently for us: the plan keeps at most
   `ReminderPolicy.maxScheduled` (450), J-0 first, then J-7, J-1, J-30, nearest first.
 - `ReminderNotification.daysBefore` picks the text: 0 is the day (« 🎂 Léa Martin », « Léa fête

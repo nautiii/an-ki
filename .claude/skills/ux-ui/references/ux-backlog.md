@@ -21,7 +21,7 @@ find (one line, evidence, priority). Big bets and anything touching the data mod
 auth or dependencies → design brief + maintainer approval first.
 
 ## Contents
-- Big bets (B4; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
+- Big bets (B4, B8; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
 - Foundation (F1, F6) — design system, prerequisite for consistency
 - P1 — friction & states (Q10)
 - P2 — polish (D10, D13, D15–D17, D25)
@@ -75,9 +75,60 @@ auth or dependencies → design brief + maintainer approval first.
   son anniversaire. ». The plan stays under Android's 500-alarm limit, J-0 first.
 - **Dropped**: quiet hours (one chosen time makes them redundant); the Monday digest (maintainer,
   2026-10-25).
-- **Left**: the age in the text (« Léa fête ses 30 ans »): impossible with yearly repeats, and a
-  one-shot plus an ageless fallback fires twice on Android (the plugin drops the year); it needs
-  a background replan (WorkManager: new plugin, approval).
+- **Left**: the age in the text (« Léa fête ses 30 ans ») → B8.
+
+### B8 — The age in reminders (brief 2026-10-25, waiting for approval: new plugin)
+- **Problem**: reminders say « Demain, Léa fête son anniversaire. », not « Demain, Léa fête ses
+  30 ans » — the detail that turns a reminder into a thoughtful wish (patterns §I). A yearly
+  repeating notification keeps the text it was scheduled with, so an age would go stale. The
+  B6 idea (one-shot with the age + yearly ageless fallback) fails on Android:
+  `matchDateTimeComponents` drops the year (`getNextFireDateMatchingDateTimeComponents`,
+  flutter_local_notifications 22.3), so the fallback fires the same day as the one-shot.
+- **For whom / job**: everyone with known birth years (most of an imported agenda), at the
+  « act on it » moment: the notification is often the only screen they see that day.
+- **Proposal — rolling window, replanned in the background**: each reminder keeps one stable
+  id (B6 ranges). Inside a window (the next 45 days, beyond J-30) it is a **one-shot** with the
+  exact age; beyond it, the **yearly ageless repeat** it is today. Every replan (app start, data
+  change, and now a **daily background task**) turns the reminders entering the window into
+  one-shots, on the same id, so nothing is ever scheduled twice. Unknown year → ageless as
+  today. Background replan with **workmanager** (Android WorkManager / iOS BGTaskScheduler,
+  periodic ~24 h, no network needed): a callback isolate initializes Firebase, reads the
+  signed-in user's birthdays and preferences from the Firestore offline cache, and runs the same
+  `planReminders` + `NotificationService.scheduleAll`. Reference: calendar apps (Google Agenda,
+  Fantastical) roll their alarms over a short window the same way; Facebook-style « Léa a 30 ans
+  aujourd'hui » copy.
+- **Rejected**: one-shot + yearly fallback (double notification, see above); one-shots only,
+  replanned at app start (a phone left unopened past an occurrence loses every later reminder:
+  breaks the core promise); the age in a repeating text (stale after a year); a native receiver
+  writing the text at fire time from the birth year (replaces the plugin's Android code: against
+  « native code stays small », and still nothing on iOS); the age only in the app (already on the
+  hero and the agenda, it doesn't reach the notification).
+- **Mock-up**:
+  ```
+  🎉 Léa Martin                      🎂 Léa Martin
+  Demain, Léa fête ses 30 ans.       Léa fête ses 30 ans aujourd'hui !   [Souhaiter]
+  (year unknown, or beyond the window: today's ageless texts)
+  ```
+- **Risk check**: the window's one-shot is the only scheduled alarm for that occurrence; if
+  neither the app nor the worker runs between its firing and the next window (~320 days), the
+  following year is missed. A force-stop already cancels every alarm today, and WorkManager runs
+  at least daily on stock Android; aggressive OEMs (Honor, Xiaomi) can delay it: measure on the
+  maintainer's phone before step 2, and keep the window wide (45 days) so a late worker still
+  catches up.
+- **Impact**: `pubspec.yaml` + `workmanager` pinned (new plugin: approval; androidx.work merges
+  `RECEIVE_BOOT_COMPLETED` into the manifest, already granted to flutter_local_notifications);
+  `main.dart` registers the callback dispatcher; a background entry in `app/bootstrap` (Firebase
+  init, timezone, notification strings from the profile locale through
+  `lookupAppLocalizations`, no `BuildContext`); domain: `planReminders(…, oneShotUntil:)` and
+  `PlannedReminder.repeats`; core: `ReminderNotification.repeats` (`matchDateTimeComponents`
+  only when true); ARB: age variants of the two notification bodies (ICU plural on `age`, « son
+  premier anniversaire » for 1); tests per layer; `reminders.md` invariants rewritten (an age is
+  allowed in a one-shot only). No Firestore change, no migration. iOS: BGTaskScheduler identifier
+  in `Info.plist` once iOS builds; the same window also answers iOS's 64-pending cap.
+- **Steps**: 1) workmanager + daily background replan, texts unchanged — prove on the phone that
+  it runs (`adb shell dumpsys jobscheduler`), offline and after a reboot; 2) one-shots with the
+  age inside the window; 3) iOS rolling window, when iOS builds (with D17).
+- **Cost**: medium (one plugin, a background isolate, plan and service changes).
 
 ## Foundation
 
@@ -118,6 +169,6 @@ auth or dependencies → design brief + maintainer approval first.
 ## Suggested roadmap
 
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **B4, F1, F6, Q10, D10, D13, D15–D17, D25** — depth and polish (F1 any time once
+2. **B4, B8, F1, F6, Q10, D10, D13, D15–D17, D25** — depth and polish (F1 any time once
    approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.

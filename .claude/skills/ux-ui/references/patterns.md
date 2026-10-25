@@ -192,15 +192,15 @@ A spinner is acceptable only inside the control that triggered a short action.
 
 People come back when AnKi saves them from forgetting and makes them look thoughtful.
 - Notification copy is personal and actionable: « Demain, Léa fête son anniversaire. » (B6; the
-  age waits for a background replan, see below). The J-0
+  age comes with backlog B8). The J-0
   notification carries « Souhaiter » (shipped in step 4, Android: `AndroidNotificationAction`
   with the birthday id as payload; `app/bootstrap` goes home and opens the share sheet).
   « Idée cadeau » on J-7 comes with B4.
 - No age in a repeating notification: reminders repeat yearly (`DateTimeComponents.dateAndTime`)
   with the text written when scheduled, so an age goes stale if the app isn't reopened for a year.
-  Today's texts carry none. Bringing it back means scheduling each occurrence as a one-shot
-  (exact age for the next one, an ageless yearly fallback after it), within iOS's 64 pending
-  notifications; `ReminderNotification.age` is still computed for that.
+  Today's texts carry none. A one-shot plus a yearly ageless fallback fires twice on Android (the
+  plugin drops the year): backlog B8 brings the age back with a rolling window of one-shots,
+  replanned daily in the background; `ReminderNotification.age` is still computed for that.
 - Cadence (B6, shipped): J-7 + J-0 by default, J-30 and J-1 on request, one time of day; per
   person: as usual, none, or custom. No quiet hours: the chosen time replaces them.
 - Weekly digest (opt-in) « Cette semaine : 2 anniversaires » — Monday morning.
