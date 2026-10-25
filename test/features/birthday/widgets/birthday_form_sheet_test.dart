@@ -7,6 +7,7 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
@@ -29,14 +30,16 @@ void main() {
   const friend = BirthdayCategory(id: 'fri', name: 'friend', icon: 0xe1bf);
 
   /// Anniversaire à modifier, avec ou sans photo.
-  Birthday editable({Uint8List? picture}) => Birthday(
-    id: 'edit-1',
-    name: 'Alice',
-    surname: 'Wonderland',
-    date: const BirthDate(year: 1990, month: 5, day: 10),
-    categories: const ['fam'],
-    picture: picture,
-  );
+  Birthday editable({Uint8List? picture, Set<ReminderLead>? reminders}) =>
+      Birthday(
+        id: 'edit-1',
+        name: 'Alice',
+        surname: 'Wonderland',
+        date: const BirthDate(year: 1990, month: 5, day: 10),
+        categories: const ['fam'],
+        picture: picture,
+        reminders: reminders,
+      );
 
   List<dynamic> overrides(
     RecordingBirthdayRepository repository, {
@@ -435,6 +438,62 @@ void main() {
   });
 
   group('edition', () {
+    testWidgets('gives a person reminders of their own', (tester) async {
+      final repository = RecordingBirthdayRepository();
+      await pumpSheet(tester, repository, toEdit: editable());
+
+      ChoiceChip choice(String label) =>
+          tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, label));
+      expect(choice("Comme d'habitude").selected, isTrue);
+      expect(find.text('7 jours avant'), findsNothing);
+
+      await tester.ensureVisible(find.text('Personnalisés'));
+      await tester.tap(find.text('Personnalisés'));
+      await tester.pumpAndSettle();
+      // Point de départ : la cadence d'origine, une semaine avant.
+      expect(
+        tester
+            .widget<FilterChip>(
+              find.widgetWithText(FilterChip, '7 jours avant'),
+            )
+            .selected,
+        isTrue,
+      );
+      expect(find.text('Le jour J est toujours prévenu.'), findsOneWidget);
+      await tester.ensureVisible(find.text('La veille'));
+      await tester.tap(find.text('La veille'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Enregistrer'));
+      await tester.tap(find.text('Enregistrer'));
+      await tester.pumpAndSettle();
+
+      expect(repository.created.single.reminders, {
+        ReminderLead.weekBefore,
+        ReminderLead.dayBefore,
+        ReminderLead.sameDay,
+      });
+    });
+
+    testWidgets('mutes a person, then brings back the usual', (tester) async {
+      final repository = RecordingBirthdayRepository();
+      await pumpSheet(tester, repository, toEdit: editable(reminders: {}));
+
+      expect(
+        tester
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Aucun'))
+            .selected,
+        isTrue,
+      );
+      await tester.ensureVisible(find.text("Comme d'habitude"));
+      await tester.tap(find.text("Comme d'habitude"));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Enregistrer'));
+      await tester.tap(find.text('Enregistrer'));
+      await tester.pumpAndSettle();
+
+      expect(repository.created.single.reminders, isNull);
+    });
+
     testWidgets('pre-fills the same sheet and updates', (tester) async {
       final repository = RecordingBirthdayRepository();
       await pumpSheet(tester, repository, toEdit: editable(picture: _png));
