@@ -52,9 +52,45 @@ fi
 if has "${git}push[^;&|]*[[:space:]](-f|--force)${end}"; then
   deny "push forcé sans bail : --force-with-lease, et seulement après le oui du mainteneur."
 fi
-if has 'firebase[[:space:]]+deploy'; then
-  deny "le mainteneur déploie Firebase lui-même : dire ce qu'il faut déployer."
-fi
+# Firebase : seules les commandes locales ou en lecture seule passent. Le reste
+# (deploy, suppressions, imports, connexion…) écrit en production ou touche au
+# compte du mainteneur, qui le lance lui-même (skill firebase).
+firebase_call='(^|[[:space:];&|(])(npx[[:space:]]+)?firebase(-tools)?([[:space:]]|$)'
+# Sous-commande d'un appel, options globales et leurs valeurs sautées.
+firebase_subcommand() {
+  local - rest=${1#*firebase} skip='' word
+  set -f
+  rest=${rest#-tools}
+  for word in $rest; do
+    if [ -n "$skip" ]; then skip=''; continue; fi
+    case "$word" in
+      --project | -P | --config | -c | --token | --account) skip=1 ;;
+      --version | -V | --help | -h) printf '%s' "$word"; return ;;
+      -*) ;;
+      *) printf '%s' "$word"; return ;;
+    esac
+  done
+}
+# `deploy --dry-run` limité à Firestore ne fait que compiler les règles et lire
+# l'état du projet (testRuleset) : rien n'est créé ni publié.
+firestore_dry_run() {
+  printf '%s' "$1" | grep -Eq -- '--dry-run([[:space:]]|$)' &&
+    printf '%s' "$1" | grep -Eq -- '--only[[:space:]=]+firestore(:(rules|indexes))?(,firestore(:(rules|indexes))?)*([[:space:]]|$)'
+}
+while IFS= read -r call; do
+  # Une aide n'agit jamais.
+  if printf '%s' "$call" | grep -Eq -- '[[:space:]](--help|-h)([[:space:]]|$)'; then continue; fi
+  case "$(firebase_subcommand "$call")" in
+    '' | emulators:start | emulators:exec | emulators:export | firestore:indexes | \
+      login:list | projects:list | apps:list | apps:sdkconfig | use | help | \
+      --version | -V) ;;
+    deploy)
+      firestore_dry_run "$call" ||
+        deny "le mainteneur déploie Firebase lui-même : dire ce qu'il faut déployer (--dry-run --only firestore:rules reste permis pour compiler)."
+      ;;
+    *) deny "commande Firebase réservée au mainteneur (production ou compte) : dire ce qu'il faut lancer." ;;
+  esac
+done < <(printf '%s' "$cmd" | grep -Eo -- "${firebase_call}[^;&|)]*")
 
 # À confirmer par le mainteneur.
 if has "${git}push\\b"; then
