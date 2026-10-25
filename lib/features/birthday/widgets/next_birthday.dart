@@ -128,10 +128,8 @@ class _HeroCard extends ConsumerWidget {
           child: Semantics(
             button: true,
             child: InkWell(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                BirthdayFormSheet.show(context, birthdayToEdit: birthday);
-              },
+              onTap: () =>
+                  BirthdayFormSheet.show(context, birthdayToEdit: birthday),
               splashColor: onColor.withValues(alpha: 0.12),
               highlightColor: onColor.withValues(alpha: 0.08),
               child: identity,

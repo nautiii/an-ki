@@ -6,11 +6,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/auth_overrides.dart';
 import '../../../support/fake_providers.dart';
+import '../../../support/haptics.dart';
 import '../../../support/test_harness.dart';
 
 void main() {
   group('LoginScreen', () {
     testWidgets('signs in successfully', (tester) async {
+      final haptics = recordHaptics(tester);
       final repository = FakeAuthRepository();
       await tester.pumpHarness(
         const LoginScreen(),
@@ -26,6 +28,8 @@ void main() {
 
       expect(repository.calls, ['signInWithEmail']);
       expect(repository.currentUser, isNotNull);
+      // Une action réussie : une vibration légère, au succès seulement.
+      expect(haptics, ['HapticFeedbackType.lightImpact']);
     });
 
     testWidgets('waits for both fields before « Se connecter »', (
@@ -115,6 +119,7 @@ void main() {
     });
 
     testWidgets('shows an error SnackBar on failure', (tester) async {
+      final haptics = recordHaptics(tester);
       await tester.pumpHarness(
         const LoginScreen(),
         overrides: failingAuthOverrides(),
@@ -131,6 +136,8 @@ void main() {
         find.text("Quelque chose s'est mal passé. Réessayez dans un instant."),
         findsOneWidget,
       );
+      // Une erreur ne vibre pas : le message suffit.
+      expect(haptics, isEmpty);
     });
 
     testWidgets('toggles password visibility', (tester) async {

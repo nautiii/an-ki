@@ -11,7 +11,6 @@ import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -200,15 +199,12 @@ class _CalendarGrid extends StatelessWidget {
           categories: categories,
           onTap: dayBirthdays.isEmpty
               ? null
-              : () {
-                  HapticFeedback.lightImpact();
-                  _DayBirthdaysSheet.show(
-                    context,
-                    date: date,
-                    birthdays: dayBirthdays,
-                    today: today,
-                  );
-                },
+              : () => _DayBirthdaysSheet.show(
+                  context,
+                  date: date,
+                  birthdays: dayBirthdays,
+                  today: today,
+                ),
         );
       },
     );

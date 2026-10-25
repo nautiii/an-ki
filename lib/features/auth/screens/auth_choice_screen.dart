@@ -46,11 +46,10 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
   }
 
   Future<void> _signInWithGoogle() async {
-    unawaited(HapticFeedback.lightImpact());
     final success = await ref
         .read(authControllerProvider.notifier)
         .signInWithGoogle();
-    if (success && mounted) unawaited(HapticFeedback.mediumImpact());
+    if (success && mounted) unawaited(HapticFeedback.lightImpact());
   }
 
   /// Échec d'une connexion lancée ici ; un écran poussé au-dessus (connexion

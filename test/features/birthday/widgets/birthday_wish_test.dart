@@ -9,10 +9,10 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
+import '../../../support/haptics.dart';
 import '../../../support/test_harness.dart';
 
 void main() {
@@ -30,7 +30,6 @@ void main() {
   setUp(() {
     repository = RecordingBirthdayRepository();
     share = FakeShareService();
-    haptics = [];
   });
 
   /// Les actions de [birthday] au jour [today] ; les vibrations demandées
@@ -41,21 +40,7 @@ void main() {
     Birthday birthday = lea,
     bool wished = false,
   }) async {
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      SystemChannels.platform,
-      (call) async {
-        if (call.method == 'HapticFeedback.vibrate') {
-          haptics.add(call.arguments);
-        }
-        return null;
-      },
-    );
-    addTearDown(
-      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-        SystemChannels.platform,
-        null,
-      ),
-    );
+    haptics = recordHaptics(tester);
     await tester.pumpHarness(
       WishActions(birthday: birthday, wished: wished, onColor: Colors.white),
       overrides: [

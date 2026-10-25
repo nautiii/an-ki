@@ -20,6 +20,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
+import '../../../support/haptics.dart';
 import '../../../support/network_image_mock.dart';
 import '../../../support/test_harness.dart';
 
@@ -224,13 +225,45 @@ void main() {
     semantics.dispose();
   });
 
-  testWidgets('tapping opens the edit sheet', (tester) async {
+  testWidgets('tapping opens the edit sheet, without a vibration', (
+    tester,
+  ) async {
+    final haptics = recordHaptics(tester);
     await pumpTile(tester, birthday());
 
     await tester.tap(find.text('Alice Wonderland'));
     await tester.pumpAndSettle();
 
     expect(find.text('Modifier'), findsOneWidget);
+    expect(haptics, isEmpty);
+  });
+
+  testWidgets('a swipe vibrates once, as it crosses its threshold', (
+    tester,
+  ) async {
+    final haptics = recordHaptics(tester);
+    await pumpTile(tester, birthday());
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Alice Wonderland')),
+    );
+    await gesture.moveBy(const Offset(-40, 0));
+    await tester.pump();
+    expect(haptics, isEmpty);
+    await gesture.moveBy(const Offset(-260, 0));
+    await tester.pump();
+    expect(haptics, ['HapticFeedbackType.mediumImpact']);
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+    // Lâcher supprime sans vibrer une seconde fois.
+    expect(
+      find.text("Alice Wonderland n'est plus dans vos anniversaires"),
+      findsOneWidget,
+    );
+    expect(haptics, ['HapticFeedbackType.mediumImpact']);
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pumpAndSettle();
   });
 
   /// Le nom passe sous l'avatar plutôt qu'à sa droite.

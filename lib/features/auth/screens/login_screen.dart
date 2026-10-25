@@ -60,11 +60,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final draft = _draft;
     if (!draft.isValid) return;
 
-    unawaited(HapticFeedback.lightImpact());
     final success = await ref
         .read(authControllerProvider.notifier)
         .signIn(email: draft.email.trim(), password: draft.password);
-    if (success && mounted) unawaited(HapticFeedback.mediumImpact());
+    if (success && mounted) unawaited(HapticFeedback.lightImpact());
   }
 
   /// Le lien du mot de passe oublié, vers l'adresse tapée ; sans adresse, le

@@ -15,7 +15,14 @@ const Duration undoDelay = Duration(seconds: 5);
 /// Supprime [birthday] avec « Annuler » (Gmail) : la personne disparaît tout
 /// de suite de l'app, l'effacement ne part qu'à la fermeture de la snackbar
 /// sans annulation. Un échec la fait réapparaître ; l'accueil l'annonce.
-void deleteWithUndo(BuildContext context, Birthday birthday) {
+///
+/// Vibre comme toute action destructrice, sauf [haptic] faux : un glissement
+/// a déjà vibré en franchissant son seuil.
+void deleteWithUndo(
+  BuildContext context,
+  Birthday birthday, {
+  bool haptic = true,
+}) {
   // Tout est lu maintenant : l'élément qui supprime (ligne glissée, feuille
   // refermée) n'existe sans doute plus quand la snackbar se ferme.
   final container = ProviderScope.containerOf(context, listen: false);
@@ -23,7 +30,7 @@ void deleteWithUndo(BuildContext context, Birthday birthday) {
   final l10n = context.l10n;
   final accessible = MediaQuery.accessibleNavigationOf(context);
 
-  unawaited(HapticFeedback.mediumImpact());
+  if (haptic) unawaited(HapticFeedback.mediumImpact());
   pending.hide(birthday.id);
   final snackBar = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
   final closed = snackBar

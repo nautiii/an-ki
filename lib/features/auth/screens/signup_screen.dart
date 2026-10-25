@@ -64,7 +64,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     final draft = _draft;
     if (!draft.isValid) return;
 
-    unawaited(HapticFeedback.lightImpact());
     final controller = ref.read(authControllerProvider.notifier);
     final name = draft.name.trim();
     final surname = draft.surname.trim();
@@ -77,7 +76,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       name: name,
       surname: surname,
     );
-    if (success && mounted) unawaited(HapticFeedback.mediumImpact());
+    if (success && mounted) unawaited(HapticFeedback.lightImpact());
   }
 
   /// Inscription ratée : rien ne doit rester pour une connexion suivante.

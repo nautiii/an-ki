@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
+import '../../../support/haptics.dart';
 import '../../../support/network_image_mock.dart';
 import '../../../support/test_harness.dart';
 
@@ -233,27 +234,6 @@ void main() {
     });
   });
 
-  /// Relève les vibrations demandées pendant le test.
-  List<Object?> recordHaptics(WidgetTester tester) {
-    final haptics = <Object?>[];
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      SystemChannels.platform,
-      (call) async {
-        if (call.method == 'HapticFeedback.vibrate') {
-          haptics.add(call.arguments);
-        }
-        return null;
-      },
-    );
-    addTearDown(
-      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-        SystemChannels.platform,
-        null,
-      ),
-    );
-    return haptics;
-  }
-
   testWidgets('lets the petals fall once on the day', (tester) async {
     final haptics = recordHaptics(tester);
     await mockNetworkImages(() async {
@@ -346,6 +326,7 @@ void main() {
   });
 
   testWidgets('tapping the card opens the edit sheet', (tester) async {
+    final haptics = recordHaptics(tester);
     await mockNetworkImages(() async {
       await pumpCard(tester, birthdays: [relative(3)]);
       await tester.pumpAndSettle();
@@ -354,6 +335,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Modifier'), findsOneWidget);
+      // Ouvrir n'est pas une action réussie : pas de vibration.
+      expect(haptics, isEmpty);
     });
   });
 

@@ -46,7 +46,14 @@ class AgendaTile extends ConsumerWidget {
         key: Key(birthday.id),
         // La droite reste libre pour une action positive (« Souhaiter »).
         direction: DismissDirection.endToStart,
-        onDismissed: (_) => deleteWithUndo(context, birthday),
+        // Le seuil franchi se sent : lâcher supprime. La suppression ne
+        // vibre pas une seconde fois.
+        onUpdate: (details) {
+          if (details.reached && !details.previousReached) {
+            HapticFeedback.mediumImpact();
+          }
+        },
+        onDismissed: (_) => deleteWithUndo(context, birthday, haptic: false),
         background: ColoredBox(
           color: colorScheme.errorContainer,
           child: Padding(
@@ -70,10 +77,8 @@ class AgendaTile extends ConsumerWidget {
                     deleteWithUndo(context, birthday),
               },
               child: InkWell(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  BirthdayFormSheet.show(context, birthdayToEdit: birthday);
-                },
+                onTap: () =>
+                    BirthdayFormSheet.show(context, birthdayToEdit: birthday),
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.sm),
                   child: _TileContent(birthday: birthday, highlight: highlight),
