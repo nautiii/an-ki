@@ -189,7 +189,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signOutConfirmation => 'Are you sure you want to sign out?';
 
   @override
-  String get errorSavingBirthday => 'Error saving birthday';
+  String get errorSavingBirthday =>
+      'Your change couldn\'t be saved. Check your connection and try again.';
 
   @override
   String get errorSavingGroup =>

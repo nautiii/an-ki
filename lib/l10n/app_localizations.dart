@@ -380,10 +380,10 @@ abstract class AppLocalizations {
   /// **'Êtes-vous sûr de vouloir vous déconnecter ?'**
   String get signOutConfirmation;
 
-  /// No description provided for @errorSavingBirthday.
+  /// Snackbar de l'accueil : un ajout, une modification, une suppression ou un vœu n'a pas été enregistré
   ///
   /// In fr, this message translates to:
-  /// **'Erreur lors de l\'enregistrement de l\'anniversaire'**
+  /// **'Votre modification n\'a pas pu être enregistrée. Vérifiez votre connexion et réessayez.'**
   String get errorSavingBirthday;
 
   /// Snackbar de l'accueil : la création d'un groupe a échoué

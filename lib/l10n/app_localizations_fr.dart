@@ -193,7 +193,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get errorSavingBirthday =>
-      'Erreur lors de l\'enregistrement de l\'anniversaire';
+      'Votre modification n\'a pas pu être enregistrée. Vérifiez votre connexion et réessayez.';
 
   @override
   String get errorSavingGroup =>

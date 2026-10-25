@@ -115,7 +115,10 @@
   "requiredField": "Champ obligatoire",
   "signOut": "Se déconnecter",
   "signOutConfirmation": "Êtes-vous sûr de vouloir vous déconnecter\u202f?",
-  "errorSavingBirthday": "Erreur lors de l'enregistrement de l'anniversaire",
+  "errorSavingBirthday": "Votre modification n'a pas pu être enregistrée. Vérifiez votre connexion et réessayez.",
+  "@errorSavingBirthday": {
+    "description": "Snackbar de l'accueil : un ajout, une modification, une suppression ou un vœu n'a pas été enregistré"
+  },
   "errorSavingGroup": "Impossible d'enregistrer le groupe. Vérifiez votre connexion et réessayez.",
   "@errorSavingGroup": {
     "description": "Snackbar de l'accueil : la création d'un groupe a échoué"

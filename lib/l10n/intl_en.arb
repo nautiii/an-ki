@@ -46,7 +46,7 @@
   "requiredField": "Required field",
   "signOut": "Sign out",
   "signOutConfirmation": "Are you sure you want to sign out?",
-  "errorSavingBirthday": "Error saving birthday",
+  "errorSavingBirthday": "Your change couldn't be saved. Check your connection and try again.",
   "errorSavingGroup": "Couldn't save the group. Check your connection and try again.",
   "nextBirthday": "Next birthday",
   "today": "Today 🎉",

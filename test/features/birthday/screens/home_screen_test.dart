@@ -524,8 +524,12 @@ void main() {
       await tester.pump(const Duration(seconds: 6));
       await tester.pumpAndSettle();
 
+      // Ce qui s'est passé et quoi faire, pas un « Erreur lors de … ».
       expect(
-        find.text("Erreur lors de l'enregistrement de l'anniversaire"),
+        find.text(
+          "Votre modification n'a pas pu être enregistrée. Vérifiez votre "
+          'connexion et réessayez.',
+        ),
         findsOneWidget,
       );
       expect(find.text('Bob Builder'), findsOneWidget);
