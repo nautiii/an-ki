@@ -166,8 +166,8 @@ A spinner is acceptable only inside the control that triggered a short action.
 - The e-mail forms (`login_screen.dart`, `signup_screen.dart`) share `widgets/auth_form.dart`:
   themed fields in an `AutofillGroup`, `PasswordField` with a labelled eye, a submit enabled by
   the draft (`SignInDraft`, `SignUpDraft`) that keeps its label while waiting. « Suivant » goes to
-  the next field, never to an eye; a different confirmation is said under it once it can no
-  longer match. « Mot de passe oublié ? » sends Firebase's reset link to the typed address,
+  the next field, never to an eye. The sign-up asks the password once: the eye shows it and the
+  reset link catches a typo (2026-10-25). « Mot de passe oublié ? » sends Firebase's reset link to the typed address,
   in the app's language (`PasswordReset`, its own controller): without an address the field
   says what is missing; sent, « E‑mail envoyé à … » stays in the form with « Renvoyer le
   lien », worded neutrally since Firebase hides whether the address has an account (shipped

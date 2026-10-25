@@ -12,7 +12,8 @@ guest backup) on 2026-10-19, small fixes D6, D19, D20 and D21, Q6 and D18, the e
 and sign-up forms (D3, their part of F5, D11 and D1, their copy), the settings (Q4, F4, the
 rest of D1, their part of F5 and D11), the groups (B7, Q7, the rest of D11) and the
 reminders-off card (Q8), the forgotten password link (Q9) and the auth messages (D23) on
-2026-10-24: the items they fixed are gone from this list.
+2026-10-24, the sign-up's single password (Q11) on 2026-10-25: the items they fixed are gone
+from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
@@ -21,7 +22,7 @@ auth or dependencies → design brief + maintainer approval first.
 ## Contents
 - Big bets (B4, B6; B5 shipped but its merge) — structural redesigns with the highest impact
 - Foundation (F1, F5, F6) — design system, prerequisite for consistency
-- P1 — friction & states (Q10, Q11)
+- P1 — friction & states (Q10)
 - P2 — polish (D4, D8–D10, D12–D17, D22, D24)
 - Suggested roadmap
 
@@ -77,9 +78,9 @@ auth or dependencies → design brief + maintainer approval first.
 - **F5 — Finish the token migration** in the last screen step 1 didn't touch: `BookCard`
   (`BorderRadius.circular(24/12)`, faux bold).
 - **F6 — Error ring on fields**: the input theme has no `errorBorder`/`focusedErrorBorder` and
-  its `border` is `BorderSide.none`, so a focused field in error loses its focus ring (sign-up
-  « Confirmation », birthday sheet name); the red label and message remain → error borders on the
-  `AppRadii.md` shape in `themes.dart` (theme change, approval first).
+  its `border` is `BorderSide.none`, so a focused field in error loses its focus ring (login
+  e-mail without an address, birthday sheet name); the red label and message remain → error
+  borders on the `AppRadii.md` shape in `themes.dart` (theme change, approval first).
 
 ## P1 — friction & states
 
@@ -87,10 +88,6 @@ auth or dependencies → design brief + maintainer approval first.
   recoloured or deleted, and the older categories (GOAT, Doggo…) stay on whoever picked them
   (found shipping B7, 2026-10-24) → a « Groupes » page from Settings › Anniversaires: rename,
   tone, delete with « Annuler » (the birthdays drop it); a shared one only leaves the profile.
-- **Q11 Sign-up confirmation**: the sign-up still asks the password twice (« Confirmation »)
-  though the eye shows it and « Mot de passe oublié ? » now sends a reset link (Q9, 2026-10-24)
-  → drop the field and `SignUpDraft.confirmation`: one field less in the bursty capture of an
-  account; a product call, the maintainer's go first.
 
 ## P2 — polish
 
@@ -131,6 +128,6 @@ auth or dependencies → design brief + maintainer approval first.
 ## Suggested roadmap
 
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **B4, B6, F1, F5, F6, Q10, Q11, D4, D8–D10, D12–D17, D22, D24** — depth and polish (F1 any
+2. **B4, B6, F1, F5, F6, Q10, D4, D8–D10, D12–D17, D22, D24** — depth and polish (F1 any
    time once approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
