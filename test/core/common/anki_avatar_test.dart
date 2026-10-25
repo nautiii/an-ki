@@ -62,6 +62,7 @@ void main() {
       );
 
       expect(tester.getSize(find.byType(AnKiAvatar)), const Size(56, 56));
+      expect(AnKiAvatar.ringedExtent(), 56);
       expect(
         find.descendant(
           of: find.byType(AnKiAvatar),

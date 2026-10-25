@@ -13,7 +13,7 @@ class AnKiAvatar extends StatelessWidget {
     super.key,
     required this.name,
     this.image,
-    this.radius = 24,
+    this.radius = defaultRadius,
     this.ringColors,
   });
 
@@ -25,11 +25,18 @@ class AnKiAvatar extends StatelessWidget {
   /// vide : la place seule, pour garder les avatars d'une liste alignés.
   final List<Color>? ringColors;
 
+  /// Rayon par défaut, celui des lignes de liste.
+  static const double defaultRadius = 24;
+
   /// Épaisseur de l'anneau.
   static const double ringWidth = 2;
 
   /// Espace entre l'anneau et l'avatar.
   static const double ringGap = 2;
+
+  /// Côté occupé par un avatar de [radius] avec la place de son anneau.
+  static double ringedExtent([double radius = defaultRadius]) =>
+      2 * (radius + ringGap + ringWidth);
 
   // Graines tirées des illustrations : nuit, lotus, feuille, lune, nuage.
   static const List<Color> _seeds = [

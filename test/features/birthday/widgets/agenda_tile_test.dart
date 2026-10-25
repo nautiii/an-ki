@@ -72,11 +72,12 @@ void main() {
     WidgetTester tester,
     Birthday birthday, {
     MatchRange? highlight,
+    double width = 312,
   }) => mockNetworkImages(() async {
     await tester.pumpHarness(
       Center(
         child: SizedBox(
-          width: 312,
+          width: width,
           child: AgendaTile(birthday: birthday, highlight: highlight),
         ),
       ),
@@ -205,7 +206,8 @@ void main() {
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
-    await pumpTile(tester, birthday());
+    // Sur une ligne : l'ordre de lecture est celui de la ligne.
+    await pumpTile(tester, birthday(), width: 760);
 
     expect(
       tester.getSemantics(find.text('Alice Wonderland')),
@@ -231,6 +233,11 @@ void main() {
     expect(find.text('Modifier'), findsOneWidget);
   });
 
+  /// Le nom passe sous l'avatar plutôt qu'à sa droite.
+  bool stacked(WidgetTester tester) =>
+      tester.getTopLeft(find.text('Alice Wonderland')).dy >=
+      tester.getBottomLeft(find.byType(AnKiAvatar)).dy;
+
   testWidgets('stacks its parts at 200 % text', (tester) async {
     tester.platformDispatcher.textScaleFactorTestValue = 2;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
@@ -238,6 +245,28 @@ void main() {
     await pumpTile(tester, birthday());
 
     expect(find.text('Alice Wonderland'), findsOneWidget);
+    expect(stacked(tester), isTrue);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('keeps one row while the date fits on two lines', (tester) async {
+    await pumpTile(tester, birthday(), width: 420);
+
+    expect(stacked(tester), isFalse);
+  });
+
+  testWidgets('stacks the row of the day, its countdown being wider', (
+    tester,
+  ) async {
+    // À 420, une ligne à « J-12 » tient (test précédent) ; « Aujourd'hui »,
+    // plus large, ne laisse plus deux lignes à la date.
+    await pumpTile(
+      tester,
+      birthday(date: const BirthDate(year: 1990, month: 10, day: 12)),
+      width: 420,
+    );
+
+    expect(find.text("Aujourd'hui"), findsOneWidget);
+    expect(stacked(tester), isTrue);
   });
 }

@@ -120,6 +120,14 @@ class _TileContent extends ConsumerWidget {
         ],
       ),
     );
+    // Sans année de naissance, la date seule : aucun âge inventé.
+    final when = switch (birthday.turningAge(today)) {
+      final age? => context.l10n.agendaLine(date, age),
+      null => date,
+    };
+    final whenStyle = textTheme.bodyMedium?.copyWith(
+      color: colorScheme.onSurfaceVariant,
+    );
     final identity = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -130,16 +138,7 @@ class _TileContent extends ConsumerWidget {
           overflow: TextOverflow.ellipsis,
           style: textTheme.titleMedium?.copyWith(color: colorScheme.onSurface),
         ),
-        Text(
-          // Sans année de naissance, la date seule : aucun âge inventé.
-          switch (birthday.turningAge(today)) {
-            final age? => context.l10n.agendaLine(date, age),
-            null => date,
-          },
-          style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
+        Text(when, style: whenStyle),
       ],
     );
     final countdown = _Countdown(days: days);
@@ -154,27 +153,62 @@ class _TileContent extends ConsumerWidget {
           )
         : countdown;
 
-    // Grand texte : avatar et compte à rebours au-dessus, le texte en dessous.
-    if (MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [avatar, const Spacer(), status]),
-          const SizedBox(height: AppSpacing.xs),
-          identity,
-        ],
-      );
-    }
-    return Row(
-      children: [
-        avatar,
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(child: identity),
-        const SizedBox(width: AppSpacing.xs),
-        status,
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Grand texte, ou trop peu de place entre l'avatar et le compte à
+        // rebours pour la date sur deux lignes (écran étroit, « Aujourd'hui ») :
+        // ils passent au-dessus et le texte prend toute la largeur, au lieu de
+        // s'émietter sur six lignes.
+        final textWidth =
+            constraints.maxWidth -
+            AnKiAvatar.ringedExtent() -
+            AppSpacing.sm -
+            AppSpacing.xs -
+            _Countdown.widthOf(context, days);
+        final largeText = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
+        if (largeText ||
+            !_fitsOnTwoLines(context, when, whenStyle, textWidth)) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [avatar, const Spacer(), status]),
+              const SizedBox(height: AppSpacing.xs),
+              identity,
+            ],
+          );
+        }
+        return Row(
+          children: [
+            avatar,
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(child: identity),
+            const SizedBox(width: AppSpacing.xs),
+            status,
+          ],
+        );
+      },
     );
   }
+}
+
+/// [text] tient sur deux lignes de [width] au plus, à la taille de texte de
+/// l'écran.
+bool _fitsOnTwoLines(
+  BuildContext context,
+  String text,
+  TextStyle? style,
+  double width,
+) {
+  if (width <= 0) return false;
+  final painter = TextPainter(
+    text: TextSpan(text: text, style: style),
+    textDirection: Directionality.of(context),
+    textScaler: MediaQuery.textScalerOf(context),
+    maxLines: 2,
+  )..layout(maxWidth: width);
+  final fits = !painter.didExceedMaxLines;
+  painter.dispose();
+  return fits;
 }
 
 /// [name] avec les lettres de [range] surlignées en clair de lune (le
@@ -204,6 +238,28 @@ class _Countdown extends StatelessWidget {
 
   final int days;
 
+  static const double _moonSize = 18;
+
+  /// Largeur qu'occupe le compte à rebours de [days] : lune, écart, pastille.
+  static double widthOf(BuildContext context, int days) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: context.l10n.countdownDays(days),
+        style: _labelStyle(context),
+      ),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    final width = _moonSize + 3 * AppSpacing.xs + painter.width;
+    painter.dispose();
+    return width;
+  }
+
+  static TextStyle? _labelStyle(BuildContext context) =>
+      Theme.of(context).textTheme.labelLarge
+          ?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]);
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -211,7 +267,7 @@ class _Countdown extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        MoonPhase(daysLeft: days, size: 18),
+        MoonPhase(daysLeft: days, size: _moonSize),
         const SizedBox(width: AppSpacing.xs),
         DecoratedBox(
           decoration: ShapeDecoration(
@@ -225,10 +281,8 @@ class _Countdown extends StatelessWidget {
             ),
             child: Text(
               context.l10n.countdownDays(days),
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: colorScheme.onSecondaryContainer,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
+              style: _labelStyle(context)
+                  ?.copyWith(color: colorScheme.onSecondaryContainer),
             ),
           ),
         ),
