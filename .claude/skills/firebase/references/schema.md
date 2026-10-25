@@ -30,6 +30,7 @@ Owner: the path (`{uid}` = `request.auth.uid`). Rules: owner reads and writes, n
 | `isDark` | bool, legacy | read only when `themeMode` is absent; deleted by the next theme change |
 | `locale` | string | `'fr'` |
 | `biometricToken` | string or null | set by the auth feature when the fingerprint lock is on; null or absent = off |
+| `reminders` | map `{leads: [string], hour: int, minute: int}`, optional | default reminder setting (B6); absent → J-7 + J-0 at 10:00; unknown leads skipped, `sameDay` always added; written only by `ReminderPreferencesRepository.savePreferences` (`update`) |
 
 - Written by `UserRepository.createUser` (transaction: creates only if absent, never overwrites),
   `updatePreferences` (`update`: `pseudo`, `themeMode` + delete `isDark`, `locale`), `updateNames`
@@ -67,6 +68,7 @@ update by the owner without changing `uid`.
 | `categories` | array of string | group ids, shared or private; `[]` |
 | `picture` | string, optional | base64 JPEG (picked at 512 px, quality 80); undecodable → no photo |
 | `wishedYears` | array of int | years the birthday was wished; `[]`; non-int values ignored |
+| `reminders` | array of string, optional | the person's own leads (`monthBefore`, `weekBefore`, `dayBefore`, `sameDay`): absent → the default setting, `[]` → no reminder; erased by `updateBirthday` when back to the default |
 
 - Written by `BirthdayRepository.createBirthday` (`add`), `createBirthdays` (contacts import,
   batches of ≤ 500), `updateBirthday` (`update` of every draft field plus `uid`; `picture` only
@@ -154,7 +156,8 @@ Invariant: every per-user path in this file appears in this table. A new collect
 
 Delete a line only when no such document can remain (migrated, or the field rewritten
 everywhere):
-- `birthday` without `yearKnown` (year known) or `wishedYears` (never wished).
+- `birthday` without `yearKnown` (year known), `wishedYears` (never wished) or `reminders` (default setting).
+- `user` without `reminders` (default setting).
 - `user` with `isDark` instead of `themeMode`.
 - `user.categories` and users' own groups in the shared `category` collection (A16).
 - `category` without `tone`; any group without `icon`.
