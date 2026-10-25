@@ -107,4 +107,25 @@ void main() {
       expect(container.read(userCategoriesProvider), [family, book]);
     });
   });
+
+  group('pendingGroupRemovalsProvider', () {
+    test('hides a group everywhere until it is restored', () async {
+      final container = await makeContainer(
+        categories: RecordingCategoryRepository([family, goat], own: [book]),
+      );
+      final pending = container.read(pendingGroupRemovalsProvider.notifier);
+
+      pending
+        ..hide('book')
+        ..hide('goat');
+
+      expect(container.read(categoriesProvider), [family]);
+      expect(container.read(userCategoriesProvider), [family]);
+
+      pending.restore('book');
+
+      expect(container.read(categoriesProvider), [family, book]);
+      expect(container.read(userCategoriesProvider), [family, book]);
+    });
+  });
 }

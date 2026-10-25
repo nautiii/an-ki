@@ -75,6 +75,65 @@ int firstFreeTone(Iterable<int> used, List<int> palette) {
   return palette[used.length % palette.length];
 }
 
+/// Ce que l'utilisateur peut faire d'un groupe sur la page Groupes.
+enum GroupKind {
+  /// Proposé à tous (Famille, Amis, Travail, Autres) : verrouillé.
+  preset,
+
+  /// Privé (`user/{uid}/categories`) : renommé, recoloré, supprimé.
+  own,
+
+  /// Catégorie partagée choisie autrefois (GOAT…) : retirée seulement.
+  shared,
+}
+
+/// Un groupe de la page Groupes : sa nature et le nombre d'anniversaires
+/// qui le portent.
+class const GroupEntry({
+  required final BirthdayCategory category,
+  required final GroupKind kind,
+  required final int count,
+}) {
+  @override
+  bool operator ==(Object other) =>
+      other is GroupEntry &&
+      other.category == category &&
+      other.kind == kind &&
+      other.count == count;
+
+  @override
+  int get hashCode => Object.hash(category, kind, count);
+}
+
+/// Lignes de la page Groupes, dans l'ordre de [groups] : un groupe de
+/// [ownIds] est privé, un nom prédéfini ([defaultGroupNames]) est verrouillé,
+/// le reste est partagé ; chacun compte ses [birthdays].
+List<GroupEntry> groupEntries(
+  Iterable<BirthdayCategory> groups, {
+  required Iterable<String> ownIds,
+  required Iterable<Birthday> birthdays,
+}) {
+  final own = ownIds.toSet();
+  final counts = <String, int>{};
+  for (final birthday in birthdays) {
+    for (final id in birthday.categories.toSet()) {
+      counts[id] = (counts[id] ?? 0) + 1;
+    }
+  }
+  return [
+    for (final group in groups)
+      GroupEntry(
+        category: group,
+        kind: own.contains(group.id)
+            ? GroupKind.own
+            : defaultGroupNames.contains(group.name.toLowerCase())
+            ? GroupKind.preset
+            : GroupKind.shared,
+        count: counts[group.id] ?? 0,
+      ),
+  ];
+}
+
 /// Ce qui empêche de créer un groupe sous un nom.
 enum GroupNameIssue { empty, taken }
 

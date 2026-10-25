@@ -58,6 +58,9 @@ class FakeUserRepository extends Fake implements UserRepository {
   }) async {}
 
   @override
+  Future<void> removeCategory(String uid, String categoryId) async {}
+
+  @override
   Future<void> deleteUser(String uid) async {}
 }
 
@@ -152,6 +155,15 @@ class RecordingUserRepository extends FakeUserRepository {
     _emit(user);
   }
 
+  /// Catégories partagées retirées du profil, dans l'ordre.
+  final removedCategories = <String>[];
+
+  @override
+  Future<void> removeCategory(String uid, String categoryId) async {
+    _maybeFail();
+    removedCategories.add(categoryId);
+  }
+
   @override
   Future<void> deleteUser(String uid) async {
     _maybeFail();
@@ -194,6 +206,12 @@ class FakeBirthdayRepository extends Fake implements BirthdayRepository {
 
   @override
   Future<void> unmarkWished(String birthdayId, int year) async {}
+
+  @override
+  Future<void> removeCategory(
+    Iterable<String> birthdayIds,
+    String categoryId,
+  ) async {}
 
   @override
   Future<void> deleteAllUserBirthdays(String uid) async {}
@@ -266,6 +284,18 @@ class RecordingBirthdayRepository extends FakeBirthdayRepository {
     deleted.add(birthdayId);
   }
 
+  /// Groupes retirés : id du groupe → ids des anniversaires.
+  final removedCategories = <String, List<String>>{};
+
+  @override
+  Future<void> removeCategory(
+    Iterable<String> birthdayIds,
+    String categoryId,
+  ) async {
+    _maybeFail();
+    removedCategories[categoryId] = birthdayIds.toList();
+  }
+
   @override
   Future<void> deleteAllUserBirthdays(String uid) async {
     _maybeFail();
@@ -292,6 +322,12 @@ class FakeCategoryRepository extends Fake implements CategoryRepository {
 
   @override
   Future<void> createCategory(String uid, BirthdayCategory category) async {}
+
+  @override
+  Future<void> updateCategory(String uid, BirthdayCategory category) async {}
+
+  @override
+  Future<void> deleteCategory(String uid, String categoryId) async {}
 
   @override
   Future<void> deleteAllUserCategories(String uid) async {}
@@ -354,6 +390,26 @@ class RecordingCategoryRepository extends Fake implements CategoryRepository {
     createdFor.add(uid);
     // Comme Firestore : le cache local montre le groupe avant l'accusé.
     _own.add(category);
+    _changes.add([..._own]);
+    if (failure case final error?) throw error;
+  }
+
+  /// Groupes modifiés puis supprimés, dans l'ordre.
+  final edited = <BirthdayCategory>[];
+  final deleted = <String>[];
+
+  @override
+  Future<void> updateCategory(String uid, BirthdayCategory category) async {
+    edited.add(category);
+    _own[_own.indexWhere((group) => group.id == category.id)] = category;
+    _changes.add([..._own]);
+    if (failure case final error?) throw error;
+  }
+
+  @override
+  Future<void> deleteCategory(String uid, String categoryId) async {
+    deleted.add(categoryId);
+    _own.removeWhere((group) => group.id == categoryId);
     _changes.add([..._own]);
     if (failure case final error?) throw error;
   }

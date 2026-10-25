@@ -93,6 +93,31 @@ void main() {
       ]);
     });
 
+    test('updateCategory rewrites the name and the tone', () async {
+      await own('u1').doc('g').set({'name': 'Voisins', 'icon': 42, 'tone': 4});
+
+      await repository.updateCategory(
+        'u1',
+        const BirthdayCategory(id: 'g', name: 'Voisinage', icon: 42, tone: 9),
+      );
+
+      expect((await own('u1').doc('g').get()).data(), {
+        'name': 'Voisinage',
+        'icon': 42,
+        'tone': 9,
+      });
+    });
+
+    test('deleteCategory erases one group of its owner', () async {
+      await own('u1').doc('a').set({'name': 'A', 'icon': 1});
+      await own('u1').doc('b').set({'name': 'B', 'icon': 1});
+
+      await repository.deleteCategory('u1', 'a');
+
+      final left = await own('u1').get();
+      expect(left.docs.map((doc) => doc.id), ['b']);
+    });
+
     test('deleteAllUserCategories erases the owner groups only', () async {
       await own('u1').doc('a').set({'name': 'A', 'icon': 1});
       await own('u1').doc('b').set({'name': 'B', 'icon': 1});

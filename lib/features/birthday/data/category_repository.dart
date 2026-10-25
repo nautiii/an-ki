@@ -40,6 +40,16 @@ class CategoryRepository {
   Future<void> createCategory(String uid, BirthdayCategory category) =>
       _own(uid).doc(category.id).set(_categoryToMap(category));
 
+  /// Réécrit le nom, l'icône et la teinte du groupe privé [category] de
+  /// [uid].
+  Future<void> updateCategory(String uid, BirthdayCategory category) =>
+      _own(uid).doc(category.id).update(_categoryToMap(category));
+
+  /// Supprime le groupe privé [categoryId] de [uid] ; les anniversaires qui
+  /// le portent sont l'affaire de `BirthdayRepository.removeCategory`.
+  Future<void> deleteCategory(String uid, String categoryId) =>
+      _own(uid).doc(categoryId).delete();
+
   /// Efface les groupes privés de [uid] (suppression du compte) : Firestore
   /// ne supprime pas une sous-collection avec son document parent.
   Future<void> deleteAllUserCategories(String uid) async {

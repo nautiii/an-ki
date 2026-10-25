@@ -71,6 +71,12 @@ class UserRepository {
     required String surname,
   }) => _users.doc(uid).update({'name': name, 'surname': surname});
 
+  /// Retire la catégorie partagée [categoryId] des groupes choisis du profil.
+  Future<void> removeCategory(String uid, String categoryId) =>
+      _users.doc(uid).update({
+        'categories': FieldValue.arrayRemove([categoryId]),
+      });
+
   Future<void> deleteUser(String uid) async {
     await _users.doc(uid).delete();
   }

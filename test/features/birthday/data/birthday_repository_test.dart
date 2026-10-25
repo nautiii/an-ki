@@ -459,4 +459,31 @@ void main() {
       expect(remaining.docs, isEmpty);
     });
   });
+
+  group('removeCategory', () {
+    test('drops the group from the given birthdays only', () async {
+      Future<String> person(List<String> categories) async => (await seed({
+        'uid': 'user-1',
+        'name': 'P',
+        'surname': '',
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'categories': categories,
+      })).id;
+      final lea = await person(['book', 'family']);
+      final tom = await person(['book']);
+      final other = await person(['book']);
+
+      await repository.removeCategory([lea, tom], 'book');
+
+      expect((await stored(lea))['categories'], ['family']);
+      expect((await stored(tom))['categories'], isEmpty);
+      expect((await stored(other))['categories'], ['book']);
+    });
+
+    test('writes nothing for no birthday', () async {
+      await repository.removeCategory(const [], 'book');
+
+      expect((await firestore.collection('birthday').get()).docs, isEmpty);
+    });
+  });
 }

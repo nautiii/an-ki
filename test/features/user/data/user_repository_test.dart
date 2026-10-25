@@ -259,4 +259,13 @@ void main() {
     final doc = await firestore.collection('user').doc('user-1').get();
     expect(doc.exists, isFalse);
   });
+
+  test('removeCategory drops one picked category only', () async {
+    await repository.createUser(userWith(categories: ['goat', 'doggo']));
+
+    await repository.removeCategory('user-1', 'goat');
+
+    final doc = await firestore.collection('user').doc('user-1').get();
+    expect(doc.data()!['categories'], ['doggo']);
+  });
 }

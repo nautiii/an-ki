@@ -149,4 +149,58 @@ void main() {
       expect(groupNameIssue('Voisins', existing), isNull);
     });
   });
+
+  group('groupEntries', () {
+    Birthday tagged(String id, List<String> categories) => Birthday(
+      id: id,
+      name: 'P$id',
+      surname: '',
+      date: const BirthDate(month: 1, day: 1),
+      categories: categories,
+    );
+
+    test('locks the presets, tells own groups from shared ones', () {
+      final entries = groupEntries(
+        [family, book, goat, other],
+        ownIds: ['book'],
+        birthdays: const [],
+      );
+
+      expect(entries.map((entry) => entry.kind), [
+        GroupKind.preset,
+        GroupKind.own,
+        GroupKind.shared,
+        GroupKind.preset,
+      ]);
+    });
+
+    test('counts each birthday once per group', () {
+      final entries = groupEntries(
+        [family, book],
+        ownIds: ['book'],
+        birthdays: [
+          tagged('1', ['book', 'book']),
+          tagged('2', ['book', 'fam']),
+          tagged('3', []),
+        ],
+      );
+
+      expect(entries, const [
+        GroupEntry(category: family, kind: GroupKind.preset, count: 1),
+        GroupEntry(category: book, kind: GroupKind.own, count: 2),
+      ]);
+    });
+
+    test('an own group named like a preset stays editable', () {
+      const mine = BirthdayCategory(id: 'mine', name: 'Family', icon: 1);
+
+      final entry = groupEntries(
+        [mine],
+        ownIds: ['mine'],
+        birthdays: const [],
+      ).single;
+
+      expect(entry.kind, GroupKind.own);
+    });
+  });
 }

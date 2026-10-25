@@ -70,6 +70,20 @@ class BirthdayRepository {
         'wishedYears': FieldValue.arrayRemove([year]),
       });
 
+  /// Retire le groupe [categoryId] des anniversaires [birthdayIds], par lots :
+  /// l'appelant les connaît déjà (liste en mémoire), ce qui évite une requête
+  /// `uid` + `array-contains` et son index composite. La propriété des
+  /// documents est vérifiée par les règles Firestore.
+  Future<void> removeCategory(
+    Iterable<String> birthdayIds,
+    String categoryId,
+  ) => _firestore.writeInBatches(
+    birthdayIds,
+    (batch, id) => batch.update(_birthdays.doc(id), {
+      'categories': FieldValue.arrayRemove([categoryId]),
+    }),
+  );
+
   /// Supprime un anniversaire. La propriété du document est vérifiée par les
   /// règles Firestore : pas de lecture préalable, qui retarderait l'écriture.
   Future<void> deleteBirthday(String birthdayId) =>
