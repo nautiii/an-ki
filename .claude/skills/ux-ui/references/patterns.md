@@ -177,7 +177,7 @@ A spinner is acceptable only inside the control that triggered a short action.
   launch. `ReminderPrompt` (`app/bootstrap`) opens `ReminderOfferSheet` over the agenda at a
   moment of value — an import, the first birthdays added by hand, a sign-in that brings an agenda
   to this phone — at most once per session: what just happened (« 12 anniversaires ajoutés »),
-  the cadence from `ReminderPolicy`, the next real J-0 reminder as the notification will show it,
+  the cadence from the reminder preferences, the next real J-0 reminder as the notification will show it,
   « Activer les rappels » / « Plus tard ». A refusal is respected (the sheet closes); blocked
   (two refusals on Android, one on iOS), the sheet and Settings › Rappels lead to the app's
   notification settings. Contacts are asked when the user taps import, with the same denied /
@@ -191,7 +191,8 @@ A spinner is acceptable only inside the control that triggered a short action.
 ## I. Reminders & retention — ethical hooks
 
 People come back when AnKi saves them from forgetting and makes them look thoughtful.
-- Notification copy is personal and actionable: « Demain, Léa fête ses 30 ans 🎂 ». The J-0
+- Notification copy is personal and actionable: « Demain, Léa fête son anniversaire. » (B6; the
+  age waits for a background replan, see below). The J-0
   notification carries « Souhaiter » (shipped in step 4, Android: `AndroidNotificationAction`
   with the birthday id as payload; `app/bootstrap` goes home and opens the share sheet).
   « Idée cadeau » on J-7 comes with B4.
@@ -200,7 +201,8 @@ People come back when AnKi saves them from forgetting and makes them look though
   Today's texts carry none. Bringing it back means scheduling each occurrence as a one-shot
   (exact age for the next one, an ageless yearly fallback after it), within iOS's 64 pending
   notifications; `ReminderNotification.age` is still computed for that.
-- Cadence: J-7 + J-0 (current) + optional J-1; per-person mute; quiet hours.
+- Cadence (B6, shipped): J-7 + J-0 by default, J-30 and J-1 on request, one time of day; per
+  person: as usual, none, or custom. No quiet hours: the chosen time replaces them.
 - Weekly digest (opt-in) « Cette semaine : 2 anniversaires » — Monday morning.
 - Close the loop: « Souhaité » → mint check, light haptic, « Annuler » (peak-end rule; §L).
 - Yearly recap (Spotify Wrapped spirit) « Votre année en anniversaires » — shareable, delightful.
@@ -220,7 +222,7 @@ last (iOS Settings, recent Android settings with grouped rounded containers):
    itself: `SegmentedButton`s without icons, stacked when a label no longer fits on one line
    (200 % text, small screens) rather than cut.
 3. **Anniversaires** — Rappels (`RemindersTile`: the state on this phone, and « Activer les
-   rappels » or « Ouvrir les réglages » when off; cadence and times come with B6), Importer les
+   rappels » or « Ouvrir les réglages » when off; then « Me prévenir » and « Heure des rappels », B6), Importer les
    contacts; Exporter later.
 4. **Sécurité** — only when the phone has a fingerprint (`fingerprintAvailableProvider`, read
    again at each visit): Connexion biométrique.

@@ -96,7 +96,8 @@ Finish with `device.sh reset`.
 
 ## 6. A reminder end to end
 
-Needs a signed-in session. `reminder_plan.dart` plans J-0 and J-7 at 10:00;
+Needs a signed-in session. `reminder_plan.dart` plans J-0 and J-7 at 10:00 by default
+(Settings › Anniversaires changes the leads and the time, the birthday sheet a person's own);
 a reminder whose 10:00 is already past moves to the next year.
 1. In the app, add a birthday for tomorrow and one 8 days from now: both remind tomorrow at
    10:00 (J-0 and J-7).

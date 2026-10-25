@@ -201,8 +201,9 @@ final notificationServiceProvider = Provider<NotificationService>(
 
 - Plugins needing one-time init keep a singleton for `main()`; everything else reads the
   provider, so tests override it.
-- Policy belongs above the service: *when* to remind (J-0, J-7, 10:00) is a domain rule of
-  `reminders`; the service only schedules what it is given.
+- Policy belongs above the service: *when* to remind (the leads and time of
+  `ReminderPreferences`) is a domain rule of `reminders`; the service only schedules what it is
+  given.
 - Used by one feature → that feature's `data/`; by several or by `app/` → `core/services/`.
 
 ## 6. Session-scoped data

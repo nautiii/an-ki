@@ -21,7 +21,7 @@ find (one line, evidence, priority). Big bets and anything touching the data mod
 auth or dependencies → design brief + maintainer approval first.
 
 ## Contents
-- Big bets (B4, B6; B5 shipped but its merge) — structural redesigns with the highest impact
+- Big bets (B4; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
 - Foundation (F1, F6) — design system, prerequisite for consistency
 - P1 — friction & states (Q10)
 - P2 — polish (D10, D13, D15–D17, D25)
@@ -65,13 +65,19 @@ auth or dependencies → design brief + maintainer approval first.
   `etape5_test.dart` (the flow, Q8's card), `etape54_test.dart` (each state of the shipped card).
 - **Refs**: Duolingo lazy sign-up, Google Keep/Todoist empty-state onboarding, Instagram priming.
 
-### B6 — Reminders you control
-- **Problem**: fixed J-7 + J-0 for everyone; generic J-7 title; no time of day, quiet hours or digest.
-- **Proposal**: Settings › Rappels (default cadence J-30/J-7/J-1/J-0, time, quiet hours, optional
-  Monday digest « Cette semaine : 2 anniversaires ») + per-person override on the person page;
-  personal copy « Demain, Léa fête ses 30 ans » (the age needs one-shot scheduling, see patterns
-  §I).
-- **Cost**: medium (notification_service, per-person settings).
+### B6 — Reminders you control (approved 2026-10-25)
+- **Shipped** (2026-10-25, branch `claude/peaceful-noether-e0fb53`): Settings › Anniversaires
+  gains « Me prévenir » (J-30, J-7, J-1 chips; J-0 always) and « Heure des rappels » (system time
+  picker), stored in `user/{uid}.reminders`; the « Rappels » row sums it up (« 7 jours avant ·
+  Le jour J · 10:00 ») and the offer sheet follows it. The birthday sheet gains « Rappels »:
+  Comme d'habitude / Aucun / Personnalisés (`birthday/{id}.reminders`), to move to the person
+  page with B4. Notifications before the day are personal: « 🎉 Léa Martin », « Demain, Léa fête
+  son anniversaire. ». The plan stays under Android's 500-alarm limit, J-0 first.
+- **Dropped**: quiet hours (one chosen time makes them redundant); the Monday digest (maintainer,
+  2026-10-25).
+- **Left**: the age in the text (« Léa fête ses 30 ans »): impossible with yearly repeats, and a
+  one-shot plus an ageless fallback fires twice on Android (the plugin drops the year); it needs
+  a background replan (WorkManager: new plugin, approval).
 
 ## Foundation
 
@@ -112,6 +118,6 @@ auth or dependencies → design brief + maintainer approval first.
 ## Suggested roadmap
 
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **B4, B6, F1, F6, Q10, D10, D13, D15–D17, D25** — depth and polish (F1 any time once
+2. **B4, F1, F6, Q10, D10, D13, D15–D17, D25** — depth and polish (F1 any time once
    approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.

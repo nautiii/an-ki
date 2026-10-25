@@ -134,8 +134,10 @@ is in `.claude/skills/architecture/references/migration.md`.
   in `user/{uid}/categories`; `user/{uid}.categories` keeps the shared ones picked before.
 - **User** — the profile document `user/{uid}`: name, surname, pseudo, categories, theme
   (`themeMode`: system, light or dark; an older `isDark` still reads), locale, biometric token.
-- **Reminder** — local notifications on the day (J-0) and 7 days before (J-7), at 10:00 device time;
-  the J-0 one carries « Souhaiter » (Android), which opens AnKi on the share sheet.
+- **Reminder** — local notifications on the day (J-0) and, by default, 7 days before (J-7), at
+  10:00 device time; Settings › Anniversaires picks J-30, J-7, J-1 and the time
+  (`user/{uid}.reminders`), and a birthday may have its own or none (`birthday/{id}.reminders`).
+  The J-0 one carries « Souhaiter » (Android), which opens AnKi on the share sheet.
 - **Book** — scanned by ISBN and looked up on Google Books; the seed of the gift-ideas feature.
 - **Session** — the signed-in Firebase user: Google, email or anonymous, with an optional
   biometric lock.
