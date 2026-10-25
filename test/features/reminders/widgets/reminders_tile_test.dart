@@ -44,7 +44,7 @@ void main() {
     await pumpTile(tester, access: NotificationAccess.granted);
 
     expect(find.text('Rappels'), findsOneWidget);
-    expect(find.text('7 jours avant et le jour J, à 10:00'), findsOneWidget);
+    expect(find.text('7 jours avant · Le jour J · 10:00'), findsOneWidget);
     expect(find.byIcon(Icons.notifications_active_rounded), findsOneWidget);
     expect(find.byType(FilledButton), findsNothing);
   });
@@ -63,7 +63,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(notifications.requests, 1);
-    expect(find.text('7 jours avant et le jour J, à 10:00'), findsOneWidget);
+    expect(find.text('7 jours avant · Le jour J · 10:00'), findsOneWidget);
     expect(find.text('Rappels activés'), findsOneWidget);
   });
 
@@ -96,7 +96,7 @@ void main() {
     notifications.current = NotificationAccess.granted;
     await backToApp(tester);
 
-    expect(find.text('7 jours avant et le jour J, à 10:00'), findsOneWidget);
+    expect(find.text('7 jours avant · Le jour J · 10:00'), findsOneWidget);
     expect(find.text('Rappels activés'), findsOneWidget);
   });
 
@@ -108,7 +108,7 @@ void main() {
     notifications.current = NotificationAccess.granted;
     await backToApp(tester);
 
-    expect(find.text('7 jours avant et le jour J, à 10:00'), findsOneWidget);
+    expect(find.text('7 jours avant · Le jour J · 10:00'), findsOneWidget);
     // Pas ouverts d'ici : rien à confirmer.
     expect(find.text('Rappels activés'), findsNothing);
   });

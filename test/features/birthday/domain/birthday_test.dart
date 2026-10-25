@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -11,6 +12,7 @@ void main() {
     List<int> picture = const [1, 2, 3],
     DateTime? date,
     List<int> wishedYears = const [2025],
+    Set<ReminderLead>? reminders = const {ReminderLead.sameDay},
   }) => Birthday(
     id: '1',
     name: 'Alice',
@@ -19,6 +21,7 @@ void main() {
     categories: categories,
     picture: Uint8List.fromList(picture),
     wishedYears: wishedYears,
+    reminders: reminders,
   );
 
   group('equality', () {
@@ -29,6 +32,7 @@ void main() {
         categories: ['family'],
         picture: [1, 2, 3],
         wishedYears: [2025],
+        reminders: {ReminderLead.sameDay},
       );
 
       expect(same, base);
@@ -42,6 +46,8 @@ void main() {
       expect(birthday(picture: [9]), isNot(base));
       expect(birthday(date: DateTime(1991, 5, 10)), isNot(base));
       expect(birthday(wishedYears: [2025, 2026]), isNot(base));
+      expect(birthday(reminders: null), isNot(base));
+      expect(birthday(reminders: const {}), isNot(base));
     });
   });
 

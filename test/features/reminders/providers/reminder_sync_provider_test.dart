@@ -7,6 +7,9 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/reminders/data/reminder_preferences_repository.dart';
+import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
+import 'package:an_ki/features/reminders/providers/reminder_preferences_provider.dart';
 import 'package:an_ki/features/reminders/providers/reminder_sync_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' show User;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +27,14 @@ class _RecordingNotificationService extends Fake
       scheduled.add(reminders);
 }
 
+/// Laisse passer les flux (anniversaires, réglage) et les reconstructions que
+/// Riverpod planifie après eux.
+Future<void> settle() async {
+  for (var i = 0; i < 3; i++) {
+    await Future<void>.delayed(Duration.zero);
+  }
+}
+
 void main() {
   final lea = Birthday(
     id: 'lea',
@@ -34,11 +45,13 @@ void main() {
 
   late _RecordingNotificationService notifications;
   late StreamController<List<Birthday>> birthdays;
+  late RecordingReminderPreferencesRepository preferences;
 
   setUp(() {
     notifications = _RecordingNotificationService();
     birthdays = StreamController<List<Birthday>>.broadcast();
     addTearDown(birthdays.close);
+    preferences = RecordingReminderPreferencesRepository();
   });
 
   ProviderContainer makeContainer() {
@@ -48,6 +61,7 @@ void main() {
         notificationServiceProvider.overrideWithValue(notifications),
         authUserProvider.overrideWithValue(AsyncData(MockUser(uid: 'u1'))),
         birthdaysProvider.overrideWith((ref) => birthdays.stream),
+        reminderPreferencesRepositoryProvider.overrideWithValue(preferences),
         clockProvider.overrideWithValue(() => DateTime(2026, 3, 1, 9)),
       ],
     );
@@ -57,33 +71,34 @@ void main() {
 
   test('schedules the planned reminders of every new list', () async {
     makeContainer();
+    await settle();
 
     birthdays.add([lea]);
-    await Future<void>.delayed(Duration.zero);
+    await settle();
     // Déconnexion : la liste vide annule les rappels.
     birthdays.add(const []);
-    await Future<void>.delayed(Duration.zero);
+    await settle();
 
     final base = 'lea'.hashCode.abs() % 100000;
     expect(notifications.scheduled, [
       [
         // L'id de l'anniversaire voyage avec la notification.
         ReminderNotification(
-          id: base,
-          type: ReminderType.birthday,
-          name: 'Léa',
-          surname: 'Martin',
-          age: 32,
-          at: DateTime(2026, 3, 12, 10),
-          payload: 'lea',
-        ),
-        ReminderNotification(
           id: base + 500000,
-          type: ReminderType.weekBefore,
+          daysBefore: 7,
           name: 'Léa',
           surname: 'Martin',
           age: 32,
           at: DateTime(2026, 3, 5, 10),
+          payload: 'lea',
+        ),
+        ReminderNotification(
+          id: base,
+          daysBefore: 0,
+          name: 'Léa',
+          surname: 'Martin',
+          age: 32,
+          at: DateTime(2026, 3, 12, 10),
           payload: 'lea',
         ),
       ],
@@ -91,11 +106,54 @@ void main() {
     ]);
   });
 
+  test('replans with the preferences, as soon as they change', () async {
+    final container = makeContainer();
+    await settle();
+    birthdays.add([lea]);
+    await settle();
+    container.listen(reminderPreferencesEditorProvider, (_, _) {});
+
+    await container
+        .read(reminderPreferencesEditorProvider.notifier)
+        .setTime(hour: 8, minute: 30);
+    await settle();
+
+    expect(notifications.scheduled.last.map((r) => r.at), [
+      DateTime(2026, 3, 5, 8, 30),
+      DateTime(2026, 3, 12, 8, 30),
+    ]);
+  });
+
+  test('keeps reminding with the former cadence if preferences fail', () async {
+    final container = ProviderContainer.test(
+      retry: (_, _) => null,
+      overrides: [
+        notificationServiceProvider.overrideWithValue(notifications),
+        authUserProvider.overrideWithValue(AsyncData(MockUser(uid: 'u1'))),
+        birthdaysProvider.overrideWith((ref) => birthdays.stream),
+        reminderPreferencesProvider.overrideWithValue(
+          AsyncError<ReminderPreferences>(
+            Exception('denied'),
+            StackTrace.empty,
+          ),
+        ),
+        clockProvider.overrideWithValue(() => DateTime(2026, 3, 1, 9)),
+      ],
+    );
+    container.listen(reminderSyncProvider, (_, _) {});
+
+    birthdays.add([lea]);
+    await settle();
+
+    expect(notifications.scheduled.single.map((r) => r.daysBefore), [7, 0]);
+  });
+
   test('ignores loading and error states', () async {
     makeContainer();
+    await settle();
 
     birthdays.addError(Exception('offline'));
-    await Future<void>.delayed(Duration.zero);
+    await settle();
 
     expect(notifications.scheduled, isEmpty);
   });
@@ -119,6 +177,7 @@ void main() {
           birthdayRepositoryProvider.overrideWithValue(
             RecordingBirthdayRepository(initial: [lea]),
           ),
+          reminderPreferencesRepositoryProvider.overrideWithValue(preferences),
           clockProvider.overrideWithValue(() => DateTime(2026, 3, 1, 9)),
         ],
       );
@@ -127,12 +186,11 @@ void main() {
 
     test('cancels nothing while the session is restored', () async {
       makeSessionContainer();
-      await Future<void>.delayed(Duration.zero);
+      await settle();
       expect(notifications.scheduled, isEmpty);
 
       auth.add(MockUser(uid: 'u1'));
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
+      await settle();
 
       expect(notifications.scheduled.single, hasLength(2));
     });
@@ -140,12 +198,10 @@ void main() {
     test('cancels every reminder on sign-out', () async {
       makeSessionContainer();
       auth.add(MockUser(uid: 'u1'));
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
+      await settle();
 
       auth.add(null);
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
+      await settle();
 
       expect(notifications.scheduled, [hasLength(2), isEmpty]);
     });
@@ -153,8 +209,7 @@ void main() {
     test('cancels every reminder when no session is restored', () async {
       makeSessionContainer();
       auth.add(null);
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
+      await settle();
 
       expect(notifications.scheduled, [isEmpty]);
     });
@@ -176,19 +231,20 @@ void main() {
       seen[slot(id)] = id;
     }
     makeContainer();
+    await settle();
 
     birthdays.add([
       Birthday(id: first, name: 'Léa', surname: 'Martin', date: lea.date),
       Birthday(id: second, name: 'Hugo', surname: 'Martin', date: lea.date),
     ]);
-    await Future<void>.delayed(Duration.zero);
+    await settle();
 
     final reminders = notifications.scheduled.single;
     expect(reminders.map((r) => r.id).toSet(), hasLength(4));
     for (final name in ['Léa', 'Hugo']) {
       expect(
-        reminders.where((r) => r.name == name).map((r) => r.type),
-        unorderedEquals(ReminderType.values),
+        reminders.where((r) => r.name == name).map((r) => r.daysBefore),
+        unorderedEquals([7, 0]),
       );
     }
   });

@@ -593,7 +593,13 @@
   "errorQuotaExceeded": "Limite de recherche atteinte. Veuillez réessayer plus tard.",
   "notificationChannelName": "Anniversaires",
   "notificationChannelDescription": "Rappels d'anniversaire du jour",
-  "notificationReminderTitle": "🎉 Anniversaire bientôt",
+  "notificationReminderTitle": "🎉 {fullName}",
+  "@notificationReminderTitle": {
+    "description": "Titre d'un rappel avant le jour J.",
+    "placeholders": {
+      "fullName": { "type": "String" }
+    }
+  },
   "notificationBirthdayBody": "{name} fête son anniversaire aujourd'hui\u202f!",
   "@notificationBirthdayBody": {
     "description": "Sans âge : la notification se répète chaque année avec le même texte.",
@@ -601,11 +607,12 @@
       "name": { "type": "String" }
     }
   },
-  "notificationReminderBody": "{fullName} fête son anniversaire dans 7 jours.",
+  "notificationReminderBody": "{days, plural, =1{Demain, {name} fête son anniversaire.} other{Dans {days} jours, {name} fête son anniversaire.}}",
   "@notificationReminderBody": {
-    "description": "Sans âge : la notification se répète chaque année avec le même texte.",
+    "description": "Rappel avant le jour J. Sans âge : la notification se répète chaque année avec le même texte.",
     "placeholders": {
-      "fullName": { "type": "String" }
+      "name": { "type": "String" },
+      "days": { "type": "int" }
     }
   },
   "notificationBirthdayTitle": "🎂 {fullName}",
@@ -626,7 +633,7 @@
       "count": { "type": "int" }
     }
   },
-  "remindersOfferTitle": "{days, plural, =1{Un rappel la veille, puis le jour\u00a0J} other{Un rappel {days} jours avant, puis le jour\u00a0J}}",
+  "remindersOfferTitle": "{days, plural, =0{Un rappel le jour\u00a0J} =1{Un rappel la veille, puis le jour\u00a0J} other{Un rappel {days} jours avant, puis le jour\u00a0J}}",
   "@remindersOfferTitle": {
     "placeholders": {
       "days": { "type": "int" }
@@ -650,13 +657,24 @@
   },
   "remindersBlockedTitle": "Autorisez les notifications dans les réglages",
   "remindersBlockedMessage": "Votre téléphone les bloque pour AnKi. Activez-les dans les réglages, puis revenez ici.",
-  "remindersSchedule": "{days, plural, =1{La veille et le jour\u00a0J, à {time}} other{{days} jours avant et le jour\u00a0J, à {time}}}",
+  "remindersSchedule": "{leads} · {time}",
   "@remindersSchedule": {
+    "description": "Rappels choisis (« 7 jours avant · Le jour J ») puis leur heure, sous « Rappels » dans les réglages.",
     "placeholders": {
-      "days": { "type": "int" },
+      "leads": { "type": "String" },
       "time": { "type": "String" }
     }
   },
+  "reminderLeadMonthBefore": "30 jours avant",
+  "reminderLeadWeekBefore": "7 jours avant",
+  "reminderLeadDayBefore": "La veille",
+  "reminderLeadSameDay": "Le jour\u00a0J",
+  "remindersWhen": "Me prévenir",
+  "remindersSameDayAlways": "Le jour\u00a0J est toujours prévenu.",
+  "remindersTime": "Heure des rappels",
+  "birthdayRemindersDefault": "Comme d'habitude",
+  "birthdayRemindersNone": "Aucun",
+  "birthdayRemindersCustom": "Personnalisés",
   "remindersOff": "Désactivés\u202f: AnKi ne peut pas vous prévenir.",
   "remindersOffNotice": "Rappels désactivés",
   "@remindersOffNotice": {

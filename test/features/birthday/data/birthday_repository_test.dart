@@ -5,6 +5,7 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
+import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -23,12 +24,14 @@ void main() {
     String surname = 'Wonderland',
     BirthDate date = const BirthDate(year: 1990, month: 5, day: 10),
     Uint8List? picture,
+    Set<ReminderLead>? reminders,
   }) => BirthdayDraft(
     name: name,
     surname: surname,
     date: date,
     categories: const ['family'],
     picture: picture,
+    reminders: reminders,
   );
 
   Future<DocumentReference<Map<String, dynamic>>> seed(
@@ -129,6 +132,27 @@ void main() {
       expect(birthday.wishedYears, [2024, 2026]);
     });
 
+    test('reads own reminders, skipping an unknown lead', () async {
+      await seed({
+        'uid': 'user-1',
+        'date': Timestamp.fromDate(DateTime(1990, 5, 10)),
+        'reminders': ['dayBefore', 'hourBefore', 'sameDay'],
+      });
+      await seed({
+        'uid': 'user-1',
+        'date': Timestamp.fromDate(DateTime(1991, 5, 10)),
+        'reminders': <String>[],
+      });
+
+      final birthdays = await repository.watchBirthdays('user-1').first;
+
+      expect(birthdays.map((b) => b.reminders), [
+        {ReminderLead.dayBefore, ReminderLead.sameDay},
+        // Liste vide : aucun rappel, pas le réglage par défaut.
+        isEmpty,
+      ]);
+    });
+
     test('drops an undecodable picture', () async {
       await seed({
         'uid': 'user-1',
@@ -192,6 +216,54 @@ void main() {
 
       final doc = (await firestore.collection('birthday').get()).docs.single;
       expect(doc.data()['picture'], base64Encode(bytes));
+    });
+  });
+
+  group('own reminders', () {
+    test('are left out of a birthday following the default', () async {
+      await repository.createBirthday('user-1', draft());
+
+      final doc = (await firestore.collection('birthday').get()).docs.single;
+      expect(doc.data().containsKey('reminders'), isFalse);
+    });
+
+    test('are stored by name, earliest first', () async {
+      await repository.createBirthday(
+        'user-1',
+        draft(reminders: {ReminderLead.sameDay, ReminderLead.monthBefore}),
+      );
+
+      final doc = (await firestore.collection('birthday').get()).docs.single;
+      expect(doc.data()['reminders'], ['monthBefore', 'sameDay']);
+    });
+
+    test('are erased when a birthday goes back to the default', () async {
+      final ref = await seed({
+        'uid': 'user-1',
+        'name': 'Old',
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'reminders': <String>[],
+      });
+
+      await repository.updateBirthday('user-1', ref.id, draft());
+
+      expect((await stored(ref.id)).containsKey('reminders'), isFalse);
+    });
+
+    test('are replaced by an update that sets them', () async {
+      final ref = await seed({
+        'uid': 'user-1',
+        'name': 'Old',
+        'date': Timestamp.fromDate(DateTime(1990)),
+      });
+
+      await repository.updateBirthday(
+        'user-1',
+        ref.id,
+        draft(reminders: const {}),
+      );
+
+      expect((await stored(ref.id))['reminders'], isEmpty);
     });
   });
 

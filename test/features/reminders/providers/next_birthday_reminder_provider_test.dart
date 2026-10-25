@@ -2,7 +2,9 @@ import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
 import 'package:an_ki/features/reminders/providers/next_birthday_reminder_provider.dart';
+import 'package:an_ki/features/reminders/providers/reminder_preferences_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -20,11 +22,15 @@ void main() {
     date: BirthDate(month: 12, day: 2),
   );
 
-  ProviderContainer makeContainer(List<Birthday> birthdays) {
+  ProviderContainer makeContainer(
+    List<Birthday> birthdays, {
+    ReminderPreferences preferences = const ReminderPreferences(),
+  }) {
     final container = ProviderContainer.test(
       retry: (_, _) => null,
       overrides: [
         birthdaysProvider.overrideWithValue(AsyncData(birthdays)),
+        reminderPreferencesProvider.overrideWithValue(AsyncData(preferences)),
         clockProvider.overrideWithValue(() => DateTime(2026, 10, 19, 9)),
       ],
     );
@@ -38,6 +44,25 @@ void main() {
 
     expect(reminder.fullName, 'Hugo Bernard');
     expect(reminder.at, DateTime(2026, 10, 21, 10));
+  });
+
+  test('follows the preferences and skips a person without reminders', () {
+    final reminder = makeContainer(
+      const [
+        louis,
+        Birthday(
+          id: 'hugo',
+          name: 'Hugo',
+          surname: 'Bernard',
+          date: BirthDate(year: 1992, month: 10, day: 21),
+          reminders: {},
+        ),
+      ],
+      preferences: const ReminderPreferences(hour: 8, minute: 30),
+    ).read(nextBirthdayReminderProvider)!;
+
+    expect(reminder.fullName, 'Louis Petit');
+    expect(reminder.at, DateTime(2026, 12, 2, 8, 30));
   });
 
   test('is null with an empty agenda', () {

@@ -7,6 +7,8 @@ import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
+import 'package:an_ki/features/reminders/providers/reminder_preferences_provider.dart';
+import 'package:an_ki/features/reminders/widgets/reminder_preferences_tiles.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/settings/widgets/preference_choices.dart';
@@ -25,13 +27,17 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Échec d'une écriture optimiste du profil (pseudo, thème, langue).
-    ref.listen(userProfileEditorProvider, (_, next) {
+    // Échec d'une écriture optimiste : le profil (pseudo, thème, langue) ou
+    // le réglage des rappels (cadence, heure).
+    void reportFailure(AsyncValue<void>? _, AsyncValue<void> next) {
       if (next is AsyncError) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(context.l10n.errorUnknown)));
       }
-    });
+    }
+
+    ref.listen(userProfileEditorProvider, reportFailure);
+    ref.listen(reminderPreferencesEditorProvider, reportFailure);
     final l10n = context.l10n;
     final hasFingerprint =
         ref.watch(fingerprintAvailableProvider).value ?? false;
@@ -64,6 +70,8 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 // L'état des rappels, et de quoi les rétablir s'ils sont coupés.
                 const RemindersTile(),
+                const ReminderLeadsTile(),
+                const ReminderTimeTile(),
                 ListTile(
                   leading: const Icon(Icons.contact_page_rounded),
                   title: Text(l10n.importContacts),

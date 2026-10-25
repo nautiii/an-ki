@@ -7,6 +7,9 @@ import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
+import 'package:an_ki/features/reminders/data/reminder_preferences_repository.dart';
+import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
@@ -40,6 +43,7 @@ void main() {
     RecordingUserRepository? users,
     FakeBiometricService? biometrics,
     SilentNotificationService? notifications,
+    RecordingReminderPreferencesRepository? reminderPreferences,
   }) => [
     authRepositoryProvider.overrideWithValue(
       auth ?? FakeAuthRepository(user: _user()),
@@ -58,6 +62,9 @@ void main() {
     ),
     birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
     bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
+    reminderPreferencesRepositoryProvider.overrideWithValue(
+      reminderPreferences ?? RecordingReminderPreferencesRepository(),
+    ),
     categoryRepositoryProvider.overrideWithValue(
       RecordingCategoryRepository(const []),
     ),
@@ -258,7 +265,78 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(notifications.requests, 1);
-    expect(find.text('7 jours avant et le jour J, à 10:00'), findsOneWidget);
+    expect(find.text('7 jours avant · Le jour J · 10:00'), findsOneWidget);
+  });
+
+  group('reminder preferences', () {
+    testWidgets('toggles a lead before the day, the day itself staying', (
+      tester,
+    ) async {
+      final preferences = RecordingReminderPreferencesRepository();
+      await tester.pumpHarness(
+        const SettingsScreen(),
+        overrides: overridesWith(reminderPreferences: preferences),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Le jour J est toujours prévenu.'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilterChip, 'La veille'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, '7 jours avant'));
+      await tester.pumpAndSettle();
+
+      expect(preferences.saved, [
+        const ReminderPreferences(
+          leads: {
+            ReminderLead.weekBefore,
+            ReminderLead.dayBefore,
+            ReminderLead.sameDay,
+          },
+        ),
+        const ReminderPreferences(
+          leads: {ReminderLead.dayBefore, ReminderLead.sameDay},
+        ),
+      ]);
+      final dayBefore = tester.widget<FilterChip>(
+        find.widgetWithText(FilterChip, 'La veille'),
+      );
+      expect(dayBefore.selected, isTrue);
+    });
+
+    testWidgets('changes the time of the reminders', (tester) async {
+      final preferences = RecordingReminderPreferencesRepository();
+      await tester.pumpHarness(
+        const SettingsScreen(),
+        overrides: overridesWith(reminderPreferences: preferences),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Heure des rappels'));
+      await tester.pumpAndSettle();
+      expect(find.byType(TimePickerDialog), findsOneWidget);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(preferences.saved, [const ReminderPreferences()]);
+      expect(find.text('10:00'), findsOneWidget);
+    });
+
+    testWidgets('says when a preference could not be saved', (tester) async {
+      await tester.pumpHarness(
+        const SettingsScreen(),
+        overrides: overridesWith(
+          reminderPreferences: RecordingReminderPreferencesRepository(
+            failure: Exception('offline'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilterChip, '30 jours avant'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SnackBar), findsOneWidget);
+    });
   });
 
   group('sign out', () {

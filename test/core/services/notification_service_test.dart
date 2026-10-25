@@ -221,13 +221,13 @@ void main() {
 
   group('NotificationService', () {
     ReminderNotification reminder(
-      ReminderType type, {
+      int daysBefore, {
       int id = 1,
       DateTime? at,
       String surname = 'Doe',
     }) => ReminderNotification(
       id: id,
-      type: type,
+      daysBefore: daysBefore,
       name: 'John',
       surname: surname,
       age: 36,
@@ -236,10 +236,7 @@ void main() {
     );
 
     test('adds « Souhaiter » to the notification of the day only', () async {
-      await service.scheduleAll([
-        reminder(ReminderType.birthday),
-        reminder(ReminderType.weekBefore, id: 2),
-      ]);
+      await service.scheduleAll([reminder(0), reminder(7, id: 2)]);
 
       final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
       final wish = day.actions!.single;
@@ -257,7 +254,7 @@ void main() {
         ),
       );
 
-      await service.scheduleAll([reminder(ReminderType.birthday)]);
+      await service.scheduleAll([reminder(0)]);
 
       expect(
         mockPlugin.zonedScheduleCalls.single.actions!.single.title,
@@ -266,10 +263,7 @@ void main() {
     });
 
     test('carries the payload of each reminder', () async {
-      await service.scheduleAll([
-        reminder(ReminderType.birthday),
-        reminder(ReminderType.weekBefore, id: 2),
-      ]);
+      await service.scheduleAll([reminder(0), reminder(7, id: 2)]);
 
       expect(mockPlugin.zonedScheduleCalls.map((c) => c.payload), [
         'john',
@@ -283,15 +277,15 @@ void main() {
         PendingNotificationRequest(999, 'Old', 'Body', 'Payload'),
       ]);
 
-      await service.scheduleAll([reminder(ReminderType.birthday)]);
+      await service.scheduleAll([reminder(0)]);
 
       expect(mockPlugin.cancelledIds, [999]);
     });
 
     test('schedules each reminder at its given local time', () async {
       await service.scheduleAll([
-        reminder(ReminderType.birthday, at: DateTime(2026, 6, 30, 10)),
-        reminder(ReminderType.weekBefore, id: 2, at: DateTime(2026, 6, 23, 10)),
+        reminder(0, at: DateTime(2026, 6, 30, 10)),
+        reminder(7, id: 2, at: DateTime(2026, 6, 23, 10)),
       ]);
 
       expect(mockPlugin.zonedScheduleCalls.map((c) => c.id), [1, 2]);
@@ -301,30 +295,37 @@ void main() {
       ]);
     });
 
-    test('words each reminder by its type', () async {
-      await service.scheduleAll([
-        reminder(ReminderType.birthday),
-        reminder(ReminderType.weekBefore, id: 2),
-      ]);
+    test('words each reminder by its days before', () async {
+      await service.scheduleAll([reminder(0), reminder(7, id: 2)]);
 
       final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
       expect(day.title, '🎂 John Doe');
       // Sans âge : le texte se répète tel quel chaque année. Le prénom en
       // tête, sans « de » à élider devant une voyelle.
       expect(day.body, 'John fête son anniversaire aujourd\'hui !');
-      expect(weekBefore.title, '🎉 Anniversaire bientôt');
-      expect(weekBefore.body, 'John Doe fête son anniversaire dans 7 jours.');
+      expect(weekBefore.title, '🎉 John Doe');
+      expect(weekBefore.body, 'Dans 7 jours, John fête son anniversaire.');
+    });
+
+    test('words the day before as « Demain »', () async {
+      await service.scheduleAll([reminder(1), reminder(30, id: 2)]);
+
+      final [dayBefore, monthBefore] = mockPlugin.zonedScheduleCalls;
+      expect(dayBefore.body, 'Demain, John fête son anniversaire.');
+      expect(monthBefore.body, 'Dans 30 jours, John fête son anniversaire.');
+      // Seul le jour J porte « Souhaiter ».
+      expect(dayBefore.actions, isNull);
     });
 
     test('names a person without a last name with no stray space', () async {
       await service.scheduleAll([
-        reminder(ReminderType.birthday, surname: ''),
-        reminder(ReminderType.weekBefore, id: 2, surname: ''),
+        reminder(0, surname: ''),
+        reminder(7, id: 2, surname: ''),
       ]);
 
       final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
       expect(day.title, '🎂 John');
-      expect(weekBefore.body, 'John fête son anniversaire dans 7 jours.');
+      expect(weekBefore.title, '🎉 John');
     });
 
     test('words reminders with the configured localized texts', () async {
@@ -334,16 +335,18 @@ void main() {
         ),
       );
 
-      await service.scheduleAll([
-        reminder(ReminderType.birthday),
-        reminder(ReminderType.weekBefore, id: 2),
-      ]);
+      await service.scheduleAll([reminder(0), reminder(7, id: 2)]);
 
       final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
       expect(day.title, '🎂 John Doe');
       expect(day.body, "It's John's birthday today!");
-      expect(weekBefore.title, '🎉 Birthday soon');
-      expect(weekBefore.body, "John Doe's birthday is in 7 days.");
+      expect(weekBefore.title, '🎉 John Doe');
+      expect(weekBefore.body, "John's birthday is in 7 days.");
+      expect(
+        NotificationStrings.fromL10n(lookupAppLocalizations(const Locale('en')))
+            .reminderBody('John', 1),
+        "John's birthday is tomorrow.",
+      );
     });
 
     test('an empty list cancels every pending notification', () async {
@@ -360,7 +363,7 @@ void main() {
     test('swallows scheduling failures without throwing', () async {
       mockPlugin.throwOnSchedule = true;
 
-      await service.scheduleAll([reminder(ReminderType.birthday)]);
+      await service.scheduleAll([reminder(0)]);
 
       expect(mockPlugin.zonedScheduleCalls, isEmpty);
     });

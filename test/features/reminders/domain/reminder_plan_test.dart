@@ -1,6 +1,8 @@
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/reminders/domain/reminder_plan.dart';
+import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Birthday _born(DateTime date, {String id = 'lea'}) => Birthday(
@@ -10,12 +12,17 @@ Birthday _born(DateTime date, {String id = 'lea'}) => Birthday(
   date: BirthDate.fromDate(date),
 );
 
-/// Rappel de [kind] dans le plan d'un seul anniversaire.
+/// Rappel de [lead] dans le plan d'un seul anniversaire.
 PlannedReminder _reminder(
   Birthday birthday,
-  ReminderKind kind, {
+  ReminderLead lead, {
   required DateTime now,
-}) => planReminders([birthday], now: now).singleWhere((r) => r.kind == kind);
+  ReminderPreferences preferences = const ReminderPreferences(),
+}) => planReminders(
+  [birthday],
+  now: now,
+  preferences: preferences,
+).singleWhere((r) => r.lead == lead);
 
 /// Emplacement naturel d'un id d'anniversaire (formule historique).
 int _slot(String id) => id.hashCode.abs() % 100000;
@@ -59,11 +66,11 @@ Map<String, List<int>> _idsOf(
     for (final id in birthdayIds)
       id: [
         plan
-            .singleWhere((r) => r.name == id && r.kind == ReminderKind.birthday)
+            .singleWhere((r) => r.name == id && r.lead == ReminderLead.sameDay)
             .id,
         plan
             .singleWhere(
-              (r) => r.name == id && r.kind == ReminderKind.weekBefore,
+              (r) => r.name == id && r.lead == ReminderLead.weekBefore,
             )
             .id,
       ],
@@ -80,11 +87,11 @@ void main() {
       _born(DateTime(1985, 8), id: 'hugo'),
     ], now: now);
 
-    expect(plan.map((r) => r.kind), [
-      ReminderKind.birthday,
-      ReminderKind.weekBefore,
-      ReminderKind.birthday,
-      ReminderKind.weekBefore,
+    expect(plan.map((r) => r.lead), [
+      ReminderLead.weekBefore,
+      ReminderLead.sameDay,
+      ReminderLead.weekBefore,
+      ReminderLead.sameDay,
     ]);
     // Chaque rappel ramène à son anniversaire.
     expect(plan.map((r) => r.birthdayId), ['lea', 'lea', 'hugo', 'hugo']);
@@ -94,8 +101,8 @@ void main() {
   test('reminds at 10:00 on the day and seven days before', () {
     final birthday = _born(DateTime(1990, 6, 30));
 
-    final day = _reminder(birthday, ReminderKind.birthday, now: now);
-    final weekBefore = _reminder(birthday, ReminderKind.weekBefore, now: now);
+    final day = _reminder(birthday, ReminderLead.sameDay, now: now);
+    final weekBefore = _reminder(birthday, ReminderLead.weekBefore, now: now);
 
     expect(day.at, DateTime(2026, 6, 30, 10));
     expect(day.age, 36);
@@ -106,7 +113,7 @@ void main() {
   test('keeps a birthday today when 10:00 is still ahead', () {
     final birthday = _born(DateTime(1990, 6, 15));
 
-    final day = _reminder(birthday, ReminderKind.birthday, now: now);
+    final day = _reminder(birthday, ReminderLead.sameDay, now: now);
 
     expect(day.at, DateTime(2026, 6, 15, 10));
     expect(day.age, 36);
@@ -116,10 +123,10 @@ void main() {
     final birthday = _born(DateTime(1990, 6, 15));
     final afterTen = DateTime(2026, 6, 15, 11);
 
-    final day = _reminder(birthday, ReminderKind.birthday, now: afterTen);
+    final day = _reminder(birthday, ReminderLead.sameDay, now: afterTen);
     final weekBefore = _reminder(
       birthday,
-      ReminderKind.weekBefore,
+      ReminderLead.weekBefore,
       now: afterTen,
     );
 
@@ -136,7 +143,7 @@ void main() {
 
     final weekBefore = _reminder(
       birthday,
-      ReminderKind.weekBefore,
+      ReminderLead.weekBefore,
       now: DateTime(2026, 3, 20),
     );
 
@@ -148,7 +155,7 @@ void main() {
 
     final day = _reminder(
       birthday,
-      ReminderKind.birthday,
+      ReminderLead.sameDay,
       now: DateTime(2027, 1, 10),
     );
 
@@ -164,8 +171,8 @@ void main() {
       date: BirthDate(month: 6, day: 30),
     );
 
-    final day = _reminder(birthday, ReminderKind.birthday, now: now);
-    final weekBefore = _reminder(birthday, ReminderKind.weekBefore, now: now);
+    final day = _reminder(birthday, ReminderLead.sameDay, now: now);
+    final weekBefore = _reminder(birthday, ReminderLead.weekBefore, now: now);
 
     expect(day.at, DateTime(2026, 6, 30, 10));
     expect(day.age, isNull);
@@ -173,13 +180,13 @@ void main() {
     expect(weekBefore.age, isNull);
   });
 
-  test('derives stable ids, distinct per kind', () {
+  test('derives stable ids, distinct per lead', () {
     final birthday = _born(DateTime(1990, 6, 30));
     final base = 'lea'.hashCode.abs() % 100000;
 
     final ids = planReminders([birthday], now: now).map((r) => r.id);
 
-    expect(ids, [base, base + 500000]);
+    expect(ids, [base + 500000, base]);
     expect(planReminders([birthday], now: now).map((r) => r.id), ids);
   });
 
@@ -255,9 +262,9 @@ void main() {
         person('c', 'Chloé', DateTime(2018, 10, 27)),
       ], now: now)!;
 
-      expect(next.kind, ReminderKind.birthday);
+      expect(next.lead, ReminderLead.sameDay);
       expect(next.name, 'Hugo');
-      expect(next.at, DateTime(2026, 10, 21, ReminderPolicy.hour));
+      expect(next.at, DateTime(2026, 10, 21, 10));
     });
 
     test('keeps today while 10:00 is still ahead, then moves on', () {
@@ -286,6 +293,120 @@ void main() {
     test('is null without any birthday', () {
       expect(nextBirthdayReminder(const [], now: now), isNull);
     });
+  });
+
+  group('preferences', () {
+    const early = ReminderPreferences(
+      leads: {ReminderLead.monthBefore, ReminderLead.dayBefore},
+      hour: 8,
+      minute: 30,
+    );
+
+    test('plans the chosen leads at the chosen time, and always the day', () {
+      final birthday = _born(DateTime(1990, 6, 30));
+
+      final plan = planReminders(
+        [birthday],
+        now: DateTime(2026, 5),
+        preferences: early,
+      );
+
+      expect(plan.map((r) => (r.lead, r.at)), [
+        (ReminderLead.monthBefore, DateTime(2026, 5, 31, 8, 30)),
+        (ReminderLead.dayBefore, DateTime(2026, 6, 29, 8, 30)),
+        (ReminderLead.sameDay, DateTime(2026, 6, 30, 8, 30)),
+      ]);
+    });
+
+    test('moves a month-before slot already past to next year', () {
+      final birthday = _born(DateTime(1990, 6, 30));
+
+      final monthBefore = _reminder(
+        birthday,
+        ReminderLead.monthBefore,
+        now: DateTime(2026, 6, 10),
+        preferences: early,
+      );
+
+      expect(monthBefore.at, DateTime(2027, 5, 31, 8, 30));
+      expect(monthBefore.age, 37);
+    });
+
+    test('gives each lead its own id range', () {
+      const all = ReminderPreferences(leads: {...ReminderLead.values});
+      final base = 'lea'.hashCode.abs() % 100000;
+
+      final plan = planReminders(
+        [_born(DateTime(1990, 6, 30))],
+        now: now,
+        preferences: all,
+      );
+
+      expect(plan.map((r) => r.id), [
+        base + 200000,
+        base + 500000,
+        base + 100000,
+        base,
+      ]);
+    });
+
+    test('follows the own setting of a person over the default one', () {
+      Birthday withReminders(String id, Set<ReminderLead>? reminders) =>
+          Birthday(
+            id: id,
+            name: id,
+            surname: '',
+            date: BirthDate.fromDate(DateTime(1990, 6, 30)),
+            reminders: reminders,
+          );
+
+      final plan = planReminders([
+        withReminders('usual', null),
+        withReminders('none', const {}),
+        // Le jour J s'ajoute même s'il manque au réglage.
+        withReminders('custom', const {ReminderLead.dayBefore}),
+      ], now: now);
+
+      List<ReminderLead> leadsOf(String name) => [
+        for (final r in plan)
+          if (r.name == name) r.lead,
+      ];
+      expect(leadsOf('usual'), [ReminderLead.weekBefore, ReminderLead.sameDay]);
+      expect(leadsOf('none'), isEmpty);
+      expect(leadsOf('custom'), [ReminderLead.dayBefore, ReminderLead.sameDay]);
+    });
+
+    test('names the earliest lead before the day', () {
+      expect(early.earliestLead, ReminderLead.monthBefore);
+      expect(const ReminderPreferences().earliestLead, ReminderLead.weekBefore);
+      expect(
+        const ReminderPreferences(leads: {ReminderLead.sameDay}).earliestLead,
+        isNull,
+      );
+    });
+  });
+
+  test('keeps the days themselves first past the alarm limit', () {
+    const all = ReminderPreferences(leads: {...ReminderLead.values});
+    final birthdays = [
+      for (var i = 0; i < 300; i++)
+        Birthday(
+          id: 'b$i',
+          name: 'b$i',
+          surname: '',
+          date: BirthDate.fromDate(DateTime(1990, 1 + i % 12, 1 + i % 28)),
+        ),
+    ];
+
+    final plan = planReminders(birthdays, now: now, preferences: all);
+
+    expect(plan, hasLength(ReminderPolicy.maxScheduled));
+    expect(plan.where((r) => r.lead == ReminderLead.sameDay), hasLength(300));
+    // Puis les rappels d'une semaine avant, les plus proches d'abord.
+    final weekBefore = plan.where((r) => r.lead == ReminderLead.weekBefore);
+    expect(weekBefore, hasLength(ReminderPolicy.maxScheduled - 300));
+    final kept = weekBefore.map((r) => r.at).toList();
+    expect(kept, [...kept]..sort());
   });
 
   test('names the person as the notification does', () {

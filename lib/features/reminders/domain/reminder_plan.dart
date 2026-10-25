@@ -1,30 +1,23 @@
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
+import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
+import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
 
-/// Moment d'un rappel par rapport à l'anniversaire.
-enum ReminderKind {
-  /// Le jour même.
-  birthday,
-
-  /// Une semaine avant, pour préparer un cadeau.
-  weekBefore,
-}
-
-/// Politique de rappel actuelle : le jour J et sept jours avant, à 10 h
-/// (heure locale). Les rappels personnalisés (backlog B6) la rendront
-/// réglable.
+/// Limites de la planification, indépendantes des préférences.
 abstract final class ReminderPolicy {
-  static const hour = 10;
-  static const daysBefore = 7;
+  /// Rappels planifiés au plus : Android (12 et plus) refuse une alarme de
+  /// plus au-delà de 500 par app, et le refus ne se voit pas. La marge laisse
+  /// la place aux alarmes du système de notifications.
+  static const maxScheduled = 450;
 }
 
 /// Rappel planifié pour un anniversaire.
 class const PlannedReminder({
   /// Identifiant de la notification, unique dans le plan et stable d'une
-  /// replanification à l'autre ; dérivé de l'anniversaire et du type de
+  /// replanification à l'autre ; dérivé de l'anniversaire et du moment du
   /// rappel.
   required final int id,
-  required final ReminderKind kind,
+  required final ReminderLead lead,
 
   /// Anniversaire rappelé : le toucher de la notification y ramène.
   required final String birthdayId,
@@ -47,7 +40,7 @@ class const PlannedReminder({
   bool operator ==(Object other) =>
       other is PlannedReminder &&
       other.id == id &&
-      other.kind == kind &&
+      other.lead == lead &&
       other.birthdayId == birthdayId &&
       other.name == name &&
       other.surname == surname &&
@@ -55,33 +48,60 @@ class const PlannedReminder({
       other.at == at;
 
   @override
-  int get hashCode => Object.hash(id, kind, birthdayId, name, surname, age, at);
+  int get hashCode => Object.hash(id, lead, birthdayId, name, surname, age, at);
 }
 
-/// Rappels de chaque anniversaire (jour J et J-7), au prochain créneau encore
-/// à venir après [now] : un créneau déjà passé cette année glisse à l'année
-/// suivante.
+/// Rappels de chaque anniversaire selon [preferences] (et le réglage propre
+/// de la personne), au prochain créneau encore à venir après [now] : un
+/// créneau déjà passé cette année glisse à l'année suivante.
+///
+/// Au-delà de [ReminderPolicy.maxScheduled], les jours J passent d'abord,
+/// puis la semaine, la veille et le mois avant ; à rang égal, les plus
+/// proches.
 List<PlannedReminder> planReminders(
   Iterable<Birthday> birthdays, {
   required DateTime now,
+  ReminderPreferences preferences = const ReminderPreferences(),
 }) {
   final slots = _notificationSlots(birthdays.map((b) => b.id));
-  return [
+  final plan = [
     for (final birthday in birthdays)
-      for (final kind in ReminderKind.values)
-        _plan(birthday, kind, slots[birthday.id]!, now),
+      for (final lead in preferences.leadsFor(birthday))
+        _plan(birthday, lead, slots[birthday.id]!, now, preferences),
   ];
+  if (plan.length <= ReminderPolicy.maxScheduled) return plan;
+  return (plan..sort(_byPriority)).take(ReminderPolicy.maxScheduled).toList();
+}
+
+/// Ordre de sacrifice quand le plan déborde : le jour J reste le dernier à
+/// tomber.
+const _priority = [
+  ReminderLead.sameDay,
+  ReminderLead.weekBefore,
+  ReminderLead.dayBefore,
+  ReminderLead.monthBefore,
+];
+
+int _byPriority(PlannedReminder a, PlannedReminder b) {
+  final byLead = _priority.indexOf(a.lead) - _priority.indexOf(b.lead);
+  return byLead != 0 ? byLead : a.at.compareTo(b.at);
 }
 
 /// Prochain rappel du jour J après [now] — le premier que l'app enverra —,
-/// ou null sans anniversaire. Deux le même jour : par ordre alphabétique.
+/// ou null sans anniversaire rappelé. Deux le même jour : par ordre
+/// alphabétique.
 PlannedReminder? nextBirthdayReminder(
   Iterable<Birthday> birthdays, {
   required DateTime now,
+  ReminderPreferences preferences = const ReminderPreferences(),
 }) {
   PlannedReminder? next;
-  for (final reminder in planReminders(birthdays, now: now)) {
-    if (reminder.kind != ReminderKind.birthday) continue;
+  for (final reminder in planReminders(
+    birthdays,
+    now: now,
+    preferences: preferences,
+  )) {
+    if (reminder.lead != ReminderLead.sameDay) continue;
     if (next == null ||
         reminder.at.isBefore(next.at) ||
         (reminder.at == next.at &&
@@ -94,27 +114,24 @@ PlannedReminder? nextBirthdayReminder(
 
 PlannedReminder _plan(
   Birthday birthday,
-  ReminderKind kind,
+  ReminderLead lead,
   int slot,
   DateTime now,
+  ReminderPreferences preferences,
 ) {
-  final daysBefore = switch (kind) {
-    ReminderKind.birthday => 0,
-    ReminderKind.weekBefore => ReminderPolicy.daysBefore,
-  };
   var occurrence = birthday.nextOccurrence(now);
-  var at = _reminderAt(occurrence, daysBefore);
+  var at = _reminderAt(occurrence, lead, preferences);
   if (at.isBefore(now)) {
     occurrence = DateTime(
       occurrence.year + 1,
       birthday.date.month,
       birthday.date.day,
     );
-    at = _reminderAt(occurrence, daysBefore);
+    at = _reminderAt(occurrence, lead, preferences);
   }
   return PlannedReminder(
-    id: _notificationId(slot, kind),
-    kind: kind,
+    id: _notificationId(slot, lead),
+    lead: lead,
     birthdayId: birthday.id,
     name: birthday.name,
     surname: birthday.surname,
@@ -128,18 +145,31 @@ PlannedReminder _plan(
 
 /// Jour du rappel compté en jours de calendrier — des tranches de 24 h
 /// décaleraient d'un jour un rappel qui enjambe un changement d'heure — à
-/// l'heure de la politique.
-DateTime _reminderAt(DateTime occurrence, int daysBefore) => DateTime(
+/// l'heure choisie.
+DateTime _reminderAt(
+  DateTime occurrence,
+  ReminderLead lead,
+  ReminderPreferences preferences,
+) => DateTime(
   occurrence.year,
   occurrence.month,
-  occurrence.day - daysBefore,
-  ReminderPolicy.hour,
+  occurrence.day - lead.days,
+  preferences.hour,
+  preferences.minute,
 );
 
-/// Nombre d'emplacements d'id : le J-7 prend `emplacement + 500000`, les
-/// deux plages ne se chevauchent pas.
+/// Nombre d'emplacements d'id : chaque moment de rappel a sa plage, décalée
+/// d'un multiple de 100000, sans chevauchement. Le jour J et J-7 gardent
+/// leurs plages d'avant B6 : les rappels déjà planifiés sur les téléphones
+/// sont remplacés, pas dupliqués.
 const _slotCount = 100000;
-const _weekBeforeOffset = 500000;
+
+int _offset(ReminderLead lead) => switch (lead) {
+  ReminderLead.sameDay => 0,
+  ReminderLead.dayBefore => 100000,
+  ReminderLead.monthBefore => 200000,
+  ReminderLead.weekBefore => 500000,
+};
 
 /// Emplacement de départ d'un anniversaire. Même formule qu'avant
 /// l'extraction : les rappels déjà planifiés sur les téléphones sont
@@ -148,7 +178,7 @@ int _naturalSlot(String birthdayId) => birthdayId.hashCode.abs() % _slotCount;
 
 /// Attribue à chaque anniversaire un emplacement unique : deux anniversaires
 /// sur le même emplacement s'écraseraient (`zonedSchedule` remplace la
-/// notification de même id) et l'un perdrait ses deux rappels.
+/// notification de même id) et l'un perdrait ses rappels.
 ///
 /// Déterministe et aussi stable que possible :
 /// 1. chaque emplacement naturel revient au plus petit id qui le vise, donc
@@ -185,8 +215,5 @@ Map<String, int> _notificationSlots(Iterable<String> birthdayIds) {
 }
 
 /// Id entier (le plugin l'exige) d'un rappel, dérivé de l'emplacement de son
-/// anniversaire et de son type.
-int _notificationId(int slot, ReminderKind kind) => switch (kind) {
-  ReminderKind.birthday => slot,
-  ReminderKind.weekBefore => slot + _weekBeforeOffset,
-};
+/// anniversaire et du moment du rappel.
+int _notificationId(int slot, ReminderLead lead) => slot + _offset(lead);

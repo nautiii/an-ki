@@ -3,7 +3,10 @@ import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/reminders/domain/reminder_offer.dart';
+import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
+import 'package:an_ki/features/reminders/providers/reminder_preferences_provider.dart';
 import 'package:an_ki/features/reminders/widgets/reminder_offer_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,6 +40,7 @@ void main() {
     ReminderOffer offer = _imported,
     NotificationAccess answer = NotificationAccess.granted,
     List<Birthday> birthdays = const [_louis, _hugo],
+    ReminderPreferences preferences = const ReminderPreferences(),
   }) async {
     notifications = SilentNotificationService(
       access: NotificationAccess.denied,
@@ -52,6 +56,7 @@ void main() {
       overrides: [
         notificationServiceProvider.overrideWithValue(notifications),
         birthdaysProvider.overrideWithValue(AsyncData(birthdays)),
+        reminderPreferencesProvider.overrideWithValue(AsyncData(preferences)),
         clockProvider.overrideWithValue(() => DateTime(2026, 10, 19, 9)),
       ],
     );
@@ -88,6 +93,20 @@ void main() {
     expect(find.text('Activer les rappels'), findsOneWidget);
     expect(find.text('Plus tard'), findsOneWidget);
     expect(notifications.requests, 0);
+  });
+
+  testWidgets('follows the reminder preferences', (tester) async {
+    await openSheet(
+      tester,
+      preferences: const ReminderPreferences(
+        leads: {ReminderLead.sameDay},
+        hour: 9,
+      ),
+    );
+
+    expect(find.text('Un rappel le jour J'), findsOneWidget);
+    expect(find.text('À 09:00, même sans connexion.'), findsOneWidget);
+    expect(find.text('AnKi · mercredi 21 octobre à 09:00'), findsOneWidget);
   });
 
   testWidgets('says the agenda was restored after a sign-in', (tester) async {

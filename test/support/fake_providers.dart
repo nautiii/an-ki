@@ -13,6 +13,8 @@ import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/book_scanner/domain/book.dart';
+import 'package:an_ki/features/reminders/data/reminder_preferences_repository.dart';
+import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -722,3 +724,47 @@ List<Object> get defaultTestOverrides => [
   biometricServiceProvider.overrideWithValue(FakeBiometricService()),
   shareServiceProvider.overrideWithValue(FakeShareService()),
 ];
+
+/// Réglage des rappels gardé en mémoire : chaque enregistrement est émis
+/// aussitôt, comme le cache de Firestore.
+class RecordingReminderPreferencesRepository extends Fake
+    implements ReminderPreferencesRepository {
+  RecordingReminderPreferencesRepository({
+    this._stored = const ReminderPreferences(),
+    this.failure,
+  });
+
+  ReminderPreferences _stored;
+
+  /// Erreur levée par chaque écriture quand elle est définie.
+  final Exception? failure;
+
+  final _changes = StreamController<ReminderPreferences>.broadcast();
+  final saved = <ReminderPreferences>[];
+
+  ReminderPreferences get stored => _stored;
+
+  @override
+  Stream<ReminderPreferences> watchPreferences(String uid) {
+    final controller = StreamController<ReminderPreferences>();
+    final changes = _changes.stream.listen(controller.add);
+    controller
+      ..onCancel = () async {
+        await changes.cancel();
+        await controller.close();
+      }
+      ..add(_stored);
+    return controller.stream;
+  }
+
+  @override
+  Future<void> savePreferences(
+    String uid,
+    ReminderPreferences preferences,
+  ) async {
+    if (failure case final failure?) throw failure;
+    saved.add(preferences);
+    _stored = preferences;
+    _changes.add(preferences);
+  }
+}

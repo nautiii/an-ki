@@ -17,13 +17,18 @@ import 'package:timezone/timezone.dart' as tz;
 class NotificationStrings {
   final String channelName;
   final String channelDescription;
-  final String reminderTitle;
   // Pas d'âge dans les textes : la notification se répète chaque année avec
   // le texte écrit à la planification, l'âge serait faux l'année suivante si
   // l'app n'est pas rouverte.
   final String Function(String fullName) birthdayTitle;
   final String Function(String name) birthdayBody;
-  final String Function(String fullName) reminderBody;
+
+  /// Titre d'un rappel avant le jour J.
+  final String Function(String fullName) reminderTitle;
+
+  /// Texte d'un rappel avant le jour J : « Demain, Léa fête son
+  /// anniversaire. », « Dans 7 jours, … ».
+  final String Function(String name, int days) reminderBody;
 
   /// Bouton « Souhaiter » de la notification du jour J.
   final String wishAction;
@@ -41,10 +46,12 @@ class NotificationStrings {
   static final NotificationStrings french = NotificationStrings(
     channelName: 'Anniversaires',
     channelDescription: 'Rappels d\'anniversaire du jour',
-    reminderTitle: '🎉 Anniversaire bientôt',
     birthdayTitle: (fullName) => '🎂 $fullName',
     birthdayBody: (name) => '$name fête son anniversaire aujourd\'hui !',
-    reminderBody: (fullName) => '$fullName fête son anniversaire dans 7 jours.',
+    reminderTitle: (fullName) => '🎉 $fullName',
+    reminderBody: (name, days) => days == 1
+        ? 'Demain, $name fête son anniversaire.'
+        : 'Dans $days jours, $name fête son anniversaire.',
     wishAction: 'Souhaiter',
   );
 
@@ -73,9 +80,6 @@ enum NotificationAccess {
   /// les réglages : seuls les réglages de l'app peuvent l'accorder.
   blocked,
 }
-
-/// Type de rappel ; il choisit le texte de la notification.
-enum ReminderType { birthday, weekBefore }
 
 /// Identifiants des boutons de notification, rendus tels quels au toucher.
 abstract final class NotificationActions {
@@ -109,7 +113,10 @@ class const NotificationTap({
 class const ReminderNotification({
   /// Identifiant stable de la notification.
   required final int id,
-  required final ReminderType type,
+
+  /// Jours de calendrier avant l'anniversaire ; 0 le jour J, qui a son
+  /// texte et le bouton « Souhaiter ».
+  required final int daysBefore,
   required final String name,
   required final String surname,
 
@@ -130,7 +137,7 @@ class const ReminderNotification({
   bool operator ==(Object other) =>
       other is ReminderNotification &&
       other.id == id &&
-      other.type == type &&
+      other.daysBefore == daysBefore &&
       other.name == name &&
       other.surname == surname &&
       other.age == age &&
@@ -138,7 +145,8 @@ class const ReminderNotification({
       other.payload == payload;
 
   @override
-  int get hashCode => Object.hash(id, type, name, surname, age, at, payload);
+  int get hashCode =>
+      Object.hash(id, daysBefore, name, surname, age, at, payload);
 }
 
 /// Service singleton des notifications locales : initialisation du plugin,
@@ -361,17 +369,16 @@ class NotificationService {
       reminder.name,
       reminder.surname,
     ].where((part) => part.isNotEmpty).join(' ');
+    final isBirthday = reminder.daysBefore == 0;
     try {
       await _plugin.zonedSchedule(
         id: reminder.id,
-        title: switch (reminder.type) {
-          ReminderType.birthday => _strings.birthdayTitle(fullName),
-          ReminderType.weekBefore => _strings.reminderTitle,
-        },
-        body: switch (reminder.type) {
-          ReminderType.birthday => _strings.birthdayBody(reminder.name),
-          ReminderType.weekBefore => _strings.reminderBody(fullName),
-        },
+        title: isBirthday
+            ? _strings.birthdayTitle(fullName)
+            : _strings.reminderTitle(fullName),
+        body: isBirthday
+            ? _strings.birthdayBody(reminder.name)
+            : _strings.reminderBody(reminder.name, reminder.daysBefore),
         scheduledDate: tz.TZDateTime(
           tz.local,
           reminder.at.year,
@@ -380,7 +387,7 @@ class NotificationService {
           reminder.at.hour,
           reminder.at.minute,
         ),
-        notificationDetails: _notificationDetails(reminder.type),
+        notificationDetails: _notificationDetails(isBirthday: isBirthday),
         payload: reminder.payload,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.dateAndTime,
@@ -392,7 +399,7 @@ class NotificationService {
     }
   }
 
-  NotificationDetails _notificationDetails(ReminderType type) {
+  NotificationDetails _notificationDetails({required bool isBirthday}) {
     return NotificationDetails(
       android: AndroidNotificationDetails(
         _channelId,
@@ -403,16 +410,15 @@ class NotificationService {
         // Le jour J, « Souhaiter » ouvre l'app sur la feuille de partage.
         // iOS n'a pas le bouton : ses catégories se déclarent à
         // l'initialisation, avant que les textes ne soient localisés.
-        actions: switch (type) {
-          ReminderType.birthday => [
-            AndroidNotificationAction(
-              NotificationActions.wish,
-              _strings.wishAction,
-              showsUserInterface: true,
-            ),
-          ],
-          ReminderType.weekBefore => null,
-        },
+        actions: isBirthday
+            ? [
+                AndroidNotificationAction(
+                  NotificationActions.wish,
+                  _strings.wishAction,
+                  showsUserInterface: true,
+                ),
+              ]
+            : null,
       ),
       iOS: const DarwinNotificationDetails(
         presentAlert: true,

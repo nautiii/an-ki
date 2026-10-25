@@ -4,15 +4,16 @@ import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
-import 'package:an_ki/features/reminders/domain/reminder_plan.dart';
 import 'package:an_ki/features/reminders/providers/reminder_permission.dart';
+import 'package:an_ki/features/reminders/providers/reminder_preferences_provider.dart';
 import 'package:an_ki/features/reminders/widgets/reminder_access_actions.dart';
 import 'package:an_ki/features/reminders/widgets/reminder_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Ligne « Rappels » des réglages : l'état des rappels sur ce téléphone et,
+/// Ligne « Rappels » des réglages : l'état des rappels sur ce téléphone —
+/// accordés, le réglage en bref (« 7 jours avant · Le jour J · 10:00 ») — et,
 /// coupés, l'action qui les rétablit — « Activer les rappels » (la boîte
 /// système), ou « Ouvrir les réglages » quand seul le téléphone peut les
 /// accorder.
@@ -53,6 +54,7 @@ class _RemindersTileState extends ConsumerState<RemindersTile>
         ? NotificationAccess.denied
         : permission.value;
     final busy = permission.isLoading;
+    final preferences = ref.watch(effectiveReminderPreferencesProvider);
 
     return ListTile(
       // L'icône face au titre, pas au milieu du texte et du bouton.
@@ -68,12 +70,13 @@ class _RemindersTileState extends ConsumerState<RemindersTile>
           alignment: AlignmentDirectional.centerStart,
           child: SkeletonBox(height: 12, width: 160),
         ),
-        NotificationAccess.granted => Text(
-          l10n.remindersSchedule(
-            ReminderPolicy.daysBefore,
-            context.reminderTime,
+        NotificationAccess.granted => switch (preferences) {
+          null => const Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: SkeletonBox(height: 12, width: 160),
           ),
-        ),
+          final preferences => Text(context.reminderSchedule(preferences)),
+        },
         NotificationAccess.denied => _Off(
           status: l10n.remindersOff,
           action: l10n.enableReminders,

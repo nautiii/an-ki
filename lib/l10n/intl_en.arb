@@ -234,17 +234,18 @@
   "errorQuotaExceeded": "Search limit reached. Please try again later.",
   "notificationChannelName": "Birthdays",
   "notificationChannelDescription": "Daily birthday reminders",
-  "notificationReminderTitle": "🎉 Birthday soon",
+  "notificationReminderTitle": "🎉 {fullName}",
   "notificationBirthdayBody": "It's {name}'s birthday today!",
   "@notificationBirthdayBody": {
     "placeholders": {
       "name": { "type": "String" }
     }
   },
-  "notificationReminderBody": "{fullName}'s birthday is in 7 days.",
+  "notificationReminderBody": "{days, plural, =1{{name}'s birthday is tomorrow.} other{{name}'s birthday is in {days} days.}}",
   "@notificationReminderBody": {
     "placeholders": {
-      "fullName": { "type": "String" }
+      "name": { "type": "String" },
+      "days": { "type": "int" }
     }
   },
   "notificationBirthdayTitle": "🎂 {fullName}",
@@ -253,13 +254,23 @@
   "remindersEnabled": "Reminders on",
   "later": "Not now",
   "remindersOfferRestored": "{count, plural, =1{1 birthday restored} other{{count} birthdays restored}}",
-  "remindersOfferTitle": "{days, plural, =1{A reminder the day before, then on the day} other{A reminder {days} days before, then on the day}}",
+  "remindersOfferTitle": "{days, plural, =0{A reminder on the day} =1{A reminder the day before, then on the day} other{A reminder {days} days before, then on the day}}",
   "remindersOfferMessage": "At {time}, even offline.",
   "remindersExample": "Example reminder",
   "remindersExampleWhen": "AnKi · {date} at {time}",
   "remindersBlockedTitle": "Allow notifications in settings",
   "remindersBlockedMessage": "Your phone blocks them for AnKi. Turn them on in settings, then come back here.",
-  "remindersSchedule": "{days, plural, =1{The day before and on the day, at {time}} other{{days} days before and on the day, at {time}}}",
+  "remindersSchedule": "{leads} · {time}",
+  "reminderLeadMonthBefore": "30 days before",
+  "reminderLeadWeekBefore": "7 days before",
+  "reminderLeadDayBefore": "The day before",
+  "reminderLeadSameDay": "On the day",
+  "remindersWhen": "Remind me",
+  "remindersSameDayAlways": "You're always reminded on the day.",
+  "remindersTime": "Reminder time",
+  "birthdayRemindersDefault": "As usual",
+  "birthdayRemindersNone": "None",
+  "birthdayRemindersCustom": "Custom",
   "remindersOff": "Off: AnKi can't remind you.",
   "remindersOffNotice": "Reminders are off",
   "remindersOffEnable": "Turn on",

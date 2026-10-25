@@ -819,7 +819,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Rappels d\'anniversaire du jour';
 
   @override
-  String get notificationReminderTitle => '🎉 Anniversaire bientôt';
+  String notificationReminderTitle(String fullName) {
+    return '🎉 $fullName';
+  }
 
   @override
   String notificationBirthdayBody(String name) {
@@ -827,8 +829,14 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String notificationReminderBody(String fullName) {
-    return '$fullName fête son anniversaire dans 7 jours.';
+  String notificationReminderBody(String name, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Dans $days jours, $name fête son anniversaire.',
+      one: 'Demain, $name fête son anniversaire.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -866,6 +874,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: 'Un rappel $days jours avant, puis le jour J',
       one: 'Un rappel la veille, puis le jour J',
+      zero: 'Un rappel le jour J',
     );
     return '$_temp0';
   }
@@ -892,15 +901,39 @@ class AppLocalizationsFr extends AppLocalizations {
       'Votre téléphone les bloque pour AnKi. Activez-les dans les réglages, puis revenez ici.';
 
   @override
-  String remindersSchedule(int days, String time) {
-    String _temp0 = intl.Intl.pluralLogic(
-      days,
-      locale: localeName,
-      other: '$days jours avant et le jour J, à $time',
-      one: 'La veille et le jour J, à $time',
-    );
-    return '$_temp0';
+  String remindersSchedule(String leads, String time) {
+    return '$leads · $time';
   }
+
+  @override
+  String get reminderLeadMonthBefore => '30 jours avant';
+
+  @override
+  String get reminderLeadWeekBefore => '7 jours avant';
+
+  @override
+  String get reminderLeadDayBefore => 'La veille';
+
+  @override
+  String get reminderLeadSameDay => 'Le jour J';
+
+  @override
+  String get remindersWhen => 'Me prévenir';
+
+  @override
+  String get remindersSameDayAlways => 'Le jour J est toujours prévenu.';
+
+  @override
+  String get remindersTime => 'Heure des rappels';
+
+  @override
+  String get birthdayRemindersDefault => 'Comme d\'habitude';
+
+  @override
+  String get birthdayRemindersNone => 'Aucun';
+
+  @override
+  String get birthdayRemindersCustom => 'Personnalisés';
 
   @override
   String get remindersOff => 'Désactivés : AnKi ne peut pas vous prévenir.';

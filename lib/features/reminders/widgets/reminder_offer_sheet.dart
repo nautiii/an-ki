@@ -6,8 +6,10 @@ import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/reminders/domain/reminder_offer.dart';
 import 'package:an_ki/features/reminders/domain/reminder_plan.dart';
+import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
 import 'package:an_ki/features/reminders/providers/next_birthday_reminder_provider.dart';
 import 'package:an_ki/features/reminders/providers/reminder_permission.dart';
+import 'package:an_ki/features/reminders/providers/reminder_preferences_provider.dart';
 import 'package:an_ki/features/reminders/widgets/reminder_access_actions.dart';
 import 'package:an_ki/features/reminders/widgets/reminder_display.dart';
 import 'package:flutter/material.dart';
@@ -67,6 +69,9 @@ class _ReminderOfferSheetState extends ConsumerState<ReminderOfferSheet>
     final permission = ref.watch(reminderPermissionProvider);
     final blocked = permission.value == NotificationAccess.blocked;
     final reminder = ref.watch(nextBirthdayReminderProvider);
+    final preferences =
+        ref.watch(effectiveReminderPreferencesProvider) ??
+        const ReminderPreferences();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
@@ -86,7 +91,9 @@ class _ReminderOfferSheetState extends ConsumerState<ReminderOfferSheet>
             child: Text(
               blocked
                   ? l10n.remindersBlockedTitle
-                  : l10n.remindersOfferTitle(ReminderPolicy.daysBefore),
+                  : l10n.remindersOfferTitle(
+                      preferences.earliestLead?.days ?? 0,
+                    ),
               style: theme.textTheme.headlineSmall,
             ),
           ),
@@ -94,7 +101,7 @@ class _ReminderOfferSheetState extends ConsumerState<ReminderOfferSheet>
           Text(
             blocked
                 ? l10n.remindersBlockedMessage
-                : l10n.remindersOfferMessage(context.reminderTime),
+                : l10n.remindersOfferMessage(context.reminderTime(preferences)),
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

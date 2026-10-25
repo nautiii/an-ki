@@ -1340,11 +1340,11 @@ abstract class AppLocalizations {
   /// **'Rappels d\'anniversaire du jour'**
   String get notificationChannelDescription;
 
-  /// No description provided for @notificationReminderTitle.
+  /// Titre d'un rappel avant le jour J.
   ///
   /// In fr, this message translates to:
-  /// **'🎉 Anniversaire bientôt'**
-  String get notificationReminderTitle;
+  /// **'🎉 {fullName}'**
+  String notificationReminderTitle(String fullName);
 
   /// Sans âge : la notification se répète chaque année avec le même texte.
   ///
@@ -1352,11 +1352,11 @@ abstract class AppLocalizations {
   /// **'{name} fête son anniversaire aujourd\'hui !'**
   String notificationBirthdayBody(String name);
 
-  /// Sans âge : la notification se répète chaque année avec le même texte.
+  /// Rappel avant le jour J. Sans âge : la notification se répète chaque année avec le même texte.
   ///
   /// In fr, this message translates to:
-  /// **'{fullName} fête son anniversaire dans 7 jours.'**
-  String notificationReminderBody(String fullName);
+  /// **'{days, plural, =1{Demain, {name} fête son anniversaire.} other{Dans {days} jours, {name} fête son anniversaire.}}'**
+  String notificationReminderBody(String name, int days);
 
   /// Titre de la notification du jour J.
   ///
@@ -1397,7 +1397,7 @@ abstract class AppLocalizations {
   /// No description provided for @remindersOfferTitle.
   ///
   /// In fr, this message translates to:
-  /// **'{days, plural, =1{Un rappel la veille, puis le jour J} other{Un rappel {days} jours avant, puis le jour J}}'**
+  /// **'{days, plural, =0{Un rappel le jour J} =1{Un rappel la veille, puis le jour J} other{Un rappel {days} jours avant, puis le jour J}}'**
   String remindersOfferTitle(int days);
 
   /// Heure des rappels, formatée dans la langue de l'app.
@@ -1430,11 +1430,71 @@ abstract class AppLocalizations {
   /// **'Votre téléphone les bloque pour AnKi. Activez-les dans les réglages, puis revenez ici.'**
   String get remindersBlockedMessage;
 
-  /// No description provided for @remindersSchedule.
+  /// Rappels choisis (« 7 jours avant · Le jour J ») puis leur heure, sous « Rappels » dans les réglages.
   ///
   /// In fr, this message translates to:
-  /// **'{days, plural, =1{La veille et le jour J, à {time}} other{{days} jours avant et le jour J, à {time}}}'**
-  String remindersSchedule(int days, String time);
+  /// **'{leads} · {time}'**
+  String remindersSchedule(String leads, String time);
+
+  /// No description provided for @reminderLeadMonthBefore.
+  ///
+  /// In fr, this message translates to:
+  /// **'30 jours avant'**
+  String get reminderLeadMonthBefore;
+
+  /// No description provided for @reminderLeadWeekBefore.
+  ///
+  /// In fr, this message translates to:
+  /// **'7 jours avant'**
+  String get reminderLeadWeekBefore;
+
+  /// No description provided for @reminderLeadDayBefore.
+  ///
+  /// In fr, this message translates to:
+  /// **'La veille'**
+  String get reminderLeadDayBefore;
+
+  /// No description provided for @reminderLeadSameDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le jour J'**
+  String get reminderLeadSameDay;
+
+  /// No description provided for @remindersWhen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Me prévenir'**
+  String get remindersWhen;
+
+  /// No description provided for @remindersSameDayAlways.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le jour J est toujours prévenu.'**
+  String get remindersSameDayAlways;
+
+  /// No description provided for @remindersTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure des rappels'**
+  String get remindersTime;
+
+  /// No description provided for @birthdayRemindersDefault.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comme d\'habitude'**
+  String get birthdayRemindersDefault;
+
+  /// No description provided for @birthdayRemindersNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun'**
+  String get birthdayRemindersNone;
+
+  /// No description provided for @birthdayRemindersCustom.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personnalisés'**
+  String get birthdayRemindersCustom;
 
   /// No description provided for @remindersOff.
   ///

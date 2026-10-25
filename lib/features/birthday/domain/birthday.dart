@@ -1,4 +1,5 @@
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
+import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:flutter/foundation.dart';
 
 /// Anniversaire d'une personne : identité, date de naissance (année
@@ -20,6 +21,10 @@ class const Birthday({
   /// Années dont l'anniversaire a été souhaité (`BirthdayWishes` dit
   /// laquelle compte aujourd'hui) ; l'historique reste.
   final List<int> wishedYears = const [],
+
+  /// Rappels propres à cette personne : null suit le réglage par défaut,
+  /// vide n'en envoie aucun.
+  final Set<ReminderLead>? reminders,
 }) {
   /// Prénom et nom réunis, sans espace de trop quand l'un manque
   /// (« Mamie »).
@@ -35,7 +40,8 @@ class const Birthday({
       other.date == date &&
       listEquals(other.categories, categories) &&
       listEquals(other.picture, picture) &&
-      listEquals(other.wishedYears, wishedYears);
+      listEquals(other.wishedYears, wishedYears) &&
+      setEquals(other.reminders, reminders);
 
   // La photo ne contribue que par sa taille : hacher ses octets serait coûteux
   // et la taille suffit à rester cohérent avec ==.
@@ -48,5 +54,9 @@ class const Birthday({
     Object.hashAll(categories),
     picture?.length,
     Object.hashAll(wishedYears),
+    switch (reminders) {
+      final leads? => Object.hashAllUnordered(leads),
+      null => null,
+    },
   );
 }

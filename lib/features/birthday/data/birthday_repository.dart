@@ -6,6 +6,7 @@ import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
+import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -43,12 +44,17 @@ class BirthdayRepository {
       );
 
   /// Remplace les champs saisis ; la photo n'est réécrite que si le brouillon
-  /// en apporte une nouvelle.
+  /// en apporte une nouvelle. Revenu au réglage par défaut, l'anniversaire
+  /// perd ses rappels propres.
   Future<void> updateBirthday(
     String uid,
     String birthdayId,
     BirthdayDraft draft,
-  ) => _birthdays.doc(birthdayId).update({..._draftToMap(draft), 'uid': uid});
+  ) => _birthdays.doc(birthdayId).update({
+    ..._draftToMap(draft),
+    if (draft.reminders == null) 'reminders': FieldValue.delete(),
+    'uid': uid,
+  });
 
   /// Marque l'anniversaire de [year] souhaité. `arrayUnion` n'ajoute l'année
   /// qu'une fois et ne touche à aucun autre champ ; la propriété du document
@@ -110,7 +116,19 @@ Birthday? _birthdayFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
       for (final year in data['wishedYears'] as List<dynamic>? ?? const [])
         if (year is int) year,
     ],
+    reminders: _remindersFrom(data['reminders']),
   );
+}
+
+/// Rappels propres à la personne : absent (documents d'avant B6, ou réglage
+/// par défaut) → null ; un nom inconnu (version plus récente) est ignoré.
+Set<ReminderLead>? _remindersFrom(Object? stored) {
+  if (stored is! List<dynamic>) return null;
+  final leads = ReminderLead.values.asNameMap();
+  return {
+    for (final name in stored)
+      ?leads[name],
+  };
 }
 
 /// Photo stockée en base64 dans le document ; null si absente ou corrompue.
@@ -139,4 +157,9 @@ Map<String, Object> _draftToMap(BirthdayDraft draft) => {
   'yearKnown': draft.date.year != null,
   'categories': draft.categories,
   if (draft.picture case final picture?) 'picture': base64Encode(picture),
+  if (draft.reminders case final leads?)
+    'reminders': [
+      for (final lead in ReminderLead.values)
+        if (leads.contains(lead)) lead.name,
+    ],
 };
