@@ -44,8 +44,8 @@ without a plan to build it.
 ## Web
 
 No web target (`web/` removed). `lib/core/firebase_options.dart` and
-`firebase.json` still describe the Firebase web app until the maintainer reruns
-`flutterfire configure --platforms=android,ios` (then move the file back to `lib/core/`).
+`firebase.json` still describe the Firebase web app until the maintainer reruns flutterfire
+(firebase skill, `references/console.md` §5).
 
 ## Plugin wrappers (`lib/core/services/`)
 

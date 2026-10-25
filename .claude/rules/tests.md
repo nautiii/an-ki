@@ -13,7 +13,9 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
 - `test/` mirrors `lib/` file by file: `lib/features/<f>/<layer>/x.dart` →
   `test/features/<f>/<layer>/x_test.dart`; a flow over several screens →
   `test/features/<f>/<flow>_flow_test.dart` (`create_birthday_flow_test.dart`). Nothing else
-  sits at a feature root.
+  sits at a feature root. Two folders mirror no file: `test/architecture/` (structure) and
+  `test/firestore/` (`firestore.rules`, run in the emulator by
+  `scripts/test_firestore_rules.ps1`, skipped by plain `flutter test`; firebase skill).
 - Shared fakes and helpers live in `test/support/`: reuse them, don't redefine them per file
   (`tester.pumpLocalizedContext()` gives a French `BuildContext` for display extensions).
 - Never touch real Firebase, network or platform channels. Use `FakeFirebaseFirestore`,

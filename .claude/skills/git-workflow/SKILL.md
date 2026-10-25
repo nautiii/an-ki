@@ -75,7 +75,7 @@ several areas (better no scope than a misleading one; never comma-separated list
 | `lib/l10n/`, `*.arb` | `l10n` |
 | `pubspec.yaml`, `pubspec.lock` | `deps` |
 | `android/`, `ios/` | `android`, `ios` |
-| `firestore.rules`, `firebase.json`, Firebase config | `firebase` |
+| `firestore.rules`, `firestore.indexes.json`, `firebase.json`, `test/firestore/`, Firebase config | `firebase` |
 | `lib/assets/`, launcher icons, splash | `assets` |
 | `scripts/` | `scripts` |
 | `AGENTS.md`, `.claude/` | `agents` |
@@ -155,9 +155,10 @@ Never bypass hooks (`--no-verify`) or signing; if a hook fails, fix the cause.
 
 In Claude Code, `.claude/hooks/guard-git.sh` enforces this: it blocks merge commits, `git pull`
 without `--rebase`/`--ff-only`, blind `git add`, `git commit -a`, forced pushes without lease,
-`--no-verify` and `firebase deploy`, and makes the maintainer confirm a push, `reset --hard`,
-`clean -f`, discarding all changes, `branch -D`, `stash drop` or rewriting pushed commits. A
-blocked command is a signal to change approach, not to work around the guard.
+`--no-verify` and every Firebase command that writes production (firebase skill), and makes the
+maintainer confirm a push, `reset --hard`, `clean -f`, discarding all changes, `branch -D`,
+`stash drop` or rewriting pushed commits. A blocked command is a signal to change approach, not
+to work around the guard.
 
 ## Examples
 

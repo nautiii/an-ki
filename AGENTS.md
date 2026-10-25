@@ -41,6 +41,7 @@ Every dependency is pinned to an exact version.
 | Format | `dart format <files>` |
 | Analysis — must be clean | `flutter analyze` and `dart analyze` (only the latter runs the `riverpod_lint` plugin) |
 | Tests | `flutter test`, or `flutter test test/features/<feature>` |
+| Firestore rules, in the emulator (Firebase CLI, Java 21+) | `scripts/test_firestore_rules.ps1` (firebase skill) |
 | Strings, after any `.arb` change | `flutter gen-l10n` |
 | Run on a device | `scripts/run.ps1 [-d <device id>]` (= `flutter run --dart-define-from-file=secrets.json`); agents start it in the Terminal panel (device skill) |
 | Build and install an APK | `scripts/build_and_deploy.ps1 [-Release] [-Clean]` |
@@ -49,7 +50,8 @@ Every dependency is pinned to an exact version.
 The app reads `GOOGLE_BOOKS_API_KEY` from `secrets.json` through `--dart-define-from-file`.
 In Claude Code, hooks (`.claude/settings.json`, scripts in `.claude/hooks/`) show the git state
 at session start, format every `.dart` file right after it is written or edited, block blind,
-merging or forced git commands and `firebase deploy`, and ask the maintainer before a push or
+merging or forced git commands and any Firebase command that writes production (the emulator,
+read-only commands and a rules `--dry-run` pass), and ask the maintainer before a push or
 anything that discards work; reading `secrets.json` is denied. Other agents follow the same
 rules by hand.
 
@@ -112,6 +114,7 @@ is in `.claude/skills/architecture/references/migration.md`.
 | Add or reshape behaviour: feature, model, repository, provider, service, Firestore shape, navigation, refactor, migration, structure review | `.claude/skills/architecture/SKILL.md` |
 | Anything visual or interactive: screen, flow, states, theme, motion, copy, accessibility | `.claude/skills/ux-ui/SKILL.md` |
 | Run, see or debug the app on the emulator or the phone: launch, screenshots, logs, dark mode, 200 % text, permissions, reminders | `.claude/skills/device/SKILL.md` |
+| Firebase backend: security rules and their emulator tests, the data map, indexes, migrations, account deletion, console steps (deploy, SHA-1, flutterfire) | `.claude/skills/firebase/SKILL.md` |
 | Commit, branch, pull request | `.claude/skills/git-workflow/SKILL.md` |
 | Upgrade Flutter, packages or the Android toolchain | `/deps-upgrade` — only the maintainer starts it (`.claude/skills/deps-upgrade/SKILL.md`); asked for an upgrade otherwise, suggest it |
 | Find and remove dead code: unused or test-only declarations, never-passed parameters, dead ARB keys | `/dead-code` — only the maintainer starts it (`.claude/skills/dead-code/SKILL.md`); asked for a cleanup otherwise, suggest it |

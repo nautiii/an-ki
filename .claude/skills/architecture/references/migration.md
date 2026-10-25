@@ -15,8 +15,9 @@ what you discover.
 ## 1. Not verified outside the tests yet
 
 Delete each line once done:
-- `firestore.rules` deployed by the maintainer (owner pinned on update, M0):
-  `firebase deploy --only firestore:rules`.
+- `firestore.rules` deployed by the maintainer (owner pinned on update, M0; private groups):
+  firebase skill, `references/console.md` §1 — tests in the emulator and a server compilation
+  passed on 2026-10-25.
 - M2–M6 and M9 on the emulator (device skill), all behind the maintainer: sign-in (email and
   sign-up land on the app, not on the form; Google, where a cancel stays silent; anonymous), a
   restored session locked behind the fingerprint without the app flashing first, unlock, a
@@ -59,7 +60,7 @@ so « keeps its search » no longer applies.
 | # | Debt | Evidence | Consequence | Step |
 |---|------|----------|-------------|------|
 | A15 | Book lookup failures flattened | `BookRepository.fetchBookByIsbn` returns `null` for every failure but the quota (HTTP error, network, parsing), as for an unknown ISBN; a volume without title gets `'Unknown Title'`, an English UI string in the data layer | offline, a scan reads « Livre non trouvé »; untranslatable text | local fix: `BookFailure.network`, empty title worded by the UI |
-| A16 | Older groups still shared | groups created before 2026-10-24 sit in the top-level `category` collection, readable by any signed-in user, and `sharedCategoriesProvider` downloads every user's | their names leak to any account through the API; the stream grows with the user base | system: copy each into its owner's `user/{uid}/categories` (same id, so birthdays keep pointing at it), then restrict `category` reads to the predefined ones — data migration, brief and approval |
+| A16 | Older groups still shared | groups created before 2026-10-24 sit in the top-level `category` collection, readable by any signed-in user, and `sharedCategoriesProvider` downloads every user's | their names leak to any account through the API; the stream grows with the user base | system: copy each into its owner's `user/{uid}/categories` (same id, so birthdays keep pointing at it), then restrict `category` reads to the predefined ones — data migration, brief and approval; plan in the firebase skill, `references/migrations.md` §5 |
 | A17 | Account deletion erases first | `SettingsScreen` runs `AccountDeletion.eraseData()` (birthdays, books, groups, profile), then `AuthController.deleteAccount()`; Firebase refuses to delete an account signed in a while ago (`requires-recent-login`, mapped to `unknown`) | the data is gone, the account stays, the user reads « Le compte n'a pas pu être supprimé » (found with D23, 2026-10-24) | structural: re-authenticate first (Google, or the password), or delete the account before its data — brief |
 
 UX debt (contrast, 200 % text, labels, raw colors, dates without `DateFormat`) is tracked in the
@@ -79,7 +80,8 @@ touching its files. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent + revie
 ### M10 — Per-user collections · L · system change, only on a concrete need
 - Left out of M8: move `birthday`/`books` to `user/{uid}/…` — data migration with dual read,
   rules update deployed by the maintainer, one release of overlap.
-- Worth it only for a concrete need: sharing, rules complexity, cost. Brief and approval first.
+- Worth it only for a concrete need: sharing, rules complexity, cost. Brief and approval first;
+  the plan is in the firebase skill, `references/migrations.md` §6.
 - When it runs, store the birth date as `day`, `month` and an optional `year` instead of `date` +
   `yearKnown` (kept in step 3 of the UX roadmap to avoid a migration).
 
