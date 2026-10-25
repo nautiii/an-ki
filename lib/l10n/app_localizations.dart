@@ -884,11 +884,11 @@ abstract class AppLocalizations {
   /// **'Livre non trouvé'**
   String get bookNotFound;
 
-  /// No description provided for @noBooksFound.
+  /// No description provided for @noBooksYet.
   ///
   /// In fr, this message translates to:
-  /// **'Aucun livre trouvé.'**
-  String get noBooksFound;
+  /// **'Aucun livre pour l\'instant'**
+  String get noBooksYet;
 
   /// No description provided for @deleteAccount.
   ///
@@ -1327,30 +1327,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Limite de recherche atteinte. Veuillez réessayer plus tard.'**
   String get errorQuotaExceeded;
-
-  /// No description provided for @bookCategoryNovel.
-  ///
-  /// In fr, this message translates to:
-  /// **'Roman'**
-  String get bookCategoryNovel;
-
-  /// No description provided for @bookCategoryComics.
-  ///
-  /// In fr, this message translates to:
-  /// **'BD'**
-  String get bookCategoryComics;
-
-  /// No description provided for @bookCategoryCooking.
-  ///
-  /// In fr, this message translates to:
-  /// **'Cuisine'**
-  String get bookCategoryCooking;
-
-  /// No description provided for @bookCategoryTech.
-  ///
-  /// In fr, this message translates to:
-  /// **'Tech'**
-  String get bookCategoryTech;
 
   /// No description provided for @notificationChannelName.
   ///

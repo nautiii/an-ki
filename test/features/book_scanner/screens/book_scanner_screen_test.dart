@@ -53,7 +53,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Scanner de livres'), findsOneWidget);
-      expect(find.text('Aucun livre trouvé.'), findsOneWidget);
+      expect(find.text("Aucun livre pour l'instant"), findsOneWidget);
+      // Pas de puces qui auraient l'air de filtrer sans rien filtrer.
+      expect(find.byType(Chip), findsNothing);
       expect(
         find.text(
           "Scannez le code-barres d'un livre pour garder une idée de cadeau.",
@@ -67,7 +69,7 @@ void main() {
       await tester.pump();
 
       expect(find.byType(SkeletonBox), findsWidgets);
-      expect(find.text('Aucun livre trouvé.'), findsNothing);
+      expect(find.text("Aucun livre pour l'instant"), findsNothing);
     });
 
     testWidgets('the settings button opens the settings route', (tester) async {

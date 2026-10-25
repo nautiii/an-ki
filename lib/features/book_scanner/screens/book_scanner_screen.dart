@@ -209,10 +209,6 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
 
               const SizedBox(height: AppSpacing.lg),
 
-              const _CategoryPlaceholders(),
-
-              const SizedBox(height: AppSpacing.lg),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -241,7 +237,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                               ),
                               child: AnKiEmptyState(
                                 illustration: Image.asset(AppAssets.moon),
-                                title: context.l10n.noBooksFound,
+                                title: context.l10n.noBooksYet,
                                 message: context.l10n.noBooksMessage,
                               ),
                             )
@@ -263,55 +259,6 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _CategoryPlaceholders extends StatelessWidget {
-  const _CategoryPlaceholders();
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _buildChip(
-            context,
-            context.l10n.bookCategoryNovel,
-            Icons.menu_book_rounded,
-          ),
-          _buildChip(
-            context,
-            context.l10n.bookCategoryComics,
-            Icons.palette_rounded,
-          ),
-          _buildChip(
-            context,
-            context.l10n.bookCategoryCooking,
-            Icons.restaurant_rounded,
-          ),
-          _buildChip(
-            context,
-            context.l10n.bookCategoryTech,
-            Icons.computer_rounded,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChip(BuildContext context, String label, IconData icon) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.only(right: AppSpacing.xs),
-      child: Chip(
-        label: Text(label),
-        avatar: Icon(icon, size: 16, color: colorScheme.primary),
-        backgroundColor: colorScheme.surfaceContainerHigh,
-        side: BorderSide.none,
       ),
     );
   }

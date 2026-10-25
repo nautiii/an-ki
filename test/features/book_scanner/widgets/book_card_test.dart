@@ -28,6 +28,8 @@ void main() {
 
         expect(find.text('1984'), findsOneWidget);
         expect(find.text('Orwell'), findsOneWidget);
+        expect(find.textContaining('ISBN'), findsOneWidget);
+        expect(find.textContaining('123'), findsOneWidget);
         expect(find.text('1949'), findsOneWidget);
         expect(find.byType(Image), findsOneWidget);
       });
@@ -39,6 +41,26 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byIcon(Icons.book_rounded), findsOneWidget);
+      });
+    });
+
+    testWidgets('scrolls rather than overflows at 200 % text', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await mockNetworkImages(() async {
+        await tester.pumpHarness(
+          Center(
+            child: SizedBox(
+              width: 320,
+              height: 180,
+              child: BookCard(book: book()),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('1984'), findsOneWidget);
       });
     });
   });

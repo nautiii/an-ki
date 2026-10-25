@@ -490,7 +490,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get bookNotFound => 'Livre non trouvé';
 
   @override
-  String get noBooksFound => 'Aucun livre trouvé.';
+  String get noBooksYet => 'Aucun livre pour l\'instant';
 
   @override
   String get deleteAccount => 'Supprimer mon compte';
@@ -810,18 +810,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get errorQuotaExceeded =>
       'Limite de recherche atteinte. Veuillez réessayer plus tard.';
-
-  @override
-  String get bookCategoryNovel => 'Roman';
-
-  @override
-  String get bookCategoryComics => 'BD';
-
-  @override
-  String get bookCategoryCooking => 'Cuisine';
-
-  @override
-  String get bookCategoryTech => 'Tech';
 
   @override
   String get notificationChannelName => 'Anniversaires';
