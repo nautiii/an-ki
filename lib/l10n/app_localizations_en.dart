@@ -549,6 +549,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String birthdayAdded(String name) {
+    return '$name added to your birthdays';
+  }
+
+  @override
   String birthdaysAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -100,7 +100,12 @@ void main() {
 
       expect(
         container.read(birthdayAdditionsProvider),
-        const BirthdaysAdded(count: 1, imported: false, first: true),
+        const BirthdaysAdded(
+          count: 1,
+          imported: false,
+          first: true,
+          name: 'New Person',
+        ),
       );
     });
 
@@ -114,7 +119,12 @@ void main() {
 
       expect(
         container.read(birthdayAdditionsProvider),
-        const BirthdaysAdded(count: 1, imported: false, first: false),
+        const BirthdaysAdded(
+          count: 1,
+          imported: false,
+          first: false,
+          name: 'New Person',
+        ),
       );
     });
 

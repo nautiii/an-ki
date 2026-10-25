@@ -158,6 +158,14 @@
   "contactImportKnown": "Already in AnKi",
   "contactImportDetail": "{days, plural, =0{{date} · today} =1{{date} · tomorrow} other{{date} · in {days} days}}",
   "contactImportAdd": "{count, plural, =0{Add} =1{Add 1 birthday} other{Add {count} birthdays}}",
+  "birthdayAdded": "{name} added to your birthdays",
+  "@birthdayAdded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "birthdaysAdded": "{count, plural, =1{1 birthday added} other{{count} birthdays added}}",
   "contactImportDeniedTitle": "AnKi can't see your contacts",
   "contactImportDeniedMessage": "Allow access to choose who to add, or add your people by hand.",

@@ -35,6 +35,10 @@ const _hugo = Birthday(
 
 const _imported = BirthdaysAdded(count: 12, imported: true, first: false);
 
+/// Une saisie à la main ; [first] pour la première de l'agenda.
+BirthdaysAdded _byHand({bool first = false}) =>
+    BirthdaysAdded(count: 1, imported: false, first: first, name: 'Léa Martin');
+
 void main() {
   group('when to offer', () {
     late SilentNotificationService notifications;
@@ -110,14 +114,54 @@ void main() {
     ) async {
       await pumpPrompt(tester);
 
-      add(const BirthdaysAdded(count: 1, imported: false, first: false));
+      add(_byHand());
       await settle(tester);
       expect(find.byType(ReminderOfferSheet), findsNothing);
-      expect(find.byType(SnackBar), findsNothing);
+      // La feuille de saisie s'est fermée : le message dit qui est arrivé.
+      expect(
+        find.text('Léa Martin est dans vos anniversaires'),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
 
-      add(const BirthdaysAdded(count: 1, imported: false, first: true));
+      add(_byHand(first: true));
       await settle(tester);
       expect(find.text('1 anniversaire ajouté'), findsOneWidget);
+      // La feuille l'annonce : pas de message en plus.
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('with reminders on, a birthday by hand is named', (
+      tester,
+    ) async {
+      await pumpPrompt(tester, access: NotificationAccess.granted);
+
+      add(_byHand(first: true));
+      await settle(tester);
+
+      expect(find.byType(ReminderOfferSheet), findsNothing);
+      expect(
+        find.text('Léa Martin est dans vos anniversaires'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('allowed meanwhile: names the first birthday by hand', (
+      tester,
+    ) async {
+      await pumpPrompt(tester);
+
+      add(_byHand(first: true));
+      await tester.pump();
+      notifications.current = NotificationAccess.granted;
+      await settle(tester);
+
+      expect(find.byType(ReminderOfferSheet), findsNothing);
+      expect(
+        find.text('Léa Martin est dans vos anniversaires'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('offers at most once per session', (tester) async {

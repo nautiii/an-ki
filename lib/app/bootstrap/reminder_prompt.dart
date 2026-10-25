@@ -21,9 +21,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// d'un compte (nouvel appareil). Au plus une fois par session, et
 /// seulement si les notifications ne sont pas accordées.
 ///
-/// La feuille annonce l'ajout qu'elle suit ; sans elle, un import s'annonce
-/// ici, par un message. Vit sous la coquille de l'app : chaque connexion
-/// ouvre une nouvelle session.
+/// La feuille annonce l'ajout qu'elle suit ; sans elle, l'ajout s'annonce
+/// ici, par un message : combien pour un import, qui pour une saisie à la
+/// main (la feuille de saisie se ferme sans un mot). Vit sous la coquille de
+/// l'app : chaque connexion ouvre une nouvelle session.
 class ReminderPrompt extends ConsumerStatefulWidget {
   const ReminderPrompt({super.key, required this.child});
 
@@ -40,9 +41,9 @@ class _ReminderPromptState extends ConsumerState<ReminderPrompt> {
   /// Le premier agenda rempli de la session a été examiné.
   bool _restoreChecked = false;
 
-  /// Import que la feuille doit annoncer : si elle ne s'affiche finalement
+  /// Ajout que la feuille doit annoncer : si elle ne s'affiche finalement
   /// pas, le message le fait.
-  int? _importToAnnounce;
+  BirthdaysAdded? _toAnnounce;
 
   Timer? _pending;
 
@@ -68,10 +69,10 @@ class _ReminderPromptState extends ConsumerState<ReminderPrompt> {
   void _onAdded(BirthdaysAdded added) {
     final offer = reminderOfferAfter(added);
     if (offer != null && _mayOffer()) {
-      _importToAnnounce = added.imported ? added.count : null;
+      _toAnnounce = added;
       _schedule(offer);
-    } else if (added.imported) {
-      _announceImport(added.count);
+    } else {
+      _announce(added);
     }
   }
 
@@ -111,19 +112,23 @@ class _ReminderPromptState extends ConsumerState<ReminderPrompt> {
         .read(reminderPermissionProvider.notifier)
         .refresh();
     if (!mounted) return;
-    final importCount = _importToAnnounce;
-    _importToAnnounce = null;
+    final added = _toAnnounce;
+    _toAnnounce = null;
     if (access == NotificationAccess.granted) {
-      if (importCount != null) _announceImport(importCount);
+      if (added != null) _announce(added);
       return;
     }
     await ReminderOfferSheet.show(context, offer);
   }
 
-  void _announceImport(int count) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(context.l10n.birthdaysAdded(count))));
+  void _announce(BirthdaysAdded added) {
+    final message = switch (added) {
+      BirthdaysAdded(imported: false, :final name?) =>
+        context.l10n.birthdayAdded(name),
+      _ => context.l10n.birthdaysAdded(added.count),
+    };
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

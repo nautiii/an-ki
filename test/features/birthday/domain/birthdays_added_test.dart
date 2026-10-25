@@ -22,5 +22,21 @@ void main() {
       added,
       isNot(const BirthdaysAdded(count: 2, imported: true, first: true)),
     );
+    expect(
+      const BirthdaysAdded(
+        count: 1,
+        imported: false,
+        first: false,
+        name: 'Léa',
+      ),
+      isNot(
+        const BirthdaysAdded(
+          count: 1,
+          imported: false,
+          first: false,
+          name: 'Hugo',
+        ),
+      ),
+    );
   });
 }

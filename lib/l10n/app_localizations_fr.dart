@@ -558,6 +558,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String birthdayAdded(String name) {
+    return '$name est dans vos anniversaires';
+  }
+
+  @override
   String birthdaysAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

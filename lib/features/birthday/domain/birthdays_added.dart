@@ -10,14 +10,19 @@ class const BirthdaysAdded({
   /// L'agenda était vide avant cet ajout : ce sont ses premiers
   /// anniversaires.
   required final bool first,
+
+  /// Prénom et nom de la personne saisie à la main, pour la nommer ; null
+  /// pour un import, qui se compte.
+  final String? name,
 }) {
   @override
   bool operator ==(Object other) =>
       other is BirthdaysAdded &&
       other.count == count &&
       other.imported == imported &&
-      other.first == first;
+      other.first == first &&
+      other.name == name;
 
   @override
-  int get hashCode => Object.hash(count, imported, first);
+  int get hashCode => Object.hash(count, imported, first, name);
 }

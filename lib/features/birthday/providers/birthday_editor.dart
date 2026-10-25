@@ -20,8 +20,8 @@ class BirthdayEditor extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
 
-  /// Crée [draft] et annonce l'ajout ([birthdayAdditionsProvider]), en
-  /// disant si l'agenda était vide.
+  /// Crée [draft] et annonce l'ajout ([birthdayAdditionsProvider]) : qui,
+  /// et si l'agenda était vide.
   Future<void> create(BirthdayDraft draft) {
     if (ref.read(currentUidProvider) != null) {
       ref
@@ -31,6 +31,7 @@ class BirthdayEditor extends AsyncNotifier<void> {
               count: 1,
               imported: false,
               first: ref.read(birthdaysListProvider).isEmpty,
+              name: draft.fullName,
             ),
           );
     }

@@ -473,6 +473,15 @@
       "count": { "type": "int" }
     }
   },
+  "birthdayAdded": "{name} est dans vos anniversaires",
+  "@birthdayAdded": {
+    "description": "Snackbar après une saisie à la main ; le nom en tête évite « de Achraf » et l'accord en genre",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "birthdaysAdded": "{count, plural, =1{1 anniversaire ajouté} other{{count} anniversaires ajoutés}}",
   "@birthdaysAdded": {
     "placeholders": {

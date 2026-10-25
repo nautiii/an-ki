@@ -956,6 +956,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{Ajouter} =1{Ajouter 1 anniversaire} other{Ajouter {count} anniversaires}}'**
   String contactImportAdd(int count);
 
+  /// Snackbar après une saisie à la main ; le nom en tête évite « de Achraf » et l'accord en genre
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} est dans vos anniversaires'**
+  String birthdayAdded(String name);
+
   /// No description provided for @birthdaysAdded.
   ///
   /// In fr, this message translates to:
