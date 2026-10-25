@@ -242,11 +242,11 @@ abstract class AppLocalizations {
   /// **'Date d\'anniversaire'**
   String get birthdayDate;
 
-  /// Ordre de saisie de la date : jour, mois, année facultative
+  /// Ordre de saisie de la date : jour et mois dans l'ordre des dates courtes de la région (dayFirst ou monthFirst), année facultative
   ///
   /// In fr, this message translates to:
-  /// **'JJ/MM ou JJ/MM/AAAA'**
-  String get birthdayDateHint;
+  /// **'{order, select, monthFirst{MM/JJ ou MM/JJ/AAAA} other{JJ/MM ou JJ/MM/AAAA}}'**
+  String birthdayDateHint(String order);
 
   /// No description provided for @birthYearOptional.
   ///

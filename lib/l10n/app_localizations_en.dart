@@ -95,7 +95,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get birthdayDate => 'Birthday';
 
   @override
-  String get birthdayDateHint => 'DD/MM or DD/MM/YYYY';
+  String birthdayDateHint(String order) {
+    String _temp0 = intl.Intl.selectLogic(order, {
+      'monthFirst': 'MM/DD or MM/DD/YYYY',
+      'other': 'DD/MM or DD/MM/YYYY',
+    });
+    return '$_temp0';
+  }
 
   @override
   String get birthYearOptional => 'The year is optional';

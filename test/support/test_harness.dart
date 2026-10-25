@@ -84,11 +84,16 @@ extension WidgetTesterExt on WidgetTester {
     List<dynamic> overrides = const [],
     Widget? home,
     Map<String, WidgetBuilder>? routes,
+    Locale deviceLocale = const Locale('fr', 'FR'),
   }) async {
     view.physicalSize = const Size(800, 1200);
     view.devicePixelRatio = 1.0;
     addTearDown(view.resetPhysicalSize);
     addTearDown(view.resetDevicePixelRatio);
+    // Le téléphone est réglé comme l'app du harnais, en français de France :
+    // les dates tapées s'y lisent jour d'abord.
+    platformDispatcher.localeTestValue = deviceLocale;
+    addTearDown(platformDispatcher.clearLocaleTestValue);
 
     await pumpWidget(
       TestHarness(

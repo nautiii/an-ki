@@ -106,6 +106,9 @@ extension AppTesterExt on WidgetTester {
     view.devicePixelRatio = 1.0;
     addTearDown(view.resetPhysicalSize);
     addTearDown(view.resetDevicePixelRatio);
+    // Téléphone réglé comme l'app, en français de France (voir pumpHarness).
+    platformDispatcher.localeTestValue = const Locale('fr', 'FR');
+    addTearDown(platformDispatcher.clearLocaleTestValue);
     return pumpWidget(
       ProviderScope(
         retry: (_, _) => null,

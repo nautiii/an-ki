@@ -67,10 +67,12 @@ void main() {
     Birthday? toEdit,
     String? initialName,
     RecordingCategoryRepository? categories,
+    Locale deviceLocale = const Locale('fr', 'FR'),
   }) => mockNetworkImages(() async {
     await tester.pumpHarness(
       BirthdayFormSheet(birthdayToEdit: toEdit, initialName: initialName),
       overrides: overrides(repository, categories: categories),
+      deviceLocale: deviceLocale,
     );
     await tester.pumpAndSettle();
   });
@@ -131,6 +133,31 @@ void main() {
       expect(find.byType(BirthdayFormSheet), findsNothing);
       expect(repository.created.single.name, 'Léa');
       expect(repository.created.single.surname, 'Martin');
+      expect(
+        repository.created.single.date,
+        const BirthDate(month: 3, day: 12),
+      );
+    });
+
+    testWidgets('reads the month first on a US phone, as its hint says', (
+      tester,
+    ) async {
+      final repository = RecordingBirthdayRepository();
+      await pumpSheet(
+        tester,
+        repository,
+        deviceLocale: const Locale('en', 'US'),
+      );
+
+      expect(decorationOf(tester, dateField).hintText, 'MM/JJ ou MM/JJ/AAAA');
+      await tester.enterText(nameField, 'Léa Martin');
+      await tester.enterText(dateField, '0312');
+      await tester.pump();
+      expect(find.text('Le 12 mars'), findsOneWidget);
+
+      await tester.tap(find.text('Ajouter'));
+      await tester.pumpAndSettle();
+
       expect(
         repository.created.single.date,
         const BirthDate(month: 3, day: 12),
@@ -431,6 +458,18 @@ void main() {
       expect(draft.categories, ['fam']);
       // Photo inchangée : le brouillon n'en apporte pas de nouvelle.
       expect(draft.picture, isNull);
+    });
+
+    testWidgets('writes the date month first on a US phone', (tester) async {
+      await pumpSheet(
+        tester,
+        RecordingBirthdayRepository(),
+        toEdit: editable(),
+        deviceLocale: const Locale('en', 'US'),
+      );
+
+      expect(find.text('05/10/1990'), findsOneWidget);
+      expect(find.text('Le 10 mai 1990 · aura 37 ans'), findsOneWidget);
     });
 
     testWidgets('keeps an unknown year', (tester) async {

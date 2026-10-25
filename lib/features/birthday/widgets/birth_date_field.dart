@@ -7,6 +7,22 @@ import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+
+/// Ordre jour/mois des dates tapées : celui des dates courtes de la région du
+/// téléphone (« 12/03 » en France, « 03/12 » aux États-Unis), quelle que soit
+/// la langue de l'app ; celui de cette langue si la région est inconnue.
+DayMonthOrder typedDateOrder(BuildContext context) {
+  final device = View.of(context).platformDispatcher.locale.toString();
+  final locale =
+      Intl.verifiedLocale(
+        device,
+        DateFormat.localeExists,
+        onFailure: (_) => null,
+      ) ??
+      Localizations.localeOf(context).languageCode;
+  return DayMonthOrder.fromPattern(DateFormat.yMd(locale).pattern ?? '');
+}
 
 /// Date d'anniversaire tapée au clavier : les barres s'insèrent pendant la
 /// frappe, et dessous s'affiche un aperçu en clair (« Le 12 mars 1990 · aura
@@ -20,6 +36,7 @@ class BirthDateField extends StatelessWidget {
     required this.controller,
     required this.focusNode,
     required this.input,
+    required this.order,
     required this.today,
     this.autofocus = false,
     this.onChanged,
@@ -34,6 +51,9 @@ class BirthDateField extends StatelessWidget {
   /// Lecture du texte du champ ([parseBirthDate]), faite par le parent qui en
   /// a aussi besoin pour autoriser l'enregistrement.
   final BirthDateInput input;
+
+  /// Ordre du jour et du mois ([typedDateOrder]), que l'aide montre.
+  final DayMonthOrder order;
   final DateTime today;
   final bool autofocus;
   final ValueChanged<String>? onChanged;
@@ -77,7 +97,7 @@ class BirthDateField extends StatelessWidget {
       onSubmitted: onSubmitted,
       decoration: InputDecoration(
         labelText: l10n.birthdayDate,
-        hintText: l10n.birthdayDateHint,
+        hintText: l10n.birthdayDateHint(order.name),
         prefixIcon: const Icon(Icons.cake_outlined),
         helperText: helper,
         helperMaxLines: 2,

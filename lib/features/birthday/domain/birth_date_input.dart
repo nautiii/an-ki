@@ -2,8 +2,24 @@ import 'dart:math' as math;
 
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 
-/// Ce que donne une date d'anniversaire tapée au clavier : jour, mois puis,
-/// facultative, l'année (« 12/03 » ou « 12/03/1990 »).
+/// Ordre du jour et du mois dans une date tapée : celui des dates courtes de
+/// la région, « 12/03 » en France, « 03/12 » aux États-Unis.
+enum DayMonthOrder {
+  dayFirst,
+  monthFirst;
+
+  /// Ordre d'un motif de date courte (`DateFormat.yMd` : « dd/MM/y »,
+  /// « M/d/y », « y-MM-dd ») : le mois d'abord quand il précède le jour.
+  static DayMonthOrder fromPattern(String pattern) {
+    final month = pattern.indexOf('M');
+    final day = pattern.indexOf('d');
+    return month >= 0 && day >= 0 && month < day ? monthFirst : dayFirst;
+  }
+}
+
+/// Ce que donne une date d'anniversaire tapée au clavier : jour et mois dans
+/// l'ordre de la région, puis l'année facultative (« 12/03 » ou
+/// « 12/03/1990 »).
 sealed class BirthDateInput {
   const BirthDateInput();
 }
@@ -19,7 +35,7 @@ final class BirthDateEmpty extends BirthDateInput {
   int get hashCode => (BirthDateEmpty).hashCode;
 }
 
-/// Saisie en cours : le jour ou le mois attend encore ses chiffres.
+/// Saisie en cours : le second nombre, jour ou mois, attend ses chiffres.
 final class BirthDateIncomplete extends BirthDateInput {
   const BirthDateIncomplete();
 
@@ -70,13 +86,18 @@ enum BirthDateError {
   future,
 }
 
-/// Lit une date d'anniversaire tapée au clavier, jour puis mois puis année
-/// facultative ; une date après [today] est refusée.
+/// Lit une date d'anniversaire tapée au clavier, jour et mois dans l'[order]
+/// de la région, puis l'année facultative ; une date après [today] est
+/// refusée.
 ///
 /// Tolère la saisie sans séparateur (« 1203 », « 12031990 »), le jour ou le
 /// mois à un chiffre (« 1/3 ») et les séparateurs « / », « . », « - » ou
 /// espace. L'année s'écrit avec ses quatre chiffres.
-BirthDateInput parseBirthDate(String text, DateTime today) {
+BirthDateInput parseBirthDate(
+  String text,
+  DateTime today, {
+  DayMonthOrder order = DayMonthOrder.dayFirst,
+}) {
   final input = text.trim();
   if (input.isEmpty) return const BirthDateEmpty();
   if (!_allowed.hasMatch(input)) {
@@ -85,19 +106,23 @@ BirthDateInput parseBirthDate(String text, DateTime today) {
   final parts = _digitsOnly.hasMatch(input)
       ? _fixedWidthParts(input)
       : input.split(_separators);
-  final dayText = parts[0];
-  final monthText = parts.length > 1 ? parts[1] : '';
+  final first = parts[0];
+  final second = parts.length > 1 ? parts[1] : '';
   final yearText = parts.length > 2 ? parts[2] : '';
   if (parts.length > 3 ||
-      dayText.isEmpty ||
-      dayText.length > 2 ||
-      monthText.length > 2 ||
+      first.isEmpty ||
+      first.length > 2 ||
+      second.length > 2 ||
       yearText.length > 4) {
     return const BirthDateInvalid(BirthDateError.noSuchDate);
   }
-  // Un mois vide ou réduit à « 0 » attend encore ses chiffres.
-  if (monthText.isEmpty || monthText == '0') return const BirthDateIncomplete();
+  // Un second nombre vide ou réduit à « 0 » attend encore ses chiffres.
+  if (second.isEmpty || second == '0') return const BirthDateIncomplete();
 
+  final (dayText, monthText) = switch (order) {
+    DayMonthOrder.dayFirst => (first, second),
+    DayMonthOrder.monthFirst => (second, first),
+  };
   final day = int.parse(dayText);
   final month = int.parse(monthText);
   // Sans année, une année bissextile : le 29 février existe.
@@ -120,8 +145,9 @@ BirthDateInput parseBirthDate(String text, DateTime today) {
   return BirthDateComplete(BirthDate(year: year, month: month, day: day));
 }
 
-/// Met en forme la saisie pendant la frappe : chiffres groupés en jour,
-/// mois et année, séparés par « / » dès que le groupe suivant commence
+/// Met en forme la saisie pendant la frappe : chiffres groupés par deux, deux
+/// puis quatre (jour, mois et année dans l'ordre de la région), séparés par
+/// « / » dès que le groupe suivant commence
 /// (« 1203 » → « 12/03 »). Un séparateur tapé clôt le groupe en cours
 /// (« 1/ » pour le 1er) ; les autres caractères et les chiffres en trop sont
 /// ignorés.
@@ -145,10 +171,18 @@ String maskBirthDateInput(String text) {
   return groups.join('/');
 }
 
-/// Texte du champ pour une date connue : « 15/10 » ou « 12/03/1990 ».
-String birthDateInputText(BirthDate date) {
+/// Texte du champ pour une date connue, dans l'[order] de la région :
+/// « 15/10 » ou « 12/03/1990 » (« 10/15 », « 03/12/1990 » mois d'abord).
+String birthDateInputText(
+  BirthDate date, {
+  DayMonthOrder order = DayMonthOrder.dayFirst,
+}) {
   String twoDigits(int value) => value.toString().padLeft(2, '0');
-  final dayMonth = '${twoDigits(date.day)}/${twoDigits(date.month)}';
+  final (first, second) = switch (order) {
+    DayMonthOrder.dayFirst => (date.day, date.month),
+    DayMonthOrder.monthFirst => (date.month, date.day),
+  };
+  final dayMonth = '${twoDigits(first)}/${twoDigits(second)}';
   return switch (date.year) {
     final year? => '$dayMonth/${year.toString().padLeft(4, '0')}',
     null => dayMonth,
@@ -161,7 +195,7 @@ final _separators = RegExp(r'[/.\- ]+');
 final _digit = RegExp(r'[0-9]');
 final _separator = RegExp(r'[/.\- ]');
 
-/// « 1203 » → jour « 12 », mois « 03 » ; la suite est l'année.
+/// « 1203 » → « 12 » et « 03 » ; la suite est l'année.
 List<String> _fixedWidthParts(String digits) => [
   digits.substring(0, math.min(2, digits.length)),
   if (digits.length > 2) digits.substring(2, math.min(4, digits.length)),

@@ -149,4 +149,66 @@ void main() {
       }
     });
   });
+
+  group('month first', () {
+    BirthDateInput parseUs(String text) =>
+        parseBirthDate(text, today, order: DayMonthOrder.monthFirst);
+
+    test('reads the month, then the day, then the year', () {
+      expect(
+        parseUs('03/12'),
+        const BirthDateComplete(BirthDate(month: 3, day: 12)),
+      );
+      expect(
+        parseUs('1203'),
+        const BirthDateComplete(BirthDate(month: 12, day: 3)),
+      );
+      expect(
+        parseUs('03/12/1990'),
+        const BirthDateComplete(BirthDate(year: 1990, month: 3, day: 12)),
+      );
+    });
+
+    test('waits for the day after the month', () {
+      for (final text in ['0', '03', '03/', '03/0']) {
+        expect(parseUs(text), const BirthDateIncomplete(), reason: text);
+      }
+    });
+
+    test('refuses a month or a day that does not exist', () {
+      for (final text in ['13/01', '04/31', '02/29/1990']) {
+        expect(
+          parseUs(text),
+          const BirthDateInvalid(BirthDateError.noSuchDate),
+          reason: text,
+        );
+      }
+    });
+
+    test('writes the month first and reads it back', () {
+      const date = BirthDate(year: 1990, month: 3, day: 12);
+
+      expect(
+        birthDateInputText(date, order: DayMonthOrder.monthFirst),
+        '03/12/1990',
+      );
+      expect(
+        parseUs(birthDateInputText(date, order: DayMonthOrder.monthFirst)),
+        const BirthDateComplete(date),
+      );
+    });
+  });
+
+  group('DayMonthOrder.fromPattern', () {
+    test('puts the month first when the short date does', () {
+      expect(DayMonthOrder.fromPattern('M/d/y'), DayMonthOrder.monthFirst);
+      expect(DayMonthOrder.fromPattern('y-MM-dd'), DayMonthOrder.monthFirst);
+    });
+
+    test('puts the day first otherwise', () {
+      expect(DayMonthOrder.fromPattern('dd/MM/y'), DayMonthOrder.dayFirst);
+      expect(DayMonthOrder.fromPattern('d.M.y'), DayMonthOrder.dayFirst);
+      expect(DayMonthOrder.fromPattern(''), DayMonthOrder.dayFirst);
+    });
+  });
 }

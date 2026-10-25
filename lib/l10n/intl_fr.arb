@@ -57,9 +57,14 @@
   },
   "fullNameHint": "Léa Martin, Mamie…",
   "birthdayDate": "Date d'anniversaire",
-  "birthdayDateHint": "JJ/MM ou JJ/MM/AAAA",
+  "birthdayDateHint": "{order, select, monthFirst{MM/JJ ou MM/JJ/AAAA} other{JJ/MM ou JJ/MM/AAAA}}",
   "@birthdayDateHint": {
-    "description": "Ordre de saisie de la date : jour, mois, année facultative"
+    "description": "Ordre de saisie de la date : jour et mois dans l'ordre des dates courtes de la région (dayFirst ou monthFirst), année facultative",
+    "placeholders": {
+      "order": {
+        "type": "String"
+      }
+    }
   },
   "birthYearOptional": "L'année est facultative",
   "birthDatePreview": "Le {date}",

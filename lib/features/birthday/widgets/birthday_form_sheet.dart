@@ -79,14 +79,29 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     _name = TextEditingController(
       text: birthday?.fullName ?? widget.initialName?.trim(),
     );
-    _date = TextEditingController(
-      text: birthday == null ? null : birthDateInputText(birthday.date),
-    );
+    // Pré-remplie dans didChangeDependencies : son texte suit la région.
+    _date = TextEditingController();
     _categories = [...?birthday?.categories];
     _autofocusName = birthday == null && _name.text.isEmpty;
     _autofocusDate = birthday == null && _name.text.isNotEmpty;
     // Quitter le champ de date peut changer son aide en erreur.
     _dateFocus.addListener(_refresh);
+  }
+
+  /// La date à modifier est écrite dans le champ, une fois.
+  bool _datePrefilled = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_datePrefilled) return;
+    _datePrefilled = true;
+    if (widget.birthdayToEdit case final birthday?) {
+      _date.text = birthDateInputText(
+        birthday.date,
+        order: typedDateOrder(context),
+      );
+    }
   }
 
   @override
@@ -120,7 +135,11 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
   /// Lance l'écriture sans l'attendre puis ferme la feuille : un échec
   /// éventuel est annoncé par l'écran d'accueil.
   void _save() {
-    final date = parseBirthDate(_date.text, ref.read(todayProvider));
+    final date = parseBirthDate(
+      _date.text,
+      ref.read(todayProvider),
+      order: typedDateOrder(context),
+    );
     if (!BirthdayDraft.isValidName(_name.text) || date is! BirthDateComplete) {
       return;
     }
@@ -156,7 +175,8 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     final textTheme = Theme.of(context).textTheme;
     final today = ref.watch(todayProvider);
     final isEditing = widget.birthdayToEdit != null;
-    final date = parseBirthDate(_date.text, today);
+    final order = typedDateOrder(context);
+    final date = parseBirthDate(_date.text, today, order: order);
     final nameIsValid = BirthdayDraft.isValidName(_name.text);
     final canSave = nameIsValid && date is BirthDateComplete;
 
@@ -226,6 +246,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                     controller: _date,
                     focusNode: _dateFocus,
                     input: date,
+                    order: order,
                     today: today,
                     autofocus: _autofocusDate,
                     onChanged: (_) => setState(() {}),
