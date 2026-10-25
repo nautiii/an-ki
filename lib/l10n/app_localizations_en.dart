@@ -158,6 +158,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editGroup => 'Edit group';
 
   @override
+  String get deleteGroup => 'Delete group';
+
+  @override
+  String groupDeleted(String name) {
+    return '“$name” deleted';
+  }
+
+  @override
+  String get leaveGroup => 'Remove from my groups';
+
+  @override
+  String groupLeft(String name) {
+    return '“$name” is no longer in your groups';
+  }
+
+  @override
+  String get sharedGroupNote =>
+      'This group is shared: it can\'t be renamed, but you can remove it from your groups and birthdays.';
+
+  @override
   String get family => 'Family';
 
   @override

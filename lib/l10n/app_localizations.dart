@@ -320,6 +320,36 @@ abstract class AppLocalizations {
   /// **'Modifier le groupe'**
   String get editGroup;
 
+  /// Feuille d'un groupe privé : le supprimer ; ses anniversaires le perdent, avec « Annuler »
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer le groupe'**
+  String get deleteGroup;
+
+  /// Snackbar après la suppression d'un groupe privé, avec « Annuler »
+  ///
+  /// In fr, this message translates to:
+  /// **'« {name} » est supprimé'**
+  String groupDeleted(String name);
+
+  /// Feuille d'un groupe partagé : le retirer du profil ; ses anniversaires le perdent
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer de mes groupes'**
+  String get leaveGroup;
+
+  /// Snackbar après le retrait d'un groupe partagé, avec « Annuler »
+  ///
+  /// In fr, this message translates to:
+  /// **'« {name} » n\'est plus dans vos groupes'**
+  String groupLeft(String name);
+
+  /// Feuille d'un groupe partagé (créé avant les groupes privés) : pourquoi on ne peut que le retirer
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce groupe est partagé : il ne se renomme pas, mais vous pouvez le retirer de vos groupes et de vos anniversaires.'**
+  String get sharedGroupNote;
+
   /// No description provided for @family.
   ///
   /// In fr, this message translates to:

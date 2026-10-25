@@ -8,13 +8,15 @@ import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
+import 'package:an_ki/features/birthday/widgets/group_removal.dart';
 import 'package:an_ki/features/birthday/widgets/tone_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Modification d'un groupe privé : son nom et sa teinte. « Enregistrer »
-/// tant que le nom est libre et que quelque chose a changé.
+/// tant que le nom est libre et que quelque chose a changé ; « Supprimer le
+/// groupe » avec « Annuler ».
 class GroupEditSheet extends ConsumerStatefulWidget {
   const GroupEditSheet({super.key, required this.group});
 
@@ -120,8 +122,104 @@ class _GroupEditSheetState extends ConsumerState<GroupEditSheet> {
             onPressed: issue == null && _changed ? _save : null,
             child: Text(l10n.save),
           ),
+          const SizedBox(height: AppSpacing.xs),
+          _RemoveButton(
+            label: l10n.deleteGroup,
+            icon: Icons.delete_outline_rounded,
+            onPressed: () => _remove(context, widget.group, GroupKind.own),
+          ),
         ],
       ),
+    );
+  }
+}
+
+/// Groupe partagé choisi autrefois (GOAT…) : il ne se renomme pas, il se
+/// retire seulement des groupes de l'utilisateur.
+class SharedGroupSheet extends StatelessWidget {
+  const SharedGroupSheet({super.key, required this.group});
+
+  final BirthdayCategory group;
+
+  static Future<void> show(BuildContext context, BirthdayCategory group) =>
+      showModalBottomSheet<void>(
+        context: context,
+        useRootNavigator: true,
+        isScrollControlled: true,
+        useSafeArea: true,
+        builder: (_) => SharedGroupSheet(group: group),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        0,
+        AppSpacing.lg,
+        AppSpacing.lg,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            header: true,
+            child: Text(
+              group.localizedName(context),
+              style: theme.textTheme.headlineSmall,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.sharedGroupNote,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          _RemoveButton(
+            label: l10n.leaveGroup,
+            icon: Icons.remove_circle_outline_rounded,
+            onPressed: () => _remove(context, group, GroupKind.shared),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Retire [group] avec « Annuler » et ferme la feuille : la snackbar
+/// s'affiche sur la page Groupes.
+void _remove(BuildContext context, BirthdayCategory group, GroupKind kind) {
+  removeGroupWithUndo(context, group, kind);
+  Navigator.pop(context);
+}
+
+/// Action destructrice d'une feuille de groupe, à la couleur d'erreur.
+class _RemoveButton extends StatelessWidget {
+  const _RemoveButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      style: TextButton.styleFrom(
+        foregroundColor: Theme.of(context).colorScheme.error,
+      ),
+      icon: Icon(icon),
+      label: Text(label),
+      onPressed: onPressed,
     );
   }
 }

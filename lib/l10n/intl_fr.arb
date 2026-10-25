@@ -111,6 +111,36 @@
   "@editGroup": {
     "description": "Titre de la feuille qui renomme ou recolore un groupe privé"
   },
+  "deleteGroup": "Supprimer le groupe",
+  "@deleteGroup": {
+    "description": "Feuille d'un groupe privé : le supprimer ; ses anniversaires le perdent, avec « Annuler »"
+  },
+  "groupDeleted": "«\u202f{name}\u202f» est supprimé",
+  "@groupDeleted": {
+    "description": "Snackbar après la suppression d'un groupe privé, avec « Annuler »",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leaveGroup": "Retirer de mes groupes",
+  "@leaveGroup": {
+    "description": "Feuille d'un groupe partagé : le retirer du profil ; ses anniversaires le perdent"
+  },
+  "groupLeft": "«\u202f{name}\u202f» n'est plus dans vos groupes",
+  "@groupLeft": {
+    "description": "Snackbar après le retrait d'un groupe partagé, avec « Annuler »",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sharedGroupNote": "Ce groupe est partagé : il ne se renomme pas, mais vous pouvez le retirer de vos groupes et de vos anniversaires.",
+  "@sharedGroupNote": {
+    "description": "Feuille d'un groupe partagé (créé avant les groupes privés) : pourquoi on ne peut que le retirer"
+  },
   "family": "Famille",
   "friend": "Amis",
   "colleague": "Travail",
