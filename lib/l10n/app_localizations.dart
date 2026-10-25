@@ -212,12 +212,6 @@ abstract class AppLocalizations {
   /// **'Mot de passe'**
   String get password;
 
-  /// Champ de l'inscription sous « Mot de passe », le même retapé. Court : un libellé de champ tient sur une ligne, même en grand texte.
-  ///
-  /// In fr, this message translates to:
-  /// **'Confirmation'**
-  String get confirmPassword;
-
   /// Bulle et libellé TalkBack de l'œil d'un mot de passe masqué
   ///
   /// In fr, this message translates to:
@@ -373,12 +367,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Champ obligatoire'**
   String get requiredField;
-
-  /// No description provided for @passwordsDoNotMatch.
-  ///
-  /// In fr, this message translates to:
-  /// **'Les mots de passe ne correspondent pas'**
-  String get passwordsDoNotMatch;
 
   /// No description provided for @signOut.
   ///

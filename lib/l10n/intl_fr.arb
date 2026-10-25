@@ -43,10 +43,6 @@
   "lastName": "Nom",
   "email": "E\u2011mail",
   "password": "Mot de passe",
-  "confirmPassword": "Confirmation",
-  "@confirmPassword": {
-    "description": "Champ de l'inscription sous « Mot de passe », le même retapé. Court : un libellé de champ tient sur une ligne, même en grand texte."
-  },
   "showPassword": "Afficher le mot de passe",
   "@showPassword": {
     "description": "Bulle et libellé TalkBack de l'œil d'un mot de passe masqué"
@@ -117,7 +113,6 @@
     }
   },
   "requiredField": "Champ obligatoire",
-  "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
   "signOut": "Se déconnecter",
   "signOutConfirmation": "Êtes-vous sûr de vouloir vous déconnecter\u202f?",
   "errorSavingBirthday": "Erreur lors de l'enregistrement de l'anniversaire",

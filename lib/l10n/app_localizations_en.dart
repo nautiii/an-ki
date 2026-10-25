@@ -80,9 +80,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get password => 'Password';
 
   @override
-  String get confirmPassword => 'Confirm password';
-
-  @override
   String get showPassword => 'Show password';
 
   @override
@@ -184,9 +181,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get requiredField => 'Required field';
-
-  @override
-  String get passwordsDoNotMatch => 'Passwords do not match';
 
   @override
   String get signOut => 'Sign out';

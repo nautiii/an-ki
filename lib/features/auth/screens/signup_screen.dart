@@ -26,11 +26,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   late final TextEditingController _surnameController;
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
-  late final TextEditingController _confirmPasswordController;
   final _surnameFocus = FocusNode();
   final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
-  final _confirmPasswordFocus = FocusNode();
 
   @override
   void initState() {
@@ -39,9 +37,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     _surnameController = TextEditingController();
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
-    _confirmPasswordController = TextEditingController();
-    // Quitter la confirmation peut faire paraître l'écart des mots de passe.
-    _confirmPasswordFocus.addListener(_refresh);
   }
 
   @override
@@ -50,11 +45,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     _surnameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     _surnameFocus.dispose();
     _emailFocus.dispose();
     _passwordFocus.dispose();
-    _confirmPasswordFocus.dispose();
     super.dispose();
   }
 
@@ -63,12 +56,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     surname: _surnameController.text,
     email: _emailController.text,
     password: _passwordController.text,
-    confirmation: _confirmPasswordController.text,
   );
 
-  void _refresh() {
-    if (mounted) setState(() {});
-  }
+  void _refresh() => setState(() {});
 
   void _handleSignUp() async {
     final draft = _draft;
@@ -189,31 +179,15 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       decoration: InputDecoration(labelText: l10n.email),
                     ),
                     const SizedBox(height: AppSpacing.md),
+                    // Tapé une seule fois : l'œil le montre, et « Mot de
+                    // passe oublié ? » rattrape une faute de frappe.
                     PasswordField(
                       controller: _passwordController,
                       focusNode: _passwordFocus,
                       label: l10n.password,
                       enabled: !isLoading,
                       autofillHints: const [AutofillHints.newPassword],
-                      textInputAction: TextInputAction.next,
-                      onChanged: (_) => _refresh(),
-                      // « Suivant » passe à la confirmation plutôt qu'à l'œil.
-                      onEditingComplete: _confirmPasswordFocus.requestFocus,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    PasswordField(
-                      controller: _confirmPasswordController,
-                      focusNode: _confirmPasswordFocus,
-                      label: l10n.confirmPassword,
-                      enabled: !isLoading,
-                      autofillHints: const [AutofillHints.newPassword],
                       textInputAction: TextInputAction.done,
-                      errorText:
-                          draft.confirmationDiffers(
-                            typing: _confirmPasswordFocus.hasFocus,
-                          )
-                          ? l10n.passwordsDoNotMatch
-                          : null,
                       onChanged: (_) => _refresh(),
                       // « OK » inscrit, comme le bouton.
                       onSubmitted: (_) => _handleSignUp(),
@@ -225,8 +199,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               AuthSubmitButton(
                 label: l10n.signUpButton,
                 loading: isLoading,
-                // Actif dès que tout est rempli, deux fois le même mot de
-                // passe.
+                // Actif dès que tout est rempli.
                 onPressed: draft.isValid ? _handleSignUp : null,
               ),
               const SizedBox(height: AppSpacing.md),

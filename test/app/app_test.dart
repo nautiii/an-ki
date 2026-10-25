@@ -136,7 +136,6 @@ void main() {
       await tester.enterText(find.byType(TextField).at(1), 'Doe');
       await tester.enterText(find.byType(TextField).at(2), 'a@b.com');
       await tester.enterText(find.byType(TextField).at(3), 'secret');
-      await tester.enterText(find.byType(TextField).at(4), 'secret');
       await tester.pump();
       await tester.tap(find.text("S'inscrire").last);
       await tester.settleApp();

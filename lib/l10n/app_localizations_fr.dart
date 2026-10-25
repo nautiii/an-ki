@@ -81,9 +81,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get password => 'Mot de passe';
 
   @override
-  String get confirmPassword => 'Confirmation';
-
-  @override
   String get showPassword => 'Afficher le mot de passe';
 
   @override
@@ -186,9 +183,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get requiredField => 'Champ obligatoire';
-
-  @override
-  String get passwordsDoNotMatch => 'Les mots de passe ne correspondent pas';
 
   @override
   String get signOut => 'Se déconnecter';
