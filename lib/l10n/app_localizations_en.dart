@@ -137,6 +137,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get groups => 'Groups';
 
   @override
+  String groupPeople(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people',
+      one: '$count person',
+      zero: 'Nobody',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get groupPreset => 'Offered to everyone';
+
+  @override
+  String get groupsErrorTitle => 'Groups unavailable';
+
+  @override
+  String get editGroup => 'Edit group';
+
+  @override
   String get family => 'Family';
 
   @override

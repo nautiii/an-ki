@@ -88,7 +88,28 @@
   "birthDateFuture": "Cette date est dans le futur",
   "groups": "Groupes",
   "@groups": {
-    "description": "Feuille d'anniversaire : titre de la ligne des groupes de la personne"
+    "description": "Titre de la ligne des groupes de la feuille d'anniversaire, de la page Groupes et de sa ligne dans les réglages"
+  },
+  "groupPeople": "{count, plural, =0{Aucune personne} one{{count}\u00a0personne} other{{count}\u00a0personnes}}",
+  "@groupPeople": {
+    "description": "Page Groupes : nombre d'anniversaires qui portent le groupe",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "groupPreset": "Proposé à tous",
+  "@groupPreset": {
+    "description": "Page Groupes : un groupe prédéfini (Famille, Amis, Travail, Autres), ni modifiable ni supprimable"
+  },
+  "groupsErrorTitle": "Groupes indisponibles",
+  "@groupsErrorTitle": {
+    "description": "Page Groupes : titre quand les groupes n'ont pas pu être lus"
+  },
+  "editGroup": "Modifier le groupe",
+  "@editGroup": {
+    "description": "Titre de la feuille qui renomme ou recolore un groupe privé"
   },
   "family": "Famille",
   "friend": "Amis",

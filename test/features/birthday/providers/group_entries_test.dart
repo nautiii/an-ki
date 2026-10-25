@@ -61,10 +61,52 @@ void main() {
     await container.read(ownCategoriesProvider.future);
     await container.read(birthdaysProvider.future);
 
-    expect(container.read(groupEntriesProvider), const [
+    expect(container.read(groupEntriesProvider).value, const [
       GroupEntry(category: family, kind: GroupKind.preset, count: 1),
       GroupEntry(category: book, kind: GroupKind.own, count: 1),
       GroupEntry(category: goat, kind: GroupKind.shared, count: 0),
     ]);
+  });
+
+  ProviderContainer plain({required RecordingCategoryRepository categories}) =>
+      ProviderContainer.test(
+        retry: (_, _) => null,
+        overrides: [
+          categoryRepositoryProvider.overrideWithValue(categories),
+          userRepositoryProvider.overrideWithValue(
+            RecordingUserRepository(
+              stored: const UserProfile(
+                id: 'u',
+                name: 'A',
+                surname: 'B',
+                locale: 'fr',
+              ),
+            ),
+          ),
+          birthdayRepositoryProvider.overrideWithValue(
+            RecordingBirthdayRepository(),
+          ),
+          currentUidProvider.overrideWithValue('u'),
+        ],
+      );
+
+  test('is loading until the groups arrive', () {
+    final container = plain(categories: RecordingCategoryRepository([family]));
+    container.listen(groupEntriesProvider, (_, _) {});
+
+    expect(container.read(groupEntriesProvider), isA<AsyncLoading<void>>());
+  });
+
+  test('fails when the shared groups cannot be read', () async {
+    final container = plain(
+      categories: RecordingCategoryRepository(
+        const [],
+        watchError: Exception('unavailable'),
+      ),
+    );
+    container.listen(groupEntriesProvider, (_, _) {});
+    await pumpEventQueue();
+
+    expect(container.read(groupEntriesProvider).hasError, isTrue);
   });
 }

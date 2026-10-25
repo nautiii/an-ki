@@ -10,6 +10,7 @@ import 'package:an_ki/features/auth/screens/signup_screen.dart';
 import 'package:an_ki/features/auth/screens/welcome_screen.dart';
 import 'package:an_ki/features/birthday/screens/birthday_search_screen.dart';
 import 'package:an_ki/features/birthday/screens/contact_import_screen.dart';
+import 'package:an_ki/features/birthday/screens/groups_screen.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_off_card.dart';
@@ -91,6 +92,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.contactImport,
         builder: (_, _) => const ContactImportScreen(),
       ),
+      GoRoute(path: AppRoutes.groups, builder: (_, _) => const GroupsScreen()),
     ],
   );
   ref.onDispose(() {

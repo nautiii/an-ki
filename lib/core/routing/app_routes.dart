@@ -30,4 +30,8 @@ abstract final class AppRoutes {
   /// Import des anniversaires du répertoire, ouvert par-dessus l'accueil vide
   /// ou les réglages (`context.push`).
   static const String contactImport = '/import';
+
+  /// Groupes de l'utilisateur, ouverts par-dessus les réglages
+  /// (`context.push`).
+  static const String groups = '/groups';
 }

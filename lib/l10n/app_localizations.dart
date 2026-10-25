@@ -290,11 +290,35 @@ abstract class AppLocalizations {
   /// **'Cette date est dans le futur'**
   String get birthDateFuture;
 
-  /// Feuille d'anniversaire : titre de la ligne des groupes de la personne
+  /// Titre de la ligne des groupes de la feuille d'anniversaire, de la page Groupes et de sa ligne dans les réglages
   ///
   /// In fr, this message translates to:
   /// **'Groupes'**
   String get groups;
+
+  /// Page Groupes : nombre d'anniversaires qui portent le groupe
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Aucune personne} one{{count} personne} other{{count} personnes}}'**
+  String groupPeople(int count);
+
+  /// Page Groupes : un groupe prédéfini (Famille, Amis, Travail, Autres), ni modifiable ni supprimable
+  ///
+  /// In fr, this message translates to:
+  /// **'Proposé à tous'**
+  String get groupPreset;
+
+  /// Page Groupes : titre quand les groupes n'ont pas pu être lus
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupes indisponibles'**
+  String get groupsErrorTitle;
+
+  /// Titre de la feuille qui renomme ou recolore un groupe privé
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le groupe'**
+  String get editGroup;
 
   /// No description provided for @family.
   ///

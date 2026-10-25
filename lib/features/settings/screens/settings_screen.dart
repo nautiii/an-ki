@@ -20,7 +20,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// Réglages en blocs : le profil, les préférences appliquées dès le toucher,
-/// les anniversaires (rappels, import), la sécurité quand l'appareil a une
+/// les anniversaires (rappels, import, groupes), la sécurité quand l'appareil a une
 /// empreinte, puis le compte, la suppression en dernier.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -78,6 +78,13 @@ class SettingsScreen extends ConsumerWidget {
                   trailing: const Icon(Icons.chevron_right_rounded),
                   // L'aperçu de l'import, qui annonce lui-même ce qu'il ajoute.
                   onTap: () => context.push(AppRoutes.contactImport),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.label_rounded),
+                  title: Text(l10n.groups),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  // Renommer, recolorer ou retirer ses groupes.
+                  onTap: () => context.push(AppRoutes.groups),
                 ),
               ],
             ),

@@ -248,6 +248,22 @@ void main() {
     expect(find.text('Import route'), findsOneWidget);
   });
 
+  testWidgets('opens the groups', (tester) async {
+    await tester.pumpHarness(
+      const SettingsScreen(),
+      overrides: overridesWith(),
+      routes: {
+        AppRoutes.groups: (_) => const Scaffold(body: Text('Groups route')),
+      },
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Groupes'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Groups route'), findsOneWidget);
+  });
+
   testWidgets('says whether reminders are on, and turns them on', (
     tester,
   ) async {
