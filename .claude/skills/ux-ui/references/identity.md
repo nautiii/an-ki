@@ -165,8 +165,8 @@ polish, unusual on Android — a quiet signature).
 | `AppRadii.xl` | 32 | Bottom-sheet top corners, nav pill |
 | `StadiumBorder()` | full | Buttons, chips, search field, segmented controls, FAB-like adds |
 
-Raw radii remain only in `BookCard` (backlog F5: 24 and 12 written by hand): migrate what you
-touch.
+Every radius comes from these tokens: the last raw ones, in `BookCard`, went with F5
+(2026-10-25). Keep it that way.
 
 ## 6. Spacing & layout
 

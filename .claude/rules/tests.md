@@ -20,7 +20,8 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
   `MockFirebaseAuth` (firebase_auth_mocks), `MockClient` (http), `mock_exceptions`,
   and the doubles in `test/support/`: `FakeBiometricChannels`, `FakeGoogleSignInPlatform`
   (`account:` makes the Google picker return it),
-  `FakeMobileScannerPlatform.install()`, `mockNetworkImages`.
+  `FakeMobileScannerPlatform.install()`, `mockNetworkImages`, `recordHaptics(tester)` (the
+  vibrations asked, in order).
 
 ## Per layer
 
@@ -40,9 +41,10 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
   screens start from `authOverrides`, `failingAuthOverrides` or `loadingAuthOverrides`
   (`test/support/auth_overrides.dart`). A widget that only needs a signed-in user gets
   `currentUidProvider.overrideWithValue('fake-uid')`.
-- **Widgets and screens**: `await tester.pumpHarness(widget, overrides: […])` (French locale,
-  800×1200, go_router: `routes: {AppRoutes.settings: …}` stands in for the pages the widget
-  opens). The whole app, router and redirects included: `tester.pumpApp(auth: …)` then
+- **Widgets and screens**: `await tester.pumpHarness(widget, overrides: […])` (French locale
+  on a French phone — `deviceLocale: Locale('en', 'US')` for another region, which typed dates
+  follow — 800×1200, go_router: `routes: {AppRoutes.settings: …}` stands in for the pages the
+  widget opens). One harness per test: pumping it again keeps the first page. The whole app, router and redirects included: `tester.pumpApp(auth: …)` then
   `tester.settleApp()` (`test/support/app_harness.dart`). A non-empty `overrides` list **replaces** `defaultTestOverrides`, it doesn't extend
   it. Pin async data with `xProvider.overrideWithValue(const AsyncData(…))`. Cover loading, empty,
   data and error; accessibility with `meetsGuideline(androidTapTargetGuideline)`,
