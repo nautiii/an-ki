@@ -90,7 +90,7 @@ class _GroupList extends StatelessWidget {
   }
 }
 
-/// Un groupe : sa pastille à sa teinte, son nom, ses personnes ; un cadenas
+/// Un groupe : sa pastille à sa teinte (celle des pastilles de la feuille), son nom, ses personnes ; un cadenas
 /// pour un groupe proposé à tous.
 class _GroupTile extends StatelessWidget {
   const _GroupTile({required this.entry});
@@ -107,8 +107,8 @@ class _GroupTile extends StatelessWidget {
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: tones.container,
-        child: Icon(group.iconData, color: tones.onContainer),
+        backgroundColor: tones.color,
+        child: Icon(group.iconData, color: tones.onColor),
       ),
       title: Text(group.localizedName(context)),
       subtitle: Text(locked ? '$people · ${l10n.groupPreset}' : people),
