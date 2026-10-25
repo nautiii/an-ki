@@ -131,7 +131,10 @@ is in `.claude/skills/architecture/references/migration.md`.
 - **Category** (« groupe » in the UI) — a name, an icon and, for groups created since
   2026-10-24, a tone. Predefined ones live in the shared top-level `category` collection
   (Famille, Amis, Travail and Autres offered to everyone); groups a user creates are private,
-  in `user/{uid}/categories`; `user/{uid}.categories` keeps the shared ones picked before.
+  in `user/{uid}/categories`; `user/{uid}.categories` keeps the shared ones picked before. The
+  « Groupes » page (Settings › Anniversaires) renames, recolours or deletes a private group and
+  drops a shared one from the profile; its birthdays lose it either way. The four offered to
+  everyone are locked.
 - **User** — the profile document `user/{uid}`: name, surname, pseudo, categories, theme
   (`themeMode`: system, light or dark; an older `isDark` still reads), locale, biometric token.
 - **Reminder** — local notifications on the day (J-0) and, by default, 7 days before (J-7), at

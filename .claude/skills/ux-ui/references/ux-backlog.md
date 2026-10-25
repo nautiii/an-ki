@@ -13,8 +13,8 @@ and sign-up forms (D3, their part of F5, D11 and D1, their copy), the settings (
 rest of D1, their part of F5 and D11), the groups (B7, Q7, the rest of D11) and the
 reminders-off card (Q8), the forgotten password link (Q9) and the auth messages (D23) on
 2026-10-24, then the sign-up's single password (Q11), D24, D9, D22, D12, D14 (its message;
-« Voir » waits for B4), D8, F5 and D4 on 2026-10-25: the items they fixed are gone from this
-list.
+« Voir » waits for B4), D8, F5 and D4, and the groups page (Q10) on 2026-10-25: the items
+they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
@@ -23,8 +23,8 @@ auth or dependencies → design brief + maintainer approval first.
 ## Contents
 - Big bets (B4, B8; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
 - Foundation (F1, F6) — design system, prerequisite for consistency
-- P1 — friction & states (Q10)
-- P2 — polish (D10, D13, D15–D17, D25)
+- P1 — friction & states (none open)
+- P2 — polish (D10, D13, D15–D17, D25, D26)
 - Suggested roadmap
 
 ---
@@ -141,10 +141,7 @@ auth or dependencies → design brief + maintainer approval first.
 
 ## P1 — friction & states
 
-- **Q10 Managing groups**: a group is created in the birthday form (B7) but can't be renamed,
-  recoloured or deleted, and the older categories (GOAT, Doggo…) stay on whoever picked them
-  (found shipping B7, 2026-10-24) → a « Groupes » page from Settings › Anniversaires: rename,
-  tone, delete with « Annuler » (the birthdays drop it); a shared one only leaves the profile.
+Nothing open.
 
 ## P2 — polish
 
@@ -165,10 +162,14 @@ auth or dependencies → design brief + maintainer approval first.
   TalkBack reads « J-3 » before the name, the countdown sitting above it
   (`agenda_tile.dart`, found with D22, 2026-10-25) → keep the row's order (name, date,
   countdown) in the merged label. Low priority.
+- **D26 Undo in dark**: the dark snackbar is light and its « Annuler » (Material's default
+  `inversePrimary`) reads at ≈ 2.8:1 on it (palette audit heuristic, `groups_deleted` snapshot,
+  2026-10-25); every undo snackbar shares it (birthday deleted, wish, group) → a darker action
+  colour in the dark `snackBarTheme` (theme change, approval first).
 
 ## Suggested roadmap
 
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **B4, B8, F1, F6, Q10, D10, D13, D15–D17, D25** — depth and polish (F1 any time once
+2. **B4, B8, F1, F6, D10, D13, D15–D17, D25, D26** — depth and polish (F1 any time once
    approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
