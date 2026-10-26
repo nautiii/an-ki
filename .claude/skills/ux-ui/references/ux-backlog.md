@@ -141,7 +141,9 @@ auth or dependencies → design brief + maintainer approval first.
 
 ## P1 — friction & states
 
-Nothing open.
+- **D27 « e_mail »**: Outfit has no glyph for the non-breaking hyphen U+2011, so « e‑mail » draws
+  as « e_mail » (device-runner, 2026-10-26); `intl_fr.arb` holds 9 `‑` → a plain hyphen, or
+  a font that has it, then `flutter gen-l10n` and a device check.
 
 ## P2 — polish
 
