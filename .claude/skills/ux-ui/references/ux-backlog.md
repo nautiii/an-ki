@@ -24,7 +24,7 @@ auth or dependencies → design brief + maintainer approval first.
 - Big bets (B4, B8; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
 - Foundation (none open) — design system, prerequisite for consistency
 - P1 — friction & states (D27)
-- P2 — polish (D10, D13, D15–D17, D25, D26)
+- P2 — polish (D10, D13, D15, D17, D25, D26)
 - Suggested roadmap
 
 ---
@@ -151,8 +151,6 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
   A bulk repair can't tell them from real 2000 births: data migration, approval first.
 - **D15 Belated wish**: at midnight the hero moves on; a birthday missed yesterday can no longer
   be wished from AnKi → a calm « Hier : Léa · Souhaiter » for a day or two, never guilt copy.
-- **D16 Petals per run**: « once per person per day » lives in memory (`celebratedTodayProvider`);
-  a cold start the same day lets the petals fall again → persist the day if it bothers.
 - **D17 iOS wish button**: iOS notifications have no « Souhaiter » (Darwin categories are
   declared at initialization, before the texts are localized) → add a category once iOS builds.
 - **D25 Stacked row reading order**: once an agenda row stacks (large text, narrow screen),
@@ -167,5 +165,5 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
 ## Suggested roadmap
 
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **D27, B4, B8, D10, D13, D15–D17, D25, D26** — depth and polish;
+2. **D27, B4, B8, D10, D13, D15, D17, D25, D26** — depth and polish;
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
