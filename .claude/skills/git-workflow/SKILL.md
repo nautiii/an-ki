@@ -1,6 +1,7 @@
 ---
 name: git-workflow
 description: "Git workflow for the AnKi Flutter repo: Conventional Commits messages with an UPPERCASE type (`FEAT(scope): subject`, English, imperative, terse), atomic commits, branch names and pull request titles. Use for ANY git operation that writes or publishes history — committing, writing or rewording a commit message, staging and splitting changes into several commits, amending, squashing, creating a branch, pushing, opening or titling a pull request, drafting release notes from history. Trigger even on short or French asks such as « commit », « commite », « fais un commit », « prépare le commit », « message de commit », « renomme le commit », « découpe en plusieurs commits », « crée une branche », « push », « ouvre une PR ». Not for read-only questions about history (git log, blame or diff to explain something)."
+effort: low
 ---
 
 # AnKi git workflow

@@ -3,6 +3,8 @@ name: deps-upgrade
 description: "Upgrade AnKi's stack: Flutter and Dart SDK, pub dependencies pinned to exact versions, riverpod_lint, Android toolchain (Gradle, AGP, Kotlin, google-services) within the range Flutter's tool knows. Inventory, changelogs and a plan first; IDEs and Dart processes closed before `flutter upgrade`; pub get outside Claude's sandbox; one commit per intent. `check` only reports."
 disable-model-invocation: true
 argument-hint: "[check | flutter | pub | android | <package>…]"
+model: opus
+effort: high
 ---
 
 # Upgrading AnKi's stack

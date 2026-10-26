@@ -3,6 +3,8 @@ name: dead-code
 description: "Sweep AnKi for dead code precisely: a throwaway Dart package on analyzer 14.5.0 resolves lib/ and test/ in one context and lists what lib/ declares but nobody references, what only tests use, optional parameters lib/ never passes and dead ARB keys. Every finding is checked by hand and shown in French with file:line and a recommendation; only what the maintainer approves is removed, with tests, both analyzers and the architecture test green, one commit per intent. `check` only reports."
 disable-model-invocation: true
 argument-hint: "[check]"
+model: opus
+effort: high
 ---
 
 # Sweeping AnKi's dead code

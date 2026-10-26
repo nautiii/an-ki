@@ -1,6 +1,7 @@
 ---
 name: architecture
 description: "Lead-tech Flutter architecture for the AnKi app (feature-first layered MVVM on Riverpod 3 without codegen, Firebase): where code goes, which layers and features may depend on which, how to add or restructure behaviour safely. Use for ANY change that adds or reshapes behaviour rather than pixels — a new feature or brick (gift ideas, person page, onboarding…), a screen backed by data, a model, repository, provider or controller, a service or plugin wrapper, a Firestore collection or schema change, navigation (go_router), error handling, a new package, moving or splitting files, refactoring, breaking a dependency cycle, reviewing structure, paying down debt. Trigger even on short or French asks: « ajoute une feature », « nouvelle brique », « crée un écran qui… », « où mettre ce code ? », « refacto », « nettoie l'archi », « découple », « ajoute un provider / repository », « dette technique ». Not for pure visual polish (ux-ui) nor git operations (git-workflow)."
+effort: high
 ---
 
 # AnKi architecture — lead tech
