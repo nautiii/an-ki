@@ -55,12 +55,22 @@ fi
 # Firebase : seules les commandes locales ou en lecture seule passent. Le reste
 # (deploy, suppressions, imports, connexion…) écrit en production ou touche au
 # compte du mainteneur, qui le lance lui-même (skill firebase).
-firebase_call='(^|[[:space:];&|(])(npx[[:space:]]+)?firebase(-tools)?([[:space:]]|$)'
-# Sous-commande d'un appel, options globales et leurs valeurs sautées.
+# Un appel est une commande simple (séparée par ; & | ( ) ` ou un retour à la
+# ligne) dont le premier mot, une fois retirés mots-clés, affectations et
+# préfixes (npx et ses options, timeout, env…), est firebase : le mot en argument
+# (dossier, fichier, texte cherché) n'en est pas un.
+firebase_calls() {
+  printf '%s' "$1" | sed 's/\\n/\n/g' | tr ';&|()`' '\n\n\n\n\n\n' |
+    sed -E 's/^[[:space:]]+//' |
+    sed -E 's/^(((do|then|else|!|npx|exec|command|nohup|env)|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*|-[^[:space:]]+|timeout[[:space:]]+[^[:space:]]+)[[:space:]]+)+//' |
+    grep -E '^([^[:space:]]*[/\\])?firebase(-tools)?(@[^[:space:]]*)?(\.cmd|\.exe)?([[:space:]]|$)'
+}
+# Sous-commande d'un appel (les mots après la commande), options globales et
+# leurs valeurs sautées.
 firebase_subcommand() {
-  local - rest=${1#*firebase} skip='' word
+  local - rest='' skip='' word
   set -f
-  rest=${rest#-tools}
+  case "$1" in *[[:space:]]*) rest=${1#*[[:space:]]} ;; esac
   for word in $rest; do
     if [ -n "$skip" ]; then skip=''; continue; fi
     case "$word" in
@@ -90,7 +100,7 @@ while IFS= read -r call; do
       ;;
     *) deny "commande Firebase réservée au mainteneur (production ou compte) : dire ce qu'il faut lancer." ;;
   esac
-done < <(printf '%s' "$cmd" | grep -Eo -- "${firebase_call}[^;&|)]*")
+done < <(firebase_calls "$cmd")
 
 # À confirmer par le mainteneur.
 if has "${git}push\\b"; then
