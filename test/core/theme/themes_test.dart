@@ -94,6 +94,26 @@ void main() {
         );
       });
 
+      test('rings fields in error with the error color', () {
+        final input = theme.inputDecorationTheme;
+        final shape = BorderRadius.circular(AppRadii.md);
+
+        expect(
+          input.errorBorder,
+          OutlineInputBorder(
+            borderRadius: shape,
+            borderSide: BorderSide(color: theme.colorScheme.error),
+          ),
+        );
+        expect(
+          input.focusedErrorBorder,
+          OutlineInputBorder(
+            borderRadius: shape,
+            borderSide: BorderSide(color: theme.colorScheme.error, width: 2),
+          ),
+        );
+      });
+
       test('installs the brand colors for its brightness', () {
         final colors = theme.extension<AnKiColors>();
 

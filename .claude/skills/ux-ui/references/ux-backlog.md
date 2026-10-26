@@ -22,7 +22,7 @@ auth or dependencies → design brief + maintainer approval first.
 
 ## Contents
 - Big bets (B4, B8; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
-- Foundation (F1, F6) — design system, prerequisite for consistency
+- Foundation (F1) — design system, prerequisite for consistency
 - P1 — friction & states (none open)
 - P2 — polish (D10, D13, D15–D17, D25, D26)
 - Suggested roadmap
@@ -134,10 +134,6 @@ auth or dependencies → design brief + maintainer approval first.
 
 - **F1 — Bundle Outfit** (recipes §3): offline-correct typography, real weights (today
   `copyWith(fontWeight:)` fakes bold), deterministic snapshots. Needs font download approval.
-- **F6 — Error ring on fields**: the input theme has no `errorBorder`/`focusedErrorBorder` and
-  its `border` is `BorderSide.none`, so a focused field in error loses its focus ring (login
-  e-mail without an address, birthday sheet name); the red label and message remain → error
-  borders on the `AppRadii.md` shape in `themes.dart` (theme change, approval first).
 
 ## P1 — friction & states
 
@@ -172,6 +168,6 @@ auth or dependencies → design brief + maintainer approval first.
 ## Suggested roadmap
 
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **B4, B8, F1, F6, D10, D13, D15–D17, D25, D26** — depth and polish (F1 any time once
+2. **B4, B8, F1, D10, D13, D15–D17, D25, D26** — depth and polish (F1 any time once
    approved);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.

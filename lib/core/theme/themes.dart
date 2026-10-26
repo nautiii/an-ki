@@ -104,6 +104,15 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadii.md),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
+        // L'erreur se lit aussi au contour, pas seulement au texte rouge.
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadii.md),
+          borderSide: BorderSide(color: colorScheme.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadii.md),
+          borderSide: BorderSide(color: colorScheme.error, width: 2),
+        ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         showDragHandle: true,
