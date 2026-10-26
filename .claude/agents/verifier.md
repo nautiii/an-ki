@@ -17,6 +17,15 @@ take the changed Dart files from `git status --short` and the test folders that 
 (`lib/features/<f>/…` → `test/features/<f>`). Work in the repository root, or in the path the caller
 names (a worktree): every command runs there.
 
+For a commit pass (the caller says the change is staged), the verdict stands for that index: take the
+scope from `git diff --cached --name-only` — the Dart files to format, the test folders mirroring the
+staged `lib/` files plus `test/architecture` and the staged `test/` files and folders themselves, and
+`all` when `lib/core/`, `lib/app/`, `lib/l10n/`, `pubspec` or `analysis_options` is staged. Also run
+`git diff --name-only` (unstaged): when it touches `lib/`, `test/` or `pubspec`, answer
+`VERDICT: ROUGE`, because the working copy would not be what gets committed. Same when
+`git ls-files --others --exclude-standard -- lib test` is non-empty: untracked files the commit
+would not contain.
+
 ## Commands — run every step, even after a failure
 
 All in Git Bash, each with a long timeout (the full suite takes a few minutes).
@@ -54,3 +63,7 @@ Vérifications — <portée>
 
 More than 10 problems of one kind: list 10, then « + K autres ». Quote messages exactly: the caller
 fixes from your text without re-running the command.
+
+The report's very last line is exactly `VERDICT: VERT` when format, both analyzers and the tests all
+pass with nothing to report, otherwise `VERDICT: ROUGE` (including a step that couldn't run).
+This holds outside a commit pass too. Nothing after it.

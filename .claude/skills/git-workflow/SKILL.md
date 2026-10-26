@@ -108,12 +108,20 @@ run scripts/migrate_categories.ps1 once per environment.
    of another feature), propose a split before committing — list the commits with their messages
    and the files in each, and let the user validate. Each commit should build and pass tests on
    its own, so that `git bisect` and reverts stay usable. Tests belong with the code they cover.
-4. **Check before recording.** For Dart changes, the commit must not break the build:
-   `dart format --output=none --set-exit-if-changed <files>`, `flutter analyze` and
-   `dart analyze` (only the latter runs `riverpod_lint`), plus the
-   relevant `flutter test` targets when `lib/` or `test/` changed (skip what you already ran
-   after the last edit in this session). If something fails, fix it or tell the user — don't
-   commit red.
+4. **Check before recording.** Stage first (step 2), then the `verifier` runs format, analyze and
+   tests and the `reviewer` reviews the staged diff, in parallel. Their final `VERDICT:` lines are
+   recorded by `record-check.sh` (the verifier's per staged index, the reviewer's per HEAD), and
+   `guard-git.sh` refuses the commit otherwise: code paths need both, any other non-markdown path
+   needs the reviewer, markdown-only commits need none. Other agents run the checks by hand:
+   `dart format --output=none --set-exit-if-changed <files>`, `flutter analyze`, `dart analyze` and
+   the relevant `flutter test`. The reviewer runs once per commit, on the staged diff: apply its
+   findings (blocking ones included), re-stage, run the verifier again on the final index, then
+   commit — no second review. The verifier must pass on the exact staged index. This keeps token use
+   reasonable. A reviewer or verifier resumed after a
+   verdict (SendMessage) records nothing: start a new agent for a new pass. Never
+   commit red; never work around the gate — if it blocks wrongly, tell the user. Commit the index
+   as it is: no paths after `git commit`, no `-C` or `cd` (run from the repo folder). A reword is
+   `git commit --amend --only -F -`.
 5. **Guard secrets.** Never stage `secrets.json`, `key.properties`, `*.jks`, `*.keystore`, `.env`
    or service-account JSON. `android/app/google-services.json` is tracked on purpose (Firebase
    client config) — commit it only when the change is intended (e.g. a new SHA-1).
@@ -158,7 +166,8 @@ In Claude Code, `.claude/hooks/guard-git.sh` enforces this: it blocks merge comm
 without `--rebase`/`--ff-only`, blind `git add`, `git commit -a`, forced pushes without lease,
 `--no-verify` and every Firebase command that writes production (firebase skill), and makes the
 maintainer confirm a push, `reset --hard`, `clean -f`, discarding all changes, `branch -D`,
-`stash drop` or rewriting pushed commits. A blocked command is a signal to change approach, not
+`stash drop` or rewriting pushed commits. It also gates `git commit`: without the `verifier` and `reviewer` verdicts recorded (the verifier's for the exact
+staged index, the reviewer's since the last commit, step 4), the commit is refused. A blocked command is a signal to change approach, not
 to work around the guard.
 
 ## Examples

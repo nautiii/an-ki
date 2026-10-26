@@ -4,21 +4,42 @@
 # demande confirmation au mainteneur pour ce qui publie, réécrit l'historique ou
 # efface du travail non commité. Les messages entre guillemets et les heredocs
 # sont ignorés : un message de commit qui cite « git push » ne déclenche rien.
+#
+# Limite : le garde-fou de commit protège contre l'oubli, pas contre un
+# contournement délibéré (git revert, cherry-pick, commit-tree, `bash -c`, un
+# autre outil que git en ligne de commande, un chemin cité vers anki-checks…).
 
 input=$(cat)
 cmd=$(printf '%s' "$input" |
   sed -n 's/.*"command"[[:space:]]*:[[:space:]]*"\(\([^"\\]\|\\.\)*\)".*/\1/p' |
   head -n 1)
-case "$cmd" in
-  *git*|*firebase*) ;;
-  *) exit 0 ;;
-esac
+# Dossier du dépôt : le cwd de l'appel, à défaut le dossier du projet.
+cwd=$(printf '%s' "$input" |
+  sed -n 's/.*"cwd"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' |
+  head -n 1 | sed 's/\\\\/\\/g')
+dir=${cwd:-${CLAUDE_PROJECT_DIR:-.}}
+
+deny() {
+  printf 'Bloqué par .claude/hooks/guard-git.sh : %s\n' "$1" >&2
+  exit 2
+}
+ask() {
+  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"%s"}}\n' "$1"
+  exit 0
+}
 
 # Texte JSON → commande : guillemets dé-échappés, heredoc retiré, chaînes
-# remplacées par _ (un argument cité reste un mot : `git -C "x" merge`).
+# remplacées par _ (un argument cité reste un mot : `git -C "x" merge`). Une
+# chaîne qui cite anki-checks devient le mot anki-checks : un chemin cité vers
+# les marqueurs reste visible.
 cmd=${cmd//\\\"/\"}
 cmd=${cmd%%<<*}
-cmd=$(printf '%s' "$cmd" | sed -E "s/'[^']*'/_/g; s/\"[^\"]*\"/_/g")
+# Les here-strings PowerShell (@' … '@, @" … "@, sur plusieurs lignes échappées en
+# \n) deviennent _ d'abord : une apostrophe dans le message ne casse pas la suite.
+hs_single="s/@'([^']|'[^@])*'@/_/g"
+hs_double='s/@"([^"]|"[^@])*"@/_/g'
+cmd=$(printf '%s' "$cmd" | sed -E -e "$hs_single" -e "$hs_double")
+cmd=$(printf '%s' "$cmd" | sed -E "s/'[^']*anki-checks[^']*'/anki-checks/g; s/\"[^\"]*anki-checks[^\"]*\"/anki-checks/g; s/'[^']*'/_/g; s/\"[^\"]*\"/_/g")
 
 # Commandes simples, une par ligne (séparées par ; & | ( ) ` ou un retour à la
 # ligne), débarrassées de ce qui précède le vrai premier mot : mots-clés,
@@ -30,20 +51,36 @@ simple_commands() {
     sed -E 's/^[[:space:]]+//' |
     sed -E 's/^(((do|then|else|!|npx|exec|command|nohup|env)|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*|-[^[:space:]]+|timeout[[:space:]]+[^[:space:]]+)[[:space:]]+)+//'
 }
+
+# Les verdicts des agents de contrôle ne s'écrivent que par record-check.sh :
+# une commande simple qui écrit dans anki-checks (commande d'écriture ou
+# redirection) est refusée ; les lectures (ls, cat, grep) passent.
+if printf '%s' "$cmd" | grep -q 'anki-checks'; then
+  writers='touch|cp|mv|mkdir|rm|tee|New-Item|Set-Content|Add-Content|Out-File|Copy-Item|Move-Item|Remove-Item'
+  if simple_commands | grep -E 'anki-checks' |
+    grep -Eiq "^([^[:space:]]*[/\\\\])?($writers)(\\.exe)?([[:space:]]|$)"; then
+    deny "les marqueurs anki-checks ne s'écrivent que par record-check.sh : lancer le verifier et le reviewer."
+  fi
+  if printf '%s' "$cmd" | sed 's/\\n/\n/g' | grep -Eq '>>?[[:space:]]*[^[:space:]]*anki-checks'; then
+    deny "les marqueurs anki-checks ne s'écrivent que par record-check.sh : lancer le verifier et le reviewer."
+  fi
+fi
+
+case "$cmd" in
+  *git*|*firebase*) ;;
+  *) exit 0 ;;
+esac
+
 git_cmds=$(simple_commands | grep -E '^([^[:space:]]*[/\\])?git(\.exe)?([[:space:]]|$)')
 
 # Vrai si un appel git correspond au motif (ancré au début de l'appel).
 has() { printf '%s' "$git_cmds" | grep -Eq -- "$1"; }
-deny() {
-  printf 'Bloqué par .claude/hooks/guard-git.sh : %s\n' "$1" >&2
-  exit 2
-}
-ask() {
-  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"%s"}}\n' "$1"
-  exit 0
-}
 
-git='^([^[:space:]]*[/\\])?git(\.exe)?([[:space:]]+-[cC][[:space:]]+[^[:space:]]+)*[[:space:]]+'
+# Options globales de git avant la sous-commande : -c x, -C x, --git-dir[= ]x,
+# --work-tree[= ]x, --namespace[= ]x, et les options sans valeur (--no-pager, -p,
+# --paginate, --bare, --no-replace-objects, --literal-pathspecs…).
+gopt='(-[cC][[:space:]]+[^[:space:]]+|--(git-dir|work-tree|namespace|exec-path|super-prefix|config-env)(=[^[:space:]]*|[[:space:]]+[^[:space:]]+)|--[a-z][a-z-]*|-[pP])'
+git="^([^[:space:]]*[/\\\\])?git(\\.exe)?([[:space:]]+${gopt})*[[:space:]]+"
 end='([[:space:]]|[;&|)]|$)'
 
 # Interdit (skill git-workflow).
@@ -111,6 +148,102 @@ while IFS= read -r call; do
   esac
 done < <(firebase_calls)
 
+# Un commit exige le verdict positif du verifier sur exactement l'index actuel
+# (empreinte) et/ou la revue du reviewer depuis le dernier commit (marqueur lié
+# à HEAD : une seule revue par commit). Marqueurs écrits par record-check.sh.
+if has "${git}commit\\b"; then
+  msg_index="commiter l'index tel quel : indexer les chemins avec git add, sans chemins après git commit."
+  # Pas de -C, --git-dir, --work-tree ni cd : le dépôt vérifié est celui du cwd.
+  if simple_commands | grep -Eq '^(cd|chdir|pushd|Push-Location|Set-Location|sl)([[:space:]]|$)'; then
+    deny "commiter depuis le dossier du dépôt, sans -C ni cd."
+  fi
+  # Vrai dès qu'un appel commit n'est pas une simple reformulation (--amend --only).
+  needs_verdict=''
+  while IFS= read -r call; do
+    call="$call "
+    before=${call%%[[:space:]]commit[[:space:]]*}
+    if printf '%s' "$before" | grep -Eq '(^|[[:space:]])(-C|--git-dir|--work-tree)([[:space:]=]|$)'; then
+      deny "commiter depuis le dossier du dépôt, sans -C ni cd."
+    fi
+    args=${call#"$before"}
+    args=${args# commit }
+    # Arguments du commit : options (et valeurs des options qui en prennent une)
+    # sautées, tout mot restant est un chemin.
+    skip='' positional='' include='' only='' amend=''
+    set -f
+    for word in $args; do
+      if [ -n "$skip" ]; then skip=''; continue; fi
+      case "$word" in
+        --) include=1 ;;
+        --amend) amend=1 ;;
+        --only) only=1 ;;
+        --include | --pathspec-from-file | --pathspec-from-file=*) include=1 ;;
+        --message | --file | --reuse-message | --reedit-message | --template | \
+          --author | --date | --cleanup | --fixup | --squash | --trailer) skip=1 ;;
+        --*) ;;
+        -?*)
+          # Grappe d'options courtes : un m, F, C, c ou t prend le reste de la
+          # grappe pour valeur, ou le mot suivant s'il n'y a pas de reste.
+          rest=${word#-}
+          while [ -n "$rest" ]; do
+            ch=${rest:0:1}
+            rest=${rest:1}
+            case "$ch" in
+              i) include=1 ;;
+              o) only=1 ;;
+              u) break ;; # -u<mode> : le reste de la grappe est le mode
+              m | F | C | c | t)
+                [ -z "$rest" ] && skip=1
+                break
+                ;;
+            esac
+          done
+          ;;
+        *) positional=1 ;;
+      esac
+    done
+    set +f
+    if [ -n "$positional" ] || [ -n "$include" ]; then deny "$msg_index"; fi
+    if [ -n "$only" ]; then
+      # Reformulation d'un commit (amend --only, sans chemin) : aucun verdict.
+      [ -n "$amend" ] || deny "$msg_index"
+    else
+      needs_verdict=1
+    fi
+  done < <(printf '%s\n' "$git_cmds" | grep -E "${git}commit([[:space:]]|\$)")
+
+  if [ -n "$needs_verdict" ]; then
+    staged=$(git -C "$dir" -c core.quotepath=off diff --cached --name-only --no-renames 2>/dev/null)
+    need=''
+    if printf '%s\n' "$staged" | grep -Eq '^(lib/|test/|android/|ios/|pubspec\.(yaml|lock)$|analysis_options\.yaml$|l10n\.yaml$|firestore\.rules$|firestore\.indexes\.json$|firebase\.json$)|\.dart$|\.arb$'; then
+      need='verifier reviewer'
+    elif printf '%s\n' "$staged" | grep -Eqv '(\.md$|^$)'; then
+      need='reviewer'
+    fi
+    if [ -n "$need" ]; then
+      gitdir=$(git -C "$dir" rev-parse --absolute-git-dir 2>/dev/null) ||
+        deny "dépôt introuvable depuis le cwd du hook : commiter depuis le dossier du dépôt."
+      # Empreinte de l'index (mode, blob et chemin de chaque entrée), sans verrou.
+      tree=$(set -o pipefail; git -C "$dir" ls-files -s -z 2>/dev/null | git hash-object --stdin 2>/dev/null)
+      head=$(git -C "$dir" rev-parse HEAD 2>/dev/null) || head=unborn
+      [ -n "$head" ] || head=unborn
+      missing=''
+      for agent in $need; do
+        if [ "$agent" = reviewer ]; then
+          [ -f "$gitdir/anki-checks/head-$head.reviewer" ] ||
+            missing="${missing:+$missing et }la revue du reviewer depuis le dernier commit (une seule revue par commit : appliquer ses remarques puis commiter)"
+        else
+          [ -n "$tree" ] && [ -f "$gitdir/anki-checks/$tree.$agent" ] ||
+            missing="${missing:+$missing et }le verdict du verifier pour l'index actuel (empreinte ${tree:0:7})"
+        fi
+      done
+      if [ -n "$missing" ]; then
+        deny "commit refusé : il manque $missing. Le verifier doit repasser sur l'index exact après les corrections ; le reviewer ne repasse pas."
+      fi
+    fi
+  fi
+fi
+
 # À confirmer par le mainteneur.
 if has "${git}push\\b"; then
   ask "git push publie l'historique sur le dépôt distant."
@@ -131,7 +264,7 @@ if has "${git}stash[[:space:]]+(drop|clear)"; then
   ask "supprime du travail mis de côté."
 fi
 if has "${git}(commit[^;&|]*--amend|rebase)\\b" &&
-  git -C "${CLAUDE_PROJECT_DIR:-.}" merge-base --is-ancestor HEAD '@{u}' 2>/dev/null; then
+  git -C "$dir" merge-base --is-ancestor HEAD '@{u}' 2>/dev/null; then
   ask "réécrit des commits déjà poussés."
 fi
 exit 0

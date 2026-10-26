@@ -32,7 +32,21 @@ delegates the rest with a complete brief, since agents don't see the conversatio
 `verifier` (Haiku) runs the checks of any verify step and returns only failures; `implementer`
 (Sonnet) applies a fully specified mechanical change and sends back any open choice;
 `device-runner` (Sonnet) makes every emulator or phone check; `reviewer` (Opus, high effort)
-reviews the diff before committing a feature, a fix with logic or a structural change.
+reviews the diff before every commit touching code or tooling; only markdown-only commits are exempt.
+
+These steps are mandatory, not advice, in every session including side sessions: implement
+(mechanical parts → `implementer`) → stage explicit paths → `verifier` and `reviewer` on that index
+(in parallel) → commit. The reviewer runs once per commit, on the staged diff: apply its findings
+(blocking ones included), re-stage, run the verifier again on the final index, then commit — no
+second review. The verifier must pass on the exact staged index. This keeps token use reasonable.
+A hook enforces it: `guard-git.sh` refuses a commit touching code (lib, test, platform, pubspec,
+Firebase config) without the verifier's verdict for the staged tree and the reviewer's review since
+the last commit, and any other commit that isn't markdown-only without the reviewer's
+(`record-check.sh` records them on SubagentStop: the verifier bound to the tree it started on, an
+index changed while it ran recording nothing; the reviewer bound to HEAD). The gate protects against forgetting, not against
+deliberate bypass. Every change visible in the app also
+goes through `device-runner` before the final report, or the report says « appareil : non vérifié »
+and why.
 
 ## Stack
 
@@ -61,7 +75,9 @@ In Claude Code, hooks (`.claude/settings.json`, scripts in `.claude/hooks/`) sho
 at session start, format every `.dart` file right after it is written or edited, block blind,
 merging or forced git commands and any Firebase command that writes production (the emulator,
 read-only commands and a rules `--dry-run` pass), and ask the maintainer before a push or
-anything that discards work; reading `secrets.json` is denied. Other agents follow the same
+anything that discards work, and refuse a commit without the agents' verdicts for the staged index
+(`verifier` and `reviewer` for code, `reviewer` alone for other non-markdown files, nothing for
+markdown-only commits); reading `secrets.json` is denied. Other agents follow the same
 rules by hand.
 
 ## Code map
