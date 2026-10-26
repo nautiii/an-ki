@@ -102,7 +102,7 @@ class _BottomBarItems extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Re-mesure quand une police finit de charger (Outfit, téléchargée).
+    // Re-mesure si les polices système changent.
     return ListenableBuilder(
       listenable: PaintingBinding.instance.systemFonts,
       builder: (context, _) => LayoutBuilder(

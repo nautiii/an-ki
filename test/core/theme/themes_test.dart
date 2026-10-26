@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/core/theme/themes.dart';
@@ -27,13 +29,25 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('bundles every Outfit weight the theme uses', () async {
-    final manifest = await rootBundle.loadString('FontManifest.json');
+    final manifest = jsonDecode(
+      await rootBundle.loadString('FontManifest.json'),
+    ) as List<Object?>;
+    final outfit = manifest.cast<Map<String, Object?>>().singleWhere(
+      (family) => family['family'] == 'Outfit',
+    );
+    final weights = {
+      for (final font
+          in (outfit['fonts']! as List<Object?>).cast<Map<String, Object?>>())
+        font['asset']! as String: (font['weight'] as int?) ?? 400,
+    };
 
-    expect(manifest, contains('"family":"Outfit"'));
-    for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
-      expect(manifest, contains('Outfit-$weight.ttf'));
-    }
-    expect(manifest, contains('Outfit-ExtraBold.ttf'));
+    expect(weights, {
+      'lib/assets/fonts/Outfit-Regular.ttf': 400,
+      'lib/assets/fonts/Outfit-Medium.ttf': 500,
+      'lib/assets/fonts/Outfit-SemiBold.ttf': 600,
+      'lib/assets/fonts/Outfit-Bold.ttf': 700,
+      'lib/assets/fonts/Outfit-ExtraBold.ttf': 800,
+    });
   });
 
   for (final (label, theme, brightness) in [
@@ -48,6 +62,9 @@ void main() {
 
       test('applies Outfit to every text style', () {
         for (final style in _allStyles(theme.textTheme)) {
+          expect(style?.fontFamily, 'Outfit');
+        }
+        for (final style in _allStyles(theme.primaryTextTheme)) {
           expect(style?.fontFamily, 'Outfit');
         }
       });

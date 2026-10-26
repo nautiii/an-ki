@@ -54,32 +54,30 @@ In widgets: `context.ankiColors.hero` (gradient), `.onHero`, `.blossom.container
 
 ## 3. Typography foundation — bundle Outfit
 
-Shipped (backlog F1, 2026-10-26) from `Outfitio/Outfit-Fonts@9027738`; kept as the reference for
-adding a weight. Why: offline first launch, no runtime network call, and real weights.
-Steps (downloading a font = ask the maintainer first):
-1. Static TTFs from Google Fonts (OFL) — Outfit 300…900 — into `lib/assets/fonts/`, next to the
-   app's other assets.
-2. `pubspec.yaml`:
-   ```yaml
-   flutter:
-     fonts:
-       - family: Outfit
-         fonts:
-           - asset: lib/assets/fonts/Outfit-Regular.ttf
-           - asset: lib/assets/fonts/Outfit-Medium.ttf
-             weight: 500
-           - asset: lib/assets/fonts/Outfit-SemiBold.ttf
-             weight: 600
-           - asset: lib/assets/fonts/Outfit-Bold.ttf
-             weight: 700
-           - asset: lib/assets/fonts/Outfit-ExtraBold.ttf
-             weight: 800
-   ```
-3. `ThemeData(fontFamily: 'Outfit', …)`; remove `GoogleFonts.outfit…` from the theme (and the
-   `google_fonts` dependency if unused). Text styles then come from the M3 type scale; tune
-   weights per role in a `textTheme` copy (identity §4).
-4. Snapshots switch from the Roboto stand-in to real Outfit automatically (fonts declared in
-   pubspec are loaded by the tool).
+Shipped (backlog F1, 2026-10-26): Outfit static TTFs 400, 500, 600, 700, 800 from
+`Outfitio/Outfit-Fonts@9027738` (`fonts/ttf/`), with `OFL.txt`, in `lib/assets/fonts/`, declared
+as the `Outfit` family in `pubspec.yaml`, applied by `ThemeData(fontFamily: AppTheme.fontFamily)`.
+
+```yaml
+flutter:
+  fonts:
+    - family: Outfit
+      fonts:
+        - asset: lib/assets/fonts/Outfit-Regular.ttf
+        - asset: lib/assets/fonts/Outfit-Medium.ttf
+          weight: 500
+        - asset: lib/assets/fonts/Outfit-SemiBold.ttf
+          weight: 600
+        - asset: lib/assets/fonts/Outfit-Bold.ttf
+          weight: 700
+        - asset: lib/assets/fonts/Outfit-ExtraBold.ttf
+          weight: 800
+```
+
+To add a weight (e.g. 300 or 900): ask the maintainer before downloading; take the static TTF
+from the same repo and commit; check its git blob hash against the GitHub API; add it to the
+family with its `weight:`; add it to the manifest test in `test/core/theme/themes_test.dart`;
+update identity §4.
 
 ## 4. Delete with « Annuler »
 

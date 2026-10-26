@@ -23,7 +23,7 @@ auth or dependencies → design brief + maintainer approval first.
 ## Contents
 - Big bets (B4, B8; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
 - Foundation (none open) — design system, prerequisite for consistency
-- P1 — friction & states (none open)
+- P1 — friction & states (D27)
 - P2 — polish (D10, D13, D15–D17, D25, D26)
 - Suggested roadmap
 
@@ -167,5 +167,5 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
 ## Suggested roadmap
 
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **B4, B8, D10, D13, D15–D17, D25, D26** — depth and polish;
+2. **D27, B4, B8, D10, D13, D15–D17, D25, D26** — depth and polish;
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
