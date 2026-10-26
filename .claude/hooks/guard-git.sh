@@ -14,12 +14,26 @@ case "$cmd" in
   *) exit 0 ;;
 esac
 
-# Texte JSON → commande : guillemets dé-échappés, heredoc et chaînes retirés.
+# Texte JSON → commande : guillemets dé-échappés, heredoc retiré, chaînes
+# remplacées par _ (un argument cité reste un mot : `git -C "x" merge`).
 cmd=${cmd//\\\"/\"}
 cmd=${cmd%%<<*}
-cmd=$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")
+cmd=$(printf '%s' "$cmd" | sed -E "s/'[^']*'/_/g; s/\"[^\"]*\"/_/g")
 
-has() { printf '%s' "$cmd" | grep -Eq -- "$1"; }
+# Commandes simples, une par ligne (séparées par ; & | ( ) ` ou un retour à la
+# ligne), débarrassées de ce qui précède le vrai premier mot : mots-clés,
+# affectations, préfixes (npx et ses options, timeout, env…). Une règle ne vise
+# que les commandes dont ce premier mot est git ou firebase : le mot en argument
+# (dossier, fichier, texte cherché, echo) n'en est pas un.
+simple_commands() {
+  printf '%s' "$cmd" | sed 's/\\n/\n/g' | tr ';&|()`' '\n\n\n\n\n\n' |
+    sed -E 's/^[[:space:]]+//' |
+    sed -E 's/^(((do|then|else|!|npx|exec|command|nohup|env)|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*|-[^[:space:]]+|timeout[[:space:]]+[^[:space:]]+)[[:space:]]+)+//'
+}
+git_cmds=$(simple_commands | grep -E '^([^[:space:]]*[/\\])?git(\.exe)?([[:space:]]|$)')
+
+# Vrai si un appel git correspond au motif (ancré au début de l'appel).
+has() { printf '%s' "$git_cmds" | grep -Eq -- "$1"; }
 deny() {
   printf 'Bloqué par .claude/hooks/guard-git.sh : %s\n' "$1" >&2
   exit 2
@@ -29,7 +43,7 @@ ask() {
   exit 0
 }
 
-git='git([[:space:]]+-[cC][[:space:]]+[^[:space:]]+)*[[:space:]]+'
+git='^([^[:space:]]*[/\\])?git(\.exe)?([[:space:]]+-[cC][[:space:]]+[^[:space:]]+)*[[:space:]]+'
 end='([[:space:]]|[;&|)]|$)'
 
 # Interdit (skill git-workflow).
@@ -46,7 +60,7 @@ fi
 if has "${git}commit[^;&|]*[[:space:]](-[b-zA-Z]*a[a-zA-Z]*|--all)${end}"; then
   deny "git commit -a embarque tout le travail en cours : indexer des chemins explicites."
 fi
-if has '--no-verify|--no-gpg-sign|gpgsign=false'; then
+if has '^[^[:space:]]*git.*(--no-verify|--no-gpg-sign|gpgsign=false)'; then
   deny "ne jamais contourner les hooks git ni la signature : corriger la cause."
 fi
 if has "${git}push[^;&|]*[[:space:]](-f|--force)${end}"; then
@@ -55,14 +69,9 @@ fi
 # Firebase : seules les commandes locales ou en lecture seule passent. Le reste
 # (deploy, suppressions, imports, connexion…) écrit en production ou touche au
 # compte du mainteneur, qui le lance lui-même (skill firebase).
-# Un appel est une commande simple (séparée par ; & | ( ) ` ou un retour à la
-# ligne) dont le premier mot, une fois retirés mots-clés, affectations et
-# préfixes (npx et ses options, timeout, env…), est firebase : le mot en argument
-# (dossier, fichier, texte cherché) n'en est pas un.
+# Un appel est une commande simple dont le premier mot est firebase.
 firebase_calls() {
-  printf '%s' "$1" | sed 's/\\n/\n/g' | tr ';&|()`' '\n\n\n\n\n\n' |
-    sed -E 's/^[[:space:]]+//' |
-    sed -E 's/^(((do|then|else|!|npx|exec|command|nohup|env)|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*|-[^[:space:]]+|timeout[[:space:]]+[^[:space:]]+)[[:space:]]+)+//' |
+  simple_commands |
     grep -E '^([^[:space:]]*[/\\])?firebase(-tools)?(@[^[:space:]]*)?(\.cmd|\.exe)?([[:space:]]|$)'
 }
 # Sous-commande d'un appel (les mots après la commande), options globales et
@@ -100,7 +109,7 @@ while IFS= read -r call; do
       ;;
     *) deny "commande Firebase réservée au mainteneur (production ou compte) : dire ce qu'il faut lancer." ;;
   esac
-done < <(firebase_calls "$cmd")
+done < <(firebase_calls)
 
 # À confirmer par le mainteneur.
 if has "${git}push\\b"; then
