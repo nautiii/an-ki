@@ -146,7 +146,6 @@ emulator window.
 
 Debug builds only (`run-as` refuses release builds):
 `adb shell run-as com.github.nautiii.an_ki ls -la files shared_prefs`.
-- `files/Outfit_*.ttf`: the fonts google_fonts downloaded.
 - `shared_prefs/notification_plugin_cache.xml`: the notification plugin's own schedule
   (`device.sh alarms` prints it).
 - Never print `FlutterSecureKeyStorage.xml` or the secure-storage files: they hold keys.

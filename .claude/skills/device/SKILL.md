@@ -7,7 +7,7 @@ effort: low
 # AnKi on a device — launch, observe, vary
 
 Tests and the ux-ui snapshots render AnKi's widgets on the host. Only a device shows what people
-get: Outfit downloaded by google_fonts (snapshots fall back to Roboto), colour emoji, Android's
+get: colour emoji, Android's
 nonlinear 200 % text, the system bars, permission dialogs, alarms and notifications, contacts,
 Firestore offline, real startup. This skill puts the app on a device and brings back evidence:
 screenshots you open with Read, the UI tree, logs, the system's own dumps.

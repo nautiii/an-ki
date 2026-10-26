@@ -54,8 +54,9 @@ In widgets: `context.ankiColors.hero` (gradient), `.onHero`, `.blossom.container
 
 ## 3. Typography foundation — bundle Outfit
 
-Why: offline first launch, no runtime network call, and real weights (`copyWith(fontWeight:)` on a
-google_fonts style only fakes bold). Steps (downloading the font = ask the maintainer first):
+Shipped (backlog F1, 2026-10-26) from `Outfitio/Outfit-Fonts@9027738`; kept as the reference for
+adding a weight. Why: offline first launch, no runtime network call, and real weights.
+Steps (downloading a font = ask the maintainer first):
 1. Static TTFs from Google Fonts (OFL) — Outfit 300…900 — into `lib/assets/fonts/`, next to the
    app's other assets.
 2. `pubspec.yaml`:

@@ -164,8 +164,7 @@ flutter test build/ui_snapshots/_src/palette_audit_test.dart
   - `contraste (heuristique, à confirmer)` → a pointer only: it misfires on text inside tinted
     cells and chips (ratios under ~2:1 are usually sampling artefacts). Add the pair to the palette
     audit and confirm before acting.
-- Limits: Roboto stands in for Outfit until the font is bundled (backlog F1); emoji render as
-  boxes; plugins called during build need a `prepare` mock. Re-copy the scripts when the skill's
+- Limits: emoji render as boxes; plugins called during build need a `prepare` mock. Re-copy the scripts when the skill's
   versions change. The device skill captures the real rendering where these limits matter.
 
 ## Review checklist
@@ -187,8 +186,8 @@ flutter test build/ui_snapshots/_src/palette_audit_test.dart
 
 ## Codebase gotchas
 
-- `GoogleFonts.outfit…` + `style.copyWith(fontWeight: …)` renders a faux bold. Prefer theme styles
-  at their native weight until Outfit is bundled (backlog F1).
+- Outfit is bundled at 400, 500, 600, 700 and 800: `copyWith(fontWeight:)` within that range is a
+  real weight; anything lighter or heavier falls back to the nearest one until its TTF is added.
 - `TestHarness` doesn't apply `AppTheme`: widget tests check behaviour, while look and contrast are
   checked with the snapshot tool and the palette audit. `context.ankiColors` falls back safely.
 - `core/` never imports a feature; `core/common` widgets stay dumb (params + callbacks).

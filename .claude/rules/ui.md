@@ -59,8 +59,7 @@ ready-made components and the snapshot tool live there.
   needs `useRootNavigator: true` or it opens under the floating bar (details: `navigation.md`).
 - A `SnackBar` with an action persists by default since 3.44: pass `persist: false` for undo.
 - Theme classes are `AppBarThemeData`, `CardThemeData`, `DialogThemeData`,
-  `InputDecorationThemeData`. `GoogleFonts.outfit(…)` + `copyWith(fontWeight:)` renders a faux
-  bold: use theme styles at their native weight until Outfit is bundled.
+  `InputDecorationThemeData`. Outfit is bundled at weights 400–800: stay in that range.
 
 ## Tests
 

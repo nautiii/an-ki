@@ -4,7 +4,6 @@ import 'package:an_ki/core/theme/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 List<TextStyle?> _allStyles(TextTheme t) => [
   t.displayLarge,
@@ -27,15 +26,15 @@ List<TextStyle?> _allStyles(TextTheme t) => [
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  // Les polices ne sont pas embarquées : on évite toute tentative réseau.
-  // Réglé avant le premier accès à AppTheme, qui construit les styles.
-  GoogleFonts.config.allowRuntimeFetching = false;
+  test('bundles every Outfit weight the theme uses', () async {
+    final manifest = await rootBundle.loadString('FontManifest.json');
 
-  // google_fonts journalise alors l'échec de chargement des polices : sans
-  // intérêt ici, seuls les styles produits sont vérifiés.
-  final originalDebugPrint = debugPrint;
-  debugPrint = (String? message, {int? wrapWidth}) {};
-  tearDownAll(() => debugPrint = originalDebugPrint);
+    expect(manifest, contains('"family":"Outfit"'));
+    for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
+      expect(manifest, contains('Outfit-$weight.ttf'));
+    }
+    expect(manifest, contains('Outfit-ExtraBold.ttf'));
+  });
 
   for (final (label, theme, brightness) in [
     ('light', AppTheme.light, Brightness.light),
@@ -49,8 +48,7 @@ void main() {
 
       test('applies Outfit to every text style', () {
         for (final style in _allStyles(theme.textTheme)) {
-          expect(style?.fontFamily, startsWith('Outfit'));
-          expect(style?.fontFamilyFallback, contains('Outfit'));
+          expect(style?.fontFamily, 'Outfit');
         }
       });
 
@@ -79,7 +77,7 @@ void main() {
         expect(appBar.elevation, 0);
         expect(appBar.scrolledUnderElevation, 0);
         expect(appBar.centerTitle, isTrue);
-        expect(appBar.titleTextStyle?.fontFamily, startsWith('Outfit'));
+        expect(appBar.titleTextStyle?.fontFamily, 'Outfit');
         expect(appBar.titleTextStyle?.fontSize, 20);
         expect(appBar.titleTextStyle?.fontWeight, FontWeight.bold);
         expect(appBar.titleTextStyle?.color, theme.colorScheme.onSurface);

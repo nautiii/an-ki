@@ -15,7 +15,6 @@ import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/core/theme/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 // ═══ COUPLES À VÉRIFIER — compléter selon le composant ════════════════════════
 
@@ -124,7 +123,6 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('palette audit', () async {
-    await _warmUpTheme();
     for (final (name, theme) in [
       ('light', AppTheme.light),
       ('dark', AppTheme.dark),
@@ -178,18 +176,3 @@ double _contrast(Color a, Color b) {
 
 String _hex(Color c) =>
     '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
-
-// Construire AppTheme déclenche google_fonts (sans réseau en test) : on le fait
-// taire, les couleurs n'en dépendent pas.
-Future<void> _warmUpTheme() async {
-  GoogleFonts.config.allowRuntimeFetching = false;
-  final originalDebugPrint = debugPrint;
-  debugPrint = (String? message, {int? wrapWidth}) {};
-  try {
-    await GoogleFonts.pendingFonts([AppTheme.light, AppTheme.dark]);
-  } catch (_) {
-    // Attendu tant que la police n'est pas embarquée.
-  } finally {
-    debugPrint = originalDebugPrint;
-  }
-}

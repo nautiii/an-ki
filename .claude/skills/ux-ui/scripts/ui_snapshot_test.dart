@@ -12,8 +12,7 @@
 //    zoom 2x : build/ui_snapshots/before/<scène>/<variante>.png
 // build/ est ignoré par git : rien à nettoyer, rien ne fuit dans test/.
 //
-// Limites : Roboto remplace Outfit tant qu'elle n'est pas embarquée (métriques
-// proches, pas identiques) ; pas d'emoji ; les plugins natifs appelés au build
+// Limites : pas d'emoji ; les plugins natifs appelés au build
 // doivent être mockés via `prepare` (cf. test/support/platform_mocks.dart et
 // test/support/fake_mobile_scanner_platform.dart).
 
@@ -45,7 +44,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../test/support/fake_providers.dart';
 import '../../../test/support/network_image_mock.dart';
@@ -325,8 +323,7 @@ void runUiSnapshots(List<UiScene> scenes) {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
-    final brandFontsLoaded = await _warmUpTheme();
-    await _loadFonts(standInForThemeFonts: !brandFontsLoaded);
+    await _loadFonts();
   });
 
   for (final scene in scenes) {
@@ -645,27 +642,11 @@ String _firstLine(String text) => text
     .map((l) => l.trim())
     .firstWhere((l) => l.isNotEmpty, orElse: () => text);
 
-// Construit AppTheme hors fake-async. Sans réseau, google_fonts échoue en
-// silence ; retourne true seulement si les polices du thème sont embarquées.
-Future<bool> _warmUpTheme() async {
-  GoogleFonts.config.allowRuntimeFetching = false;
-  final originalDebugPrint = debugPrint;
-  debugPrint = (String? message, {int? wrapWidth}) {};
-  try {
-    await GoogleFonts.pendingFonts([AppTheme.light, AppTheme.dark]);
-    return true;
-  } catch (_) {
-    return false;
-  } finally {
-    debugPrint = originalDebugPrint;
-  }
-}
-
 // En test, toute police inconnue s'affiche en carrés (police « FlutterTest »).
 // 1) on charge les polices déclarées dans le pubspec (dont MaterialIcons) ;
-// 2) pour chaque famille du thème non embarquée (ex. « Outfit_700 » de
-//    google_fonts), on enregistre Roboto du SDK à la graisse la plus proche.
-Future<void> _loadFonts({required bool standInForThemeFonts}) async {
+// 2) pour chaque famille du thème non déclarée (aucune tant qu'Outfit est
+//    embarquée), on enregistre Roboto du SDK à la graisse la plus proche.
+Future<void> _loadFonts() async {
   final declared = <String>{};
   final manifest = jsonDecode(
     await rootBundle.loadString('FontManifest.json'),
@@ -705,31 +686,29 @@ Future<void> _loadFonts({required bool standInForThemeFonts}) async {
   final standIns = <String, Set<FontWeight>>{
     'Roboto': {...FontWeight.values},
   };
-  if (standInForThemeFonts) {
-    for (final theme in [AppTheme.light, AppTheme.dark]) {
-      final t = theme.textTheme;
-      for (final style in [
-        t.displayLarge,
-        t.displayMedium,
-        t.displaySmall,
-        t.headlineLarge,
-        t.headlineMedium,
-        t.headlineSmall,
-        t.titleLarge,
-        t.titleMedium,
-        t.titleSmall,
-        t.bodyLarge,
-        t.bodyMedium,
-        t.bodySmall,
-        t.labelLarge,
-        t.labelMedium,
-        t.labelSmall,
-        theme.appBarTheme.titleTextStyle,
-      ]) {
-        final family = style?.fontFamily;
-        if (family == null || declared.contains(family)) continue;
-        (standIns[family] ??= {}).add(style!.fontWeight ?? FontWeight.w400);
-      }
+  for (final theme in [AppTheme.light, AppTheme.dark]) {
+    final t = theme.textTheme;
+    for (final style in [
+      t.displayLarge,
+      t.displayMedium,
+      t.displaySmall,
+      t.headlineLarge,
+      t.headlineMedium,
+      t.headlineSmall,
+      t.titleLarge,
+      t.titleMedium,
+      t.titleSmall,
+      t.bodyLarge,
+      t.bodyMedium,
+      t.bodySmall,
+      t.labelLarge,
+      t.labelMedium,
+      t.labelSmall,
+      theme.appBarTheme.titleTextStyle,
+    ]) {
+      final family = style?.fontFamily;
+      if (family == null || declared.contains(family)) continue;
+      (standIns[family] ??= {}).add(style!.fontWeight ?? FontWeight.w400);
     }
   }
   for (final MapEntry(key: family, value: weights) in standIns.entries) {

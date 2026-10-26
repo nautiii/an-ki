@@ -35,7 +35,7 @@ else: a signature seen everywhere stops being one.
 | S3 | **Moon-phase countdown** *(`lib/core/common/moon_phase.dart`)* | Next to "dans N jours" in hero and list rows | Waxing moon over the last 29 days, full moon = today; beyond 29 days an unlit disc. Always paired with text (decorative for TalkBack). On gradients pass `litColor: onHero`. |
 | S4 | **Blossom celebration** *(`features/birthday/widgets/blossom_rain.dart`)* | Hero on the birthday itself (J-0) | Soft falling lotus/plum petals ≤ 2.5 s (2.4 s), once per person per day, `mediumImpact`. Skipped when reduce-motion is on. Never generic confetti. Tones `AnKiColors.petals`. |
 | S5 | **Floating glass pill navigation** | Main tabs (`core/common/bottom_bar.dart`) | Blurred translucent pill, radius 32, content scrolls beneath. Labels must stay available to TalkBack. |
-| S6 | **Big tabular numerals** | Countdown, age, counts | Outfit w800, `FontFeature.tabularFigures()`, letter-spacing −1, once Outfit is bundled (F1); until then the theme style at its native weight with tabular figures. One per card. |
+| S6 | **Big tabular numerals** | Countdown, age, counts | Outfit w800, `FontFeature.tabularFigures()`, letter-spacing −1. One per card. |
 
 ## 3. Color
 
@@ -124,10 +124,11 @@ groups no longer share one ring.
 
 ## 4. Typography
 
-**Outfit** (geometric, friendly, excellent numerals). Today it's fetched at runtime by
-`google_fonts` → offline first launch shows the fallback font, and `style.copyWith(fontWeight:)`
-renders a **faux bold** (google_fonts registers one family per weight). Target: bundle Outfit
-static TTFs (OFL) as a pubspec family and use `ThemeData(fontFamily: 'Outfit')` (backlog F1).
+**Outfit** (geometric, friendly, excellent numerals), bundled as static TTFs (OFL, weights 400,
+500, 600, 700, 800 in `lib/assets/fonts/`) and applied by `ThemeData(fontFamily: 'Outfit')`:
+real weights, so `style.copyWith(fontWeight:)` is safe within 400–800; correct offline; identical
+in snapshots. A weight outside 400–800 needs its TTF added to the pubspec family first. Outfit has
+no U+2011 glyph (backlog D27).
 
 | M3 role | AnKi use | Weight |
 |---------|----------|--------|
