@@ -25,6 +25,15 @@ correct but hasn't been built on the current setup.
   instead of fixing them silently.
 - Show, don't claim: say what you ran (format, analyze, tests, device) and what you didn't.
 
+## Delegation (Claude Code, `.claude/agents/`)
+
+The main session keeps every judgement (design, briefs, decisions, the code that needs them) and
+delegates the rest with a complete brief, since agents don't see the conversation:
+`verifier` (Haiku) runs the checks of any verify step and returns only failures; `implementer`
+(Sonnet) applies a fully specified mechanical change and sends back any open choice;
+`device-runner` (Sonnet) makes every emulator or phone check; `reviewer` (Opus, high effort)
+reviews the diff before committing a feature, a fix with logic or a structural change.
+
 ## Stack
 
 Flutter 3.47.6 · Dart 3.13.5 · Material 3 · Riverpod 3.4 (hand-written providers, no codegen) ·
