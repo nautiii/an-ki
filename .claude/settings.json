@@ -62,7 +62,7 @@
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/record-check.sh\"",
-            "timeout": 15
+            "timeout": 60
           }
         ]
       }
@@ -74,7 +74,7 @@
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/record-check.sh\"",
-            "timeout": 15
+            "timeout": 60
           }
         ]
       }
@@ -86,7 +86,7 @@
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/record-check.sh\"",
-            "timeout": 15
+            "timeout": 60
           }
         ]
       }
