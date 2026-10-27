@@ -87,6 +87,11 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  /// Le nom passe sous l'avatar plutôt qu'à sa droite.
+  bool stacked(WidgetTester tester) =>
+      tester.getTopLeft(find.text('Alice Wonderland')).dy >=
+      tester.getBottomLeft(find.byType(AnKiAvatar)).dy;
+
   testWidgets('shows who, when, how old and how soon', (tester) async {
     await pumpTile(tester, birthday());
 
@@ -145,9 +150,12 @@ void main() {
     );
 
     expect(find.text('Souhaité'), findsOneWidget);
+    // Empilée (« Aujourd'hui » est large) : le vœu se lit en dernier.
+    expect(stacked(tester), isTrue);
     expect(
       tester.getSemantics(find.text('Alice Wonderland')).label,
-      contains('Souhaité'),
+      "Amis, Famille\nAlice Wonderland\n12 octobre · aura 36 ans\n"
+      "Aujourd'hui\nSouhaité",
     );
     semantics.dispose();
   });
@@ -266,11 +274,6 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  /// Le nom passe sous l'avatar plutôt qu'à sa droite.
-  bool stacked(WidgetTester tester) =>
-      tester.getTopLeft(find.text('Alice Wonderland')).dy >=
-      tester.getBottomLeft(find.byType(AnKiAvatar)).dy;
-
   testWidgets('stacks its parts at 200 % text', (tester) async {
     tester.platformDispatcher.textScaleFactorTestValue = 2;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
@@ -280,6 +283,41 @@ void main() {
     expect(find.text('Alice Wonderland'), findsOneWidget);
     expect(stacked(tester), isTrue);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('reads a stacked row in the order of a single row', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await pumpTile(tester, birthday());
+
+    expect(stacked(tester), isTrue);
+    // Le compte à rebours est au-dessus du nom, mais se lit après lui.
+    expect(
+      tester.getSemantics(find.text('Alice Wonderland')).label,
+      'Amis, Famille\nAlice Wonderland\n24 octobre · aura 36 ans\nJ-12',
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('reads nothing before the name of a stacked row without groups', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await pumpTile(tester, birthday(categories: const []));
+
+    expect(stacked(tester), isTrue);
+    expect(
+      tester.getSemantics(find.text('Alice Wonderland')).label,
+      'Alice Wonderland\n24 octobre · aura 36 ans\nJ-12',
+    );
+    semantics.dispose();
   });
 
   testWidgets('keeps one row while the date fits on two lines', (tester) async {

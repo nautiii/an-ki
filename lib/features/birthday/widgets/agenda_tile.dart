@@ -113,17 +113,15 @@ class _TileContent extends ConsumerWidget {
     final categories = birthday.categoriesFrom(ref.watch(categoriesProvider));
 
     // L'anneau est muet pour TalkBack : les catégories sont lues en clair.
-    final avatar = Semantics(
-      label: [
-        for (final category in categories) category.localizedName(context),
-      ].join(', '),
-      child: AnKiAvatar(
-        name: fullName,
-        image: picture != null ? MemoryImage(picture) : null,
-        ringColors: [
-          for (final category in categories) category.tones(context).color,
-        ],
-      ),
+    final categoryLabel = [
+      for (final category in categories) category.localizedName(context),
+    ].join(', ');
+    final ring = AnKiAvatar(
+      name: fullName,
+      image: picture != null ? MemoryImage(picture) : null,
+      ringColors: [
+        for (final category in categories) category.tones(context).color,
+      ],
     );
     // Sans année de naissance, la date seule : aucun âge inventé.
     final when = switch (birthday.turningAge(today)) {
@@ -173,18 +171,25 @@ class _TileContent extends ConsumerWidget {
         final largeText = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
         if (largeText ||
             !_fitsOnTwoLines(context, when, whenStyle, textWidth)) {
+          // Bâtie de bas en haut, la colonne se lit dans l'ordre de la
+          // ligne : catégories, nom, date, puis le compte à rebours, bien
+          // qu'il soit placé au-dessus. `min` la garde en haut de la carte :
+          // de bas en haut, une colonne plus haute que son contenu le
+          // collerait en bas.
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            verticalDirection: VerticalDirection.up,
             children: [
-              Row(children: [avatar, const Spacer(), status]),
+              Semantics(label: categoryLabel, child: identity),
               const SizedBox(height: AppSpacing.xs),
-              identity,
+              Row(children: [ring, const Spacer(), status]),
             ],
           );
         }
         return Row(
           children: [
-            avatar,
+            Semantics(label: categoryLabel, child: ring),
             const SizedBox(width: AppSpacing.sm),
             Expanded(child: identity),
             const SizedBox(width: AppSpacing.xs),
