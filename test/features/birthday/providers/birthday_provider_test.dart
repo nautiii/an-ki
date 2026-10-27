@@ -168,6 +168,40 @@ void main() {
       expect(next.map((b) => b.id), ['near']);
     });
 
+    test('belatedBirthdaysProvider keeps yesterday, one day only', () {
+      // _day commence le 16 octobre 2026.
+      Birthday bornOn(String id, int day) => Birthday(
+        id: id,
+        name: id,
+        surname: '',
+        date: BirthDate(month: 10, day: day),
+      );
+      final container = ProviderContainer.test(
+        overrides: [
+          birthdaysProvider.overrideWithValue(
+            AsyncData([bornOn('today', 16), bornOn('yesterday', 15)]),
+          ),
+          currentUidProvider.overrideWithValue('u1'),
+          todayProvider.overrideWith((ref) => ref.watch(_day)),
+        ],
+      );
+      container.listen(belatedBirthdaysProvider, (_, _) {});
+
+      expect(container.read(belatedBirthdaysProvider).map((b) => b.id), [
+        'yesterday',
+      ]);
+
+      // Le lendemain, la veille passe et le jour J devient « hier ».
+      container.read(_day.notifier).next();
+      expect(container.read(belatedBirthdaysProvider).map((b) => b.id), [
+        'today',
+      ]);
+
+      // Supprimé, avec « Annuler » encore possible : plus de rappel.
+      container.read(pendingDeletionsProvider.notifier).hide('today');
+      expect(container.read(belatedBirthdaysProvider), isEmpty);
+    });
+
     test('agendaProvider leaves the hero out and groups the rest', () {
       final soon = _relative(6, id: 'soon', name: 'Dan', surname: 'Brown');
       final container = containerWith([far, near, mid, soon]);

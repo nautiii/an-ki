@@ -52,4 +52,77 @@ void main() {
       expect(leapling.isWished(DateTime(2027, 2, 28)), isFalse);
     });
   });
+
+  group('isBelated', () {
+    test('is true the day after, for a birthday not wished', () {
+      expect(_bornOn(10, 16).isBelated(DateTime(2026, 10, 17)), isTrue);
+    });
+
+    test('is false on the day itself and two days after', () {
+      final birthday = _bornOn(10, 16);
+
+      expect(birthday.isBelated(DateTime(2026, 10, 16)), isFalse);
+      expect(birthday.isBelated(DateTime(2026, 10, 18)), isFalse);
+    });
+
+    test('is false once the birthday of yesterday was wished', () {
+      final birthday = _bornOn(10, 16, wished: [2026]);
+
+      expect(birthday.isBelated(DateTime(2026, 10, 17)), isFalse);
+    });
+
+    test('crosses the new year: a 31 December is wished for its year', () {
+      final birthday = _bornOn(12, 31);
+
+      expect(birthday.isBelated(DateTime(2027)), isTrue);
+      expect(birthday.wishYear(DateTime(2027)), 2026);
+      expect(
+        _bornOn(12, 31, wished: [2026]).isBelated(DateTime(2027)),
+        isFalse,
+      );
+    });
+
+    test('follows the 1 March of a 29 February birthday', () {
+      final leapling = _bornOn(2, 29);
+
+      expect(leapling.isBelated(DateTime(2027, 3, 2)), isTrue);
+      expect(leapling.isBelated(DateTime(2027, 3)), isFalse);
+      expect(leapling.isBelated(DateTime(2028, 3)), isTrue);
+    });
+
+    test('ignores the hour of today', () {
+      expect(_bornOn(10, 16).isBelated(DateTime(2026, 10, 17, 23, 59)), isTrue);
+    });
+  });
+
+  test('belated keeps the people of yesterday still to wish, by name', () {
+    Birthday person(
+      String id,
+      String name, {
+      int day = 16,
+      List<int> wished = const [],
+    }) => Birthday(
+      id: id,
+      name: name,
+      surname: '',
+      date: BirthDate(month: 10, day: day),
+      wishedYears: wished,
+    );
+    final birthdays = [
+      person('zoe', 'Zoé'),
+      person('today', 'Anna', day: 17),
+      person('wished', 'Bea', wished: [2026]),
+      person('leo-2', 'léo'),
+      person('emile', 'Émile'),
+      person('leo-1', 'Léo'),
+    ];
+
+    // Sans accents ni casse, puis par id entre homonymes.
+    expect(birthdays.belated(DateTime(2026, 10, 17)).map((b) => b.id), [
+      'emile',
+      'leo-1',
+      'leo-2',
+      'zoe',
+    ]);
+  });
 }

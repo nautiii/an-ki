@@ -7,6 +7,7 @@ import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:an_ki/features/birthday/domain/birthday_search.dart';
+import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -67,6 +68,13 @@ final birthdaysListProvider = Provider<List<Birthday>>((ref) {
 final nextBirthdaysProvider = Provider<List<Birthday>>((ref) {
   final birthdays = ref.watch(birthdaysListProvider);
   return birthdays.nextBirthdays(ref.watch(todayProvider));
+});
+
+/// Anniversaires d'hier encore à souhaiter, en retard : le lendemain
+/// seulement, recalculés quand le jour change.
+final belatedBirthdaysProvider = Provider<List<Birthday>>((ref) {
+  final birthdays = ref.watch(birthdaysListProvider);
+  return birthdays.belated(ref.watch(todayProvider));
 });
 
 /// Personnes dont la pluie de pétales (S4) est déjà tombée aujourd'hui : une
