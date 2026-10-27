@@ -278,6 +278,27 @@ void main() {
     expect(find.byType(AgendaTile, skipOffstage: false), findsNWidgets(3));
   });
 
+  testWidgets('recalls yesterday between the hero and the views', (
+    tester,
+  ) async {
+    final yesterday = onDay(-1, id: 'y');
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overrides(birthdays: [...agenda, yesterday]),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hier'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Hier')).dy,
+      greaterThan(tester.getBottomLeft(find.byType(NextBirthdayCard)).dy),
+    );
+    expect(
+      tester.getBottomLeft(find.text('Hier')).dy,
+      lessThan(tester.getTopLeft(find.text('Agenda')).dy),
+    );
+  });
+
   testWidgets('shows nothing more when the hero holds everyone', (
     tester,
   ) async {

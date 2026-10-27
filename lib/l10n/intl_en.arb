@@ -60,6 +60,7 @@
   "nextBirthday": "Next birthday",
   "today": "Today 🎉",
   "tomorrow": "Tomorrow",
+  "yesterday": "Yesterday",
   "inDays": "In {days} days",
   "@inDays": {
     "description": "Number of days until next birthday",
@@ -110,6 +111,7 @@
   "birthdayWished": "{name} got your wishes",
   "wish": "Send wishes",
   "wishMessage": "Happy birthday {name}! 🎂 Have a wonderful day.",
+  "wishMessageBelated": "Happy belated birthday {name}! 🎂 I hope you had a wonderful day.",
   "errorSharing": "Couldn't open sharing. Please try again.",
   "undo": "Undo",
   "delete": "Delete",

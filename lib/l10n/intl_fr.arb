@@ -182,6 +182,10 @@
   "nextBirthday": "Prochain anniversaire",
   "today": "Aujourd'hui 🎉",
   "tomorrow": "Demain",
+  "yesterday": "Hier",
+  "@yesterday": {
+    "description": "Surtitre du rappel d'un anniversaire d'hier encore à souhaiter (accueil, sous le héros)"
+  },
   "inDays": "Dans {days} jours",
   "@inDays": {
     "description": "Number of days until next birthday",
@@ -300,6 +304,15 @@
   "wishMessage": "Joyeux anniversaire {name} ! 🎂 Je te souhaite une très belle journée.",
   "@wishMessage": {
     "description": "Message prêt à envoyer, modifiable dans l'app choisie. La voix de l'utilisateur à un proche : tutoiement",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "wishMessageBelated": "Joyeux anniversaire avec un jour de retard, {name} ! 🎂 J'espère que tu as passé une très belle journée.",
+  "@wishMessageBelated": {
+    "description": "Message prêt à envoyer le lendemain d'un anniversaire oublié, modifiable dans l'app choisie. Chaleureux, sans reproche ; tutoiement",
     "placeholders": {
       "name": {
         "type": "String"

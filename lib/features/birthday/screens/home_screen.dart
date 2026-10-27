@@ -11,6 +11,7 @@ import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/features/birthday/providers/guest_backup_provider.dart';
 import 'package:an_ki/features/birthday/providers/home_view_provider.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_list.dart';
+import 'package:an_ki/features/birthday/widgets/belated_wish.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/home_app_bar.dart';
@@ -90,6 +91,9 @@ class HomeScreen extends ConsumerWidget {
                   children: [
                     ?notice,
                     const NextBirthdayCard(),
+                    // Hier encore à souhaiter : sous le héros, qui reste
+                    // « qui est le prochain ».
+                    const BelatedWishes(),
                     const SizedBox(height: AppSpacing.md),
                     _ViewSwitch(view: view),
                   ],

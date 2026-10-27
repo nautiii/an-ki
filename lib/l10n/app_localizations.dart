@@ -464,6 +464,12 @@ abstract class AppLocalizations {
   /// **'Demain'**
   String get tomorrow;
 
+  /// Surtitre du rappel d'un anniversaire d'hier encore à souhaiter (accueil, sous le héros)
+  ///
+  /// In fr, this message translates to:
+  /// **'Hier'**
+  String get yesterday;
+
   /// Number of days until next birthday
   ///
   /// In fr, this message translates to:
@@ -667,6 +673,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Joyeux anniversaire {name} ! 🎂 Je te souhaite une très belle journée.'**
   String wishMessage(String name);
+
+  /// Message prêt à envoyer le lendemain d'un anniversaire oublié, modifiable dans l'app choisie. Chaleureux, sans reproche ; tutoiement
+  ///
+  /// In fr, this message translates to:
+  /// **'Joyeux anniversaire avec un jour de retard, {name} ! 🎂 J\'espère que tu as passé une très belle journée.'**
+  String wishMessageBelated(String name);
 
   /// Snackbar quand la feuille de partage du système ne s'ouvre pas
   ///

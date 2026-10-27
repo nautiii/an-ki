@@ -13,8 +13,8 @@ and sign-up forms (D3, their part of F5, D11 and D1, their copy), the settings (
 rest of D1, their part of F5 and D11), the groups (B7, Q7, the rest of D11) and the
 reminders-off card (Q8), the forgotten password link (Q9) and the auth messages (D23) on
 2026-10-24, then the sign-up's single password (Q11), D24, D9, D22, D12, D14 (its message;
-« Voir » waits for B4), D8, F5 and D4, and the groups page (Q10) on 2026-10-25, then D25 on
-2026-10-27: the items they fixed are gone from this list.
+« Voir » waits for B4), D8, F5 and D4, and the groups page (Q10) on 2026-10-25, then D25 and
+D15 (the belated wish) on 2026-10-27: the items they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
@@ -24,7 +24,7 @@ auth or dependencies → design brief + maintainer approval first.
 - Big bets (B4, B8; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
 - Foundation (none open) — design system, prerequisite for consistency
 - P1 — friction & states (D27)
-- P2 — polish (D10, D13, D15, D17, D26)
+- P2 — polish (D10, D13, D17, D26)
 - Suggested roadmap
 
 ---
@@ -149,8 +149,6 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
 - **D13 Imported years**: contacts imported before 2026-10-12 without a birth year were saved as
   born in 2000 and still show an age; each can be fixed in the sheet (« 12/03/2000 » → « 12/03 »).
   A bulk repair can't tell them from real 2000 births: data migration, approval first.
-- **D15 Belated wish**: at midnight the hero moves on; a birthday missed yesterday can no longer
-  be wished from AnKi → a calm « Hier : Léa · Souhaiter » for a day or two, never guilt copy.
 - **D17 iOS wish button**: iOS notifications have no « Souhaiter » (Darwin categories are
   declared at initialization, before the texts are localized) → add a category once iOS builds.
 - **D26 Undo in dark**: the dark snackbar is light and its « Annuler » (Material's default
@@ -161,5 +159,5 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
 ## Suggested roadmap
 
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **D27, B4, B8, D10, D13, D15, D17, D26** — depth and polish;
+2. **D27, B4, B8, D10, D13, D17, D26** — depth and polish;
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.

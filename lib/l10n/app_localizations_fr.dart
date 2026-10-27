@@ -256,6 +256,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tomorrow => 'Demain';
 
   @override
+  String get yesterday => 'Hier';
+
+  @override
   String inDays(int days) {
     return 'Dans $days jours';
   }
@@ -367,6 +370,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String wishMessage(String name) {
     return 'Joyeux anniversaire $name ! 🎂 Je te souhaite une très belle journée.';
+  }
+
+  @override
+  String wishMessageBelated(String name) {
+    return 'Joyeux anniversaire avec un jour de retard, $name ! 🎂 J\'espère que tu as passé une très belle journée.';
   }
 
   @override

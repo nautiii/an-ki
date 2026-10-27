@@ -59,7 +59,7 @@ class WishActions extends ConsumerWidget {
                 : () => wishBirthday(
                     context,
                     birthday,
-                    origin: _originOf(buttonContext),
+                    origin: shareOriginOf(buttonContext),
                   ),
             style: FilledButton.styleFrom(
               // 48 dp : une cible confortable, sans le gabarit 56 dp des
@@ -140,11 +140,13 @@ class WishedPill extends StatelessWidget {
 
 /// Souhaite [birthday] par la feuille de partage du système, avec un message
 /// prêt (modifiable dans l'app choisie) ; une app choisie le marque souhaité,
-/// avec « Annuler ». [origin] situe la feuille sur iPad.
+/// avec « Annuler ». [origin] situe la feuille sur iPad ; [belated] prend le
+/// message du lendemain, « avec un jour de retard ».
 Future<void> wishBirthday(
   BuildContext context,
   Birthday birthday, {
   Rect? origin,
+  bool belated = false,
 }) async {
   // Tout est lu avant d'ouvrir la feuille : le contexte peut disparaître
   // pendant qu'elle est ouverte.
@@ -159,7 +161,9 @@ Future<void> wishBirthday(
         .wish(
           birthdayId: birthday.id,
           year: year,
-          message: announcer.l10n.wishMessage(birthday.name),
+          message: belated
+              ? announcer.l10n.wishMessageBelated(birthday.name)
+              : announcer.l10n.wishMessage(birthday.name),
           origin: origin,
         );
     if (wished) announcer.wished(birthday, year);
@@ -228,8 +232,9 @@ class _WishAnnouncer {
     ..showSnackBar(SnackBar(content: Text(l10n.errorSharing)));
 }
 
-/// Rectangle du bouton touché, où pointe la feuille de partage sur iPad.
-Rect? _originOf(BuildContext context) {
+/// Rectangle du bouton touché, où pointe la feuille de partage sur iPad
+/// (`wishBirthday`).
+Rect? shareOriginOf(BuildContext context) {
   final box = context.findRenderObject();
   if (box is! RenderBox || !box.hasSize) return null;
   return box.localToGlobal(Offset.zero) & box.size;
