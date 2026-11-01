@@ -153,8 +153,8 @@ void main() {
 
     group('forgotten password', () {
       final forgot = find.text('Mot de passe oublié\u202f?');
-      final sent = find.text('E\u2011mail envoyé à lea@exemple.fr');
-      const needsEmail = 'Saisissez votre e\u2011mail pour recevoir le lien';
+      final sent = find.text('E-mail envoyé à lea@exemple.fr');
+      const needsEmail = 'Saisissez votre e-mail pour recevoir le lien';
 
       Future<FakeAuthRepository> pumpLogin(
         WidgetTester tester, {
@@ -279,11 +279,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        tester.getSemantics(find.text('Connexion par e‑mail')),
+        tester.getSemantics(find.text('Connexion par e-mail')),
         isSemantics(isHeader: true),
       );
       expect(find.text('Vos anniversaires vous attendent.'), findsOneWidget);
-      expect(find.text('E‑mail'), findsOneWidget);
+      expect(find.text('E-mail'), findsOneWidget);
       semantics.dispose();
     });
 

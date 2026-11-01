@@ -41,7 +41,7 @@ List<Object> lockedOverrides({
 
 void main() {
   const google = 'Continuer avec Google';
-  const email = 'Continuer avec un e‑mail';
+  const email = 'Continuer avec un e-mail';
 
   group('AuthChoiceScreen', () {
     testWidgets('signs in an existing account, without a guest option', (

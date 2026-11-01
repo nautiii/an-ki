@@ -313,7 +313,7 @@ void main() {
 
         await tester.tap(find.text("J'ai déjà un compte"));
         await tester.settleApp();
-        await tester.tap(find.text('Continuer avec un e‑mail'));
+        await tester.tap(find.text('Continuer avec un e-mail'));
         await tester.settleApp();
         await tester.enterText(find.byType(TextField).at(0), 'a@b.com');
         await tester.enterText(find.byType(TextField).at(1), 'password');

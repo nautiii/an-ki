@@ -57,7 +57,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get loginWithGoogle => 'Continuer avec Google';
 
   @override
-  String get loginWithEmail => 'Continuer avec un e‑mail';
+  String get loginWithEmail => 'Continuer avec un e-mail';
 
   @override
   String get noAccountYet => 'Pas encore de compte ?';
@@ -75,7 +75,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get lastName => 'Nom';
 
   @override
-  String get email => 'E‑mail';
+  String get email => 'E-mail';
 
   @override
   String get password => 'Mot de passe';
@@ -276,7 +276,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'L\'inscription n\'a pas abouti. Réessayez dans un instant.';
 
   @override
-  String get loginTitle => 'Connexion par e‑mail';
+  String get loginTitle => 'Connexion par e-mail';
 
   @override
   String get signUpTitle => 'Créer un compte';
@@ -693,11 +693,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get resetPasswordNeedsEmail =>
-      'Saisissez votre e‑mail pour recevoir le lien';
+      'Saisissez votre e-mail pour recevoir le lien';
 
   @override
   String resetPasswordSent(String email) {
-    return 'E‑mail envoyé à $email';
+    return 'E-mail envoyé à $email';
   }
 
   @override
@@ -808,10 +808,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get errorEmailAlreadyInUse =>
-      'Cette adresse e‑mail a déjà un compte. Connectez-vous plutôt.';
+      'Cette adresse e-mail a déjà un compte. Connectez-vous plutôt.';
 
   @override
-  String get errorInvalidEmail => 'Cette adresse e‑mail n\'est pas valide.';
+  String get errorInvalidEmail => 'Cette adresse e-mail n\'est pas valide.';
 
   @override
   String get errorUserNotFound =>
@@ -831,7 +831,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get errorInvalidCredentials =>
-      'E‑mail ou mot de passe incorrect. Vérifiez-les, ou demandez un nouveau mot de passe.';
+      'E-mail ou mot de passe incorrect. Vérifiez-les, ou demandez un nouveau mot de passe.';
 
   @override
   String get errorNetwork =>

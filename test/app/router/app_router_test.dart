@@ -161,7 +161,7 @@ void main() {
 
       await tester.tap(find.text("J'ai déjà un compte"));
       await tester.settleApp();
-      await tester.tap(find.text('Continuer avec un e‑mail'));
+      await tester.tap(find.text('Continuer avec un e-mail'));
       await tester.settleApp();
       expect(find.byType(LoginScreen), findsOneWidget);
 

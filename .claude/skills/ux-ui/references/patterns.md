@@ -169,7 +169,7 @@ A spinner is acceptable only inside the control that triggered a short action.
   the next field, never to an eye. The sign-up asks the password once: the eye shows it and the
   reset link catches a typo (2026-10-25). « Mot de passe oublié ? » sends Firebase's reset link to the typed address,
   in the app's language (`PasswordReset`, its own controller): without an address the field
-  says what is missing; sent, « E‑mail envoyé à … » stays in the form with « Renvoyer le
+  says what is missing; sent, « E-mail envoyé à … » stays in the form with « Renvoyer le
   lien », worded neutrally since Firebase hides whether the address has an account (shipped
   2026-10-24).
 - No intro motion: the CTAs are there from the first frame; layouts scroll on small screens.

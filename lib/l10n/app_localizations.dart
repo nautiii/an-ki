@@ -167,7 +167,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginWithEmail.
   ///
   /// In fr, this message translates to:
-  /// **'Continuer avec un e‑mail'**
+  /// **'Continuer avec un e-mail'**
   String get loginWithEmail;
 
   /// No description provided for @noAccountYet.
@@ -203,7 +203,7 @@ abstract class AppLocalizations {
   /// No description provided for @email.
   ///
   /// In fr, this message translates to:
-  /// **'E‑mail'**
+  /// **'E-mail'**
   String get email;
 
   /// No description provided for @password.
@@ -497,7 +497,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Connexion par e‑mail'**
+  /// **'Connexion par e-mail'**
   String get loginTitle;
 
   /// No description provided for @signUpTitle.
@@ -524,7 +524,7 @@ abstract class AppLocalizations {
   /// **'Vos anniversaires vous suivront sur tous vos téléphones.'**
   String get signUpMessage;
 
-  /// Sous « Connexion par e‑mail », après « Bon retour »
+  /// Sous « Connexion par e-mail », après « Bon retour »
   ///
   /// In fr, this message translates to:
   /// **'Vos anniversaires vous attendent.'**
@@ -1169,13 +1169,13 @@ abstract class AppLocalizations {
   /// Sous le champ e-mail de la connexion : « Mot de passe oublié ? » touché sans adresse
   ///
   /// In fr, this message translates to:
-  /// **'Saisissez votre e‑mail pour recevoir le lien'**
+  /// **'Saisissez votre e-mail pour recevoir le lien'**
   String get resetPasswordNeedsEmail;
 
   /// Connexion par e-mail : le lien du mot de passe oublié est parti
   ///
   /// In fr, this message translates to:
-  /// **'E‑mail envoyé à {email}'**
+  /// **'E-mail envoyé à {email}'**
   String resetPasswordSent(String email);
 
   /// Sous « E-mail envoyé à … » ; neutre, car Firebase ne dit pas si l'adresse a un compte
@@ -1313,13 +1313,13 @@ abstract class AppLocalizations {
   /// No description provided for @errorEmailAlreadyInUse.
   ///
   /// In fr, this message translates to:
-  /// **'Cette adresse e‑mail a déjà un compte. Connectez-vous plutôt.'**
+  /// **'Cette adresse e-mail a déjà un compte. Connectez-vous plutôt.'**
   String get errorEmailAlreadyInUse;
 
   /// No description provided for @errorInvalidEmail.
   ///
   /// In fr, this message translates to:
-  /// **'Cette adresse e‑mail n\'est pas valide.'**
+  /// **'Cette adresse e-mail n\'est pas valide.'**
   String get errorInvalidEmail;
 
   /// No description provided for @errorUserNotFound.
@@ -1349,7 +1349,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorInvalidCredentials.
   ///
   /// In fr, this message translates to:
-  /// **'E‑mail ou mot de passe incorrect. Vérifiez-les, ou demandez un nouveau mot de passe.'**
+  /// **'E-mail ou mot de passe incorrect. Vérifiez-les, ou demandez un nouveau mot de passe.'**
   String get errorInvalidCredentials;
 
   /// No description provided for @errorNetwork.

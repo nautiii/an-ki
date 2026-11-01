@@ -15,7 +15,7 @@ void main() {
     );
     expect(
       AuthFailure.invalidCredentials.message(context),
-      'E\u2011mail ou mot de passe incorrect. Vérifiez-les, ou demandez un '
+      'E-mail ou mot de passe incorrect. Vérifiez-les, ou demandez un '
       'nouveau mot de passe.',
     );
     expect(

@@ -35,13 +35,13 @@
     "description": "AnKi verrouillé par l'empreinte : relance l'invite d'empreinte"
   },
   "loginWithGoogle": "Continuer avec Google",
-  "loginWithEmail": "Continuer avec un e\u2011mail",
+  "loginWithEmail": "Continuer avec un e-mail",
   "noAccountYet": "Pas encore de compte\u202f?",
   "signUp": "S'inscrire",
   "signIn": "Se connecter",
   "firstName": "Prénom",
   "lastName": "Nom",
-  "email": "E\u2011mail",
+  "email": "E-mail",
   "password": "Mot de passe",
   "showPassword": "Afficher le mot de passe",
   "@showPassword": {
@@ -202,7 +202,7 @@
     "description": "L'envoi du lien du mot de passe oublié a échoué sans raison connue"
   },
   "registrationError": "L'inscription n'a pas abouti. Réessayez dans un instant.",
-  "loginTitle": "Connexion par e\u2011mail",
+  "loginTitle": "Connexion par e-mail",
   "signUpTitle": "Créer un compte",
   "signInButton": "Se connecter",
   "signUpButton": "S'inscrire",
@@ -212,7 +212,7 @@
   },
   "loginMessage": "Vos anniversaires vous attendent.",
   "@loginMessage": {
-    "description": "Sous « Connexion par e\u2011mail », après « Bon retour »"
+    "description": "Sous « Connexion par e-mail », après « Bon retour »"
   },
   "haveAccount": "Vous avez déjà un compte\u202f?",
   "settings": "Paramètres",
@@ -574,11 +574,11 @@
   "favorite": "Favori",
   "couple": "Couple",
   "forgotPassword": "Mot de passe oublié\u202f?",
-  "resetPasswordNeedsEmail": "Saisissez votre e\u2011mail pour recevoir le lien",
+  "resetPasswordNeedsEmail": "Saisissez votre e-mail pour recevoir le lien",
   "@resetPasswordNeedsEmail": {
     "description": "Sous le champ e-mail de la connexion : « Mot de passe oublié ? » touché sans adresse"
   },
-  "resetPasswordSent": "E\u2011mail envoyé à {email}",
+  "resetPasswordSent": "E-mail envoyé à {email}",
   "@resetPasswordSent": {
     "description": "Connexion par e-mail : le lien du mot de passe oublié est parti",
     "placeholders": {
@@ -635,8 +635,8 @@
   "biometricEnabled": "Connexion biométrique activée",
   "biometricDisabled": "Connexion biométrique désactivée",
   "errorWeakPassword": "Mot de passe trop faible. Choisissez-en un plus long.",
-  "errorEmailAlreadyInUse": "Cette adresse e\u2011mail a déjà un compte. Connectez-vous plutôt.",
-  "errorInvalidEmail": "Cette adresse e\u2011mail n'est pas valide.",
+  "errorEmailAlreadyInUse": "Cette adresse e-mail a déjà un compte. Connectez-vous plutôt.",
+  "errorInvalidEmail": "Cette adresse e-mail n'est pas valide.",
   "errorUserNotFound": "Aucun compte AnKi avec cette adresse. Vérifiez-la, ou créez un compte.",
   "errorTooManyRequests": "Trop d'essais d'affilée. Patientez quelques minutes, puis réessayez.",
   "@errorTooManyRequests": {
@@ -647,7 +647,7 @@
     "description": "Compte désactivé dans la console Firebase"
   },
   "errorWrongPassword": "Mot de passe incorrect. Réessayez, ou demandez un nouveau mot de passe.",
-  "errorInvalidCredentials": "E\u2011mail ou mot de passe incorrect. Vérifiez-les, ou demandez un nouveau mot de passe.",
+  "errorInvalidCredentials": "E-mail ou mot de passe incorrect. Vérifiez-les, ou demandez un nouveau mot de passe.",
   "errorNetwork": "Pas de connexion. Vérifiez votre réseau et réessayez.",
   "errorUnknown": "Quelque chose s'est mal passé. Réessayez dans un instant.",
   "errorGoogleLogin": "La connexion avec Google n'a pas abouti. Réessayez.",
