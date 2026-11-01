@@ -44,8 +44,8 @@ A missed reminder breaks the one promise AnKi makes: treat every change here as 
   anything else that changes yearly, in a notification text (`age` travels with the plan but
   stays out of the texts). A one-shot with the age plus a yearly ageless fallback doesn't work
   with this plugin: on Android, `matchDateTimeComponents` drops the year and fires at the next
-  matching date, so the fallback would fire the same day as the one-shot. The age needs a
-  background replan (WorkManager, a new plugin): brief in ux-backlog B8, not approved yet.
+  matching date, so the fallback would fire the same day as the one-shot. The age needs the
+  background replan (below) plus one-shots inside a window: B8 step 2, not done yet.
 - Android 12+ refuses more than 500 alarms per app, silently for us: the plan keeps at most
   `ReminderPolicy.maxScheduled` (450), J-0 first, then J-7, J-1, J-30, nearest first.
 - `ReminderNotification.daysBefore` picks the text: 0 is the day (« 🎂 Léa Martin », « Léa fête
@@ -53,7 +53,18 @@ A missed reminder breaks the one promise AnKi makes: treat every change here as 
   fête son anniversaire. » or « Dans 7 jours, … ».
 - `reminderSyncProvider` replans on every new birthdays list and every new setting (sign-out →
   empty list → all cancelled); `app/` keeps it alive by watching it from an always-mounted widget.
-- Texts come from the ARB through `NotificationStrings.fromL10n`, injected by `app/`; the French
+- A daily background task replans too (B8 step 1, `app/bootstrap/background_replan.dart`):
+  `main.dart` registers it with workmanager (Android only for now; periodic 24 h, no network
+  constraint, `ExistingPeriodicWorkPolicy.keep`). Its isolate initializes Firebase and
+  `NotificationService`, reads the signed-in user's birthdays, setting and profile language
+  from the Firestore offline cache and calls the same `scheduleReminders` as
+  `reminderSyncProvider`. Signed out or an empty list → it touches nothing (an empty list may
+  be an emptied cache; the app cancels on sign-out itself). The app may run at the same time
+  (same process, cache and alarms): if the list or setting changed while it scheduled, the task
+  replans once more with the latest. A failure returns false and WorkManager retries.
+  Why workmanager: architecture `decisions.md` D12.
+- Texts come from the ARB through `NotificationStrings.fromL10n`, injected by `app/` (the
+  background task builds them from the profile locale with `lookupAppLocalizations`); the French
   set in the service is only the fallback before that.
 - The J-0 notification carries « Souhaiter » (`NotificationActions.wish`, Android only); its
   payload is the birthday id, routed by `app/bootstrap/app_initializer.dart`.
@@ -88,6 +99,11 @@ A missed reminder breaks the one promise AnKi makes: treat every change here as 
   `SCHEDULE_EXACT_ALARM` and the request opens the system settings.
 - flutter_local_notifications' boot and update receivers reschedule after a reboot or an app
   update: keep them in the manifest.
+- workmanager merges `RECEIVE_BOOT_COMPLETED`, `WAKE_LOCK`, `ACCESS_NETWORK_STATE`,
+  `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_SHORT_SERVICE` (no Play declaration needed);
+  WorkManager reschedules its job after a reboot itself. Check it with
+  `adb shell dumpsys jobscheduler | grep -A5 an_ki`, force a run with
+  `adb shell cmd jobscheduler run -f <pkg> <job id>`.
 - iOS caps pending local notifications at 64, two to four per birthday: iOS isn't built yet, but
   it would need a rolling window.
 

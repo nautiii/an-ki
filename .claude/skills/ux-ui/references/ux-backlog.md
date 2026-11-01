@@ -77,7 +77,10 @@ auth or dependencies → design brief + maintainer approval first.
   2026-10-25).
 - **Left**: the age in the text (« Léa fête ses 30 ans ») → B8.
 
-### B8 — The age in reminders (brief 2026-10-25, waiting for approval: new plugin)
+### B8 — The age in reminders (brief 2026-10-25; workmanager approved 2026-11-01)
+- **Shipped, step 1** (2026-11-01): workmanager 0.10.10, a daily background replan on Android,
+  texts unchanged (`reminders.md`). Step 2 waits for the measure on the maintainer's Honor
+  (does the job run every day?) and the maintainer's decision on D13 (imported years, below).
 - **Problem**: reminders say « Demain, Léa fête son anniversaire. », not « Demain, Léa fête ses
   30 ans » — the detail that turns a reminder into a thoughtful wish (patterns §I). A yearly
   repeating notification keeps the text it was scheduled with, so an age would go stale. The

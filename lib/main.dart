@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:an_ki/app/app.dart';
+import 'package:an_ki/app/bootstrap/background_replan.dart';
 import 'package:an_ki/core/firebase_options.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,6 +20,8 @@ void main() async {
 
   await NotificationService.instance.initialize();
   await GoogleSignIn.instance.initialize();
+  // Sans attendre : l'ouverture ne paie pas l'enregistrement.
+  unawaited(registerBackgroundReplan());
 
   runApp(const ProviderScope(child: App()));
 }

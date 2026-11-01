@@ -16,6 +16,7 @@ when"; changing one is a **system** change (brief + approval) and updates this f
 - D9 Navigation: go_router, pinned to 17.x
 - D10 Executable architecture
 - D11 Scale-out path: packages only on real signals
+- D12 Background replan with workmanager
 - Sources
 
 ---
@@ -200,6 +201,25 @@ apps share code, a team owns a feature, or analysis/build time hurts.
 
 **Why.** Packages add pubspecs, versioning and cross-package refactoring friction. The D1 rules
 already give features the shape of packages, so extraction stays a mechanical move when needed.
+
+## D12 — Background replan with workmanager
+
+**Decision.** Reminders are also replanned by a daily periodic task (`workmanager`, Android
+WorkManager; approved 2026-11-01, ux-backlog B8 step 1). It runs in its own Flutter engine:
+`app/bootstrap/background_replan.dart` initializes Firebase and `NotificationService`, reads
+the signed-in user's data from the Firestore offline cache through the app's own providers, and
+calls the same `scheduleReminders` as `reminderSyncProvider`. No network constraint; Android
+only until iOS builds (BGTaskScheduler identifier, B8 step 3).
+
+**Why.** A repeating notification keeps the text it was scheduled with, so anything that
+changes yearly (the age, B8 step 2) needs reminders rewritten without the user opening the
+app. Rejected: replanning only at app start (a phone left unopened loses the rolling window);
+`android_alarm_manager_plus` (one more exact alarm per day, and no iOS path); a native receiver
+writing the text at fire time (replaces the plugin's Android code, nothing on iOS).
+
+**Revisit when** the measure on the maintainer's Honor shows the job doesn't run about daily
+under the OEM's battery management (then widen the window or reconsider the native receiver),
+or when iOS builds.
 
 ---
 
