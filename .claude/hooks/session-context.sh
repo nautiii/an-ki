@@ -3,7 +3,11 @@
 # mainteneur commite et indexe en parallèle (Android Studio, autres sessions) :
 # ce constat vieillit vite, il se re-vérifie avant d'écrire, supprimer ou commiter.
 
-cd "${CLAUDE_PROJECT_DIR:-.}" 2>/dev/null || exit 0
+# Dossier de la session : le cwd du payload (en session worktree,
+# $CLAUDE_PROJECT_DIR est le checkout principal), à défaut le dossier du projet.
+cwd=$(sed -n 's/.*"cwd"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' |
+  head -n 1 | sed 's/\\\\/\\/g')
+cd "${cwd:-${CLAUDE_PROJECT_DIR:-.}}" 2>/dev/null || exit 0
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0
 
 branch=$(git branch --show-current)
