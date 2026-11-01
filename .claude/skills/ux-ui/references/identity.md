@@ -128,7 +128,8 @@ groups no longer share one ring.
 500, 600, 700, 800 in `lib/assets/fonts/`) and applied by `ThemeData(fontFamily: 'Outfit')`:
 real weights, so `style.copyWith(fontWeight:)` is safe within 400–800; correct offline; identical
 in snapshots. A weight outside 400–800 needs its TTF added to the pubspec family first. Outfit has
-no U+2011 glyph (backlog D27).
+no glyph for the non-breaking hyphen U+2011 (it draws « e_mail »): write « e-mail » with a plain
+hyphen.
 
 | M3 role | AnKi use | Weight |
 |---------|----------|--------|

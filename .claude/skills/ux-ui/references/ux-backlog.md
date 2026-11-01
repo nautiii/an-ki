@@ -23,7 +23,6 @@ auth or dependencies → design brief + maintainer approval first.
 ## Contents
 - Big bets (B4, B8; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
 - Foundation (none open) — design system, prerequisite for consistency
-- P1 — friction & states (D27)
 - P2 — polish (D10, D13, D17, D26)
 - Suggested roadmap
 
@@ -134,12 +133,6 @@ auth or dependencies → design brief + maintainer approval first.
 
 None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
 
-## P1 — friction & states
-
-- **D27 « e_mail »**: Outfit has no glyph for the non-breaking hyphen U+2011, so « e‑mail » draws
-  as « e_mail » (device-runner, 2026-10-26); `intl_fr.arb` holds 9 `‑` → a plain hyphen, or
-  a font that has it, then `flutter gen-l10n` and a device check.
-
 ## P2 — polish
 
 - **D10 Scanner header**: the scanner tab keeps the old two-line `Header` while the home has the
@@ -159,5 +152,5 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
 ## Suggested roadmap
 
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **D27, B4, B8, D10, D13, D17, D26** — depth and polish;
+2. **B4, B8, D10, D13, D17, D26** — depth and polish;
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
