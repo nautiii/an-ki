@@ -152,7 +152,7 @@ void main() {
     });
 
     group('forgotten password', () {
-      final forgot = find.text('Mot de passe oublié\u202f?');
+      final forgot = find.text('Mot de passe oublié\u00a0?');
       final sent = find.text('E-mail envoyé à lea@exemple.fr');
       const needsEmail = 'Saisissez votre e-mail pour recevoir le lien';
 
@@ -191,7 +191,7 @@ void main() {
         expect(
           find.text(
             'Ouvrez son lien pour choisir un nouveau mot de passe. Rien '
-            "reçu\u202f? Vérifiez l'adresse et vos courriers indésirables.",
+            "reçu\u00a0? Vérifiez l'adresse et vos courriers indésirables.",
           ),
           findsOneWidget,
         );
@@ -291,9 +291,9 @@ void main() {
       await tester.pumpHarness(const LoginScreen());
       await tester.pumpAndSettle();
 
-      // Espace fine insécable avant « ? », rien après.
-      expect(find.text('Mot de passe oublié ?'), findsOneWidget);
-      expect(find.text('Pas encore de compte ?'), findsOneWidget);
+      // Espace insécable (U+00A0) avant « ? », rien après.
+      expect(find.text('Mot de passe oublié ?'), findsOneWidget);
+      expect(find.text('Pas encore de compte ?'), findsOneWidget);
     });
 
     testWidgets('navigates to the signup route', (tester) async {

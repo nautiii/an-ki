@@ -17,7 +17,7 @@ void main() {
   const save = 'Sauvegarder avec Google';
   const takenTitle = 'Ce compte Google a déjà son agenda AnKi';
   const takenMessage =
-      'Vos 12 anniversaires restent sur ce téléphone : rien n\'est '
+      'Vos 12 anniversaires restent sur ce téléphone : rien n\'est '
       'perdu. Pour les sauvegarder, choisissez un autre compte Google.';
   const otherAccount = 'Choisir un autre compte';
 

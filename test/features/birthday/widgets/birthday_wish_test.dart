@@ -60,7 +60,7 @@ void main() {
       await tester.pump();
 
       expect(share.shared, [
-        'Joyeux anniversaire Léa ! 🎂 Je te souhaite une très belle '
+        'Joyeux anniversaire Léa ! 🎂 Je te souhaite une très belle '
             'journée.',
       ]);
       expect(repository.wished, [('lea', 2026)]);

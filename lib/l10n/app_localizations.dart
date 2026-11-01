@@ -173,7 +173,7 @@ abstract class AppLocalizations {
   /// No description provided for @noAccountYet.
   ///
   /// In fr, this message translates to:
-  /// **'Pas encore de compte ?'**
+  /// **'Pas encore de compte ?'**
   String get noAccountYet;
 
   /// No description provided for @signUp.
@@ -329,7 +329,7 @@ abstract class AppLocalizations {
   /// Snackbar après la suppression d'un groupe privé, avec « Annuler »
   ///
   /// In fr, this message translates to:
-  /// **'« {name} » est supprimé'**
+  /// **'« {name} » est supprimé'**
   String groupDeleted(String name);
 
   /// Feuille d'un groupe partagé : le retirer du profil ; ses anniversaires le perdent
@@ -341,7 +341,7 @@ abstract class AppLocalizations {
   /// Snackbar après le retrait d'un groupe partagé, avec « Annuler »
   ///
   /// In fr, this message translates to:
-  /// **'« {name} » n\'est plus dans vos groupes'**
+  /// **'« {name} » n\'est plus dans vos groupes'**
   String groupLeft(String name);
 
   /// Feuille d'un groupe partagé (créé avant les groupes privés) : pourquoi on ne peut que le retirer
@@ -431,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @signOutConfirmation.
   ///
   /// In fr, this message translates to:
-  /// **'Êtes-vous sûr de vouloir vous déconnecter ?'**
+  /// **'Êtes-vous sûr de vouloir vous déconnecter ?'**
   String get signOutConfirmation;
 
   /// Snackbar de l'accueil : un ajout, une modification, une suppression ou un vœu n'a pas été enregistré
@@ -533,7 +533,7 @@ abstract class AppLocalizations {
   /// No description provided for @haveAccount.
   ///
   /// In fr, this message translates to:
-  /// **'Vous avez déjà un compte ?'**
+  /// **'Vous avez déjà un compte ?'**
   String get haveAccount;
 
   /// No description provided for @settings.
@@ -671,13 +671,13 @@ abstract class AppLocalizations {
   /// Message prêt à envoyer, modifiable dans l'app choisie. La voix de l'utilisateur à un proche : tutoiement
   ///
   /// In fr, this message translates to:
-  /// **'Joyeux anniversaire {name} ! 🎂 Je te souhaite une très belle journée.'**
+  /// **'Joyeux anniversaire {name} ! 🎂 Je te souhaite une très belle journée.'**
   String wishMessage(String name);
 
   /// Message prêt à envoyer le lendemain d'un anniversaire oublié, modifiable dans l'app choisie. Chaleureux, sans reproche ; tutoiement
   ///
   /// In fr, this message translates to:
-  /// **'Joyeux anniversaire avec un jour de retard, {name} ! 🎂 J\'espère que tu as passé une très belle journée.'**
+  /// **'Joyeux anniversaire avec un jour de retard, {name} ! 🎂 J\'espère que tu as passé une très belle journée.'**
   String wishMessageBelated(String name);
 
   /// Snackbar quand la feuille de partage du système ne s'ouvre pas
@@ -857,7 +857,7 @@ abstract class AppLocalizations {
   /// Recherche sans résultat
   ///
   /// In fr, this message translates to:
-  /// **'Aucun résultat pour « {query} »'**
+  /// **'Aucun résultat pour « {query} »'**
   String noSearchResults(String query);
 
   /// Filtres de catégories sans résultat
@@ -869,7 +869,7 @@ abstract class AppLocalizations {
   /// Crée un anniversaire à partir du texte recherché
   ///
   /// In fr, this message translates to:
-  /// **'Ajouter « {name} »'**
+  /// **'Ajouter « {name} »'**
   String addNamed(String name);
 
   /// Retire les filtres de catégories de la recherche
@@ -893,7 +893,7 @@ abstract class AppLocalizations {
   /// Titre de l'accueil sans aucun anniversaire
   ///
   /// In fr, this message translates to:
-  /// **'Qui voulez-vous fêter ?'**
+  /// **'Qui voulez-vous fêter ?'**
   String get emptyBirthdaysTitle;
 
   /// Message de l'accueil sans aucun anniversaire
@@ -941,7 +941,7 @@ abstract class AppLocalizations {
   /// Numéro ISBN d'un livre scanné
   ///
   /// In fr, this message translates to:
-  /// **'ISBN : {isbn}'**
+  /// **'ISBN : {isbn}'**
   String isbnLabel(String isbn);
 
   /// No description provided for @bookNotFound.
@@ -971,7 +971,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteAccountConfirmation.
   ///
   /// In fr, this message translates to:
-  /// **'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.'**
+  /// **'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.'**
   String get deleteAccountConfirmation;
 
   /// No description provided for @importContacts.
@@ -1049,7 +1049,7 @@ abstract class AppLocalizations {
   /// No description provided for @contactImportBlockedMessage.
   ///
   /// In fr, this message translates to:
-  /// **'Autorisez « Contacts » dans les réglages de l\'app, puis revenez ici. Vous pouvez aussi ajouter vos proches à la main.'**
+  /// **'Autorisez « Contacts » dans les réglages de l\'app, puis revenez ici. Vous pouvez aussi ajouter vos proches à la main.'**
   String get contactImportBlockedMessage;
 
   /// No description provided for @contactImportAllow.
@@ -1163,7 +1163,7 @@ abstract class AppLocalizations {
   /// No description provided for @forgotPassword.
   ///
   /// In fr, this message translates to:
-  /// **'Mot de passe oublié ?'**
+  /// **'Mot de passe oublié ?'**
   String get forgotPassword;
 
   /// Sous le champ e-mail de la connexion : « Mot de passe oublié ? » touché sans adresse
@@ -1181,7 +1181,7 @@ abstract class AppLocalizations {
   /// Sous « E-mail envoyé à … » ; neutre, car Firebase ne dit pas si l'adresse a un compte
   ///
   /// In fr, this message translates to:
-  /// **'Ouvrez son lien pour choisir un nouveau mot de passe. Rien reçu ? Vérifiez l\'adresse et vos courriers indésirables.'**
+  /// **'Ouvrez son lien pour choisir un nouveau mot de passe. Rien reçu ? Vérifiez l\'adresse et vos courriers indésirables.'**
   String get resetPasswordSentHint;
 
   /// Renvoie le lien à l'adresse tapée, corrigée au besoin
@@ -1229,7 +1229,7 @@ abstract class AppLocalizations {
   /// No description provided for @signOutAnonymousWarning.
   ///
   /// In fr, this message translates to:
-  /// **'En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?'**
+  /// **'En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?'**
   String get signOutAnonymousWarning;
 
   /// No description provided for @saveMyData.
@@ -1277,7 +1277,7 @@ abstract class AppLocalizations {
   /// La carte de sauvegarde, quand le compte Google choisi est déjà celui d'un autre agenda AnKi.
   ///
   /// In fr, this message translates to:
-  /// **'{count, plural, =1{Votre anniversaire reste sur ce téléphone : rien n\'est perdu. Pour le sauvegarder, choisissez un autre compte Google.} other{Vos {count} anniversaires restent sur ce téléphone : rien n\'est perdu. Pour les sauvegarder, choisissez un autre compte Google.}}'**
+  /// **'{count, plural, =1{Votre anniversaire reste sur ce téléphone : rien n\'est perdu. Pour le sauvegarder, choisissez un autre compte Google.} other{Vos {count} anniversaires restent sur ce téléphone : rien n\'est perdu. Pour les sauvegarder, choisissez un autre compte Google.}}'**
   String guestBackupTakenMessage(int count);
 
   /// No description provided for @guestBackupOtherAccount.
@@ -1415,7 +1415,7 @@ abstract class AppLocalizations {
   /// Sans âge : la notification se répète chaque année avec le même texte.
   ///
   /// In fr, this message translates to:
-  /// **'{name} fête son anniversaire aujourd\'hui !'**
+  /// **'{name} fête son anniversaire aujourd\'hui !'**
   String notificationBirthdayBody(String name);
 
   /// Rappel avant le jour J. Sans âge : la notification se répète chaque année avec le même texte.
@@ -1565,7 +1565,7 @@ abstract class AppLocalizations {
   /// No description provided for @remindersOff.
   ///
   /// In fr, this message translates to:
-  /// **'Désactivés : AnKi ne peut pas vous prévenir.'**
+  /// **'Désactivés : AnKi ne peut pas vous prévenir.'**
   String get remindersOff;
 
   /// Carte en haut de l'accueil : les notifications sont refusées ou bloquées sur ce téléphone

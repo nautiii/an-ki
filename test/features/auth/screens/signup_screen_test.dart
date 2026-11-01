@@ -211,8 +211,8 @@ void main() {
       await tester.pumpHarness(const SignUpScreen());
       await tester.pumpAndSettle();
 
-      // Espace fine insécable avant « ? », rien après.
-      expect(find.text('Vous avez déjà un compte ?'), findsOneWidget);
+      // Espace insécable (U+00A0) avant « ? », rien après.
+      expect(find.text('Vous avez déjà un compte ?'), findsOneWidget);
     });
 
     testWidgets('navigates to the login route', (tester) async {

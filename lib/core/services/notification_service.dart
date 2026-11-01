@@ -47,7 +47,7 @@ class NotificationStrings {
     channelName: 'Anniversaires',
     channelDescription: 'Rappels d\'anniversaire du jour',
     birthdayTitle: (fullName) => '🎂 $fullName',
-    birthdayBody: (name) => '$name fête son anniversaire aujourd\'hui !',
+    birthdayBody: (name) => '$name fête son anniversaire aujourd\'hui !',
     reminderTitle: (fullName) => '🎉 $fullName',
     reminderBody: (name, days) => days == 1
         ? 'Demain, $name fête son anniversaire.'

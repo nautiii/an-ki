@@ -138,7 +138,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField), 'hugo');
     await tester.pumpAndSettle();
-    expect(find.text('Aucun résultat pour « hugo »'), findsOneWidget);
+    expect(find.text('Aucun résultat pour « hugo »'), findsOneWidget);
 
     await tester.tap(find.text('Effacer les filtres'));
     await tester.pumpAndSettle();
@@ -152,7 +152,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Effacer les filtres'), findsNothing);
 
-    await tester.tap(find.text('Ajouter « Rose Dupont »'));
+    await tester.tap(find.text('Ajouter « Rose Dupont »'));
     await tester.pumpAndSettle();
 
     // Le nom cherché pré-remplit le champ unique de la feuille.

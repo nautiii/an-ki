@@ -368,7 +368,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Êtes-vous sûr de vouloir vous déconnecter\u202f?'),
+        find.text('Êtes-vous sûr de vouloir vous déconnecter\u00a0?'),
         findsOneWidget,
       );
 

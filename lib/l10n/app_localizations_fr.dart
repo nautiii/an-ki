@@ -60,7 +60,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get loginWithEmail => 'Continuer avec un e-mail';
 
   @override
-  String get noAccountYet => 'Pas encore de compte ?';
+  String get noAccountYet => 'Pas encore de compte ?';
 
   @override
   String get signUp => 'S\'inscrire';
@@ -164,7 +164,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String groupDeleted(String name) {
-    return '« $name » est supprimé';
+    return '« $name » est supprimé';
   }
 
   @override
@@ -172,7 +172,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String groupLeft(String name) {
-    return '« $name » n\'est plus dans vos groupes';
+    return '« $name » n\'est plus dans vos groupes';
   }
 
   @override
@@ -236,7 +236,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get signOutConfirmation =>
-      'Êtes-vous sûr de vouloir vous déconnecter ?';
+      'Êtes-vous sûr de vouloir vous déconnecter ?';
 
   @override
   String get errorSavingBirthday =>
@@ -295,7 +295,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get loginMessage => 'Vos anniversaires vous attendent.';
 
   @override
-  String get haveAccount => 'Vous avez déjà un compte ?';
+  String get haveAccount => 'Vous avez déjà un compte ?';
 
   @override
   String get settings => 'Paramètres';
@@ -369,12 +369,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String wishMessage(String name) {
-    return 'Joyeux anniversaire $name ! 🎂 Je te souhaite une très belle journée.';
+    return 'Joyeux anniversaire $name ! 🎂 Je te souhaite une très belle journée.';
   }
 
   @override
   String wishMessageBelated(String name) {
-    return 'Joyeux anniversaire avec un jour de retard, $name ! 🎂 J\'espère que tu as passé une très belle journée.';
+    return 'Joyeux anniversaire avec un jour de retard, $name ! 🎂 J\'espère que tu as passé une très belle journée.';
   }
 
   @override
@@ -483,7 +483,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String noSearchResults(String query) {
-    return 'Aucun résultat pour « $query »';
+    return 'Aucun résultat pour « $query »';
   }
 
   @override
@@ -491,7 +491,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String addNamed(String name) {
-    return 'Ajouter « $name »';
+    return 'Ajouter « $name »';
   }
 
   @override
@@ -504,7 +504,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get choosePhoto => 'Choisir une photo';
 
   @override
-  String get emptyBirthdaysTitle => 'Qui voulez-vous fêter ?';
+  String get emptyBirthdaysTitle => 'Qui voulez-vous fêter ?';
 
   @override
   String get emptyBirthdaysMessage =>
@@ -532,7 +532,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String isbnLabel(String isbn) {
-    return 'ISBN : $isbn';
+    return 'ISBN : $isbn';
   }
 
   @override
@@ -549,7 +549,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get deleteAccountConfirmation =>
-      'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.';
+      'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.';
 
   @override
   String get importContacts => 'Importer les contacts';
@@ -631,7 +631,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get contactImportBlockedMessage =>
-      'Autorisez « Contacts » dans les réglages de l\'app, puis revenez ici. Vous pouvez aussi ajouter vos proches à la main.';
+      'Autorisez « Contacts » dans les réglages de l\'app, puis revenez ici. Vous pouvez aussi ajouter vos proches à la main.';
 
   @override
   String get contactImportAllow => 'Autoriser l\'accès';
@@ -689,7 +689,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get couple => 'Couple';
 
   @override
-  String get forgotPassword => 'Mot de passe oublié ?';
+  String get forgotPassword => 'Mot de passe oublié ?';
 
   @override
   String get resetPasswordNeedsEmail =>
@@ -702,7 +702,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get resetPasswordSentHint =>
-      'Ouvrez son lien pour choisir un nouveau mot de passe. Rien reçu ? Vérifiez l\'adresse et vos courriers indésirables.';
+      'Ouvrez son lien pour choisir un nouveau mot de passe. Rien reçu ? Vérifiez l\'adresse et vos courriers indésirables.';
 
   @override
   String get resetPasswordResend => 'Renvoyer le lien';
@@ -731,7 +731,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get signOutAnonymousWarning =>
-      'En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?';
+      'En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer ?';
 
   @override
   String get saveMyData => 'Sauvegarder mes données';
@@ -776,8 +776,8 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'Vos $count anniversaires restent sur ce téléphone : rien n\'est perdu. Pour les sauvegarder, choisissez un autre compte Google.',
-      one: 'Votre anniversaire reste sur ce téléphone : rien n\'est perdu. Pour le sauvegarder, choisissez un autre compte Google.',
+          'Vos $count anniversaires restent sur ce téléphone : rien n\'est perdu. Pour les sauvegarder, choisissez un autre compte Google.',
+      one: 'Votre anniversaire reste sur ce téléphone : rien n\'est perdu. Pour le sauvegarder, choisissez un autre compte Google.',
     );
     return '$_temp0';
   }
@@ -874,7 +874,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String notificationBirthdayBody(String name) {
-    return '$name fête son anniversaire aujourd\'hui !';
+    return '$name fête son anniversaire aujourd\'hui !';
   }
 
   @override
@@ -985,7 +985,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get birthdayRemindersCustom => 'Personnalisés';
 
   @override
-  String get remindersOff => 'Désactivés : AnKi ne peut pas vous prévenir.';
+  String get remindersOff => 'Désactivés : AnKi ne peut pas vous prévenir.';
 
   @override
   String get remindersOffNotice => 'Rappels désactivés';

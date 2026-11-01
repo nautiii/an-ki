@@ -36,7 +36,7 @@
   },
   "loginWithGoogle": "Continuer avec Google",
   "loginWithEmail": "Continuer avec un e-mail",
-  "noAccountYet": "Pas encore de compte\u202f?",
+  "noAccountYet": "Pas encore de compte\u00a0?",
   "signUp": "S'inscrire",
   "signIn": "Se connecter",
   "firstName": "Prénom",
@@ -115,7 +115,7 @@
   "@deleteGroup": {
     "description": "Feuille d'un groupe privé : le supprimer ; ses anniversaires le perdent, avec « Annuler »"
   },
-  "groupDeleted": "«\u202f{name}\u202f» est supprimé",
+  "groupDeleted": "«\u00a0{name}\u00a0» est supprimé",
   "@groupDeleted": {
     "description": "Snackbar après la suppression d'un groupe privé, avec « Annuler »",
     "placeholders": {
@@ -128,7 +128,7 @@
   "@leaveGroup": {
     "description": "Feuille d'un groupe partagé : le retirer du profil ; ses anniversaires le perdent"
   },
-  "groupLeft": "«\u202f{name}\u202f» n'est plus dans vos groupes",
+  "groupLeft": "«\u00a0{name}\u00a0» n'est plus dans vos groupes",
   "@groupLeft": {
     "description": "Snackbar après le retrait d'un groupe partagé, avec « Annuler »",
     "placeholders": {
@@ -170,7 +170,7 @@
   },
   "requiredField": "Champ obligatoire",
   "signOut": "Se déconnecter",
-  "signOutConfirmation": "Êtes-vous sûr de vouloir vous déconnecter\u202f?",
+  "signOutConfirmation": "Êtes-vous sûr de vouloir vous déconnecter\u00a0?",
   "errorSavingBirthday": "Votre modification n'a pas pu être enregistrée. Vérifiez votre connexion et réessayez.",
   "@errorSavingBirthday": {
     "description": "Snackbar de l'accueil : un ajout, une modification, une suppression ou un vœu n'a pas été enregistré"
@@ -214,7 +214,7 @@
   "@loginMessage": {
     "description": "Sous « Connexion par e-mail », après « Bon retour »"
   },
-  "haveAccount": "Vous avez déjà un compte\u202f?",
+  "haveAccount": "Vous avez déjà un compte\u00a0?",
   "settings": "Paramètres",
   "settingsProfile": "Profil",
   "@settingsProfile": {
@@ -301,7 +301,7 @@
   "@wish": {
     "description": "Bouton du héros le jour J et de la notification : ouvre la feuille de partage avec un message prêt"
   },
-  "wishMessage": "Joyeux anniversaire {name} ! 🎂 Je te souhaite une très belle journée.",
+  "wishMessage": "Joyeux anniversaire {name} ! 🎂 Je te souhaite une très belle journée.",
   "@wishMessage": {
     "description": "Message prêt à envoyer, modifiable dans l'app choisie. La voix de l'utilisateur à un proche : tutoiement",
     "placeholders": {
@@ -310,7 +310,7 @@
       }
     }
   },
-  "wishMessageBelated": "Joyeux anniversaire avec un jour de retard, {name} ! 🎂 J'espère que tu as passé une très belle journée.",
+  "wishMessageBelated": "Joyeux anniversaire avec un jour de retard, {name} ! 🎂 J'espère que tu as passé une très belle journée.",
   "@wishMessageBelated": {
     "description": "Message prêt à envoyer le lendemain d'un anniversaire oublié, modifiable dans l'app choisie. Chaleureux, sans reproche ; tutoiement",
     "placeholders": {
@@ -439,7 +439,7 @@
   "@searchHint": {
     "description": "Indication du champ de recherche"
   },
-  "noSearchResults": "Aucun résultat pour «\u202f{query}\u202f»",
+  "noSearchResults": "Aucun résultat pour «\u00a0{query}\u00a0»",
   "@noSearchResults": {
     "description": "Recherche sans résultat",
     "placeholders": {
@@ -450,7 +450,7 @@
   "@noFilterResults": {
     "description": "Filtres de catégories sans résultat"
   },
-  "addNamed": "Ajouter «\u202f{name}\u202f»",
+  "addNamed": "Ajouter «\u00a0{name}\u00a0»",
   "@addNamed": {
     "description": "Crée un anniversaire à partir du texte recherché",
     "placeholders": {
@@ -469,7 +469,7 @@
   "@choosePhoto": {
     "description": "Libellé du sélecteur de photo du formulaire"
   },
-  "emptyBirthdaysTitle": "Qui voulez-vous fêter\u202f?",
+  "emptyBirthdaysTitle": "Qui voulez-vous fêter\u00a0?",
   "@emptyBirthdaysTitle": {
     "description": "Titre de l'accueil sans aucun anniversaire"
   },
@@ -492,7 +492,7 @@
   },
   "bookScannerTitle": "Scanner de livres",
   "bookTitle": "Titre",
-  "isbnLabel": "ISBN : {isbn}",
+  "isbnLabel": "ISBN : {isbn}",
   "@isbnLabel": {
     "description": "Numéro ISBN d'un livre scanné",
     "placeholders": {
@@ -505,7 +505,7 @@
   "noBooksYet": "Aucun livre pour l'instant",
   "deleteAccount": "Supprimer mon compte",
   "deleteAccountTitle": "Suppression du compte",
-  "deleteAccountConfirmation": "Êtes-vous sûr de vouloir supprimer votre compte\u202f? Cette action est irréversible et supprimera toutes vos données.",
+  "deleteAccountConfirmation": "Êtes-vous sûr de vouloir supprimer votre compte\u00a0? Cette action est irréversible et supprimera toutes vos données.",
   "importContacts": "Importer les contacts",
   "contactImportTitle": "Vos contacts",
   "contactImportFound": "{count, plural, =1{1 anniversaire trouvé. Décochez-le si vous ne voulez pas le suivre.} other{{count} anniversaires trouvés. Décochez ceux que vous ne voulez pas suivre.}}",
@@ -554,7 +554,7 @@
   },
   "contactImportDeniedTitle": "AnKi n'a pas accès à vos contacts",
   "contactImportDeniedMessage": "Autorisez l'accès pour choisir qui ajouter, ou ajoutez vos proches à la main.",
-  "contactImportBlockedMessage": "Autorisez «\u202fContacts\u202f» dans les réglages de l'app, puis revenez ici. Vous pouvez aussi ajouter vos proches à la main.",
+  "contactImportBlockedMessage": "Autorisez «\u00a0Contacts\u00a0» dans les réglages de l'app, puis revenez ici. Vous pouvez aussi ajouter vos proches à la main.",
   "contactImportAllow": "Autoriser l'accès",
   "openAppSettings": "Ouvrir les réglages",
   "contactImportEmptyTitle": "Aucun anniversaire dans vos contacts",
@@ -573,7 +573,7 @@
   "celebrity": "Célébrité",
   "favorite": "Favori",
   "couple": "Couple",
-  "forgotPassword": "Mot de passe oublié\u202f?",
+  "forgotPassword": "Mot de passe oublié\u00a0?",
   "resetPasswordNeedsEmail": "Saisissez votre e-mail pour recevoir le lien",
   "@resetPasswordNeedsEmail": {
     "description": "Sous le champ e-mail de la connexion : « Mot de passe oublié ? » touché sans adresse"
@@ -585,7 +585,7 @@
       "email": { "type": "String" }
     }
   },
-  "resetPasswordSentHint": "Ouvrez son lien pour choisir un nouveau mot de passe. Rien reçu\u202f? Vérifiez l'adresse et vos courriers indésirables.",
+  "resetPasswordSentHint": "Ouvrez son lien pour choisir un nouveau mot de passe. Rien reçu\u00a0? Vérifiez l'adresse et vos courriers indésirables.",
   "@resetPasswordSentHint": {
     "description": "Sous « E-mail envoyé à … » ; neutre, car Firebase ne dit pas si l'adresse a un compte"
   },
@@ -599,7 +599,7 @@
   "biometricError": "L'empreinte n'a pas pu être vérifiée. Réessayez.",
   "biometricRevoked": "La connexion biométrique n'est plus valide. Reconnectez-vous pour continuer.",
   "attention": "Attention",
-  "signOutAnonymousWarning": "En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer\u202f?",
+  "signOutAnonymousWarning": "En vous déconnectant, vous perdrez tous vos anniversaires enregistrés car vous utilisez un compte invité. Voulez-vous continuer\u00a0?",
   "saveMyData": "Sauvegarder mes données",
   "dataSavedSuccess": "Compte sauvegardé",
   "deleteAndLeave": "Supprimer et quitter",
@@ -618,7 +618,7 @@
   },
   "guestBackupAction": "Sauvegarder avec Google",
   "guestBackupTakenTitle": "Ce compte Google a déjà son agenda AnKi",
-  "guestBackupTakenMessage": "{count, plural, =1{Votre anniversaire reste sur ce téléphone\u202f: rien n'est perdu. Pour le sauvegarder, choisissez un autre compte Google.} other{Vos {count} anniversaires restent sur ce téléphone\u202f: rien n'est perdu. Pour les sauvegarder, choisissez un autre compte Google.}}",
+  "guestBackupTakenMessage": "{count, plural, =1{Votre anniversaire reste sur ce téléphone\u00a0: rien n'est perdu. Pour le sauvegarder, choisissez un autre compte Google.} other{Vos {count} anniversaires restent sur ce téléphone\u00a0: rien n'est perdu. Pour les sauvegarder, choisissez un autre compte Google.}}",
   "@guestBackupTakenMessage": {
     "description": "La carte de sauvegarde, quand le compte Google choisi est déjà celui d'un autre agenda AnKi.",
     "placeholders": {
@@ -664,7 +664,7 @@
       "fullName": { "type": "String" }
     }
   },
-  "notificationBirthdayBody": "{name} fête son anniversaire aujourd'hui\u202f!",
+  "notificationBirthdayBody": "{name} fête son anniversaire aujourd'hui\u00a0!",
   "@notificationBirthdayBody": {
     "description": "Sans âge : la notification se répète chaque année avec le même texte.",
     "placeholders": {
@@ -739,7 +739,7 @@
   "birthdayRemindersDefault": "Comme d'habitude",
   "birthdayRemindersNone": "Aucun",
   "birthdayRemindersCustom": "Personnalisés",
-  "remindersOff": "Désactivés\u202f: AnKi ne peut pas vous prévenir.",
+  "remindersOff": "Désactivés\u00a0: AnKi ne peut pas vous prévenir.",
   "remindersOffNotice": "Rappels désactivés",
   "@remindersOffNotice": {
     "description": "Carte en haut de l'accueil : les notifications sont refusées ou bloquées sur ce téléphone"

@@ -55,7 +55,7 @@ void main() {
     await pumpTile(tester);
 
     expect(
-      find.text('Désactivés : AnKi ne peut pas vous prévenir.'),
+      find.text('Désactivés : AnKi ne peut pas vous prévenir.'),
       findsOneWidget,
     );
     expect(find.byIcon(Icons.notifications_off_outlined), findsOneWidget);

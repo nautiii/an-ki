@@ -120,7 +120,7 @@ void main() {
     testWidgets('invites to bring in the contacts first', (tester) async {
       await pumpEmpty(tester);
 
-      expect(find.text('Qui voulez-vous fêter ?'), findsOneWidget);
+      expect(find.text('Qui voulez-vous fêter ?'), findsOneWidget);
       expect(
         find.text("AnKi ne lit que les noms et les dates d'anniversaire."),
         findsOneWidget,

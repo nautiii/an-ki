@@ -86,7 +86,7 @@ void main() {
     expect(find.text('AnKi · mercredi 21 octobre à 10:00'), findsOneWidget);
     expect(find.text('🎂 Hugo Bernard'), findsOneWidget);
     expect(
-      find.text('Hugo fête son anniversaire aujourd\'hui !'),
+      find.text('Hugo fête son anniversaire aujourd\'hui !'),
       findsOneWidget,
     );
     expect(find.text('Souhaiter'), findsOneWidget);
@@ -131,7 +131,7 @@ void main() {
       'Exemple de rappel\n'
       'AnKi · mercredi 21 octobre à 10:00\n'
       '🎂 Hugo Bernard\n'
-      'Hugo fête son anniversaire aujourd\'hui !',
+      'Hugo fête son anniversaire aujourd\'hui !',
     );
     semantics.dispose();
   });

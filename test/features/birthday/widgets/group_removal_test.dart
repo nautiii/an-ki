@@ -81,7 +81,7 @@ void main() {
     await openAndTap(tester, 'Club de lecture', 'Supprimer le groupe');
 
     expect(find.text('Club de lecture'), findsNothing);
-    expect(find.text('« Club de lecture » est supprimé'), findsOne);
+    expect(find.text('« Club de lecture » est supprimé'), findsOne);
     expect(categories.deleted, isEmpty);
 
     await tester.pump(undoDelay + const Duration(seconds: 1));
@@ -115,7 +115,7 @@ void main() {
     await openAndTap(tester, 'GOAT', 'Retirer de mes groupes');
 
     expect(find.text('GOAT'), findsNothing);
-    expect(find.text('« GOAT » n\'est plus dans vos groupes'), findsOne);
+    expect(find.text('« GOAT » n\'est plus dans vos groupes'), findsOne);
 
     await tester.pump(undoDelay + const Duration(seconds: 1));
     await tester.pumpAndSettle();

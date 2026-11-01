@@ -302,7 +302,7 @@ void main() {
       expect(day.title, '🎂 John Doe');
       // Sans âge : le texte se répète tel quel chaque année. Le prénom en
       // tête, sans « de » à élider devant une voyelle.
-      expect(day.body, 'John fête son anniversaire aujourd\'hui !');
+      expect(day.body, 'John fête son anniversaire aujourd\'hui !');
       expect(weekBefore.title, '🎉 John Doe');
       expect(weekBefore.body, 'Dans 7 jours, John fête son anniversaire.');
     });

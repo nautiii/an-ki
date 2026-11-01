@@ -215,7 +215,7 @@ void main() {
       date: BirthDate(month: 3, day: 12),
     );
     const message =
-        'Joyeux anniversaire Léa ! 🎂 Je te souhaite une très belle '
+        'Joyeux anniversaire Léa ! 🎂 Je te souhaite une très belle '
         'journée.';
     const wishTap = NotificationTap(
       payload: 'lea',

@@ -149,8 +149,9 @@ Rules:
 - Tabular figures for anything that counts or aligns: `FontFeature.tabularFigures()`.
 - Max two weights per component; hierarchy comes from size and color before weight.
 - Body line height ≥ 1.4; line length ≤ ~60 characters on large screens.
-- French typography: lowercase months and weekdays ("9 octobre"), narrow no-break space before
-  `? ! : ;` (` `), « guillemets ». Format dates with `intl` `DateFormat` + locale, never by hand.
+- French typography: lowercase months and weekdays ("9 octobre"), no-break space
+  (U+00A0; Outfit lacks the narrow U+202F) before `? ! : ;` (` `), « guillemets ».
+  Format dates with `intl` `DateFormat` + locale, never by hand.
 
 ## 5. Shape
 

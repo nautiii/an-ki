@@ -28,7 +28,7 @@ brief; you never redesign, widen the scope or improve what wasn't asked. Report 
 - Copy the patterns of the surrounding code; absolute imports; French comments; no hardcoded string
   or color.
 - ARB: the key in `intl_fr.arb` (template) and `intl_en.arb`, placeholders typed in `@key`, then
-  `flutter gen-l10n`. Write `\u…` escapes and narrow no-break spaces with a Python script run as
+  `flutter gen-l10n`. Write `\u…` escapes and no-break spaces (U+00A0) with a Python script run as
   `python <file> < /dev/null` (never `python -`, never sed: it eats backslashes); files keep LF.
 - Moves: `git mv`, then fix every import, tests' relative `../support/` imports included.
 - Tests: adapt the existing tests the change breaks mechanically (a renamed key, a new import, a
