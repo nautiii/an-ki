@@ -7,7 +7,8 @@
 #
 # Limite : le garde-fou de commit protège contre l'oubli, pas contre un
 # contournement délibéré (git revert, cherry-pick, commit-tree, `bash -c`, un
-# autre outil que git en ligne de commande, un chemin cité vers anki-checks…).
+# autre outil que git en ligne de commande, un chemin cité vers anki-checks ou
+# record-review.sh…).
 
 input=$(cat)
 cmd=$(printf '%s' "$input" |
@@ -52,18 +53,32 @@ simple_commands() {
     sed -E 's/^(((do|then|else|!|npx|exec|command|nohup|env)|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*|-[^[:space:]]+|timeout[[:space:]]+[^[:space:]]+)[[:space:]]+)+//'
 }
 
-# Les verdicts des agents de contrôle ne s'écrivent que par record-check.sh :
-# une commande simple qui écrit dans anki-checks (commande d'écriture ou
-# redirection) est refusée ; les lectures (ls, cat, grep) passent.
+# Les verdicts ne s'écrivent que par les vérifications elles-mêmes :
+# verify-index.sh (verifier) et record-review.sh (reviewer). Une commande simple
+# qui écrit dans anki-checks (commande d'écriture ou redirection) est refusée ;
+# les lectures (ls, cat, grep) passent.
+markers_only="les marqueurs anki-checks ne s'écrivent que par verify-index.sh (verifier) et record-review.sh (reviewer) : lancer le verifier et le reviewer."
 if printf '%s' "$cmd" | grep -q 'anki-checks'; then
   writers='touch|cp|mv|mkdir|rm|tee|New-Item|Set-Content|Add-Content|Out-File|Copy-Item|Move-Item|Remove-Item'
   if simple_commands | grep -E 'anki-checks' |
     grep -Eiq "^([^[:space:]]*[/\\\\])?($writers)(\\.exe)?([[:space:]]|$)"; then
-    deny "les marqueurs anki-checks ne s'écrivent que par record-check.sh : lancer le verifier et le reviewer."
+    deny "$markers_only"
   fi
   if printf '%s' "$cmd" | sed 's/\\n/\n/g' | grep -Eq '>>?[[:space:]]*[^[:space:]]*anki-checks'; then
-    deny "les marqueurs anki-checks ne s'écrivent que par record-check.sh : lancer le verifier et le reviewer."
+    deny "$markers_only"
   fi
+fi
+# Seul le reviewer enregistre sa revue : agent_id n'existe que dans un sous-agent
+# (agent_type existe aussi au fil principal d'une session --agent), le fil
+# principal ou un autre agent sont refusés. `bash -n` (syntaxe) n'exécute rien.
+if simple_commands |
+  grep -Eq '^((ba)?sh(\.exe)?([[:space:]]+-[^[:space:]n]+)*[[:space:]]+)?[^[:space:]]*record-review\.sh([[:space:]]|$)'; then
+  field() {
+    printf '%s' "$input" |
+      sed -n 's/.*"'"$1"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1
+  }
+  [ -n "$(field agent_id)" ] && [ "$(field agent_type)" = reviewer ] ||
+    deny "seul le reviewer enregistre sa revue (record-review.sh, à la fin de sa revue du diff indexé) : lancer le reviewer."
 fi
 
 case "$cmd" in
@@ -150,7 +165,8 @@ done < <(firebase_calls)
 
 # Un commit exige le verdict positif du verifier sur exactement l'index actuel
 # (empreinte) et/ou la revue du reviewer depuis le dernier commit (marqueur lié
-# à HEAD : une seule revue par commit). Marqueurs écrits par record-check.sh.
+# à HEAD : une seule revue par commit). Marqueurs écrits par verify-index.sh et
+# record-review.sh.
 if has "${git}commit\\b"; then
   msg_index="commiter l'index tel quel : indexer les chemins avec git add, sans chemins après git commit."
   # Pas de -C, --git-dir, --work-tree ni cd : le dépôt vérifié est celui du cwd.
@@ -221,24 +237,31 @@ if has "${git}commit\\b"; then
       need='reviewer'
     fi
     if [ -n "$need" ]; then
-      gitdir=$(git -C "$dir" rev-parse --absolute-git-dir 2>/dev/null) ||
+      gitdir=$(git -C "$dir" rev-parse --absolute-git-dir 2>/dev/null) &&
+        top=$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null) ||
         deny "dépôt introuvable depuis le cwd du hook : commiter depuis le dossier du dépôt."
-      # Empreinte de l'index (mode, blob et chemin de chaque entrée), sans verrou.
-      tree=$(set -o pipefail; git -C "$dir" ls-files -s -z 2>/dev/null | git hash-object --stdin 2>/dev/null)
+      # Empreinte de l'index (mode, blob et chemin de chaque entrée), sans verrou,
+      # depuis la racine comme verify-index.sh : ls-files suit le dossier courant.
+      tree=$(set -o pipefail; git -C "$top" ls-files -s -z 2>/dev/null | git hash-object --stdin 2>/dev/null)
       head=$(git -C "$dir" rev-parse HEAD 2>/dev/null) || head=unborn
       [ -n "$head" ] || head=unborn
       missing=''
       for agent in $need; do
         if [ "$agent" = reviewer ]; then
           [ -f "$gitdir/anki-checks/head-$head.reviewer" ] ||
-            missing="${missing:+$missing et }la revue du reviewer depuis le dernier commit (une seule revue par commit : appliquer ses remarques puis commiter)"
+            missing="${missing:+$missing et }la revue du reviewer depuis le dernier commit (il l'enregistre avec record-review.sh en fin de revue)"
         else
           [ -n "$tree" ] && [ -f "$gitdir/anki-checks/$tree.$agent" ] ||
-            missing="${missing:+$missing et }le verdict du verifier pour l'index actuel (empreinte ${tree:0:7})"
+            missing="${missing:+$missing et }le verdict du verifier pour l'index actuel, empreinte ${tree:0:7} (verify-index.sh static et tests passés sur cet index)"
         fi
       done
       if [ -n "$missing" ]; then
-        deny "commit refusé : il manque $missing. Le verifier doit repasser sur l'index exact après les corrections ; le reviewer ne repasse pas."
+        # Branche d'avant les scripts : ceux du checkout principal (où tournent
+        # les hooks) agissent sur le dépôt du dossier courant.
+        older=''
+        [ -f "$top/.claude/hooks/verify-index.sh" ] ||
+          older=" Ce dossier n'a pas encore ces scripts (branche antérieure) : lancer ceux de ${CLAUDE_PROJECT_DIR//\\//}/.claude/hooks/ depuis ce dossier, ou rebaser la branche sur main."
+        deny "commit refusé : il manque $missing. Après une correction, réindexer et relancer le verifier (l'empreinte change) ; le reviewer ne repasse pas : une revue par commit.$older"
       fi
     fi
   fi

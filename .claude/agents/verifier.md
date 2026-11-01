@@ -17,16 +17,17 @@ take the changed Dart files from `git status --short` and the test folders that 
 (`lib/features/<f>/…` → `test/features/<f>`). Work in the repository root, or in the path the caller
 names (a worktree): every command runs there.
 
-For a commit pass (the caller says the change is staged), the verdict stands for that index: take the
-scope from `git diff --cached --name-only` — the Dart files to format, the test folders mirroring the
-staged `lib/` files plus `test/architecture` and the staged `test/` files and folders themselves, and
-`all` when `lib/core/`, `lib/app/`, `lib/l10n/`, `pubspec` or `analysis_options` is staged. Also run
-`git diff --name-only` (unstaged): when it touches `lib/`, `test/` or `pubspec`, answer
-`VERDICT: ROUGE`, because the working copy would not be what gets committed. Same when
-`git ls-files --others --exclude-standard -- lib test` is non-empty: untracked files the commit
-would not contain.
+For a commit pass (the caller says the change is staged), the verdict stands for that index and two
+scripts check it and record it for the commit gate: run `bash .claude/hooks/verify-index.sh static`
+(format of the staged `.dart` files, `flutter analyze`, `dart analyze`) and
+`bash .claude/hooks/verify-index.sh tests` (the whole suite) in parallel — two Bash calls in one
+message, each with a 600000 ms timeout. Each refuses to run when the working copy differs from the
+index on code (unstaged or untracked `lib/`, `test/`, `pubspec`…), prints one line per check and only
+what fails, and exits 0 when it passes; the verdict is recorded once both pass on an index that
+didn't move. Don't run the commands below on a commit pass: read the log a script names only to quote
+a failure.
 
-## Commands — run every step, even after a failure
+## Commands — outside a commit pass, run every step, even after a failure
 
 All in Git Bash, each with a long timeout (the full suite takes a few minutes).
 
@@ -64,6 +65,8 @@ Vérifications — <portée>
 More than 10 problems of one kind: list 10, then « + K autres ». Quote messages exactly: the caller
 fixes from your text without re-running the command.
 
+On a commit pass, copy each script's final line (« Étape … » or « Index … ») into the report.
+
 The report's very last line is exactly `VERDICT: VERT` when format, both analyzers and the tests all
-pass with nothing to report, otherwise `VERDICT: ROUGE` (including a step that couldn't run).
-This holds outside a commit pass too. Nothing after it.
+pass with nothing to report (on a commit pass: both scripts exited 0), otherwise `VERDICT: ROUGE`
+(including a step that couldn't run). This holds outside a commit pass too. Nothing after it.

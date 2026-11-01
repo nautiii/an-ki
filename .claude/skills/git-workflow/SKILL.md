@@ -109,16 +109,19 @@ run scripts/migrate_categories.ps1 once per environment.
    and the files in each, and let the user validate. Each commit should build and pass tests on
    its own, so that `git bisect` and reverts stay usable. Tests belong with the code they cover.
 4. **Check before recording.** Stage first (step 2), then the `verifier` runs format, analyze and
-   tests and the `reviewer` reviews the staged diff, in parallel. Their final `VERDICT:` lines are
-   recorded by `record-check.sh` (the verifier's per staged index, the reviewer's per HEAD), and
+   tests and the `reviewer` reviews the staged diff, in parallel. The checks record their verdicts
+   themselves, never from an agent's message: the verifier runs
+   `bash .claude/hooks/verify-index.sh static` and `... tests`, which record the verdict for the
+   exact staged index once both pass with the working copy matching it; the reviewer ends its
+   review with `bash .claude/hooks/record-review.sh` (per HEAD, refused outside the reviewer). A
+   branch older than these scripts runs the main checkout's ones from its own folder, or rebases.
    `guard-git.sh` refuses the commit otherwise: code paths need both, any other non-markdown path
-   needs the reviewer, markdown-only commits need none. Other agents run the checks by hand:
-   `dart format --output=none --set-exit-if-changed <files>`, `flutter analyze`, `dart analyze` and
-   the relevant `flutter test`. The reviewer runs once per commit, on the staged diff: apply its
+   needs the reviewer, markdown-only commits need none. Other agents run the same two scripts, or
+   the checks by hand: `dart format --output=none --set-exit-if-changed <files>`, `flutter analyze`,
+   `dart analyze` and `flutter test`. The reviewer runs once per commit, on the staged diff: apply its
    findings (blocking ones included), re-stage, run the verifier again on the final index, then
    commit — no second review. The verifier must pass on the exact staged index. This keeps token use
-   reasonable. A reviewer or verifier resumed after a
-   verdict (SendMessage) records nothing: start a new agent for a new pass. Never
+   reasonable. Never
    commit red; never work around the gate — if it blocks wrongly, tell the user. Commit the index
    as it is: no paths after `git commit`, no `-C` or `cd` (run from the repo folder). A reword is
    `git commit --amend --only -F -`.

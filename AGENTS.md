@@ -41,10 +41,15 @@ These steps are mandatory, not advice, in every session including side sessions:
 second review. The verifier must pass on the exact staged index. This keeps token use reasonable.
 A hook enforces it: `guard-git.sh` refuses a commit touching code (lib, test, platform, pubspec,
 Firebase config) without the verifier's verdict for the staged tree and the reviewer's review since
-the last commit, and any other commit that isn't markdown-only without the reviewer's
-(`record-check.sh` records them on SubagentStop: the verifier bound to the tree it started on, an
-index changed while it ran recording nothing; the reviewer bound to HEAD). The gate protects against forgetting, not against
-deliberate bypass. Every change visible in the app also
+the last commit, and any other commit that isn't markdown-only without the reviewer's. The checks
+record them themselves, never an agent's message: the verifier runs `.claude/hooks/verify-index.sh
+static` and `tests`, which write the verdict once both pass on an index that didn't move and that
+the working copy matches; the reviewer ends its review with `.claude/hooks/record-review.sh`, bound
+to HEAD, which `guard-git.sh` refuses outside the reviewer. The gate protects against forgetting,
+not against deliberate bypass. In a worktree session the hooks run the main checkout's scripts
+(`$CLAUDE_PROJECT_DIR`, the payload's `cwd` being the worktree): a hook change applies once it is on
+main, and a branch older than the check scripts runs the main checkout's ones from its own folder,
+or rebases on main. Every change visible in the app also
 goes through `device-runner` before the final report, or the report says « appareil : non vérifié »
 and why.
 
@@ -64,6 +69,7 @@ Every dependency is pinned to an exact version.
 | Format | `dart format <files>` |
 | Analysis — must be clean | `flutter analyze` and `dart analyze` (only the latter runs the `riverpod_lint` plugin) |
 | Tests | `flutter test`, or `flutter test test/features/<feature>` |
+| Commit checks on the staged index (what the `verifier` runs; records the verdict) | `bash .claude/hooks/verify-index.sh static` and `bash .claude/hooks/verify-index.sh tests` |
 | Firestore rules, in the emulator (Firebase CLI, Java 21+) | `scripts/test_firestore_rules.ps1` (firebase skill) |
 | Strings, after any `.arb` change | `flutter gen-l10n` |
 | Run on a device | `scripts/run.ps1 [-d <device id>]` (= `flutter run --dart-define-from-file=secrets.json`); agents start it in the Terminal panel (device skill) |

@@ -55,6 +55,11 @@ Rien à signaler sur : <axes vérifiés sans constat>
 You run once per commit and are not called back after the fixes: the review must be complete in one
 pass. List every finding, each with a fix precise enough to apply without a re-review.
 
+Only when you reviewed the staged diff, your last action before delivering the report is
+`bash .claude/hooks/record-review.sh`, from the repository folder: it records the review for the commit
+gate (bound to HEAD), whatever the verdict. Quote its one-line output in the report; never run it for
+another range.
+
 Only when you reviewed the staged diff, the report's very last line is exactly `VERDICT: OK` when
 there is no blocking finding, otherwise `VERDICT: BLOQUANT` (the caller applies the findings, blocking
 ones included, then commits). For any other range (commits, branches, working tree) end with

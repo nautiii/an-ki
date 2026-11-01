@@ -40,7 +40,7 @@
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-git.sh\"",
-            "timeout": 15
+            "timeout": 60
           }
         ]
       }
@@ -53,40 +53,6 @@
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-dart.sh\"",
             "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "SubagentHandback",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/record-check.sh\"",
-            "timeout": 60
-          }
-        ]
-      }
-    ],
-    "SubagentStart": [
-      {
-        "matcher": "verifier|reviewer",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/record-check.sh\"",
-            "timeout": 60
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "matcher": "verifier|reviewer",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/record-check.sh\"",
-            "timeout": 60
           }
         ]
       }
