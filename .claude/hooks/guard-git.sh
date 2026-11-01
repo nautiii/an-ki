@@ -98,11 +98,13 @@ gopt='(-[cC][[:space:]]+[^[:space:]]+|--(git-dir|work-tree|namespace|exec-path|s
 git="^([^[:space:]]*[/\\\\])?git(\\.exe)?([[:space:]]+${gopt})*[[:space:]]+"
 end='([[:space:]]|[;&|)]|$)'
 
-# Interdit (skill git-workflow).
-if has "${git}merge\\b" && ! has "${git}merge[^;&|]*--(ff-only|abort)"; then
+# Interdit (skill git-workflow), appel par appel : une option permise ailleurs
+# dans la commande n'excuse pas l'appel fautif. git merge seul : merge-base,
+# merge-tree et merge-file ne créent aucun commit.
+if printf '%s\n' "$git_cmds" | grep -E -- "${git}merge${end}" | grep -Evq -- '--(ff-only|abort)'; then
   deny "pas de commit de fusion : rebaser la branche puis git merge --ff-only."
 fi
-if has "${git}pull\\b" && ! has "${git}pull[^;&|]*--(rebase|ff-only)"; then
+if printf '%s\n' "$git_cmds" | grep -E -- "${git}pull${end}" | grep -Evq -- '--(rebase|ff-only)'; then
   deny "git pull sans --rebase ni --ff-only crée un commit de fusion."
 fi
 if has "${git}add[^;&|]*[[:space:]](-A|--all|\\.|:/)${end}" ||
@@ -167,7 +169,7 @@ done < <(firebase_calls)
 # (empreinte) et/ou la revue du reviewer depuis le dernier commit (marqueur lié
 # à HEAD : une seule revue par commit). Marqueurs écrits par verify-index.sh et
 # record-review.sh.
-if has "${git}commit\\b"; then
+if has "${git}commit${end}"; then
   msg_index="commiter l'index tel quel : indexer les chemins avec git add, sans chemins après git commit."
   # Pas de -C, --git-dir, --work-tree ni cd : le dépôt vérifié est celui du cwd.
   if simple_commands | grep -Eq '^(cd|chdir|pushd|Push-Location|Set-Location|sl)([[:space:]]|$)'; then
