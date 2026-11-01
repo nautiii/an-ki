@@ -12,8 +12,12 @@ extension ReminderDisplay on BuildContext {
 
   /// Heure des rappels d'un réglage : « 10:00 », « 10:00 AM ».
   String reminderTime(ReminderPreferences preferences) =>
-      DateFormat.jm(_locale)
-          .format(DateTime(2000, 1, 1, preferences.hour, preferences.minute));
+      _clock(DateTime(2000, 1, 1, preferences.hour, preferences.minute));
+
+  /// intl met une espace fine (U+202F) avant AM/PM, absente d'Outfit :
+  /// l'espace insécable U+00A0 s'affiche dans la police de l'app.
+  String _clock(DateTime at) =>
+      DateFormat.jm(_locale).format(at).replaceAll('\u202f', '\u00a0');
 
   /// Résumé d'un réglage : « 7 jours avant · Le jour J · 10:00 ».
   String reminderSchedule(ReminderPreferences preferences) =>
@@ -32,6 +36,5 @@ extension ReminderDisplay on BuildContext {
       DateFormat.MMMMEEEEd(_locale).format(reminder.at);
 
   /// Heure d'un rappel : « 10:00 ».
-  String reminderClock(PlannedReminder reminder) =>
-      DateFormat.jm(_locale).format(reminder.at);
+  String reminderClock(PlannedReminder reminder) => _clock(reminder.at);
 }
