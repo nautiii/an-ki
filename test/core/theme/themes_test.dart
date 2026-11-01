@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
@@ -142,6 +143,19 @@ void main() {
                 ]
               : [theme.colorScheme.primary, theme.colorScheme.tertiary],
         );
+      });
+
+      test('keeps the undo action of a snackbar AA on its background', () {
+        // L'action « Annuler » des snackbars reste celle de Material
+        // (`inversePrimary`) sur `inverseSurface` : on fixe qu'elle se lit.
+        expect(theme.snackBarTheme.actionTextColor, isNull);
+        final scheme = theme.colorScheme;
+        final action = scheme.inversePrimary.computeLuminance();
+        final back = scheme.inverseSurface.computeLuminance();
+        final ratio =
+            (math.max(action, back) + 0.05) / (math.min(action, back) + 0.05);
+
+        expect(ratio, greaterThanOrEqualTo(4.5));
       });
 
       test('shapes the components with the design tokens', () {

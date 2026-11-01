@@ -23,7 +23,7 @@ auth or dependencies → design brief + maintainer approval first.
 ## Contents
 - Big bets (B4, B8; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
 - Foundation (none open) — design system, prerequisite for consistency
-- P2 — polish (D10, D13, D17, D26)
+- P2 — polish (D10, D13, D17)
 - Suggested roadmap
 
 ---
@@ -144,13 +144,9 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
   A bulk repair can't tell them from real 2000 births: data migration, approval first.
 - **D17 iOS wish button**: iOS notifications have no « Souhaiter » (Darwin categories are
   declared at initialization, before the texts are localized) → add a category once iOS builds.
-- **D26 Undo in dark**: the dark snackbar is light and its « Annuler » (Material's default
-  `inversePrimary`) reads at ≈ 2.8:1 on it (palette audit heuristic, `groups_deleted` snapshot,
-  2026-10-25); every undo snackbar shares it (birthday deleted, wish, group) → a darker action
-  colour in the dark `snackBarTheme` (theme change, approval first).
 
 ## Suggested roadmap
 
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **B4, B8, D10, D13, D17, D26** — depth and polish;
+2. **B4, B8, D10, D13, D17** — depth and polish;
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
