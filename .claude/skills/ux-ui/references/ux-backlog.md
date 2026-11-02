@@ -81,6 +81,26 @@ auth or dependencies → design brief + maintainer approval first.
 - **Shipped, step 1** (2026-11-01): workmanager 0.10.10, a daily background replan on Android,
   texts unchanged (`reminders.md`). Step 2 waits for the measure on the maintainer's Honor
   (does the job run every day?) and the maintainer's decision on D13 (imported years, below).
+- **Left, step 1**:
+  - Not proven on a device: a run offline with the app's process dead. The emulator can't show it: earlier clock
+    moves left a future « FORCE STOP » exit record, then the job vanished from JobScheduler
+    while WorkManager's database still holds it (`reminders.md`, Platform). Proven: job
+    registered, kept after a reboot, one completed run (`period_count` 1), alarms replanned
+    at every launch.
+  - The measure on the Honor (procedure: session notes `b8-mesure-honor.md`, to copy into
+    the device skill if it's kept): debug APK through `scripts/build_and_deploy.ps1` (no
+    `flutter run`, its tab force-stops the app), default battery settings, a daily reading
+    for at least 10 days, with 3 days without opening AnKi, a reboot and a time offline. Read
+    `period_count`, `last_enqueue_time` and `run_attempt_count` in
+    `no_backup/androidx.work.workdb` (`run-as` + sqlite3), plus the standby bucket, the
+    alarm count and force-stops (`dumpsys activity exit-info`). Good: +1 per ~24 h (≤ 36 h
+    apart), reboot and offline included → step 2. Delays of a few days: the 45-day window
+    absorbs them. Nothing runs → revisit `decisions.md` D12.
+- **Next, step 2** (after the measure and D13): one-shots with the age inside a 45-day window,
+  the yearly ageless repeat beyond it, on the same ids (`planReminders(…, oneShotUntil:)`,
+  `PlannedReminder.repeats`, `ReminderNotification.repeats`); ARB age variants of the two
+  bodies (ICU plural, « son premier anniversaire » for 1); `reminders.md` invariants rewritten.
+  Step 3: iOS (BGTaskScheduler identifier in `Info.plist`, registration on iOS, with D17).
 - **Problem**: reminders say « Demain, Léa fête son anniversaire. », not « Demain, Léa fête ses
   30 ans » — the detail that turns a reminder into a thoughtful wish (patterns §I). A yearly
   repeating notification keeps the text it was scheduled with, so an age would go stale. The
