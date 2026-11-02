@@ -1,6 +1,6 @@
 ---
 name: device
-description: "Run, see and debug AnKi on a real Android system: the Honor_Magic7_Pro emulator by default, the maintainer's phone over USB on request. Boots the emulator, launches with secrets.json from the Terminal panel, hot reloads through the Dart MCP server, takes screenshots Claude reads back, lists the UI and taps by label, filters logcat and crashes, switches dark mode, 200 % text, compact screen, offline, reduced motion and permissions, moves the clock to fire reminders, reads scheduled alarms and posted notifications, seeds test contacts. Use whenever a change must be seen or checked in the running app, not only in tests; it is the project skill the built-in run skill looks for. Trigger even on short or French asks: « lance l'app », « teste sur l'émulateur / le téléphone », « fais une capture de l'app », « ça plante », « regarde les logs », « le rappel part ? », « installe l'APK ». Not for host-side widget tests or PNG snapshots (ux-ui)."
+description: "Run, see and debug AnKi on a real Android system: the Honor_Magic7_Pro emulator by default, the maintainer's phone over USB on request. Boots the emulator, launches with secrets.example.json from the Terminal panel, hot reloads through the Dart MCP server, takes screenshots Claude reads back, lists the UI and taps by label, filters logcat and crashes, switches dark mode, 200 % text, compact screen, offline, reduced motion and permissions, moves the clock to fire reminders, reads scheduled alarms and posted notifications, seeds test contacts. Use whenever a change must be seen or checked in the running app, not only in tests; it is the project skill the built-in run skill looks for. Trigger even on short or French asks: « lance l'app », « teste sur l'émulateur / le téléphone », « fais une capture de l'app », « ça plante », « regarde les logs », « le rappel part ? », « installe l'APK ». Not for host-side widget tests or PNG snapshots (ux-ui)."
 effort: low
 ---
 
@@ -44,12 +44,14 @@ outside that sandbox. So:
    AVD detached when needed (≈ 20 s from the snapshot, ≈ 1 min cold), restores Europe/Paris and
    lifts the lock screen. Phone: `adb devices`, then prefix each command with `DEVICE=<serial>`.
 2. **Launch** in the Terminal panel: `run_in_terminal` with
-   `& '.\scripts\run.ps1' -d emulator-5554 --print-dtd`, titled « AnKi · <device> ». Poll
+   `& '.\scripts\run.ps1' -Example -d emulator-5554 --print-dtd` (secrets.example.json, dummy
+   Google Books key: never the real secrets.json; Google Books lookups fail there, as expected,
+   check them on the phone), titled « AnKi · <device> ». Poll
    `read_terminal` (`wait_for_output_ms: 60000`) until « Flutter run key commands », or until a
    Gradle or Dart error, which you fix first. The first build takes ≈ 5 min.
    - Installed already, nothing to rebuild: `device.sh start` (prints LaunchState and TotalTime).
    - Release, for startup time and smoothness: `run_in_terminal` with
-     `$env:ANDROID_SERIAL = 'emulator-5554'; & '.\scripts\build_and_deploy.ps1' -Release`.
+     `$env:ANDROID_SERIAL = 'emulator-5554'; & '.\scripts\build_and_deploy.ps1' -Release -ConfigPath secrets.example.json`.
 3. **Observe.** `device.sh shot <name>` prints a Windows path: open it with Read. `device.sh ui`
    lists each labelled element as `label | class | x,y`. `logs`, `crash`, `alarms` and `notifs`
    give the system's side.
@@ -79,8 +81,8 @@ Claude Code asks to approve it once, and its tools are `mcp__dart__*`. When it i
 `dtd` with `listDtdUris` finds the run started with `--print-dtd` (its « Workspace Root » is the
 repo), `connect` attaches to it, then `hot_reload` (0.3 to 1.5 s), `hot_restart`,
 `get_runtime_errors` and `widget_inspector` `get_widget_tree` with `summaryOnly: true`. Never
-launch through it: `launch_app` forwards `--dart-define` but not `--dart-define-from-file`, so
-the Google Books key would pass through the agent.
+launch through it: `launch_app` forwards `--dart-define` but not `--dart-define-from-file`, and
+the run must stay in the Terminal panel, where the maintainer sees it.
 
 ## `device.sh`
 

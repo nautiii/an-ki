@@ -72,7 +72,7 @@ Every dependency is pinned to an exact version.
 | Commit checks on the staged index (what the `verifier` runs; records the verdict) | `bash .claude/hooks/verify-index.sh static` and `bash .claude/hooks/verify-index.sh tests` |
 | Firestore rules, in the emulator (Firebase CLI, Java 21+) | `scripts/test_firestore_rules.ps1` (firebase skill) |
 | Strings, after any `.arb` change | `flutter gen-l10n` |
-| Run on a device | `scripts/run.ps1 [-d <device id>]` (= `flutter run --dart-define-from-file=secrets.json`); agents start it in the Terminal panel (device skill) |
+| Run on a device | `scripts/run.ps1 [-Example] [-d <device id>]` (= `flutter run --dart-define-from-file=secrets.json`, or `secrets.example.json` with `-Example`); agents start it with `-Example` on the emulator, in the Terminal panel (device skill) |
 | Build and install an APK | `scripts/build_and_deploy.ps1 [-Release] [-Clean]` |
 | Icon / splash, after changing their pubspec config | `dart run flutter_launcher_icons` · `dart run flutter_native_splash:create` |
 

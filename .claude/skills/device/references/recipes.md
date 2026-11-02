@@ -153,7 +153,7 @@ Debug builds only (`run-as` refuses release builds):
 ## 12. Release startup
 
 Job 1 is « who's next, in under 2 s »; measure it on a release build only:
-1. `run_in_terminal` with `$env:ANDROID_SERIAL = 'emulator-5554'; & '.\scripts\build_and_deploy.ps1' -Release`
+1. `run_in_terminal` with `$env:ANDROID_SERIAL = 'emulator-5554'; & '.\scripts\build_and_deploy.ps1' -Release -ConfigPath secrets.example.json`
    (the script also regenerates the icons and the splash: check `git status` after).
 2. `device.sh stop`, then `device.sh start` three times; keep the TotalTime of the cold start
    (`LaunchState: COLD`) and the median of the warm ones. The phone gives the number that
@@ -165,7 +165,7 @@ Plain CLI sessions have no `run_in_terminal`. From the Bash tool, with `run_in_b
 ```bash
 mkdir -p ~/.gradle/tmp-af build/device
 JAVA_TOOL_OPTIONS="-Djdk.net.unixdomain.tmpdir=$(cygpath -w ~/.gradle/tmp-af)" \
-  flutter run -d emulator-5554 --dart-define-from-file=secrets.json --print-dtd > build/device/run.log 2>&1
+  flutter run -d emulator-5554 --dart-define-from-file=secrets.example.json --print-dtd > build/device/run.log 2>&1
 ```
 - Without `JAVA_TOOL_OPTIONS`, Java fails with « Unable to establish loopback connection »
   (an AF_UNIX socket in the virtualized temp folder); with it, a selector opens.
