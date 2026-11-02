@@ -14,7 +14,8 @@ rest of D1, their part of F5 and D11), the groups (B7, Q7, the rest of D11) and 
 reminders-off card (Q8), the forgotten password link (Q9) and the auth messages (D23) on
 2026-10-24, then the sign-up's single password (Q11), D24, D9, D22, D12, D14 (its message;
 « Voir » waits for B4), D8, F5 and D4, and the groups page (Q10) on 2026-10-25, then D25 and
-D15 (the belated wish) on 2026-10-27: the items they fixed are gone from this list.
+D15 (the belated wish) on 2026-10-27, then D27 (« e-mail » with a plain hyphen, U+00A0 for the
+narrow U+202F Outfit lacks) on 2026-11-02: the items they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
