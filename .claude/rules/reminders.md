@@ -103,7 +103,13 @@ A missed reminder breaks the one promise AnKi makes: treat every change here as 
   `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_SHORT_SERVICE` (no Play declaration needed);
   WorkManager reschedules its job after a reboot itself. Check it with
   `adb shell dumpsys jobscheduler | grep -A5 an_ki`, force a run with
-  `adb shell cmd jobscheduler run -f <pkg> <job id>`.
+  `adb shell cmd jobscheduler run -f -n androidx.work.systemjobscheduler <pkg> <job id>`
+  (the id changes at every reschedule); its database is `no_backup/androidx.work.workdb`
+  (`period_count` = completed runs). A force-stop (closing the `flutter run` tab does one)
+  cancels the job and the alarms until the next launch. An emulator whose clock was moved
+  forward keeps a « FORCE STOP » exit record dated in the future (`dumpsys activity
+  exit-info`): WorkManager then believes in a fresh force-stop at every start and stops each
+  forced run (`ForceStopRunnable … rescheduling`), seen 2026-11-02.
 - iOS caps pending local notifications at 64, two to four per birthday: iOS isn't built yet, but
   it would need a rolling window.
 
