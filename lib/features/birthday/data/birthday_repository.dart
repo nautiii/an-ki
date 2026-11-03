@@ -139,10 +139,7 @@ Birthday? _birthdayFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
 Set<ReminderLead>? _remindersFrom(Object? stored) {
   if (stored is! List<dynamic>) return null;
   final leads = ReminderLead.values.asNameMap();
-  return {
-    for (final name in stored)
-      ?leads[name],
-  };
+  return {for (final name in stored) ?leads[name]};
 }
 
 /// Photo stockée en base64 dans le document ; null si absente ou corrompue.

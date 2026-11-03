@@ -150,7 +150,7 @@ void main() {
 
       await container
           .read(categoryEditorProvider.notifier)
-          .remove('book', GroupKind.own);
+          .remove('book', GroupKind.own, uid: 'u');
 
       expect(categories.deleted, ['book']);
       expect(users.removedCategories, isEmpty);
@@ -165,7 +165,7 @@ void main() {
 
       await container
           .read(categoryEditorProvider.notifier)
-          .remove('goat', GroupKind.shared);
+          .remove('goat', GroupKind.shared, uid: 'u');
 
       expect(categories.deleted, isEmpty);
       expect(users.removedCategories, ['goat']);
@@ -179,7 +179,7 @@ void main() {
 
       await container
           .read(categoryEditorProvider.notifier)
-          .remove('doggo', GroupKind.shared);
+          .remove('doggo', GroupKind.shared, uid: 'u');
 
       expect(users.removedCategories, ['doggo']);
       expect(birthdays.removedCategories, isEmpty);
@@ -189,15 +189,28 @@ void main() {
       var container = await makeContainer();
       await container
           .read(categoryEditorProvider.notifier)
-          .remove('fam', GroupKind.preset);
+          .remove('fam', GroupKind.preset, uid: 'u');
       container = await makeContainer(uid: null);
       await container
           .read(categoryEditorProvider.notifier)
-          .remove('book', GroupKind.own);
+          .remove('book', GroupKind.own, uid: null);
 
       expect(categories.deleted, isEmpty);
       expect(users.removedCategories, isEmpty);
       expect(birthdays.removedCategories, isEmpty);
+    });
+
+    test('drops a removal started on another account', () async {
+      final container = await makeContainer(uid: 'other');
+
+      await container
+          .read(categoryEditorProvider.notifier)
+          .remove('goat', GroupKind.shared, uid: 'u');
+
+      expect(categories.deleted, isEmpty);
+      expect(users.removedCategories, isEmpty);
+      expect(birthdays.removedCategories, isEmpty);
+      expect(container.read(categoryEditorProvider), isA<AsyncData<void>>());
     });
 
     test('publishes a failed removal as an AsyncError', () async {
@@ -211,7 +224,7 @@ void main() {
 
       await container
           .read(categoryEditorProvider.notifier)
-          .remove('book', GroupKind.own);
+          .remove('book', GroupKind.own, uid: 'u');
 
       expect(container.read(categoryEditorProvider).hasError, isTrue);
     });

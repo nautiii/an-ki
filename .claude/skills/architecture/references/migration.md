@@ -61,15 +61,15 @@ so « keeps its search » no longer applies.
 |---|------|----------|-------------|------|
 | A16 | Older groups still shared | groups created before 2026-10-24 sit in the top-level `category` collection, readable by any signed-in user, and `sharedCategoriesProvider` downloads every user's | their names leak to any account through the API; the stream grows with the user base | system: copy each into its owner's `user/{uid}/categories` (same id, so birthdays keep pointing at it), then restrict `category` reads to the predefined ones — data migration, brief and approval; plan in the firebase skill, `references/migrations.md` §5 |
 | A17 | Account deletion erases first | `SettingsScreen` runs `AccountDeletion.eraseData()` (birthdays, books, groups, profile), then `AuthController.deleteAccount()`; Firebase refuses to delete an account signed in a while ago (`requires-recent-login`, mapped to `unknown`) | the data is gone, the account stays, the user reads « Le compte n'a pas pu être supprimé » (found with D23, 2026-10-24) | structural: re-authenticate first (Google, or the password), or delete the account before its data — brief |
-| A18 | Group removal follows the live account | `group_removal.dart` (8472914) commits the deletion when the undo snackbar closes, against the account signed in at that moment; reviewer pass of 2026-10-26 | switching account inside the undo window removes the group from the wrong account; no test covers a failed removal | local fix: capture the uid when the removal starts, test the failure path; same review flagged French typography and agreement in the new ARB strings |
+| A19 | Group removal not atomic | `CategoryEditor.remove` runs the profile or category write and `BirthdayRepository.removeCategory` in a `Future.wait`, not one batch; reviewer pass of 2026-11-03 | the profile write fails, the birthdays lose the group anyway: it comes back, its people no longer carry it | structural: one `WriteBatch` across the user/category and birthday repositories (a repository method taking a batch, or the write moved to one repository) |
+| A20 | Birthday deletion follows the live account | `deleteWithUndo` (`birthday_deletion.dart`) deletes when the undo snackbar closes, as group removal did before A18 | an account switch inside the window: the rules refuse the delete, the new account reads an error about a stranger, the old one keeps the birthday | local fix: capture the uid when the deletion starts, as `removeGroupWithUndo` |
 
 UX debt (contrast, 200 % text, labels, raw colors, dates without `DateFormat`) is tracked in the
 ux-ui backlog (`ux-backlog.md`), not here.
 
 ## 3. Remaining steps
 
-Recommended order: M10 only on a concrete need. A local fix (A18) goes with any change
-touching its files. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent + review).
+Recommended order: M10 only on a concrete need. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent + review).
 
 ### With B4 — a notification tap opens the person page · S
 - Taps already reach the app: `NotificationService` streams them (cold start included) and

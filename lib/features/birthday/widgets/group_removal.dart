@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
@@ -26,6 +27,7 @@ void removeGroupWithUndo(
   // peut l'être quand la snackbar se ferme.
   final container = ProviderScope.containerOf(context, listen: false);
   final pending = container.read(pendingGroupRemovalsProvider.notifier);
+  final uid = container.read(currentUidProvider);
   final l10n = context.l10n;
   final name = group.localizedName(context);
   final accessible = MediaQuery.accessibleNavigationOf(context);
@@ -59,7 +61,7 @@ void removeGroupWithUndo(
       // d'eux-mêmes, un échec le rend visible à nouveau.
       await container
           .read(categoryEditorProvider.notifier)
-          .remove(group.id, kind);
+          .remove(group.id, kind, uid: uid);
       pending.restore(group.id);
     }),
   );

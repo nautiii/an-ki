@@ -54,9 +54,20 @@ class CategoryEditor extends AsyncNotifier<void> {
   /// Retire [groupId] de l'utilisateur : un groupe privé ([kind] `own`) est
   /// supprimé, une catégorie partagée quitte son profil ; dans les deux cas,
   /// ses anniversaires le perdent. Un groupe verrouillé ne bouge pas.
-  Future<void> remove(String groupId, GroupKind kind) async {
-    final uid = ref.read(currentUidProvider);
-    if (uid == null || kind == GroupKind.preset) return;
+  ///
+  /// [uid] est le compte connecté quand le retrait a commencé : différé par
+  /// « Annuler », il est abandonné si le compte a changé entre-temps, sinon
+  /// il viserait l'autre compte.
+  Future<void> remove(
+    String groupId,
+    GroupKind kind, {
+    required String? uid,
+  }) async {
+    if (uid == null ||
+        uid != ref.read(currentUidProvider) ||
+        kind == GroupKind.preset) {
+      return;
+    }
     // Tous les anniversaires, même ceux en cours de suppression : rattrapés,
     // ils ne doivent pas ramener le groupe.
     final carriers = [
