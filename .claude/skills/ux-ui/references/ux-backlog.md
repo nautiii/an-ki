@@ -24,7 +24,7 @@ auth or dependencies → design brief + maintainer approval first.
 ## Contents
 - Big bets (B4, B8; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
 - Foundation (none open) — design system, prerequisite for consistency
-- P2 — polish (D10, D13, D17)
+- P2 — polish (D10, D17)
 - Suggested roadmap
 
 ---
@@ -80,7 +80,7 @@ auth or dependencies → design brief + maintainer approval first.
 ### B8 — The age in reminders (brief 2026-10-25; workmanager approved 2026-11-01)
 - **Shipped, step 1** (2026-11-01): workmanager 0.10.10, a daily background replan on Android,
   texts unchanged (`reminders.md`). Step 2 waits for the measure on the maintainer's Honor
-  (does the job run every day?) and the maintainer's decision on D13 (imported years, below).
+  (does the job run every day?).
 - **Left, step 1**:
   - Not proven on a device: a run offline with the app's process dead. The emulator can't show it: earlier clock
     moves left a future « FORCE STOP » exit record, then the job vanished from JobScheduler
@@ -96,11 +96,12 @@ auth or dependencies → design brief + maintainer approval first.
     alarm count and force-stops (`dumpsys activity exit-info`). Good: +1 per ~24 h (≤ 36 h
     apart), reboot and offline included → step 2. Delays of a few days: the 45-day window
     absorbs them. Nothing runs → revisit `decisions.md` D12.
-- **Next, step 2** (after the measure and D13): one-shots with the age inside a 45-day window,
+- **Next, step 2** (after the measure): one-shots with the age inside a 45-day window,
   the yearly ageless repeat beyond it, on the same ids (`planReminders(…, oneShotUntil:)`,
   `PlannedReminder.repeats`, `ReminderNotification.repeats`); ARB age variants of the two
   bodies (ICU plural, « son premier anniversaire » for 1); `reminders.md` invariants rewritten.
-  Step 3: iOS (BGTaskScheduler identifier in `Info.plist`, registration on iOS, with D17).
+  D13 was dropped (2026-11-01): contacts imported before 2026-10-12 without a year read as born
+  in 2000, so they get an age too; each is fixed in the sheet. Step 3: iOS (BGTaskScheduler identifier in `Info.plist`, registration on iOS, with D17).
 - **Problem**: reminders say « Demain, Léa fête son anniversaire. », not « Demain, Léa fête ses
   30 ans » — the detail that turns a reminder into a thoughtful wish (patterns §I). A yearly
   repeating notification keeps the text it was scheduled with, so an age would go stale. The
@@ -163,14 +164,11 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
   pinned app bar → align the two tabs when B4 reworks the scanner. Same rework: the book
   carousel's `SizedBox(height: 180)` sits in an `Expanded`, so the cards stretch over all the
   space left (≈ 320 dp at 412×915, `scanner` snapshot, 2026-10-25).
-- **D13 Imported years**: contacts imported before 2026-10-12 without a birth year were saved as
-  born in 2000 and still show an age; each can be fixed in the sheet (« 12/03/2000 » → « 12/03 »).
-  A bulk repair can't tell them from real 2000 births: data migration, approval first.
 - **D17 iOS wish button**: iOS notifications have no « Souhaiter » (Darwin categories are
   declared at initialization, before the texts are localized) → add a category once iOS builds.
 
 ## Suggested roadmap
 
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **B4, B8, D10, D13, D17** — depth and polish;
+2. **B4, B8, D10, D17** — depth and polish;
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
