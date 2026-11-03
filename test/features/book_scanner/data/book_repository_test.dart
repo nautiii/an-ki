@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/book_scanner/domain/book.dart';
@@ -66,15 +67,23 @@ void main() {
 
       final book = await repository.fetchBookByIsbn('123');
 
-      expect(
-        book,
-        const Book(id: '', title: 'Unknown Title', authors: [], isbn: '123'),
-      );
+      expect(book, const Book(id: '', title: '', authors: [], isbn: '123'));
     });
 
     test('returns null on a 200 with no results', () async {
       final repository = repositoryReturning(
         (_) => http.Response(jsonEncode({'totalItems': 0}), 200),
+      );
+
+      expect(await repository.fetchBookByIsbn('123'), isNull);
+    });
+
+    test('returns null on an empty items list', () async {
+      final repository = repositoryReturning(
+        (_) => http.Response(
+          jsonEncode({'totalItems': 0, 'items': <Object>[]}),
+          200,
+        ),
       );
 
       expect(await repository.fetchBookByIsbn('123'), isNull);
@@ -89,11 +98,81 @@ void main() {
       );
     });
 
-    test('returns null when the request throws', () async {
-      final repository = repositoryReturning((_) => throw Exception('network'));
+    test(
+      'throws BookFailure.network when Google Books is unreachable',
+      () async {
+        final repository = repositoryReturning(
+          (_) => throw http.ClientException('Failed host lookup'),
+        );
 
-      expect(await repository.fetchBookByIsbn('123'), isNull);
+        expect(
+          () => repository.fetchBookByIsbn('123'),
+          throwsA(BookFailure.network),
+        );
+      },
+    );
+
+    test('throws BookFailure.unavailable on a server error', () async {
+      final repository = repositoryReturning((_) => http.Response('', 503));
+
+      expect(
+        () => repository.fetchBookByIsbn('123'),
+        throwsA(BookFailure.unavailable),
+      );
     });
+
+    test('throws BookFailure.unavailable on an unreadable body', () async {
+      final repository = repositoryReturning(
+        (_) => http.Response('<html>', 200),
+      );
+
+      expect(
+        () => repository.fetchBookByIsbn('123'),
+        throwsA(BookFailure.unavailable),
+      );
+    });
+
+    test('throws BookFailure.unavailable on a TLS failure', () async {
+      final repository = repositoryReturning(
+        (_) => throw const HandshakeException('bad certificate'),
+      );
+
+      expect(
+        () => repository.fetchBookByIsbn('123'),
+        throwsA(BookFailure.unavailable),
+      );
+    });
+
+    for (final (name, body) in [
+      ('items not a list', {'items': 'x'}),
+      (
+        'a volume not a map',
+        {
+          'items': [1],
+        },
+      ),
+      (
+        'a field of another type',
+        {
+          'items': [
+            {
+              'volumeInfo': {'title': 3},
+            },
+          ],
+        },
+      ),
+    ]) {
+      test('throws BookFailure.unavailable on $name', () async {
+        final repository = repositoryReturning(
+          (_) => http.Response(jsonEncode(body), 200),
+        );
+
+        expect(
+          () => repository.fetchBookByIsbn('123'),
+          throwsA(BookFailure.unavailable),
+        );
+      });
+    }
   });
 
   group('Firestore operations', () {

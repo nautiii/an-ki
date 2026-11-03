@@ -7,16 +7,19 @@ import '../../../support/network_image_mock.dart';
 import '../../../support/test_harness.dart';
 
 void main() {
-  Book book({String? imageUrl, List<String> authors = const ['Orwell']}) =>
-      Book(
-        id: '1',
-        isbn: '123',
-        title: '1984',
-        authors: authors,
-        description: 'Dystopia',
-        publishedDate: '1949',
-        imageUrl: imageUrl,
-      );
+  Book book({
+    String? imageUrl,
+    List<String> authors = const ['Orwell'],
+    String title = '1984',
+  }) => Book(
+    id: '1',
+    isbn: '123',
+    title: title,
+    authors: authors,
+    description: 'Dystopia',
+    publishedDate: '1949',
+    imageUrl: imageUrl,
+  );
 
   group('BookCard', () {
     testWidgets('renders a network cover and the metadata', (tester) async {
@@ -41,6 +44,17 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byIcon(Icons.book_rounded), findsOneWidget);
+      });
+    });
+
+    testWidgets('names a book Google Books knows without title', (
+      tester,
+    ) async {
+      await mockNetworkImages(() async {
+        await tester.pumpHarness(BookCard(book: book(title: '')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Titre inconnu'), findsOneWidget);
       });
     });
 

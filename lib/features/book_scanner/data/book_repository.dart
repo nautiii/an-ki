@@ -40,34 +40,52 @@ class BookRepository {
   CollectionReference<Map<String, dynamic>> get _books =>
       _firestore.collection('books');
 
-  /// Livre de Google Books pour [isbn] ; null s'il est inconnu ou si la
-  /// recherche échoue. Lève [BookFailure.quotaExceeded] quand le quota de
-  /// l'API est dépassé.
+  /// Livre de Google Books pour [isbn] ; null s'il est inconnu. Lève
+  /// [BookFailure.network] sans réseau, [BookFailure.quotaExceeded] quand le
+  /// quota de l'API est dépassé, [BookFailure.unavailable] pour toute autre
+  /// erreur ou réponse illisible.
   Future<Book?> fetchBookByIsbn(String isbn) async {
     final url = Uri.parse(
       'https://www.googleapis.com/books/v1/volumes?q=isbn:$isbn&key=$_apiKey',
     );
+    final http.Response response;
     try {
-      final response = await _httpClient.get(url);
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body) as Map<String, dynamic>;
-        final totalItems = data['totalItems'] as int?;
-        if (totalItems != null && totalItems > 0) {
-          final items = data['items'] as List<dynamic>;
-          final item = items.first as Map<String, dynamic>;
-          return _bookFromVolume(item, isbn);
-        }
-      } else if (response.statusCode == 429) {
-        throw BookFailure.quotaExceeded;
-      }
-    } on BookFailure {
-      // On propage pour que l'UI puisse afficher le message dédié « quota dépassé ».
-      rethrow;
-    } catch (e) {
-      debugPrint('Google Books Error: $e');
+      response = await _httpClient.get(url);
+    } on http.ClientException catch (e, stack) {
+      debugPrint('Google Books unreachable: $e');
+      Error.throwWithStackTrace(BookFailure.network, stack);
+    } on Exception catch (e, stack) {
+      // TLS refusé (portail Wi-Fi, horloge fausse) : IOClient ne l'enveloppe pas.
+      debugPrint('Google Books failed: $e');
+      Error.throwWithStackTrace(BookFailure.unavailable, stack);
     }
-    return null;
+
+    switch (response.statusCode) {
+      case 200:
+        break;
+      case 429:
+        throw BookFailure.quotaExceeded;
+      default:
+        debugPrint('Google Books HTTP ${response.statusCode}');
+        throw BookFailure.unavailable;
+    }
+
+    try {
+      return switch (json.decode(response.body)) {
+        {'items': [final Map<String, dynamic> item, ...]} => _bookFromVolume(
+          item,
+          isbn,
+        ),
+        // Aucun résultat : `totalItems` à 0, sans `items` (ou vide).
+        {'items': []} => null,
+        final Map<String, dynamic> body when !body.containsKey('items') => null,
+        _ => throw const FormatException('unexpected volumes shape'),
+      };
+    } catch (e, stack) {
+      // JSON invalide ou champ d'un autre type que prévu.
+      debugPrint('Google Books unreadable: $e');
+      Error.throwWithStackTrace(BookFailure.unavailable, stack);
+    }
   }
 
   Stream<List<Book>> watchBooks(String uid) {
@@ -132,14 +150,15 @@ Map<String, Object> _bookToMap(
   'scannedAt': Timestamp.fromDate(scannedAt),
 };
 
-/// Volume Google Books (`items[n]`) → livre pas encore ajouté à la liste.
+/// Volume Google Books (`items[n]`) → livre pas encore ajouté à la liste ;
+/// sans titre, le titre reste vide et l'UI le formule.
 Book _bookFromVolume(Map<String, dynamic> item, String isbn) {
   final volumeInfo = item['volumeInfo'] as Map<String, dynamic>?;
   final imageLinks = volumeInfo?['imageLinks'] as Map<String, dynamic>?;
 
   return Book(
     id: '',
-    title: volumeInfo?['title'] as String? ?? 'Unknown Title',
+    title: volumeInfo?['title'] as String? ?? '',
     authors: List<String>.from(
       volumeInfo?['authors'] as List<dynamic>? ?? const [],
     ),

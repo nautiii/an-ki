@@ -155,6 +155,7 @@
   "noBooksMessage": "Scan a book's barcode to keep a gift idea.",
   "bookScannerTitle": "Book Scanner",
   "bookTitle": "Title",
+  "bookUntitled": "Unknown title",
   "isbnLabel": "ISBN: {isbn}",
   "bookNotFound": "Book not found",
   "noBooksYet": "No books yet",

@@ -84,7 +84,9 @@ class BookInfoSheet extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
-                        book.title,
+                        book.title.isEmpty
+                            ? context.l10n.bookUntitled
+                            : book.title,
                         style: textTheme.titleLarge,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,

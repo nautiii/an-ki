@@ -347,7 +347,7 @@ abstract class AppLocalizations {
   /// Feuille d'un groupe partagé (créé avant les groupes privés) : pourquoi on ne peut que le retirer
   ///
   /// In fr, this message translates to:
-  /// **'Ce groupe est partagé : il ne se renomme pas, mais vous pouvez le retirer de vos groupes et de vos anniversaires.'**
+  /// **'Ce groupe est partagé : il ne se renomme pas, mais vous pouvez le retirer de vos groupes et de vos anniversaires.'**
   String get sharedGroupNote;
 
   /// No description provided for @family.
@@ -937,6 +937,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Titre'**
   String get bookTitle;
+
+  /// Titre d'un livre que Google Books connaît sans titre
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre inconnu'**
+  String get bookUntitled;
 
   /// Numéro ISBN d'un livre scanné
   ///

@@ -10,16 +10,19 @@ import '../../../support/network_image_mock.dart';
 import '../../../support/test_harness.dart';
 
 void main() {
-  Book book({String? imageUrl, List<String> authors = const ['Orwell']}) =>
-      Book(
-        id: '1',
-        isbn: '123',
-        title: '1984',
-        authors: authors,
-        description: 'Dystopia',
-        publishedDate: '1949',
-        imageUrl: imageUrl,
-      );
+  Book book({
+    String? imageUrl,
+    List<String> authors = const ['Orwell'],
+    String title = '1984',
+  }) => Book(
+    id: '1',
+    isbn: '123',
+    title: title,
+    authors: authors,
+    description: 'Dystopia',
+    publishedDate: '1949',
+    imageUrl: imageUrl,
+  );
 
   group('BookInfoSheet', () {
     testWidgets('renders details with a cover image, saves and closes', (
@@ -64,6 +67,23 @@ void main() {
 
         expect(find.byIcon(Icons.book_rounded), findsOneWidget);
         expect(find.text('Orwell'), findsNothing);
+      });
+    });
+
+    testWidgets('names a book Google Books knows without title', (
+      tester,
+    ) async {
+      await mockNetworkImages(() async {
+        await tester.pumpHarness(
+          BookInfoSheet(book: book(title: '')),
+          overrides: [
+            bookRepositoryProvider.overrideWithValue(RecordingBookRepository()),
+            currentUidProvider.overrideWithValue('u'),
+          ],
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Titre inconnu'), findsOneWidget);
       });
     });
   });

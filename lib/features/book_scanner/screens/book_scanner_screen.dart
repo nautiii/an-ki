@@ -77,7 +77,8 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
       if (mounted) {
         _showErrorSnippet(switch (error) {
           BookFailure.quotaExceeded => context.l10n.errorQuotaExceeded,
-          _ => context.l10n.bookNotFound,
+          BookFailure.network => context.l10n.errorNetwork,
+          _ => context.l10n.errorUnknown,
         });
         unawaited(_resetScanning());
       }

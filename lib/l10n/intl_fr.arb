@@ -137,7 +137,7 @@
       }
     }
   },
-  "sharedGroupNote": "Ce groupe est partagé : il ne se renomme pas, mais vous pouvez le retirer de vos groupes et de vos anniversaires.",
+  "sharedGroupNote": "Ce groupe est partagé : il ne se renomme pas, mais vous pouvez le retirer de vos groupes et de vos anniversaires.",
   "@sharedGroupNote": {
     "description": "Feuille d'un groupe partagé (créé avant les groupes privés) : pourquoi on ne peut que le retirer"
   },
@@ -492,6 +492,10 @@
   },
   "bookScannerTitle": "Scanner de livres",
   "bookTitle": "Titre",
+  "bookUntitled": "Titre inconnu",
+  "@bookUntitled": {
+    "description": "Titre d'un livre que Google Books connaît sans titre"
+  },
   "isbnLabel": "ISBN : {isbn}",
   "@isbnLabel": {
     "description": "Numéro ISBN d'un livre scanné",

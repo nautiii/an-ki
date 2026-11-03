@@ -61,7 +61,9 @@ class BookCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          book.title,
+                          book.title.isEmpty
+                              ? context.l10n.bookUntitled
+                              : book.title,
                           style: textTheme.titleMedium?.copyWith(
                             color: colorScheme.onSurface,
                           ),

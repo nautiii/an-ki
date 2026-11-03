@@ -523,6 +523,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookTitle => 'Title';
 
   @override
+  String get bookUntitled => 'Unknown title';
+
+  @override
   String isbnLabel(String isbn) {
     return 'ISBN: $isbn';
   }

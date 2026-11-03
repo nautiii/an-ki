@@ -177,7 +177,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sharedGroupNote =>
-      'Ce groupe est partagé : il ne se renomme pas, mais vous pouvez le retirer de vos groupes et de vos anniversaires.';
+      'Ce groupe est partagé : il ne se renomme pas, mais vous pouvez le retirer de vos groupes et de vos anniversaires.';
 
   @override
   String get family => 'Famille';
@@ -529,6 +529,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get bookTitle => 'Titre';
+
+  @override
+  String get bookUntitled => 'Titre inconnu';
 
   @override
   String isbnLabel(String isbn) {

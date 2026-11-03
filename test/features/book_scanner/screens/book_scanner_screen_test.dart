@@ -203,7 +203,7 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
-    testWidgets('a generic error shows the "not found" message', (
+    testWidgets('a generic error shows the unknown error message', (
       tester,
     ) async {
       await pumpScreen(
@@ -215,7 +215,27 @@ void main() {
       detect(tester, '111');
       await settleScan(tester);
 
-      expect(find.text('Livre non trouvé'), findsOneWidget);
+      expect(
+        find.text("Quelque chose s'est mal passé. Réessayez dans un instant."),
+        findsOneWidget,
+      );
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('a network error asks to check the connection', (tester) async {
+      await pumpScreen(
+        tester,
+        RecordingBookRepository(throwOnScan: BookFailure.network),
+      );
+      await tester.pump();
+
+      detect(tester, '222');
+      await settleScan(tester);
+
+      expect(
+        find.text('Pas de connexion. Vérifiez votre réseau et réessayez.'),
+        findsOneWidget,
+      );
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
