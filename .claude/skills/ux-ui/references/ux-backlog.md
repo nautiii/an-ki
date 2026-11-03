@@ -12,17 +12,18 @@ guest backup) on 2026-10-19, small fixes D6, D19, D20 and D21, Q6 and D18, the e
 and sign-up forms (D3, their part of F5, D11 and D1, their copy), the settings (Q4, F4, the
 rest of D1, their part of F5 and D11), the groups (B7, Q7, the rest of D11) and the
 reminders-off card (Q8), the forgotten password link (Q9) and the auth messages (D23) on
-2026-10-24, then the sign-up's single password (Q11), D24, D9, D22, D12, D14 (its message;
-« Voir » waits for B4), D8, F5 and D4, and the groups page (Q10) on 2026-10-25, then D25 and
-D15 (the belated wish) on 2026-10-27, then D27 (« e-mail » with a plain hyphen, U+00A0 for the
-narrow U+202F Outfit lacks) on 2026-11-02: the items they fixed are gone from this list.
+2026-10-24, then the sign-up's single password (Q11), D24, D9, D22, D12, D14 (its message),
+D8, F5 and D4, and the groups page (Q10) on 2026-10-25, then D25 and D15 (the belated wish) on
+2026-10-27, then D27 (« e-mail » with a plain hyphen, U+00A0 for the narrow U+202F Outfit
+lacks) on 2026-11-02, then B4a (the person page, with D14's « Voir ») on 2026-11-03: the items
+they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
 auth or dependencies → design brief + maintainer approval first.
 
 ## Contents
-- Big bets (B4, B8; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
+- Big bets (B4's gift ideas, deferred; B8; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
 - Foundation (none open) — design system, prerequisite for consistency
 - P2 — polish (D10, D17)
 - Suggested roadmap
@@ -32,17 +33,33 @@ auth or dependencies → design brief + maintainer approval first.
 ## Big bets
 
 ### B4 — Person page (view-first) + gift ideas per person
-- **Problem**: tapping a person opens the edit form (most taps mean « show me », not « edit »).
-  The « Scanner » tab names a mechanism; scanned books aren't linked to anyone.
-- **Proposal**: tap → person page (large avatar, countdown moon, age, date, groups, notes, gift
-  ideas, wish history, per-person reminders; actions Souhaiter / Modifier). Tab 2 → « Idées »:
-  ideas per person + an unassigned inbox; add by text, link or ISBN scan (the scanner becomes one
-  input). J-7 notification: « 2 idées pour Léa ». « Idée cadeau » also joins the J-0 hero and
-  the J-7 notification (step 4 left it out); the page shows the wish history (`wishedYears`) and
-  undoes a wish once the snackbar is gone. The add confirmation (« Léa est dans vos
-  anniversaires », `ReminderPrompt`, D14) gains « Voir », which opens the new page.
+- **Shipped, B4a person page** (2026-11-03, branch `claude/b4-brief-4e460b`): a tap on a person
+  (agenda row, hero, « Hier » card, calendar day sheet, a reminder notification) opens
+  `/person/:id`, not the edit sheet: large avatar ringed by its groups, moon countdown, birth
+  date, age, group chips, « Souhaiter » on the day and the day after, the person's reminders
+  (moved out of the edit sheet, written at once), the wish history (`wishedYears`) whose current
+  year can be undone; « Modifier » opens the edit sheet. The add confirmation (D14) gains
+  « Voir », which opens the new page. Notes stay out (a new field).
+- **Deferred — gift ideas** (maintainer, 2026-11-03: a good idea, for later, not now): tab 2
+  « Scanner » → « Idées », ideas per person + an unassigned inbox, added by text, link or ISBN
+  scan (the scanner becomes one input); then the ideas on the person page (B4c: a slot built by
+  `ideas`, passed by `app/router`, no edge from `birthday`), « Idée cadeau » on the J-0 hero and
+  « 2 idées pour Léa » in the J-7 notification (B4d, needs B8 step 2). Settled in the brief of
+  2026-11-01, to reuse when it starts:
+  - a new `ideas` feature absorbs `book_scanner` (`git mv` alone first); graph `ideas: {auth,
+    birthday}`, `settings` → `ideas`;
+  - `Idea` in `user/{uid}/ideas/{id}`: `title`, optional `personId` (absent = the inbox; an id no
+    longer in the agenda falls back to it, no cascade write), `url`, `isbn`, `authors`,
+    `imageUrl`, `createdAt`; owner-only rules tested in the emulator first; erased by
+    `AccountDeletion`; ordered by `createdAt`, no composite index;
+  - routes `/ideas` (tab) and `/scan` (pushed: the camera no longer runs in a mounted tab); pure
+    `parseIdeaText` (the first http(s) word is the link) and `groupIdeas` (inbox, then people by
+    next birthday);
+  - `url_launcher` approved (2026-11-03) to open a link; the existing `books` documents: migrate
+    them or let them go, to decide then;
+  - D10 (pinned app bar, the carousel gone) goes with it (debt A15 was fixed on 2026-11-03).
 - **Refs**: Apple/Google Contacts cards, wishlist apps, Pinterest boards (lightweight).
-- **Cost**: medium-high (ideas model with `personId`, navigation, scanner integration).
+- **Cost of what's left**: medium (ideas model and rules, the tab, scanner integration).
 
 ### B5 — Value-first onboarding (approved 2026-10-18, candidate B « directement chez soi »)
 - **Shipped, 5.3** (2026-10-19): no permission request at launch; `ReminderOfferSheet` after an
@@ -70,8 +87,8 @@ auth or dependencies → design brief + maintainer approval first.
   gains « Me prévenir » (J-30, J-7, J-1 chips; J-0 always) and « Heure des rappels » (system time
   picker), stored in `user/{uid}.reminders`; the « Rappels » row sums it up (« 7 jours avant ·
   Le jour J · 10:00 ») and the offer sheet follows it. The birthday sheet gains « Rappels »:
-  Comme d'habitude / Aucun / Personnalisés (`birthday/{id}.reminders`), to move to the person
-  page with B4. Notifications before the day are personal: « 🎉 Léa Martin », « Demain, Léa fête
+  Comme d'habitude / Aucun / Personnalisés (`birthday/{id}.reminders`), moved to the person
+  page with B4a (2026-11-03). Notifications before the day are personal: « 🎉 Léa Martin », « Demain, Léa fête
   son anniversaire. ». The plan stays under Android's 500-alarm limit, J-0 first.
 - **Dropped**: quiet hours (one chosen time makes them redundant); the Monday digest (maintainer,
   2026-10-25).
@@ -161,7 +178,8 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
 ## P2 — polish
 
 - **D10 Scanner header**: the scanner tab keeps the old two-line `Header` while the home has the
-  pinned app bar → align the two tabs when B4 reworks the scanner. Same rework: the book
+  pinned app bar → align the two tabs when B4's gift ideas (deferred) rework the scanner. Same
+  rework: the book
   carousel's `SizedBox(height: 180)` sits in an `Expanded`, so the cards stretch over all the
   space left (≈ 320 dp at 412×915, `scanner` snapshot, 2026-10-25).
 - **D17 iOS wish button**: iOS notifications have no « Souhaiter » (Darwin categories are
@@ -170,5 +188,6 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
 ## Suggested roadmap
 
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **B4, B8, D10, D17** — depth and polish;
+2. **B8, D17** — depth and polish;
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
+3. **B4's gift ideas, with D10** — when the maintainer picks them up.
