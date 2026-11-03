@@ -620,6 +620,8 @@ final class _Visitor extends GeneralizingAstVisitor<void> {
         _use(constructor.superConstructor);
       }
     }
+    // Une valeur d'enum (`monthBefore(30)`) appelle le constructeur de l'enum.
+    if (node is EnumConstantDeclaration) _use(node.constructorElement);
     super.visitDeclaration(node);
     frame = frame!.parent;
   }

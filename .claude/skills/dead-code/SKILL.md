@@ -57,9 +57,10 @@ Knowing its rules is what makes the review fast.
   count: they are the ARB keys, reported at their line in the template ARB (`intl_fr.arb`).
 - **References** — any resolved use from lib/ or test/: call, tear-off, type annotation,
   constructor, annotation, operator, pattern field, dot shorthand. A use of a member also uses
-  its class or extension; `values` uses every value of the enum; a call through an override uses
-  the member it overrides, so an interface method stays alive when callers hold the
-  implementation. A declaration's references to itself don't count.
+  its class or extension; `values` uses every value of the enum; an enum value uses the
+  constructor it invokes (`monthBefore(30)`), counted from that value; a call through an
+  override uses the member it overrides, so an interface method stays alive when callers hold
+  the implementation. A declaration's references to itself don't count.
 - **Ricochet** — a reference from dead code doesn't count, a reference from lib/ code that only
   tests use counts as a test use: `[ricochet]` marks what fell through that chain (the source
   shows « via X »). Two dead declarations that only reference each other stay invisible.
