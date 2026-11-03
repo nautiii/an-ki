@@ -219,30 +219,59 @@ void main() {
         });
       });
 
-      group('category/{id} shared groups', () {
-        setUp(() => db.seed('category/family', {'name': 'Famille'}));
-
-        test('are read by signed-in users only', () async {
-          expect(await db.canQuery(alice, 'category'), isTrue);
-          expect(await db.canGet(bob, 'category/family'), isTrue);
-          expect(await db.canQuery(signedOut, 'category'), isFalse);
+      group('category/{id} predefined groups', () {
+        setUp(() async {
+          await db.seed('category/family', {
+            'name': 'family',
+            'predefined': true,
+          });
+          await db.seed('category/old', userGroup());
+          await db.seed('category/unflagged', {
+            ...userGroup(),
+            'predefined': false,
+          });
         });
 
-        test('are never edited nor deleted', () async {
+        test('are read by signed-in users only', () async {
+          expect(
+            await db.canQuery(
+              alice,
+              'category',
+              whereField: 'predefined',
+              isEqualTo: true,
+            ),
+            isTrue,
+          );
+          expect(await db.canGet(bob, 'category/family'), isTrue);
+          expect(await db.canGet(signedOut, 'category/family'), isFalse);
+          expect(
+            await db.canQuery(
+              signedOut,
+              'category',
+              whereField: 'predefined',
+              isEqualTo: true,
+            ),
+            isFalse,
+          );
+        });
+
+        test('an older shared group is no longer readable', () async {
+          expect(await db.canGet(alice, 'category/old'), isFalse);
+          expect(await db.canGet(alice, 'category/unflagged'), isFalse);
+          // Les règles ne filtrent pas : sans le filtre, tout est refusé.
+          expect(await db.canQuery(alice, 'category'), isFalse);
+        });
+
+        test('are never created, edited nor deleted', () async {
+          expect(
+            await db.canCreate(alice, 'category/new', userGroup()),
+            isFalse,
+          );
           expect(
             await db.canUpdate(alice, 'category/family', {'name': 'x'}),
             isFalse,
           );
           expect(await db.canDelete(alice, 'category/family'), isFalse);
-        });
-
-        // L'app ne crée plus de groupe partagé depuis le 2026-10-24 (groupes
-        // privés) : droit à retirer des règles, voir le skill firebase.
-        test('can still be created by any signed-in user', () async {
-          expect(
-            await db.canCreate(alice, 'category/new', userGroup()),
-            isTrue,
-          );
         });
       });
 

@@ -96,20 +96,20 @@ Owner: the `uid` field. Rules: same as `birthday`.
 
 ## 5. `category/{id}` — shared groups
 
-Read by every signed-in user; created by hand in the console (predefined) or by app versions
-before 2026-10-24 (users' groups). Rules today: any signed-in user reads and **creates**, nobody
-updates or deletes.
+The four predefined groups, created by hand in the console and flagged `predefined: true`. Rules:
+a signed-in user reads documents with `predefined == true`; nobody creates, updates or deletes.
+Older users' groups (app versions before 2026-10-24) are copied by the maintainer under
+`user/{uid}/categories` (`console.md` §10) and are no longer readable here.
 
 | Field | Type | Meaning |
 |-------|------|---------|
-| `name` | string | predefined: a key the UI translates (`family`, `friend`, `colleague`, `other`); older users' groups: the typed name |
+| `name` | string | a key the UI translates (`family`, `friend`, `colleague`, `other`) |
+| `predefined` | bool | `true`; required by the rules and the query (added in the console, §10 step 3) |
 | `icon` | int | Material code point |
 | `tone` | int, optional | absent on these documents |
 
-- Read by `CategoryRepository.watchCategories`: the whole collection, by every user — every
-  user's old groups included (debt A16: names visible to any account, reads growing with the
-  user base). The app no longer writes here; the `create` permission only serves old app
-  versions and should go once A16 is done (`migrations.md`).
+- Read by `CategoryRepository.watchCategories`: `where('predefined', isEqualTo: true)`, mandatory
+  (rules are not filters). The app never writes here.
 
 ## 6. Firebase Auth
 
@@ -130,7 +130,7 @@ updates or deletes.
 |-------|-------|-------|
 | `birthday` where `uid ==` | automatic single-field | — |
 | `books` where `uid ==`, order by `scannedAt` desc | composite `uid` ASC, `scannedAt` DESC | `firestore.indexes.json` (deployed) |
-| `category` (all) | none | — |
+| `category` where `predefined ==` | automatic single-field | — |
 | `user/{uid}/categories` (all) | none | — |
 
 `firestore.indexes.json` also carries a field override on `user.name` that exists in production
@@ -162,6 +162,6 @@ everywhere):
 - `birthday` without `yearKnown` (year known), `wishedYears` (never wished) or `reminders` (default setting).
 - `user` without `reminders` (default setting).
 - `user` with `isDark` instead of `themeMode`.
-- `user.categories` and users' own groups in the shared `category` collection (A16).
+- `user.categories` (shared groups picked before; unreachable once `console.md` §10 is done, removal pending: `migrations.md` §5).
 - `category` without `tone`; any group without `icon`.
 - `birthday` without `date`: skipped, not shown.

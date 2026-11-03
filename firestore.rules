@@ -37,10 +37,12 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid;
     }
 
-    // Categories are shared across users (referenced by id on the user doc):
-    // any signed-in user may read them and create new ones.
+    // Groupes prédéfinis, communs à tous : lus par tout utilisateur connecté,
+    // jamais écrits par l'app. Les anciens groupes partagés (sans
+    // `predefined`) ne se lisent plus : chacun a sa copie privée.
     match /category/{categoryId} {
-      allow read, create: if request.auth != null;
+      allow read: if request.auth != null
+        && resource.data.predefined == true;
     }
   }
 }

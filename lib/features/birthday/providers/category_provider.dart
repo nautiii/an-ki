@@ -5,8 +5,7 @@ import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Catégories partagées : prédéfinies, et groupes créés avant qu'ils soient
-/// privés.
+/// Catégories partagées : les prédéfinies (Famille, Amis, Travail, Autres).
 final sharedCategoriesProvider = StreamProvider<List<BirthdayCategory>>(
   (ref) => ref.watch(categoryRepositoryProvider).watchCategories(),
 );

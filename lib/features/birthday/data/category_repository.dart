@@ -8,10 +8,10 @@ final categoryRepositoryProvider = Provider<CategoryRepository>(
   (ref) => CategoryRepository(firestore: ref.watch(firestoreProvider)),
 );
 
-/// Catégories, présentées comme des groupes : la collection partagée
-/// `category` (prédéfinies, et groupes créés avant qu'ils soient privés),
-/// lue par tous les utilisateurs connectés ; les groupes créés désormais,
-/// privés, sous `user/{uid}/categories`.
+/// Catégories, présentées comme des groupes : les prédéfinies de la
+/// collection partagée `category` (`predefined: true`), lues par tous les
+/// utilisateurs connectés ; les groupes de chacun, privés, sous
+/// `user/{uid}/categories`.
 class CategoryRepository {
   CategoryRepository({required FirebaseFirestore firestore}) : _db = firestore;
 
@@ -20,8 +20,11 @@ class CategoryRepository {
   CollectionReference<Map<String, dynamic>> _own(String uid) =>
       _db.collection('user').doc(uid).collection('categories');
 
+  /// Catégories prédéfinies. Le filtre est obligatoire : les règles refusent
+  /// toute requête qui pourrait lire un ancien groupe partagé.
   Stream<List<BirthdayCategory>> watchCategories() => _db
       .collection('category')
+      .where('predefined', isEqualTo: true)
       .snapshots()
       .map((snapshot) => snapshot.docs.map(_categoryFromDoc).toList());
 

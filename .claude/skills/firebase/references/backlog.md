@@ -7,10 +7,10 @@ agents only prepare.
 
 | # | Item | Why | Who | How |
 |---|------|-----|-----|-----|
-| F1 | Deploy `firestore.rules` | git is ahead of production: private groups refused by the server (a new group vanishes), owner not pinned on update; tests and server compilation green on 2026-10-25 | mainteneur | `console.md` §1, then the device checks of `architecture/references/migration.md` §1 |
+| F1 | Deploy `firestore.rules` | git is ahead of production: private groups refused by the server (a new group vanishes), owner not pinned on update; tests and server compilation green on 2026-10-25 | mainteneur | the file of `90a83db`, not the current one (A16): `console.md` §10 step 1, then the device checks of `architecture/references/migration.md` §1 |
 | F2 | Register the current PC's debug SHA-1 (and SHA-256) | Google sign-in and guest backup fail on this machine's builds | mainteneur | `console.md` §4 |
 | F3 | Drop the web app from the Firebase config | `firebase.json` and `lib/core/firebase_options.dart` still describe the web app removed on 2026-10-12 | mainteneur, agent reviews the diff | `console.md` §5 |
-| F4 | A16 — older groups out of `category`, then remove its `create` permission | any signed-in account reads every user's old group names and may still create shared groups the app no longer writes; `test/firestore` documents that `create` | agent (app, rules, tests) + mainteneur (console, deploys) | `migrations.md` §5 — system change: brief first |
+| F4 | A16 — code done, console steps pending | the filter and the read-only rules are in git; until the steps are run, older groups stay in `category` and the new rules must not be deployed | mainteneur | `console.md` §10 (order matters; F1 is its step 1), then the device check of `architecture/references/migration.md` §1; `migrations.md` §5 |
 | F6 | Restrict the Android API key and confirm the Google Books key's restrictions | quota abuse; the Books key leaked publicly in October and had to be rotated and restricted | mainteneur | `console.md` §7, then sign-in, sync and a scan on a device |
 | F7 | Check the plan and set a budget alert if on Blaze | nothing tells us today when quotas or costs move | mainteneur | `console.md` §8 |
 | F8 | Decide on App Check (Play Integrity) | only the rules stop a modified client today | agent brief, mainteneur decides | system change: new plugin `firebase_app_check` |

@@ -76,21 +76,17 @@ are the ids in `user/{uid}.categories` whose `name` isn't a predefined key (`fam
 `colleague`, `other`). Private groups use the same id space, so copying `category/{id}` to
 `user/{uid}/categories/{id}` keeps every birthday's `categories` valid.
 
-1. **Prerequisite**: the current rules deployed (`user/{uid}/categories` allowed).
-2. **Release N (app, lazy)**: at session start, for each such id not yet private, copy
-   `name` and `icon` with `set` under the same id; then `arrayRemove` the copied ids from
-   `user.categories`. Both steps are idempotent; `userGroups` already shows an id once, so the
-   overlap looks normal. A group several users picked gets one private copy per user.
-3. **Console (maintainer)**: add `predefined: true` to the four predefined documents.
-4. **Release N+1**, once the maintainer's devices run N: `watchCategories` queries
-   `where('predefined', isEqualTo: true)`, and the rules become
-   `allow read: if isSignedIn() && resource.data.predefined == true;` — no `create`. The query
-   filter is mandatory: rules are not filters. Rules tests: a predefined group readable, another
-   one refused, the query without the filter refused, signed-out refused.
-5. **Cleanup (maintainer, optional)**: delete the users' old shared documents; they are
-   unreadable after N+1 anyway.
-
-Size: M for the app, plus two console steps. Closes A16; `schema.md` §5 and §9 shrink.
+Decision 2026-11-04: no users besides the maintainer's devices, so the lazy in-app copy
+(release N) is dropped for manual console steps.
+- **Code, done** (release N+1): `watchCategories` queries `where('predefined', isEqualTo: true)`
+  (mandatory: rules are not filters); the rules are
+  `allow read: if request.auth != null && resource.data.predefined == true;`, no `create`; rules
+  tests cover them.
+- **Console, pending**: `console.md` §10, in order (copy old groups, flag the four predefined,
+  install the app everywhere, deploy the rules, optional cleanup).
+- **Follow-up, not done**: remove the now unreachable shared non-predefined path
+  (`GroupKind.shared`, « Retirer de mes groupes », `UserRepository.removeCategory`,
+  `UserProfile.categories` / `pickedIds` in `userGroups`); `schema.md` §5 and §9 shrink then.
 
 ## 6. Plan M10 — per-user collections
 

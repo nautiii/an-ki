@@ -37,7 +37,8 @@ use `demo-anki`, which can't reach production).
   `firebase.json` (rules, indexes, emulator on port 8080), `test/firestore/firestore_rules_test.dart`
   with its client `test/support/firestore_emulator.dart`, `scripts/test_firestore_rules.ps1`.
 - **What remains** lives in `references/backlog.md`: the rules in git are ahead of production
-  (F1), debt A16, console steps. Read it before Firebase work; keep it current.
+  (F1), debt A16 (code done, console steps pending: `console.md` §10), console steps. Read it
+  before Firebase work; keep it current.
 
 ## Read first
 

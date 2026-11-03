@@ -15,15 +15,19 @@ void main() {
   });
 
   group('watchCategories', () {
-    test('maps every stored category', () async {
+    test('maps every predefined category, and only them', () async {
       final family = await firestore.collection('category').add({
         'name': 'Family',
         'icon': 1,
+        'predefined': true,
       });
       final friend = await firestore.collection('category').add({
         'name': 'Friend',
         'icon': 2,
+        'predefined': true,
       });
+      // Ancien groupe partagé, désormais copié chez son propriétaire.
+      await firestore.collection('category').add({'name': 'Club', 'icon': 3});
 
       final categories = await repository.watchCategories().first;
 
@@ -34,7 +38,7 @@ void main() {
     });
 
     test('falls back to defaults for an old document', () async {
-      await firestore.collection('category').add(<String, dynamic>{});
+      await firestore.collection('category').add({'predefined': true});
 
       final category = (await repository.watchCategories().first).single;
 
@@ -135,6 +139,7 @@ void main() {
       'name': 'Sport',
       'icon': 1,
       'tone': 9,
+      'predefined': true,
     });
 
     final category = (await repository.watchCategories().first).single;

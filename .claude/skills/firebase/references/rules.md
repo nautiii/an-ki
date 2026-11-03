@@ -21,7 +21,7 @@ change like a schema change: test first, prove it in the emulator, deploy delibe
 | `user/{uid}` | owner | owner | owner | owner |
 | `user/{uid}/categories/{id}` | owner | owner | owner | owner |
 | `birthday/{id}`, `books/{id}` | `resource.data.uid` = caller | `request.resource.data.uid` = caller | owner, `uid` unchanged | owner |
-| `category/{id}` | any signed-in user | any signed-in user (unused by the app, A16) | nobody | nobody |
+| `category/{id}` | signed-in, `resource.data.predefined == true` | nobody | nobody | nobody |
 | anything else | nobody | nobody | nobody | nobody |
 
 `test/firestore/firestore_rules_test.dart` is the executable version of this table: when they
@@ -44,7 +44,7 @@ disagree, the tests win and this table gets fixed.
    round.
 6. **Shared data is read-only for clients.** Documents everyone reads (predefined groups) are
    written in the console; a client-writable shared collection is an abuse and privacy vector
-   (A16).
+   (A16, closed in code).
 7. **Validate what protects others, not what protects the app from itself.** Each user only
    reaches their own documents, so field validation (`keys().hasOnly`, types, sizes) buys little
    and couples every schema change to a rules deploy synchronised with old app versions. Add it
