@@ -99,7 +99,7 @@ Console → Authentication:
 - Templates → password reset: French and English versions (the app sets the language before
   sending), sender name « AnKi ».
 - Accounts: test accounts are created and deleted through the app, so account deletion gets
-  exercised too (debt A17).
+  exercised too (identity confirmed first).
 
 ## 7. API keys and App Check
 

@@ -4,6 +4,7 @@ import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/auth/domain/guest_linked.dart';
+import 'package:an_ki/features/auth/domain/sign_in_method.dart';
 import 'package:an_ki/features/auth/providers/fresh_sign_in_provider.dart';
 import 'package:an_ki/features/auth/providers/guest_links.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
@@ -183,6 +184,39 @@ class AuthController extends AsyncNotifier<void> {
     });
   }
 
+  /// Confirme l'identité du compte connecté avant sa suppression, que
+  /// Firebase refuse à une connexion trop ancienne : Google rouvre son
+  /// sélecteur, un compte e-mail donne [password]. Un invité n'a rien pour la
+  /// confirmer : il passe. Le sélecteur fermé est une annulation.
+  Future<bool> confirmIdentity({String? password}) {
+    final repository = _repository;
+    final method = ref.read(signInMethodProvider);
+    return _run(AuthFailure.deleteAccountFailed, () async {
+      switch (method) {
+        case null:
+          return false;
+        case SignInMethod.guest:
+          break;
+        case SignInMethod.google:
+          try {
+            await repository.reauthenticateWithGoogle();
+          } on AuthFailure {
+            // Le compte Google choisi est oublié : un nouvel essai les
+            // propose tous, au lieu de reprendre le mauvais.
+            try {
+              await repository.signOutGoogle();
+            } on Exception {
+              // Oubli au mieux : l'échec à annoncer reste la confirmation.
+            }
+            rethrow;
+          }
+        case SignInMethod.email:
+          await repository.reauthenticateWithPassword(password ?? '');
+      }
+      return true;
+    });
+  }
+
   /// Supprime le compte d'authentification, une fois ses données effacées
   /// par les réglages, puis la connexion Google et l'empreinte.
   Future<bool> deleteAccount() {
@@ -190,7 +224,14 @@ class AuthController extends AsyncNotifier<void> {
     final repository = _repository;
     final lock = _lock;
     return _run(AuthFailure.deleteAccountFailed, () async {
-      await repository.deleteCurrentUser();
+      final guest = repository.currentUser?.isAnonymous ?? false;
+      try {
+        await repository.deleteCurrentUser();
+      } on AuthFailure catch (failure) {
+        // Un invité ne peut pas confirmer son identité : vidé de ses données,
+        // son compte devient injoignable une fois la session fermée.
+        if (!guest || failure != AuthFailure.requiresRecentLogin) rethrow;
+      }
       // Firebase ferme déjà la session d'un compte supprimé : on le dit.
       await repository.signOutFirebase();
       await repository.signOutGoogle();

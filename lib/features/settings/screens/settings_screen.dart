@@ -10,7 +10,7 @@ import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
 import 'package:an_ki/features/reminders/providers/reminder_preferences_provider.dart';
 import 'package:an_ki/features/reminders/widgets/reminder_preferences_tiles.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
-import 'package:an_ki/features/settings/providers/account_deletion.dart';
+import 'package:an_ki/features/settings/widgets/delete_account_tile.dart';
 import 'package:an_ki/features/settings/widgets/preference_choices.dart';
 import 'package:an_ki/features/settings/widgets/pseudo_field.dart';
 import 'package:an_ki/features/settings/widgets/settings_section.dart';
@@ -98,7 +98,7 @@ class SettingsScreen extends ConsumerWidget {
             gap,
             SettingsSection(
               title: l10n.settingsAccount,
-              children: const [_SignOutTile(), _DeleteAccountTile()],
+              children: const [_SignOutTile(), DeleteAccountTile()],
             ),
           ],
         ),
@@ -246,72 +246,6 @@ class _SignOutTile extends ConsumerWidget {
       title: Text(context.l10n.signOut),
       trailing: const Icon(Icons.chevron_right_rounded),
       onTap: () => _confirm(context, ref, isAnonymous: isAnonymous),
-    );
-  }
-}
-
-/// « Supprimer mon compte », seule ligne à la couleur d'erreur : un dialogue
-/// nomme la conséquence avant d'effacer les données puis le compte.
-class _DeleteAccountTile extends ConsumerWidget {
-  const _DeleteAccountTile();
-
-  Future<void> _confirm(BuildContext context, WidgetRef ref) async {
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(dialogContext.l10n.deleteAccountTitle),
-        content: Text(dialogContext.l10n.deleteAccountConfirmation),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(dialogContext.l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () async {
-              final authController = ref.read(authControllerProvider.notifier);
-              final accountDeletion = ref.read(
-                accountDeletionProvider.notifier,
-              );
-              final l10n = context.l10n;
-
-              Navigator.of(dialogContext).pop();
-
-              var deleted = false;
-              try {
-                // 1. Supprimer les données Firestore
-                await accountDeletion.eraseData();
-                // 2. Supprimer le compte Auth
-                deleted = await authController.deleteAccount();
-              } catch (_) {
-                // Effacement des données refusé : le compte reste.
-              }
-              if (!deleted && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.deleteAccountError)),
-                );
-              }
-            },
-            child: Text(
-              dialogContext.l10n.delete,
-              style: TextStyle(
-                color: Theme.of(dialogContext).colorScheme.error,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final error = Theme.of(context).colorScheme.error;
-
-    return ListTile(
-      leading: Icon(Icons.delete_forever_rounded, color: error),
-      title: Text(context.l10n.deleteAccount, style: TextStyle(color: error)),
-      trailing: const Icon(Icons.chevron_right_rounded),
-      onTap: () => _confirm(context, ref),
     );
   }
 }

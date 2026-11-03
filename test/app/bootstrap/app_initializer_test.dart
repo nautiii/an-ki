@@ -12,6 +12,7 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
+import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -49,6 +50,7 @@ void main() {
     String? displayName = 'Léa Martin',
     bool anonymous = false,
     SignUpNames? typedNames,
+    Completer<void>? accountDeletion,
   }) => tester.pumpHarness(
     const AppInitializer(child: _Child()),
     overrides: [
@@ -66,6 +68,11 @@ void main() {
       birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
       if (typedNames != null)
         signUpNamesProvider.overrideWithBuild((ref, notifier) => typedNames),
+      // Suppression du compte en cours, jusqu'à ce que le test la termine.
+      if (accountDeletion != null)
+        accountDeletionProvider.overrideWithBuild(
+          (ref, notifier) => accountDeletion.future,
+        ),
     ],
   );
 
@@ -130,6 +137,26 @@ void main() {
       tester.element(find.byType(AppInitializer)),
     );
     expect(container.read(signUpNamesProvider), isNull);
+  });
+
+  testWidgets('never recreates the profile an account deletion erased', (
+    tester,
+  ) async {
+    final users = RecordingUserRepository();
+    final deletion = Completer<void>();
+    await pumpInitializer(tester, users: users, accountDeletion: deletion);
+    await tester.pump();
+    await tester.pump();
+
+    expect(users.created, isEmpty);
+
+    // Échouée après l'effacement, la suppression laisse un compte : son
+    // profil revient.
+    deletion.completeError(Exception('delete failed'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(users.created.single.id, 'u1');
   });
 
   testWidgets('never creates a profile that already exists', (tester) async {

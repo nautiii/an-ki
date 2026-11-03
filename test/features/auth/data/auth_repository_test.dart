@@ -200,6 +200,93 @@ void main() {
       await expectRefused('network-request-failed', AuthFailure.network);
       await expectRefused('user-disabled', AuthFailure.userDisabled);
     });
+
+    test('confirms the identity of the signed-in account', () async {
+      final auth = MockFirebaseAuth(
+        signedIn: true,
+        mockUser: MockUser(uid: 'reauth-google'),
+      );
+
+      await expectLater(
+        build(auth, FakeFirebaseFirestore()).reauthenticateWithGoogle(),
+        completes,
+      );
+    });
+
+    /// Confirmation Google refusée par Firebase avec [code]. Un compte par
+    /// code : les refus programmés survivent au test.
+    Future<void> expectReauthRefused(String code, AuthFailure failure) async {
+      final user = MockUser(uid: 'reauth-$code');
+      whenCalling(Invocation.method(#reauthenticateWithCredential, null))
+          .on(user)
+          .thenThrow(FirebaseAuthException(code: code));
+      final auth = MockFirebaseAuth(signedIn: true, mockUser: user);
+
+      await expectLater(
+        build(auth, FakeFirebaseFirestore()).reauthenticateWithGoogle(),
+        throwsA(failure),
+      );
+    }
+
+    test('another Google account is refused as such', () async {
+      await expectReauthRefused('user-mismatch', AuthFailure.userMismatch);
+    });
+
+    test('a refused Google token is a Google failure here too', () async {
+      await expectReauthRefused(
+        'invalid-credential',
+        AuthFailure.googleSignInFailed,
+      );
+    });
+
+    test('without a session, confirms nothing', () async {
+      await expectLater(
+        build(
+          MockFirebaseAuth(),
+          FakeFirebaseFirestore(),
+        ).reauthenticateWithGoogle(),
+        completes,
+      );
+    });
+  });
+
+  group('confirming a password', () {
+    test('confirms the identity with the account address', () async {
+      final auth = MockFirebaseAuth(
+        signedIn: true,
+        mockUser: MockUser(uid: 'reauth-pwd', email: 'lea@example.com'),
+      );
+
+      await expectLater(
+        build(auth, FakeFirebaseFirestore()).reauthenticateWithPassword('pwd'),
+        completes,
+      );
+    });
+
+    test('an account without address cannot confirm', () async {
+      final auth = MockFirebaseAuth(
+        signedIn: true,
+        mockUser: MockUser(uid: 'reauth-no-email'),
+      );
+
+      await expectLater(
+        build(auth, FakeFirebaseFirestore()).reauthenticateWithPassword('pwd'),
+        throwsA(AuthFailure.requiresRecentLogin),
+      );
+    });
+
+    test('translates a wrong password', () async {
+      final user = MockUser(uid: 'reauth-wrong', email: 'lea@example.com');
+      whenCalling(Invocation.method(#reauthenticateWithCredential, null))
+          .on(user)
+          .thenThrow(FirebaseAuthException(code: 'invalid-credential'));
+      final auth = MockFirebaseAuth(signedIn: true, mockUser: user);
+
+      await expectLater(
+        build(auth, FakeFirebaseFirestore()).reauthenticateWithPassword('no'),
+        throwsA(AuthFailure.invalidCredentials),
+      );
+    });
   });
 
   group('linking a guest to Google', () {
@@ -319,6 +406,22 @@ void main() {
       final repo = build(auth, FakeFirebaseFirestore());
 
       await expectLater(repo.deleteCurrentUser(), completes);
+    });
+
+    test('deleteCurrentUser asks for a recent sign-in', () async {
+      final user = MockUser(uid: 'delete-old');
+      whenCalling(Invocation.method(#delete, null))
+          .on(user)
+          .thenThrow(FirebaseAuthException(code: 'requires-recent-login'));
+      final repo = build(
+        MockFirebaseAuth(signedIn: true, mockUser: user),
+        FakeFirebaseFirestore(),
+      );
+
+      await expectLater(
+        repo.deleteCurrentUser(),
+        throwsA(AuthFailure.requiresRecentLogin),
+      );
     });
   });
 

@@ -121,7 +121,8 @@ updates or deletes.
   `invalid-credential` (`AuthFailure.invalidCredentials`); a reset to an unknown address
   « succeeds » silently.
 - Deleting the Auth account deletes no document and fails with `requires-recent-login` on an
-  old sign-in (debt A17).
+  old sign-in, so the app confirms the identity first (§8); a guest cannot, and is signed out
+  after its data is erased.
 
 ## 7. Queries and indexes
 
@@ -139,7 +140,9 @@ emulator serves every query without indexes: a missing one surfaces only against
 
 ## 8. Account deletion
 
-`AccountDeletion.eraseData()` (settings feature), then `AuthController.deleteAccount()`:
+`AccountDeletion.deleteAccount()` (settings feature) runs `AuthController.confirmIdentity()`
+(Google picker, the password typed in the dialog, nothing for a guest), then `_eraseData(uid)`,
+then `AuthController.deleteAccount()`; nothing is erased unless the identity is confirmed:
 
 | Order | Erases | How |
 |-------|--------|-----|
@@ -147,10 +150,10 @@ emulator serves every query without indexes: a missing one surfaces only against
 | 2 | `books` where `uid ==` | query, then batches of deletes |
 | 3 | `user/{uid}/categories` | query, then batches (a subcollection survives its parent) |
 | 4 | `user/{uid}` | delete |
-| 5 | the Auth account | after the data (debt A17: it may refuse) |
+| 5 | the Auth account | after the data, identity confirmed first (a guest that gets `requires-recent-login` is signed out) |
 
 Invariant: every per-user path in this file appears in this table. A new collection adds its
-`deleteAllUser…` method, a line in `eraseData()` and a test.
+`deleteAllUser…` method, a line in `_eraseData()` and a test.
 
 ## 9. Shapes still read for old documents
 

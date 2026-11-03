@@ -555,6 +555,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.';
 
   @override
+  String get deleteAccountPasswordPrompt =>
+      'Pour confirmer, saisissez votre mot de passe.';
+
+  @override
+  String get deleteAccountGooglePrompt =>
+      'Pour confirmer, Google vous demandera de choisir votre compte.';
+
+  @override
+  String get deleteAccountInProgress => 'Suppression en cours…';
+
+  @override
+  String get deleteAccountWrongPassword => 'Mot de passe incorrect.';
+
+  @override
   String get importContacts => 'Importer les contacts';
 
   @override
@@ -827,6 +841,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get errorUserDisabled =>
       'Ce compte est désactivé. Connectez-vous avec un autre.';
+
+  @override
+  String get errorUserMismatch =>
+      'Ce compte Google n\'est pas celui connecté à AnKi. Choisissez le bon et réessayez.';
+
+  @override
+  String get errorRequiresRecentLogin =>
+      'Pour votre sécurité, reconnectez-vous puis réessayez.';
 
   @override
   String get errorWrongPassword =>

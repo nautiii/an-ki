@@ -25,6 +25,13 @@ enum AuthFailure implements Exception {
   /// Compte désactivé dans la console Firebase.
   userDisabled,
 
+  /// Identité confirmée avec un autre compte Google que celui connecté.
+  userMismatch,
+
+  /// Opération sensible refusée à une connexion trop ancienne : l'identité
+  /// doit être confirmée d'abord.
+  requiresRecentLogin,
+
   /// Refus de Firebase Auth sans cas dédié.
   unknown,
 

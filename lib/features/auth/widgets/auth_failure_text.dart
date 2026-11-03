@@ -17,6 +17,8 @@ extension AuthFailureText on AuthFailure {
       AuthFailure.network => l10n.errorNetwork,
       AuthFailure.tooManyRequests => l10n.errorTooManyRequests,
       AuthFailure.userDisabled => l10n.errorUserDisabled,
+      AuthFailure.userMismatch => l10n.errorUserMismatch,
+      AuthFailure.requiresRecentLogin => l10n.errorRequiresRecentLogin,
       AuthFailure.unknown => l10n.errorUnknown,
       AuthFailure.signUpFailed => l10n.registrationError,
       AuthFailure.signInFailed => l10n.connectionError,

@@ -10,6 +10,7 @@ import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
+import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/display_name.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -74,6 +75,15 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
         );
       }
     });
+    // Suppression du compte terminée : réussie, la session est fermée et rien
+    // n'est créé ; échouée après l'effacement, le profil est recréé.
+    ref.listenManual(accountDeletionProvider, (previous, next) {
+      if ((previous?.isLoading ?? false) && !next.isLoading) {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => unawaited(_createMissingProfile()),
+        );
+      }
+    });
     // Invité lié à Google : son profil prend les noms du compte Google.
     ref.listenManual(guestLinksProvider, (_, linked) {
       if (linked != null) unawaited(_takeGoogleNames(linked));
@@ -129,6 +139,9 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
     if (user == null || user.uid == _creatingProfileFor) return;
     // Le profil a pu arriver entre-temps.
     if (ref.read(userProfileProvider).value != null) return;
+    // Effacé par la suppression du compte, qui ferme la session ensuite : le
+    // recréer laisserait un profil sans compte.
+    if (ref.read(accountDeletionProvider).isLoading) return;
 
     final uid = user.uid;
     _creatingProfileFor = uid;

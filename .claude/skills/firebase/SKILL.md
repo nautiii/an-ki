@@ -37,7 +37,7 @@ use `demo-anki`, which can't reach production).
   `firebase.json` (rules, indexes, emulator on port 8080), `test/firestore/firestore_rules_test.dart`
   with its client `test/support/firestore_emulator.dart`, `scripts/test_firestore_rules.ps1`.
 - **What remains** lives in `references/backlog.md`: the rules in git are ahead of production
-  (F1), debts A16 and A17, console steps. Read it before Firebase work; keep it current.
+  (F1), debt A16, console steps. Read it before Firebase work; keep it current.
 
 ## Read first
 
@@ -90,7 +90,7 @@ Reproduce on the emulator or the phone (device skill: logcat), then:
 | A write that never finishes | offline: write futures resolve on server acknowledgement only | don't await it in the UI (patterns §9) |
 | An item that appears, then vanishes | the server refused an optimistic write (rules not deployed?) | check the rules in production, listen to the controller's error |
 | Google sign-in fails at once with a configuration error in logcat (`ApiException: 10`, « Developer console is not set up correctly ») | the signing key's SHA-1 isn't registered | console runbook §4 |
-| `requires-recent-login` on account deletion | Auth wants a recent sign-in (debt A17) | re-authenticate first; never erase data before the account can go |
+| `requires-recent-login` on account deletion | Auth wants a recent sign-in | account deletion confirms the identity first (`AuthController.confirmIdentity`); elsewhere, re-authenticate before a sensitive operation |
 
 ## Verify — show, don't claim
 

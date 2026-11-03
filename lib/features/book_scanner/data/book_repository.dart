@@ -108,8 +108,11 @@ class BookRepository {
 
   /// Efface tous les livres de [uid] (suppression du compte), par lots
   /// d'écritures.
+  /// Lu sur le serveur : hors ligne, l'effacement échoue avant de commencer.
   Future<void> deleteAllUserBooks(String uid) async {
-    final snapshot = await _books.where('uid', isEqualTo: uid).get();
+    final snapshot = await _books
+        .where('uid', isEqualTo: uid)
+        .get(const GetOptions(source: Source.server));
     await _firestore.writeInBatches(
       snapshot.docs,
       (batch, doc) => batch.delete(doc.reference),

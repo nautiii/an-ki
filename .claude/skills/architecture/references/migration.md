@@ -26,7 +26,8 @@ Delete each line once done:
   enabling and disabling the fingerprint in the settings (the switch shows only once a screen
   lock and a finger are enrolled, device recipes §9), birthday with a photo (kept when editing
   without a new one; the gallery, no camera needed), account deletion with the fingerprint on or
-  off (birthdays, books and profile gone, no error) on a test account, birthdays tab shown again
+  off (identity confirmed first: password in the dialog, the Google picker, nothing for a guest;
+  birthdays, books and profile gone, no `user/{uid}` left behind, no error) on a test account, birthdays tab shown again
   after signing back in.
 - Private groups (UX piste C, 2026-10-24), once the maintainer has deployed `firestore.rules`
   (until then the server refuses the writes and the new group vanishes): a group created in the
@@ -60,7 +61,6 @@ so « keeps its search » no longer applies.
 | # | Debt | Evidence | Consequence | Step |
 |---|------|----------|-------------|------|
 | A16 | Older groups still shared | groups created before 2026-10-24 sit in the top-level `category` collection, readable by any signed-in user, and `sharedCategoriesProvider` downloads every user's | their names leak to any account through the API; the stream grows with the user base | system: copy each into its owner's `user/{uid}/categories` (same id, so birthdays keep pointing at it), then restrict `category` reads to the predefined ones — data migration, brief and approval; plan in the firebase skill, `references/migrations.md` §5 |
-| A17 | Account deletion erases first | `SettingsScreen` runs `AccountDeletion.eraseData()` (birthdays, books, groups, profile), then `AuthController.deleteAccount()`; Firebase refuses to delete an account signed in a while ago (`requires-recent-login`, mapped to `unknown`) | the data is gone, the account stays, the user reads « Le compte n'a pas pu être supprimé » (found with D23, 2026-10-24) | structural: re-authenticate first (Google, or the password), or delete the account before its data — brief |
 | A19 | Group removal not atomic | `CategoryEditor.remove` runs the profile or category write and `BirthdayRepository.removeCategory` in a `Future.wait`, not one batch; reviewer pass of 2026-11-03 | the profile write fails, the birthdays lose the group anyway: it comes back, its people no longer carry it | structural: one `WriteBatch` across the user/category and birthday repositories (a repository method taking a batch, or the write moved to one repository) |
 | A20 | Birthday deletion follows the live account | `deleteWithUndo` (`birthday_deletion.dart`) deletes when the undo snackbar closes, as group removal did before A18 | an account switch inside the window: the rules refuse the delete, the new account reads an error about a stranger, the old one keeps the birthday | local fix: capture the uid when the deletion starts, as `removeGroupWithUndo` |
 

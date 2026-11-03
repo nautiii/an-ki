@@ -147,6 +147,38 @@ class AuthRepository {
 
   Future<void> signOutGoogle() => _googleSignIn.signOut();
 
+  /// Confirme l'identité du compte Google connecté : le sélecteur Google
+  /// s'ouvre, le compte choisi doit être le même
+  /// ([AuthFailure.userMismatch] sinon). Sans session, rien.
+  Future<void> reauthenticateWithGoogle() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    try {
+      await _guard(() async {
+        await user.reauthenticateWithCredential(await _googleCredential());
+      });
+    } on AuthFailure catch (failure, stackTrace) {
+      // Comme à la connexion : un jeton Google refusé n'est pas un mot de passe.
+      if (failure != AuthFailure.invalidCredentials) rethrow;
+      Error.throwWithStackTrace(AuthFailure.googleSignInFailed, stackTrace);
+    }
+  }
+
+  /// Confirme l'identité du compte e-mail connecté avec [password]. Sans
+  /// session, rien ; sans adresse, rien ne la confirme
+  /// ([AuthFailure.requiresRecentLogin]).
+  Future<void> reauthenticateWithPassword(String password) => _guard(() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    final email = user.email;
+    if (email == null) throw AuthFailure.requiresRecentLogin;
+    await user.reauthenticateWithCredential(
+      EmailAuthProvider.credential(email: email, password: password),
+    );
+  });
+
+  /// Supprime le compte connecté ; refusé ([AuthFailure.requiresRecentLogin])
+  /// si sa connexion est trop ancienne.
   Future<void> deleteCurrentUser() => _guard(() async {
     await _auth.currentUser?.delete();
   });
@@ -184,6 +216,8 @@ AuthFailure _failureFor(String code) => switch (code) {
   'network-request-failed' => AuthFailure.network,
   'too-many-requests' => AuthFailure.tooManyRequests,
   'user-disabled' => AuthFailure.userDisabled,
+  'user-mismatch' => AuthFailure.userMismatch,
+  'requires-recent-login' => AuthFailure.requiresRecentLogin,
   _ => AuthFailure.unknown,
 };
 

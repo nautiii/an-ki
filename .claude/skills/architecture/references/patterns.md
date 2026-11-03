@@ -445,17 +445,34 @@ class AccountDeletion extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
 
-  Future<void> run() async {
-    if (state.isLoading) return;
+  Future<bool> deleteAccount({String? password}) async {
+    if (state.isLoading) return false;
+    final uid = ref.read(currentUidProvider);
+    if (uid == null) return false;
+    final auth = ref.read(authControllerProvider.notifier);
+    final keepAlive = ref.keepAlive(); // jusqu'au bout, même dialogue fermé
     state = const AsyncLoading();
-    final result = await AsyncValue.guard(() async {
-      final uid = ref.read(currentUidProvider);
-      if (uid == null) throw SettingsFailure.signedOut;
-      await ref.read(birthdayRepositoryProvider).deleteAllUserBirthdays(uid);
-      await ref.read(userRepositoryProvider).deleteUser(uid);
-      await ref.read(authRepositoryProvider).deleteCurrentUser();
-    });
-    if (ref.mounted) state = result;
+    try {
+      // L'identité d'abord : rien n'est effacé d'un compte qui resterait.
+      if (!await auth.confirmIdentity(password: password)) {
+        _publishAuthOutcome(); // échec d'AuthController, ou annulation
+        return false;
+      }
+      try {
+        await _eraseData(uid); // anniversaires, livres, groupes, puis profil
+      } catch (error, stackTrace) {
+        if (ref.mounted) state = AsyncError(error, stackTrace);
+        return false;
+      }
+      if (!await auth.deleteAccount()) {
+        _publishAuthOutcome();
+        return false;
+      }
+      if (ref.mounted) state = const AsyncData(null);
+      return true;
+    } finally {
+      keepAlive.close();
+    }
   }
 }
 ```

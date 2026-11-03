@@ -91,8 +91,12 @@ class BirthdayRepository {
 
   /// Efface tous les anniversaires de [uid] (suppression du compte), par lots
   /// d'écritures : un gros import de contacts dépasse vite la limite d'un lot.
+  /// Lu sur le serveur : hors ligne, l'effacement échoue avant de commencer
+  /// (le cache peut être partiel, et ses écritures n'aboutiraient pas).
   Future<void> deleteAllUserBirthdays(String uid) async {
-    final snapshot = await _birthdays.where('uid', isEqualTo: uid).get();
+    final snapshot = await _birthdays
+        .where('uid', isEqualTo: uid)
+        .get(const GetOptions(source: Source.server));
     await _firestore.writeInBatches(
       snapshot.docs,
       (batch, doc) => batch.delete(doc.reference),

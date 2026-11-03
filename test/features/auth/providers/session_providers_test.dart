@@ -1,6 +1,7 @@
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
+import 'package:an_ki/features/auth/domain/sign_in_method.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -71,6 +72,24 @@ void main() {
       await repository.signInWithGoogle();
       await settle();
       expect(container.read(isGuestProvider), isFalse);
+    });
+  });
+
+  group('signInMethodProvider', () {
+    test('follows the session: none, guest, then e-mail', () async {
+      final container = makeContainer();
+      container.listen(signInMethodProvider, (_, _) {});
+      await settle();
+      expect(container.read(signInMethodProvider), isNull);
+
+      await repository.signInAnonymously();
+      await settle();
+      expect(container.read(signInMethodProvider), SignInMethod.guest);
+
+      // Le compte simulé n'a pas de fournisseur : un compte e-mail.
+      await repository.signInWithEmail(email: 'a@b.c', password: 'pwd');
+      await settle();
+      expect(container.read(signInMethodProvider), SignInMethod.email);
     });
   });
 

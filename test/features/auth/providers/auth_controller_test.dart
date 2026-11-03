@@ -3,6 +3,7 @@ import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
 import 'package:an_ki/features/auth/domain/guest_linked.dart';
+import 'package:an_ki/features/auth/domain/sign_in_method.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/fresh_sign_in_provider.dart';
 import 'package:an_ki/features/auth/providers/guest_links.dart';
@@ -729,6 +730,98 @@ void main() {
     });
   });
 
+  group('confirmIdentity', () {
+    ProviderContainer confirming(
+      FakeAuthRepository repository,
+      SignInMethod? method,
+    ) {
+      final container = ProviderContainer.test(
+        retry: (_, _) => null,
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          signInMethodProvider.overrideWithValue(method),
+        ],
+      );
+      container.listen(authControllerProvider, (_, _) {});
+      return container;
+    }
+
+    test('an e-mail account gives its password', () async {
+      final repository = FakeAuthRepository();
+      final container = confirming(repository, SignInMethod.email);
+
+      final ok = await controllerOf(container).confirmIdentity(password: 'pw');
+
+      expect(ok, isTrue);
+      expect(repository.reauthPasswords, ['pw']);
+    });
+
+    test('a Google account goes through the Google picker', () async {
+      final repository = FakeAuthRepository();
+      final container = confirming(repository, SignInMethod.google);
+
+      expect(await controllerOf(container).confirmIdentity(), isTrue);
+      expect(repository.calls, ['reauthenticateWithGoogle']);
+    });
+
+    test('a guest has nothing to confirm', () async {
+      final repository = FakeAuthRepository();
+      final container = confirming(repository, SignInMethod.guest);
+
+      expect(await controllerOf(container).confirmIdentity(), isTrue);
+      expect(repository.calls, isEmpty);
+    });
+
+    test('without a session, confirms nothing', () async {
+      final container = confirming(FakeAuthRepository(), null);
+
+      expect(await controllerOf(container).confirmIdentity(), isFalse);
+    });
+
+    test('publishes a refused password', () async {
+      final container = confirming(
+        FakeAuthRepository(reauthFailure: AuthFailure.invalidCredentials),
+        SignInMethod.email,
+      );
+
+      final ok = await controllerOf(container).confirmIdentity(password: 'x');
+
+      expect(ok, isFalse);
+      expect(failureOf(container), AuthFailure.invalidCredentials);
+    });
+
+    test(
+      'forgets a refused Google account, so a retry offers them all',
+      () async {
+        final repository = FakeAuthRepository(
+          reauthFailure: AuthFailure.userMismatch,
+        );
+        final container = confirming(repository, SignInMethod.google);
+
+        expect(await controllerOf(container).confirmIdentity(), isFalse);
+
+        expect(repository.calls, ['reauthenticateWithGoogle', 'signOutGoogle']);
+        expect(failureOf(container), AuthFailure.userMismatch);
+      },
+    );
+
+    test('a closed Google picker is no failure', () async {
+      final container = confirming(
+        FakeAuthRepository(
+          reauthFailure: const GoogleSignInException(
+            code: GoogleSignInExceptionCode.canceled,
+          ),
+        ),
+        SignInMethod.google,
+      );
+
+      final ok = await controllerOf(container).confirmIdentity();
+
+      expect(ok, isFalse);
+      expect(container.read(authControllerProvider), isA<AsyncData<void>>());
+    });
+  });
+
   group('deleteAccount', () {
     test('closes the session on success', () async {
       final auth = MockFirebaseAuth(signedIn: true, mockUser: buildUser());
@@ -785,7 +878,25 @@ void main() {
       final ok = await controllerOf(container).deleteAccount();
 
       expect(ok, isFalse);
-      expect(failureOf(container), AuthFailure.unknown);
+      expect(failureOf(container), AuthFailure.requiresRecentLogin);
+      expect(auth.currentUser, isNotNull);
+    });
+
+    test('a guest with an old connection still leaves, signed out', () async {
+      final guest = buildUser(anonymous: true, uid: 'del-guest');
+      final auth = MockFirebaseAuth(signedIn: true, mockUser: guest);
+      whenCalling(Invocation.method(#delete, []))
+          .on(guest)
+          .thenThrow(FirebaseAuthException(code: 'requires-recent-login'));
+      final container = makeContainer(auth);
+      await settle();
+
+      final ok = await controllerOf(container).deleteAccount();
+      await settle();
+
+      expect(ok, isTrue);
+      expect(auth.currentUser, isNull);
+      expect(container.read(authAccessProvider), AuthAccess.signedOut);
     });
 
     test('maps unexpected errors to the deletion failure', () async {

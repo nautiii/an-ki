@@ -980,6 +980,30 @@ abstract class AppLocalizations {
   /// **'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et supprimera toutes vos données.'**
   String get deleteAccountConfirmation;
 
+  /// Dialogue de suppression d'un compte e-mail : au-dessus du champ mot de passe
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour confirmer, saisissez votre mot de passe.'**
+  String get deleteAccountPasswordPrompt;
+
+  /// Dialogue de suppression d'un compte Google : le sélecteur Google s'ouvre après « Supprimer »
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour confirmer, Google vous demandera de choisir votre compte.'**
+  String get deleteAccountGooglePrompt;
+
+  /// Libellé lu par TalkBack de la barre de progression du dialogue de suppression
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression en cours…'**
+  String get deleteAccountInProgress;
+
+  /// Sous le champ du dialogue de suppression : le mot de passe est refusé
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe incorrect.'**
+  String get deleteAccountWrongPassword;
+
   /// No description provided for @importContacts.
   ///
   /// In fr, this message translates to:
@@ -1345,6 +1369,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Ce compte est désactivé. Connectez-vous avec un autre.'**
   String get errorUserDisabled;
+
+  /// Confirmation d'identité avec un autre compte Google que celui de la session
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce compte Google n\'est pas celui connecté à AnKi. Choisissez le bon et réessayez.'**
+  String get errorUserMismatch;
+
+  /// Opération sensible refusée par Firebase à une connexion trop ancienne
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour votre sécurité, reconnectez-vous puis réessayez.'**
+  String get errorRequiresRecentLogin;
 
   /// No description provided for @errorWrongPassword.
   ///

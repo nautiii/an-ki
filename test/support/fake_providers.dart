@@ -31,6 +31,12 @@ class MockUser extends Fake implements firebase_auth.User {
 
   @override
   final bool isAnonymous;
+
+  /// Aucun fournisseur : un compte e-mail pour `signInMethodProvider` (les
+  /// `UserInfo` ne se construisent pas hors du SDK ; un test Google remplace
+  /// ce provider).
+  @override
+  List<firebase_auth.UserInfo> get providerData => const [];
 }
 
 // --- Repositories ---
@@ -515,6 +521,8 @@ class FakeAuthRepository extends Fake implements AuthRepository {
     this._user,
     this.failure,
     this.deleteFailure,
+    this.reauthFailure,
+    this.reauthGate,
     this.tokenCheckFailure,
     this.resetFailure,
   });
@@ -522,6 +530,12 @@ class FakeAuthRepository extends Fake implements AuthRepository {
   firebase_auth.User? _user;
   final Exception? failure;
   final Exception? deleteFailure;
+
+  /// Refus de la confirmation d'identité, quand il est défini.
+  final Exception? reauthFailure;
+
+  /// Confirmation d'identité en attente tant qu'il n'est pas complété.
+  final Completer<void>? reauthGate;
   final Exception? tokenCheckFailure;
   final Exception? resetFailure;
 
@@ -599,6 +613,24 @@ class FakeAuthRepository extends Fake implements AuthRepository {
 
   @override
   Future<void> signOutGoogle() async => calls.add('signOutGoogle');
+
+  /// Mots de passe donnés pour confirmer l'identité, dans l'ordre.
+  final reauthPasswords = <String>[];
+
+  @override
+  Future<void> reauthenticateWithGoogle() async {
+    calls.add('reauthenticateWithGoogle');
+    await reauthGate?.future;
+    if (reauthFailure case final error?) throw error;
+  }
+
+  @override
+  Future<void> reauthenticateWithPassword(String password) async {
+    calls.add('reauthenticateWithPassword');
+    reauthPasswords.add(password);
+    await reauthGate?.future;
+    if (reauthFailure case final error?) throw error;
+  }
 
   @override
   Future<void> deleteCurrentUser() async {

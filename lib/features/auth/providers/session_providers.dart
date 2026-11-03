@@ -1,6 +1,7 @@
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
+import 'package:an_ki/features/auth/domain/sign_in_method.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -61,6 +62,21 @@ final currentUidProvider = Provider<String?>(
 final isGuestProvider = Provider<bool>(
   (ref) => ref.watch(
     authUserProvider.select((user) => user.value?.isAnonymous ?? false),
+  ),
+);
+
+/// Méthode de connexion du compte de la session ; null hors session.
+final signInMethodProvider = Provider<SignInMethod?>(
+  (ref) => ref.watch(
+    authUserProvider.select(
+      (user) => switch (user.value) {
+        null => null,
+        final user => signInMethodOf(
+          isAnonymous: user.isAnonymous,
+          providerIds: user.providerData.map((info) => info.providerId),
+        ),
+      },
+    ),
   ),
 );
 

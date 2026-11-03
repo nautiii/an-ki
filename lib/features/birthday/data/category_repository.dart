@@ -52,8 +52,10 @@ class CategoryRepository {
 
   /// Efface les groupes privés de [uid] (suppression du compte) : Firestore
   /// ne supprime pas une sous-collection avec son document parent.
+  /// Lu sur le serveur : hors ligne, l'effacement échoue avant de commencer.
   Future<void> deleteAllUserCategories(String uid) async {
-    final snapshot = await _own(uid).get();
+    final snapshot = await _own(uid)
+        .get(const GetOptions(source: Source.server));
     await _db.writeInBatches(
       snapshot.docs,
       (batch, doc) => batch.delete(doc.reference),

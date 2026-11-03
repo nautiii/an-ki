@@ -510,6 +510,22 @@
   "deleteAccount": "Supprimer mon compte",
   "deleteAccountTitle": "Suppression du compte",
   "deleteAccountConfirmation": "Êtes-vous sûr de vouloir supprimer votre compte\u00a0? Cette action est irréversible et supprimera toutes vos données.",
+  "deleteAccountPasswordPrompt": "Pour confirmer, saisissez votre mot de passe.",
+  "@deleteAccountPasswordPrompt": {
+    "description": "Dialogue de suppression d'un compte e-mail : au-dessus du champ mot de passe"
+  },
+  "deleteAccountGooglePrompt": "Pour confirmer, Google vous demandera de choisir votre compte.",
+  "@deleteAccountGooglePrompt": {
+    "description": "Dialogue de suppression d'un compte Google : le sélecteur Google s'ouvre après « Supprimer »"
+  },
+  "deleteAccountInProgress": "Suppression en cours…",
+  "@deleteAccountInProgress": {
+    "description": "Libellé lu par TalkBack de la barre de progression du dialogue de suppression"
+  },
+  "deleteAccountWrongPassword": "Mot de passe incorrect.",
+  "@deleteAccountWrongPassword": {
+    "description": "Sous le champ du dialogue de suppression : le mot de passe est refusé"
+  },
   "importContacts": "Importer les contacts",
   "contactImportTitle": "Vos contacts",
   "contactImportFound": "{count, plural, =1{1 anniversaire trouvé. Décochez-le si vous ne voulez pas le suivre.} other{{count} anniversaires trouvés. Décochez ceux que vous ne voulez pas suivre.}}",
@@ -649,6 +665,14 @@
   "errorUserDisabled": "Ce compte est désactivé. Connectez-vous avec un autre.",
   "@errorUserDisabled": {
     "description": "Compte désactivé dans la console Firebase"
+  },
+  "errorUserMismatch": "Ce compte Google n'est pas celui connecté à AnKi. Choisissez le bon et réessayez.",
+  "@errorUserMismatch": {
+    "description": "Confirmation d'identité avec un autre compte Google que celui de la session"
+  },
+  "errorRequiresRecentLogin": "Pour votre sécurité, reconnectez-vous puis réessayez.",
+  "@errorRequiresRecentLogin": {
+    "description": "Opération sensible refusée par Firebase à une connexion trop ancienne"
   },
   "errorWrongPassword": "Mot de passe incorrect. Réessayez, ou demandez un nouveau mot de passe.",
   "errorInvalidCredentials": "E-mail ou mot de passe incorrect. Vérifiez-les, ou demandez un nouveau mot de passe.",

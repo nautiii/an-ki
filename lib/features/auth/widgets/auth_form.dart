@@ -42,6 +42,7 @@ class PasswordField extends StatefulWidget {
     required this.textInputAction,
     this.focusNode,
     this.enabled = true,
+    this.errorText,
     this.onChanged,
     this.onSubmitted,
   });
@@ -55,6 +56,9 @@ class PasswordField extends StatefulWidget {
   final TextInputAction textInputAction;
   final FocusNode? focusNode;
   final bool enabled;
+
+  /// Refus à afficher sous le champ (mot de passe incorrect).
+  final String? errorText;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
 
@@ -82,6 +86,7 @@ class _PasswordFieldState extends State<PasswordField> {
       onSubmitted: widget.onSubmitted,
       decoration: InputDecoration(
         labelText: widget.label,
+        errorText: widget.errorText,
         suffixIcon: IconButton(
           tooltip: _obscured ? l10n.showPassword : l10n.hidePassword,
           onPressed: () => setState(() => _obscured = !_obscured),

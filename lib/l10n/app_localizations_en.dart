@@ -547,6 +547,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to delete your account? This action is irreversible and will delete all your data.';
 
   @override
+  String get deleteAccountPasswordPrompt => 'To confirm, enter your password.';
+
+  @override
+  String get deleteAccountGooglePrompt =>
+      'To confirm, Google will ask you to pick your account.';
+
+  @override
+  String get deleteAccountInProgress => 'Deleting…';
+
+  @override
+  String get deleteAccountWrongPassword => 'Incorrect password.';
+
+  @override
   String get importContacts => 'Import contacts';
 
   @override
@@ -814,6 +827,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorUserDisabled =>
       'This account is disabled. Sign in with another one.';
+
+  @override
+  String get errorUserMismatch =>
+      'That Google account isn\'t the one signed in to AnKi. Pick the right one and try again.';
+
+  @override
+  String get errorRequiresRecentLogin =>
+      'For your security, sign in again, then try again.';
 
   @override
   String get errorWrongPassword =>
