@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/label_tones.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
@@ -83,6 +84,9 @@ void main() {
         ),
       ),
       overrides: overrides(),
+      routes: {
+        AppRoutes.person(birthday.id): (_) => Text('Page ${birthday.id}'),
+      },
     );
     await tester.pumpAndSettle();
   });
@@ -233,7 +237,7 @@ void main() {
     semantics.dispose();
   });
 
-  testWidgets('tapping opens the edit sheet, without a vibration', (
+  testWidgets('tapping opens the person page, without a vibration', (
     tester,
   ) async {
     final haptics = recordHaptics(tester);
@@ -242,7 +246,7 @@ void main() {
     await tester.tap(find.text('Alice Wonderland'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Modifier'), findsOneWidget);
+    expect(find.text('Page 1'), findsOneWidget);
     expect(haptics, isEmpty);
   });
 

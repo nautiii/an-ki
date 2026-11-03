@@ -24,14 +24,12 @@ void main() {
     String surname = 'Wonderland',
     BirthDate date = const BirthDate(year: 1990, month: 5, day: 10),
     Uint8List? picture,
-    Set<ReminderLead>? reminders,
   }) => BirthdayDraft(
     name: name,
     surname: surname,
     date: date,
     categories: const ['family'],
     picture: picture,
-    reminders: reminders,
   );
 
   Future<DocumentReference<Map<String, dynamic>>> seed(
@@ -181,13 +179,25 @@ void main() {
   });
 
   group('createBirthday', () {
-    test('stores the trimmed draft with the uid', () async {
+    test('draws a fresh id each time, before any write', () async {
+      final first = repository.newBirthdayId();
+      final second = repository.newBirthdayId();
+
+      expect(first, isNot(second));
+      expect((await firestore.collection('birthday').get()).docs, isEmpty);
+    });
+
+    test('stores the trimmed draft with the uid on the given id', () async {
+      final id = repository.newBirthdayId();
+
       await repository.createBirthday(
         'user-1',
+        id,
         draft(name: '  Alice  ', surname: ' Wonderland '),
       );
 
       final doc = (await firestore.collection('birthday').get()).docs.single;
+      expect(doc.id, id);
       expect(doc.data(), {
         'uid': 'user-1',
         'name': 'Alice',
@@ -198,9 +208,17 @@ void main() {
       });
     });
 
+    test('writes the same document again on a retry', () async {
+      await repository.createBirthday('user-1', 'lea', draft());
+      await repository.createBirthday('user-1', 'lea', draft());
+
+      expect((await firestore.collection('birthday').get()).docs, hasLength(1));
+    });
+
     test('stores a missing year as a leap year flagged unknown', () async {
       await repository.createBirthday(
         'user-1',
+        'mamie',
         draft(date: const BirthDate(month: 2, day: 29)),
       );
 
@@ -212,7 +230,7 @@ void main() {
     test('encodes the picture as base64 when provided', () async {
       final bytes = Uint8List.fromList([1, 2, 3, 4]);
 
-      await repository.createBirthday('user-1', draft(picture: bytes));
+      await repository.createBirthday('user-1', 'alice', draft(picture: bytes));
 
       final doc = (await firestore.collection('birthday').get()).docs.single;
       expect(doc.data()['picture'], base64Encode(bytes));
@@ -220,24 +238,44 @@ void main() {
   });
 
   group('own reminders', () {
-    test('are left out of a birthday following the default', () async {
-      await repository.createBirthday('user-1', draft());
+    test('are left out of a new birthday, which follows the default', () async {
+      await repository.createBirthday('user-1', 'alice', draft());
 
       final doc = (await firestore.collection('birthday').get()).docs.single;
       expect(doc.data().containsKey('reminders'), isFalse);
     });
 
-    test('are stored by name, earliest first', () async {
-      await repository.createBirthday(
-        'user-1',
-        draft(reminders: {ReminderLead.sameDay, ReminderLead.monthBefore}),
-      );
+    test('are stored by name, earliest first, alone', () async {
+      final ref = await seed({
+        'uid': 'user-1',
+        'name': 'Old',
+        'date': Timestamp.fromDate(DateTime(1990)),
+      });
 
-      final doc = (await firestore.collection('birthday').get()).docs.single;
-      expect(doc.data()['reminders'], ['monthBefore', 'sameDay']);
+      await repository.updateReminders(ref.id, {
+        ReminderLead.sameDay,
+        ReminderLead.monthBefore,
+      });
+
+      final data = await stored(ref.id);
+      expect(data['reminders'], ['monthBefore', 'sameDay']);
+      expect(data['name'], 'Old');
+      expect(data['uid'], 'user-1');
     });
 
-    test('are erased when a birthday goes back to the default', () async {
+    test('store an empty list to mute the person', () async {
+      final ref = await seed({
+        'uid': 'user-1',
+        'name': 'Old',
+        'date': Timestamp.fromDate(DateTime(1990)),
+      });
+
+      await repository.updateReminders(ref.id, const {});
+
+      expect((await stored(ref.id))['reminders'], isEmpty);
+    });
+
+    test('are erased when the person goes back to the default', () async {
       final ref = await seed({
         'uid': 'user-1',
         'name': 'Old',
@@ -245,25 +283,24 @@ void main() {
         'reminders': <String>[],
       });
 
-      await repository.updateBirthday('user-1', ref.id, draft());
+      await repository.updateReminders(ref.id, null);
 
       expect((await stored(ref.id)).containsKey('reminders'), isFalse);
     });
 
-    test('are replaced by an update that sets them', () async {
+    test('are kept by an update of the other fields', () async {
       final ref = await seed({
         'uid': 'user-1',
         'name': 'Old',
         'date': Timestamp.fromDate(DateTime(1990)),
+        'reminders': ['dayBefore'],
       });
 
-      await repository.updateBirthday(
-        'user-1',
-        ref.id,
-        draft(reminders: const {}),
-      );
+      await repository.updateBirthday('user-1', ref.id, draft(name: 'New'));
 
-      expect((await stored(ref.id))['reminders'], isEmpty);
+      final data = await stored(ref.id);
+      expect(data['name'], 'New');
+      expect(data['reminders'], ['dayBefore']);
     });
   });
 

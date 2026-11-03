@@ -566,6 +566,44 @@
       }
     }
   },
+  "personView": "Voir",
+  "@personView": {
+    "description": "Action de la snackbar d'ajout : ouvre la page de la personne"
+  },
+  "personTurning": "{age, plural, one{Aura {age} an} other{Aura {age} ans}}",
+  "@personTurning": {
+    "description": "Page personne : âge atteint au prochain anniversaire, avant le jour J",
+    "placeholders": {
+      "age": { "type": "int" }
+    }
+  },
+  "personWishes": "Vœux",
+  "@personWishes": {
+    "description": "Page personne : titre de l'historique des vœux"
+  },
+  "personWishedIn": "Souhaité en {year}",
+  "@personWishedIn": {
+    "description": "Page personne : une année où l'anniversaire a été souhaité",
+    "placeholders": {
+      "year": { "type": "int" }
+    }
+  },
+  "personNeverWished": "Pas encore souhaité avec AnKi",
+  "personWishRemoved": "Vœu de {year} retiré",
+  "@personWishRemoved": {
+    "description": "Snackbar après l'annulation d'un vœu depuis la page personne",
+    "placeholders": {
+      "year": { "type": "int" }
+    }
+  },
+  "personMissingTitle": "Anniversaire introuvable",
+  "personMissingMessage": "Il a sans doute été supprimé. Vos anniversaires vous attendent sur l'accueil.",
+  "personErrorTitle": "Impossible d'afficher cet anniversaire",
+  "personWishRemove": "Retirer",
+  "@personWishRemove": {
+    "description": "Page personne : retire le vœu de l'année en cours de l'historique"
+  },
+  "personBackHome": "Retour à l'accueil",
   "birthdaysAdded": "{count, plural, =1{1 anniversaire ajouté} other{{count} anniversaires ajoutés}}",
   "@birthdaysAdded": {
     "placeholders": {

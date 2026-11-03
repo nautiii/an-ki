@@ -284,6 +284,57 @@ void main() {
     });
   });
 
+  group('birthdayByIdProvider', () {
+    final lea = Birthday(
+      id: 'lea',
+      name: 'Léa',
+      surname: 'Martin',
+      date: BirthDate.fromDate(DateTime(1990, 3, 12)),
+    );
+
+    test('finds the person once the list arrives', () async {
+      final container = sessionContainer(
+        RecordingBirthdayRepository(initial: [lea]),
+      );
+      container.listen(birthdayByIdProvider('lea'), (_, _) {});
+
+      expect(container.read(birthdayByIdProvider('lea')).isLoading, isTrue);
+      await container.read(birthdaysProvider.future);
+
+      expect(
+        container.read(birthdayByIdProvider('lea')),
+        AsyncData<Birthday?>(lea),
+      );
+      expect(
+        container.read(birthdayByIdProvider('unknown')),
+        const AsyncData<Birthday?>(null),
+      );
+    });
+
+    test('loses the person while a deletion is pending', () async {
+      final container = sessionContainer(
+        RecordingBirthdayRepository(initial: [lea]),
+      );
+      container.listen(birthdayByIdProvider('lea'), (_, _) {});
+      await container.read(birthdaysProvider.future);
+
+      container.read(pendingDeletionsProvider.notifier).hide('lea');
+
+      expect(container.read(birthdayByIdProvider('lea')).value, isNull);
+    });
+
+    test('carries the error of the list', () async {
+      final container = sessionContainer(_ErroringBirthdayRepository());
+      container.listen(birthdayByIdProvider('lea'), (_, _) {});
+      await expectLater(
+        container.read(birthdaysProvider.future),
+        throwsA(anything),
+      );
+
+      expect(container.read(birthdayByIdProvider('lea')).hasError, isTrue);
+    });
+  });
+
   group('celebratedTodayProvider', () {
     ProviderContainer celebrationContainer() => ProviderContainer.test(
       retry: (_, _) => null,

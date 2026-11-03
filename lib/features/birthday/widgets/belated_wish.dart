@@ -2,14 +2,15 @@ import 'dart:math' as math;
 
 import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_wisher.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// Les anniversaires d'hier encore à souhaiter, sous le héros : « Hier », la
 /// personne, « Souhaiter » ou « Déjà souhaité ». Le lendemain seulement, sur
@@ -62,14 +63,13 @@ class _BelatedCard extends ConsumerWidget {
     );
     final picture = birthday.picture;
 
-    // Toucher la personne ouvre sa fiche, comme sur le héros ; les deux
+    // Toucher la personne ouvre sa page, comme sur le héros ; les deux
     // actions restent des cibles à part pour les lecteurs d'écran.
     final identity = MergeSemantics(
       child: Semantics(
         button: true,
         child: InkWell(
-          onTap: () =>
-              BirthdayFormSheet.show(context, birthdayToEdit: birthday),
+          onTap: () => context.push(AppRoutes.person(birthday.id)),
           borderRadius: const BorderRadius.all(Radius.circular(AppRadii.md)),
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.xs),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
@@ -61,6 +62,10 @@ void main() {
           RecordingCategoryRepository([family]),
         ),
       ],
+      routes: {
+        for (final birthday in birthdays)
+          AppRoutes.person(birthday.id): (_) => Text('Page ${birthday.id}'),
+      },
     );
     await tester.pumpAndSettle();
   }
@@ -157,6 +162,29 @@ void main() {
       // Âge actuel (35), comme ailleurs dans l'app : « aura 36 ans » viendra avec B1.
       expect(find.text('35 ans'), findsOneWidget);
     });
+  });
+
+  testWidgets('a person of the day sheet opens their page', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await mockNetworkImages(() async {
+      await pumpCalendar(
+        tester,
+        birthdays: [born(DateTime(1990, 10, 15), id: 'alice')],
+      );
+      await tester.tap(find.text('15'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getSemantics(find.text('Alice Wonderland')),
+        isSemantics(isButton: true, hasTapAction: true),
+      );
+      await tester.tap(find.text('Alice Wonderland'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('15 octobre 2026'), findsNothing);
+      expect(find.text('Page alice'), findsOneWidget);
+    });
+    semantics.dispose();
   });
 
   testWidgets('day sheet shows no age without a birth year', (tester) async {

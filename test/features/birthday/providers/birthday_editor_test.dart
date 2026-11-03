@@ -4,6 +4,7 @@ import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/domain/birthdays_added.dart';
+import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/birthday/providers/birthday_additions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
@@ -59,6 +60,39 @@ void main() {
     expect(container.read(birthdayEditorProvider), isA<AsyncData<void>>());
   });
 
+  test('creates on the id it announces', () async {
+    final repo = RecordingBirthdayRepository();
+    final container = makeContainer(repo);
+
+    await container.read(birthdayEditorProvider.notifier).create(_input());
+
+    expect(repo.createdIds, ['new-1']);
+    expect(container.read(birthdayAdditionsProvider)?.id, 'new-1');
+  });
+
+  test('sets, mutes and resets a person reminders', () async {
+    final repo = RecordingBirthdayRepository();
+    final container = makeContainer(repo);
+    final editor = container.read(birthdayEditorProvider.notifier);
+
+    await editor.setReminders('lea', {ReminderLead.dayBefore});
+    await editor.setReminders('lea', const {});
+    await editor.setReminders('lea', null);
+
+    // Un record compare ses ensembles par identité : on les compare à part.
+    expect(repo.reminderUpdates.map((update) => update.$1), [
+      'lea',
+      'lea',
+      'lea',
+    ]);
+    expect(repo.reminderUpdates.map((update) => update.$2), [
+      {ReminderLead.dayBefore},
+      isEmpty,
+      isNull,
+    ]);
+    expect(container.read(birthdayEditorProvider), isA<AsyncData<void>>());
+  });
+
   test('marks and unmarks a wish through the repository', () async {
     final repo = RecordingBirthdayRepository();
     final container = makeContainer(repo);
@@ -105,6 +139,7 @@ void main() {
           imported: false,
           first: true,
           name: 'New Person',
+          id: 'new-1',
         ),
       );
     });
@@ -124,6 +159,7 @@ void main() {
           imported: false,
           first: false,
           name: 'New Person',
+          id: 'new-1',
         ),
       );
     });

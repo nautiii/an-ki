@@ -63,6 +63,21 @@ final birthdaysListProvider = Provider<List<Birthday>>((ref) {
   ];
 });
 
+/// L'anniversaire [birthdayId], pour sa page : chargement et erreur de la
+/// liste tels quels, puis la personne, ou null si elle n'y est pas
+/// (supprimée, en cours de suppression, ou d'un autre compte).
+final birthdayByIdProvider = Provider.autoDispose
+    .family<AsyncValue<Birthday?>, String>((ref, birthdayId) {
+      final pending = ref.watch(pendingDeletionsProvider);
+      return ref
+          .watch(birthdaysProvider)
+          .whenData(
+            (birthdays) => pending.contains(birthdayId)
+                ? null
+                : birthdays.where((b) => b.id == birthdayId).firstOrNull,
+          );
+    });
+
 /// Le ou les prochains anniversaires (plusieurs s'ils tombent le même jour),
 /// recalculés quand le jour change.
 final nextBirthdaysProvider = Provider<List<Birthday>>((ref) {

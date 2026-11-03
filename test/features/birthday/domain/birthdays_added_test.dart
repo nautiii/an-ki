@@ -38,5 +38,11 @@ void main() {
         ),
       ),
     );
+    expect(
+      const BirthdaysAdded(count: 1, imported: false, first: false, id: 'a'),
+      isNot(
+        const BirthdaysAdded(count: 1, imported: false, first: false, id: 'b'),
+      ),
+    );
   });
 }

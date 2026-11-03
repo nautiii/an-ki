@@ -27,7 +27,8 @@ import 'package:go_router/go_router.dart';
 /// compte et attend le premier profil ; un invité qui se lie à Google prend
 /// les noms de ce compte. Le bouton « Souhaiter » d'une
 /// notification ramène à l'accueil et ouvre la feuille de partage dès que la
-/// personne est chargée. Les données des features suivent la session seules ;
+/// personne est chargée ; toucher la notification ouvre sa page. Les données
+/// des features suivent la session seules ;
 /// l'autorisation des notifications se demande en contexte
 /// (`ReminderPrompt`), jamais au lancement. Il vit dans le composition root
 /// `app/` car il dépend de plusieurs features — ce que `core/` ne doit
@@ -106,11 +107,20 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
   }
 
   /// « Souhaiter » sur une notification : l'accueil, puis la feuille de
-  /// partage de la personne. Toucher la notification elle-même ouvre
-  /// simplement l'app.
+  /// partage de la personne. Toucher la notification elle-même ouvre sa
+  /// page par-dessus l'écran en cours, qui la montre dès qu'elle est chargée ;
+  /// déjà ouverte, elle n'est pas empilée une seconde fois.
   void _onNotificationTap(NotificationTap tap) {
     final birthdayId = tap.payload;
-    if (tap.actionId != NotificationActions.wish || birthdayId == null) return;
+    if (birthdayId == null) return;
+    if (tap.actionId != NotificationActions.wish) {
+      final router = GoRouter.of(context);
+      final page = AppRoutes.person(birthdayId);
+      // `state` : la route du dessus, poussée comprise.
+      if (router.state.matchedLocation == page) return;
+      unawaited(router.push(page));
+      return;
+    }
     _wishRequest = birthdayId;
     GoRouter.of(context).go(AppRoutes.birthdays);
     _fulfilWishRequest(ref.read(birthdaysListProvider));

@@ -30,8 +30,17 @@ class BirthdayRepository {
       .snapshots()
       .map((snapshot) => snapshot.docs.map(_birthdayFromDoc).nonNulls.toList());
 
-  Future<void> createBirthday(String uid, BirthdayDraft draft) =>
-      _birthdays.add({..._draftToMap(draft), 'uid': uid});
+  /// Id d'un nouvel anniversaire, tiré sur place : l'app le connaît sans
+  /// attendre le serveur, hors ligne compris.
+  String newBirthdayId() => _birthdays.doc().id;
+
+  /// Crée l'anniversaire [birthdayId] ([newBirthdayId]) : `set`, pour qu'une
+  /// nouvelle tentative ne le double pas.
+  Future<void> createBirthday(
+    String uid,
+    String birthdayId,
+    BirthdayDraft draft,
+  ) => _birthdays.doc(birthdayId).set({..._draftToMap(draft), 'uid': uid});
 
   /// Crée plusieurs anniversaires (import de contacts), par lots d'écritures
   /// envoyés d'un coup : Firestore les applique au cache local immédiatement,
@@ -44,16 +53,26 @@ class BirthdayRepository {
       );
 
   /// Remplace les champs saisis ; la photo n'est réécrite que si le brouillon
-  /// en apporte une nouvelle. Revenu au réglage par défaut, l'anniversaire
-  /// perd ses rappels propres.
+  /// en apporte une nouvelle. Les rappels propres restent tels quels.
   Future<void> updateBirthday(
     String uid,
     String birthdayId,
     BirthdayDraft draft,
+  ) => _birthdays.doc(birthdayId).update({..._draftToMap(draft), 'uid': uid});
+
+  /// Rappels propres à la personne : null revient au réglage par défaut
+  /// (champ effacé), vide n'en envoie aucun.
+  Future<void> updateReminders(
+    String birthdayId,
+    Set<ReminderLead>? reminders,
   ) => _birthdays.doc(birthdayId).update({
-    ..._draftToMap(draft),
-    if (draft.reminders == null) 'reminders': FieldValue.delete(),
-    'uid': uid,
+    'reminders': switch (reminders) {
+      final leads? => [
+        for (final lead in ReminderLead.values)
+          if (leads.contains(lead)) lead.name,
+      ],
+      null => FieldValue.delete(),
+    },
   });
 
   /// Marque l'anniversaire de [year] souhaité. `arrayUnion` n'ajoute l'année
@@ -172,9 +191,4 @@ Map<String, Object> _draftToMap(BirthdayDraft draft) => {
   'yearKnown': draft.date.year != null,
   'categories': draft.categories,
   if (draft.picture case final picture?) 'picture': base64Encode(picture),
-  if (draft.reminders case final leads?)
-    'reminders': [
-      for (final lead in ReminderLead.values)
-        if (leads.contains(lead)) lead.name,
-    ],
 };

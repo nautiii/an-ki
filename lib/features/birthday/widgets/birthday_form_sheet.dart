@@ -7,11 +7,9 @@ import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birth_date_input.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
-import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/widgets/birth_date_field.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_reminders_picker.dart';
 import 'package:an_ki/features/birthday/widgets/group_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,9 +60,6 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
   final _dateFocus = FocusNode();
   late final List<String> _categories;
 
-  /// Rappels propres à la personne ; null suit le réglage par défaut.
-  Set<ReminderLead>? _reminders;
-
   /// Champ qui ouvre le clavier à la création : le nom, ou la date quand le
   /// nom vient d'une recherche. La modification ne l'ouvre pas.
   late final bool _autofocusName;
@@ -87,7 +82,6 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     // Pré-remplie dans didChangeDependencies : son texte suit la région.
     _date = TextEditingController();
     _categories = [...?birthday?.categories];
-    _reminders = birthday?.reminders;
     _autofocusName = birthday == null && _name.text.isEmpty;
     _autofocusDate = birthday == null && _name.text.isNotEmpty;
     // Quitter le champ de date peut changer son aide en erreur.
@@ -156,7 +150,6 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
       date: date.date,
       categories: _categories,
       picture: _picture,
-      reminders: _reminders,
     );
 
     final editor = ref.read(birthdayEditorProvider.notifier);
@@ -276,15 +269,6 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
               selectedIds: _categories,
               onToggle: _toggleCategory,
               padding: _gutter,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Padding(
-              padding: _gutter,
-              child: BirthdayRemindersPicker(
-                reminders: _reminders,
-                onChanged: (reminders) =>
-                    setState(() => _reminders = reminders),
-              ),
             ),
             const SizedBox(height: AppSpacing.xl),
             Padding(

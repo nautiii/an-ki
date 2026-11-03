@@ -4,6 +4,7 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/domain/birthdays_added.dart';
+import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/birthday/providers/birthday_additions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,8 +22,10 @@ class BirthdayEditor extends AsyncNotifier<void> {
   FutureOr<void> build() {}
 
   /// Crée [draft] et annonce l'ajout ([birthdayAdditionsProvider]) : qui,
-  /// et si l'agenda était vide.
+  /// son id (pour ouvrir sa page), et si l'agenda était vide.
   Future<void> create(BirthdayDraft draft) {
+    final repository = ref.read(birthdayRepositoryProvider);
+    final birthdayId = repository.newBirthdayId();
     if (ref.read(currentUidProvider) != null) {
       ref
           .read(birthdayAdditionsProvider.notifier)
@@ -32,12 +35,11 @@ class BirthdayEditor extends AsyncNotifier<void> {
               imported: false,
               first: ref.read(birthdaysListProvider).isEmpty,
               name: draft.fullName,
+              id: birthdayId,
             ),
           );
     }
-    return _write(
-      (uid) => ref.read(birthdayRepositoryProvider).createBirthday(uid, draft),
-    );
+    return _write((uid) => repository.createBirthday(uid, birthdayId, draft));
   }
 
   Future<void> edit(String birthdayId, BirthdayDraft draft) => _write(
@@ -45,6 +47,15 @@ class BirthdayEditor extends AsyncNotifier<void> {
         .read(birthdayRepositoryProvider)
         .updateBirthday(uid, birthdayId, draft),
   );
+
+  /// Rappels propres à la personne : null suit le réglage par défaut, vide
+  /// n'en envoie aucun.
+  Future<void> setReminders(String birthdayId, Set<ReminderLead>? reminders) =>
+      _write(
+        (_) => ref
+            .read(birthdayRepositoryProvider)
+            .updateReminders(birthdayId, reminders),
+      );
 
   Future<void> delete(String birthdayId) => _write(
     (_) => ref.read(birthdayRepositoryProvider).deleteBirthday(birthdayId),

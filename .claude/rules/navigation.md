@@ -29,7 +29,10 @@ architecture skill, `references/patterns.md` §12.
   Sheets and dialogs stay on `Navigator` (`Navigator.pop(context)`).
 - Notification taps arrive through `NotificationService` (cold start included) and are routed by
   `app/bootstrap/app_initializer.dart`: « Souhaiter » goes to `/birthdays`, then opens the share
-  sheet. A route a notification opens must work from a cold start, behind the redirects.
+  sheet; a tap on the notification itself pushes the person page (`AppRoutes.person(id)`) above
+  the current screen. A route a notification opens must work from a cold start, behind the
+  redirects. A page addressed by id (`/person/:id`) handles an id it can't find (deleted, other
+  account) with its own message.
 - Tests: `tester.pumpHarness(widget, routes: {AppRoutes.settings: …})` stands in for the pages a
   widget opens; the whole app with its redirects is `tester.pumpApp(auth: …)` then
   `tester.settleApp()` (`test/support/app_harness.dart`). In the French tests, go back by tapping

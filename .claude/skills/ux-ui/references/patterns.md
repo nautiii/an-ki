@@ -36,7 +36,7 @@ a better pattern, score it with the rubric in SKILL.md and explain the choice.
 | Need | Pattern | AnKi examples |
 |------|---------|---------------|
 | Quick create/edit, ≤ ~6 fields, keep context | Modal bottom sheet (drag handle, `useSafeArea`, CTA pinned above keyboard) | Add/edit birthday, day details |
-| Rich content, deep linkable, long forms, multi-step | Full page with large title (`SliverAppBar.large`) | Person detail (future), settings |
+| Rich content, deep linkable, long forms, multi-step | Full page with large title (`SliverAppBar.large`) | Person page (`/person/:id`), settings |
 | Blocking decision, irreversible | Dialog (title = question with object, destructive button named by action) | Delete account, sign out as guest |
 | Transient feedback, undo | Floating `SnackBar` + `SnackBarAction` | Deleted · Annuler, Saved |
 | Persistent state needing action | `MaterialBanner` / inline card | Notifications disabled, sync pending |
@@ -102,7 +102,8 @@ the name, « Suivant », four digits, « OK ».
 
 ## D. Edit, delete, quick actions
 
-- Tap row → edit sheet (or person detail later). Long-press → `MenuAnchor` with contextual actions.
+- Tap a person (row, hero, belated card, day sheet) → their page (view first: countdown, age,
+  groups, wish, reminders, wish history); « Modifier » there opens the edit sheet. Long-press → `MenuAnchor` with contextual actions.
 - **Delete = undo, not confirm** (Gmail): swipe (end-to-start) or menu → item disappears with a
   `mediumImpact` → floating snackbar « Anniversaire de Léa supprimé · Annuler » (≥ 4 s, longer
   when `MediaQuery.accessibleNavigationOf`). The Notifier keeps the deleted item until the snackbar

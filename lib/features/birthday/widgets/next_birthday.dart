@@ -3,6 +3,7 @@ import 'package:an_ki/core/common/moon_phase.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
@@ -11,11 +12,11 @@ import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_display.dart';
 import 'package:an_ki/features/birthday/widgets/blossom_rain.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// Héros « prochain anniversaire » (signature S1) : la ou les personnes dont
 /// l'anniversaire arrive en premier, empilées quand elles tombent le même jour.
@@ -122,14 +123,13 @@ class _HeroCard extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Toucher la personne ouvre sa fiche ; les actions du jour J
+        // Toucher la personne ouvre sa page ; les actions du jour J
         // restent des cibles à part pour les lecteurs d'écran.
         MergeSemantics(
           child: Semantics(
             button: true,
             child: InkWell(
-              onTap: () =>
-                  BirthdayFormSheet.show(context, birthdayToEdit: birthday),
+              onTap: () => context.push(AppRoutes.person(birthday.id)),
               splashColor: onColor.withValues(alpha: 0.12),
               highlightColor: onColor.withValues(alpha: 0.08),
               child: identity,

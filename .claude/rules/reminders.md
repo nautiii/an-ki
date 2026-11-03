@@ -67,7 +67,9 @@ A missed reminder breaks the one promise AnKi makes: treat every change here as 
   background task builds them from the profile locale with `lookupAppLocalizations`); the French
   set in the service is only the fallback before that.
 - The J-0 notification carries « Souhaiter » (`NotificationActions.wish`, Android only); its
-  payload is the birthday id, routed by `app/bootstrap/app_initializer.dart`.
+  payload is the birthday id, routed by `app/bootstrap/app_initializer.dart` (a tap on any
+  reminder opens that person's page). A person's own reminders are set on their page, written
+  alone by `BirthdayRepository.updateReminders`; the edit sheet never touches them.
 
 ## Permission — asked in context, never at launch
 

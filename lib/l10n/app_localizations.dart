@@ -1058,6 +1058,72 @@ abstract class AppLocalizations {
   /// **'{name} est dans vos anniversaires'**
   String birthdayAdded(String name);
 
+  /// Action de la snackbar d'ajout : ouvre la page de la personne
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir'**
+  String get personView;
+
+  /// Page personne : âge atteint au prochain anniversaire, avant le jour J
+  ///
+  /// In fr, this message translates to:
+  /// **'{age, plural, one{Aura {age} an} other{Aura {age} ans}}'**
+  String personTurning(int age);
+
+  /// Page personne : titre de l'historique des vœux
+  ///
+  /// In fr, this message translates to:
+  /// **'Vœux'**
+  String get personWishes;
+
+  /// Page personne : une année où l'anniversaire a été souhaité
+  ///
+  /// In fr, this message translates to:
+  /// **'Souhaité en {year}'**
+  String personWishedIn(int year);
+
+  /// No description provided for @personNeverWished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore souhaité avec AnKi'**
+  String get personNeverWished;
+
+  /// Snackbar après l'annulation d'un vœu depuis la page personne
+  ///
+  /// In fr, this message translates to:
+  /// **'Vœu de {year} retiré'**
+  String personWishRemoved(int year);
+
+  /// No description provided for @personMissingTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Anniversaire introuvable'**
+  String get personMissingTitle;
+
+  /// No description provided for @personMissingMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il a sans doute été supprimé. Vos anniversaires vous attendent sur l\'accueil.'**
+  String get personMissingMessage;
+
+  /// No description provided for @personErrorTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'afficher cet anniversaire'**
+  String get personErrorTitle;
+
+  /// Page personne : retire le vœu de l'année en cours de l'historique
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer'**
+  String get personWishRemove;
+
+  /// No description provided for @personBackHome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à l\'accueil'**
+  String get personBackHome;
+
   /// No description provided for @birthdaysAdded.
   ///
   /// In fr, this message translates to:

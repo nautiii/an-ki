@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
@@ -12,6 +15,7 @@ import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 /// Calendrier mensuel des anniversaires : une pastille par personne fêtée,
@@ -312,7 +316,8 @@ class _CalendarDayCell extends StatelessWidget {
   }
 }
 
-/// Feuille du jour : les personnes fêtées, avec leur âge.
+/// Feuille du jour : les personnes fêtées, avec leur âge ; en toucher une
+/// ferme la feuille et ouvre sa page.
 class _DayBirthdaysSheet extends StatelessWidget {
   const _DayBirthdaysSheet({
     required this.date,
@@ -380,39 +385,24 @@ class _DayBirthdaysSheet extends StatelessWidget {
                     const Divider(height: AppSpacing.lg),
                 itemBuilder: (context, index) {
                   final birthday = birthdays[index];
-                  final picture = birthday.picture;
-                  final fullName = birthday.fullName;
                   return MergeSemantics(
-                    child: Row(
-                      children: [
-                        AnKiAvatar(
-                          name: fullName,
-                          image: picture != null ? MemoryImage(picture) : null,
+                    child: Semantics(
+                      button: true,
+                      child: InkWell(
+                        onTap: () {
+                          final router = GoRouter.of(context);
+                          Navigator.of(context).pop();
+                          unawaited(router.push(AppRoutes.person(birthday.id)));
+                        },
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(AppRadii.md),
                         ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(fullName, style: textTheme.titleMedium),
-                              // Sans année de naissance, le nom seul.
-                              if (birthday.ageOn(today) case final age?)
-                                Text(
-                                  context.l10n.ageInYears(age),
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              // Le jour J, le vœu fait se voit ici comme sur
-                              // le héros.
-                              if (isToday && birthday.isWished(today)) ...[
-                                const SizedBox(height: AppSpacing.xxs),
-                                const WishedPill(dense: true),
-                              ],
-                            ],
-                          ),
+                        child: _DayBirthdayRow(
+                          birthday: birthday,
+                          today: today,
+                          isToday: isToday,
                         ),
-                      ],
+                      ),
                     ),
                   );
                 },
@@ -421,6 +411,58 @@ class _DayBirthdaysSheet extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Une personne de la feuille du jour : avatar, nom, âge et vœu fait.
+class _DayBirthdayRow extends StatelessWidget {
+  const _DayBirthdayRow({
+    required this.birthday,
+    required this.today,
+    required this.isToday,
+  });
+
+  final Birthday birthday;
+  final DateTime today;
+  final bool isToday;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final picture = birthday.picture;
+    final fullName = birthday.fullName;
+    return Row(
+      children: [
+        AnKiAvatar(
+          name: fullName,
+          image: picture != null ? MemoryImage(picture) : null,
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(fullName, style: textTheme.titleMedium),
+              // Sans année de naissance, le nom seul.
+              if (birthday.ageOn(today) case final age?)
+                Text(
+                  context.l10n.ageInYears(age),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              // Le jour J, le vœu fait se voit ici comme sur
+              // le héros.
+              if (isToday && birthday.isWished(today)) ...[
+                const SizedBox(height: AppSpacing.xxs),
+                const WishedPill(dense: true),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

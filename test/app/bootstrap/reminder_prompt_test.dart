@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/app/bootstrap/reminder_prompt.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/providers/fresh_sign_in_provider.dart';
@@ -36,8 +37,13 @@ const _hugo = Birthday(
 const _imported = BirthdaysAdded(count: 12, imported: true, first: false);
 
 /// Une saisie à la main ; [first] pour la première de l'agenda.
-BirthdaysAdded _byHand({bool first = false}) =>
-    BirthdaysAdded(count: 1, imported: false, first: first, name: 'Léa Martin');
+BirthdaysAdded _byHand({bool first = false}) => BirthdaysAdded(
+  count: 1,
+  imported: false,
+  first: first,
+  name: 'Léa Martin',
+  id: 'lea',
+);
 
 void main() {
   group('when to offer', () {
@@ -64,6 +70,7 @@ void main() {
           if (freshSignIn)
             freshSignInProvider.overrideWithBuild((ref, notifier) => 'u1'),
         ],
+        routes: {AppRoutes.person('lea'): (_) => const Text('Page lea')},
       );
       container = ProviderScope.containerOf(
         tester.element(find.byType(ReminderPrompt)),
@@ -145,6 +152,29 @@ void main() {
         find.text('Léa Martin est dans vos anniversaires'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('« Voir » opens the page of the person just added', (
+      tester,
+    ) async {
+      await pumpPrompt(tester, access: NotificationAccess.granted);
+
+      add(_byHand());
+      await settle(tester);
+      await tester.tap(find.text('Voir'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Page lea'), findsOneWidget);
+    });
+
+    testWidgets('an import offers no « Voir »', (tester) async {
+      await pumpPrompt(tester, access: NotificationAccess.granted);
+
+      add(_imported);
+      await settle(tester);
+
+      expect(find.text('12 anniversaires ajoutés'), findsOneWidget);
+      expect(find.text('Voir'), findsNothing);
     });
 
     testWidgets('allowed meanwhile: names the first birthday by hand', (

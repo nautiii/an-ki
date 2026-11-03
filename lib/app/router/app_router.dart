@@ -12,6 +12,7 @@ import 'package:an_ki/features/birthday/screens/birthday_search_screen.dart';
 import 'package:an_ki/features/birthday/screens/contact_import_screen.dart';
 import 'package:an_ki/features/birthday/screens/groups_screen.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
+import 'package:an_ki/features/birthday/screens/person_screen.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_off_card.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
@@ -93,6 +94,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const ContactImportScreen(),
       ),
       GoRoute(path: AppRoutes.groups, builder: (_, _) => const GroupsScreen()),
+      GoRoute(
+        path: AppRoutes.personPattern,
+        builder: (_, state) =>
+            PersonScreen(birthdayId: state.pathParameters['id']!),
+      ),
     ],
   );
   ref.onDispose(() {

@@ -34,4 +34,11 @@ abstract final class AppRoutes {
   /// Groupes de l'utilisateur, ouverts par-dessus les réglages
   /// (`context.push`).
   static const String groups = '/groups';
+
+  /// Page d'une personne, ouverte par-dessus un onglet (`context.push`) :
+  /// le motif de la route ; [person] donne le chemin d'un anniversaire.
+  static const String personPattern = '/person/:id';
+
+  static String person(String birthdayId) =>
+      '/person/${Uri.encodeComponent(birthdayId)}';
 }

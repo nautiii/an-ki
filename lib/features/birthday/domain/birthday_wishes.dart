@@ -20,6 +20,14 @@ extension BirthdayWishes on Birthday {
       lastOccurrence(today) ==
           DateTime(today.year, today.month, today.day - 1) &&
       !isWished(today);
+
+  /// Vrai le jour de l'anniversaire et le lendemain : il peut alors être
+  /// souhaité (le lendemain, en retard), souhaité ou non.
+  bool canWish(DateTime today) {
+    final last = lastOccurrence(today);
+    return last == DateTime(today.year, today.month, today.day) ||
+        last == DateTime(today.year, today.month, today.day - 1);
+  }
 }
 
 /// Règles du « souhaité » sur une liste d'anniversaires.

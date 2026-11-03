@@ -182,6 +182,32 @@
       }
     }
   },
+  "personView": "View",
+  "personTurning": "{age, plural, one{Turns {age}} other{Turns {age}}}",
+  "@personTurning": {
+    "placeholders": {
+      "age": { "type": "int" }
+    }
+  },
+  "personWishes": "Wishes",
+  "personWishedIn": "Wished in {year}",
+  "@personWishedIn": {
+    "placeholders": {
+      "year": { "type": "int" }
+    }
+  },
+  "personNeverWished": "Not wished with AnKi yet",
+  "personWishRemoved": "{year} wish removed",
+  "@personWishRemoved": {
+    "placeholders": {
+      "year": { "type": "int" }
+    }
+  },
+  "personMissingTitle": "Birthday not found",
+  "personMissingMessage": "It was probably deleted. Your birthdays are waiting on the home screen.",
+  "personErrorTitle": "Can't show this birthday",
+  "personWishRemove": "Remove",
+  "personBackHome": "Back to home",
   "birthdaysAdded": "{count, plural, =1{1 birthday added} other{{count} birthdays added}}",
   "contactImportDeniedTitle": "AnKi can't see your contacts",
   "contactImportDeniedMessage": "Allow access to choose who to add, or add your people by hand.",

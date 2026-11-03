@@ -629,6 +629,52 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get personView => 'Voir';
+
+  @override
+  String personTurning(int age) {
+    String _temp0 = intl.Intl.pluralLogic(
+      age,
+      locale: localeName,
+      other: 'Aura $age ans',
+      one: 'Aura $age an',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get personWishes => 'Vœux';
+
+  @override
+  String personWishedIn(int year) {
+    return 'Souhaité en $year';
+  }
+
+  @override
+  String get personNeverWished => 'Pas encore souhaité avec AnKi';
+
+  @override
+  String personWishRemoved(int year) {
+    return 'Vœu de $year retiré';
+  }
+
+  @override
+  String get personMissingTitle => 'Anniversaire introuvable';
+
+  @override
+  String get personMissingMessage =>
+      'Il a sans doute été supprimé. Vos anniversaires vous attendent sur l\'accueil.';
+
+  @override
+  String get personErrorTitle => 'Impossible d\'afficher cet anniversaire';
+
+  @override
+  String get personWishRemove => 'Retirer';
+
+  @override
+  String get personBackHome => 'Retour à l\'accueil';
+
+  @override
   String birthdaysAdded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

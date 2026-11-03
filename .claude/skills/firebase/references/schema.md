@@ -68,11 +68,13 @@ update by the owner without changing `uid`.
 | `categories` | array of string | group ids, shared or private; `[]` |
 | `picture` | string, optional | base64 JPEG (picked at 512 px, quality 80); undecodable → no photo |
 | `wishedYears` | array of int | years the birthday was wished; `[]`; non-int values ignored |
-| `reminders` | array of string, optional | the person's own leads (`monthBefore`, `weekBefore`, `dayBefore`, `sameDay`): absent → the default setting, `[]` → no reminder; erased by `updateBirthday` when back to the default |
+| `reminders` | array of string, optional | the person's own leads (`monthBefore`, `weekBefore`, `dayBefore`, `sameDay`): absent → the default setting, `[]` → no reminder; written alone by `updateReminders` (person page), erased with `FieldValue.delete()` when back to the default |
 
-- Written by `BirthdayRepository.createBirthday` (`add`), `createBirthdays` (contacts import,
-  batches of ≤ 500), `updateBirthday` (`update` of every draft field plus `uid`; `picture` only
-  when a new one is given), `markWished` / `unmarkWished` (`update` with `arrayUnion` /
+- Written by `BirthdayRepository.createBirthday` (`set` on an id drawn client-side by
+  `newBirthdayId`, so the app can open the new person's page offline), `createBirthdays`
+  (contacts import, batches of ≤ 500), `updateBirthday` (`update` of every draft field plus
+  `uid`; `picture` only when a new one is given; never `reminders`), `updateReminders`
+  (`update` of `reminders` only), `markWished` / `unmarkWished` (`update` with `arrayUnion` /
   `arrayRemove`), `deleteBirthday`, `deleteAllUserBirthdays`.
 - Read by `watchBirthdays`: `where('uid', isEqualTo: uid)`, stream.
 

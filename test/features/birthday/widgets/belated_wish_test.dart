@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
@@ -77,6 +78,10 @@ void main() {
         birthdayRepositoryProvider.overrideWithValue(repository),
         shareServiceProvider.overrideWithValue(share),
       ],
+      routes: {
+        for (final birthday in birthdays)
+          AppRoutes.person(birthday.id): (_) => Text('Page ${birthday.id}'),
+      },
     );
     await tester.pumpAndSettle();
   });
@@ -140,13 +145,13 @@ void main() {
     expect(repository.unwished, [('nina', 2026)]);
   });
 
-  testWidgets('tapping the person opens the edit sheet', (tester) async {
+  testWidgets('tapping the person opens their page', (tester) async {
     await pumpBelated(tester, [bornOn(12, 31)]);
 
     await tester.tap(find.text('Nina Rossi'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Modifier'), findsOneWidget);
+    expect(find.text('Page nina'), findsOneWidget);
   });
 
   testWidgets('reads the person as one button, the actions apart', (

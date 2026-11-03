@@ -1,9 +1,9 @@
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
-import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:flutter/foundation.dart';
 
 /// Saisie d'un anniversaire avant enregistrement (formulaire ou import de
-/// contacts → contrôleur → dépôt).
+/// contacts → contrôleur → dépôt). Les rappels propres à la personne n'y sont
+/// pas : ils se règlent sur sa page et s'écrivent à part.
 class const BirthdayDraft({
   required final String name,
   required final String surname,
@@ -13,10 +13,6 @@ class const BirthdayDraft({
   /// Nouvelle photo (octets compressés) ; null : pas de photo à la création,
   /// photo inchangée à la modification.
   final Uint8List? picture,
-
-  /// Rappels propres à la personne (`Birthday.reminders`) : null suit le
-  /// réglage par défaut, vide n'en envoie aucun.
-  final Set<ReminderLead>? reminders,
 }) {
   /// Prénom et nom, sans espace de trop quand l'un manque (« Mamie »).
   String get fullName =>
@@ -41,8 +37,7 @@ class const BirthdayDraft({
       other.surname == surname &&
       other.date == date &&
       listEquals(other.categories, categories) &&
-      listEquals(other.picture, picture) &&
-      setEquals(other.reminders, reminders);
+      listEquals(other.picture, picture);
 
   @override
   int get hashCode => Object.hash(
@@ -51,9 +46,5 @@ class const BirthdayDraft({
     date,
     Object.hashAll(categories),
     picture?.length,
-    switch (reminders) {
-      final leads? => Object.hashAllUnordered(leads),
-      null => null,
-    },
   );
 }

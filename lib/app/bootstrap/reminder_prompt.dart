@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/auth/providers/fresh_sign_in_provider.dart';
@@ -9,11 +10,13 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthdays_added.dart';
 import 'package:an_ki/features/birthday/providers/birthday_additions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/reminders/domain/reminder_offer.dart';
 import 'package:an_ki/features/reminders/providers/reminder_permission.dart';
 import 'package:an_ki/features/reminders/widgets/reminder_offer_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// Propose d'activer les rappels au moment où l'agenda prend de la valeur,
 /// jamais au lancement : après un import ou les premiers anniversaires
@@ -121,14 +124,32 @@ class _ReminderPromptState extends ConsumerState<ReminderPrompt> {
     await ReminderOfferSheet.show(context, offer);
   }
 
+  /// Une saisie à la main se nomme et propose « Voir », qui ouvre la page de
+  /// la personne ; un import se compte.
   void _announce(BirthdaysAdded added) {
-    final message = switch (added) {
-      BirthdaysAdded(imported: false, :final name?) =>
-        context.l10n.birthdayAdded(name),
-      _ => context.l10n.birthdaysAdded(added.count),
+    final l10n = context.l10n;
+    final snackBar = switch (added) {
+      BirthdaysAdded(imported: false, :final name?, :final id?) => SnackBar(
+        content: Text(l10n.birthdayAdded(name)),
+        // Depuis Flutter 3.44, une snackbar avec action reste sinon ouverte.
+        persist: false,
+        // TalkBack actif : deux fois plus de temps pour atteindre « Voir ».
+        duration: MediaQuery.accessibleNavigationOf(context)
+            ? undoDelay * 2
+            : undoDelay,
+        action: SnackBarAction(
+          label: l10n.personView,
+          onPressed: () {
+            if (mounted) unawaited(context.push(AppRoutes.person(id)));
+          },
+        ),
+      ),
+      BirthdaysAdded(imported: false, :final name?) => SnackBar(
+        content: Text(l10n.birthdayAdded(name)),
+      ),
+      _ => SnackBar(content: Text(l10n.birthdaysAdded(added.count))),
     };
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   @override

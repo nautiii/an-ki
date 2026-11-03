@@ -95,6 +95,27 @@ void main() {
     });
   });
 
+  group('canWish', () {
+    test('is true on the day and the day after, wished or not', () {
+      final lea = _bornOn(10, 16, wished: [2026]);
+
+      expect(lea.canWish(DateTime(2026, 10, 16)), isTrue);
+      expect(lea.canWish(DateTime(2026, 10, 17, 23, 59)), isTrue);
+      expect(_bornOn(10, 16).canWish(DateTime(2026, 10, 17)), isTrue);
+    });
+
+    test('is false the day before and two days after', () {
+      expect(_bornOn(10, 16).canWish(DateTime(2026, 10, 15)), isFalse);
+      expect(_bornOn(10, 16).canWish(DateTime(2026, 10, 18)), isFalse);
+    });
+
+    test('crosses the new year and follows a 29 February', () {
+      expect(_bornOn(12, 31).canWish(DateTime(2027)), isTrue);
+      expect(_bornOn(2, 29).canWish(DateTime(2027, 3, 2)), isTrue);
+      expect(_bornOn(2, 29).canWish(DateTime(2027, 3, 3)), isFalse);
+    });
+  });
+
   test('belated keeps the people of yesterday still to wish, by name', () {
     Birthday person(
       String id,

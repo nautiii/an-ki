@@ -7,7 +7,7 @@ import 'package:an_ki/features/birthday/widgets/reminder_lead_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Rappels d'une personne dans sa fiche : comme d'habitude (le réglage par
+/// Rappels d'une personne sur sa page : comme d'habitude (le réglage par
 /// défaut), aucun, ou personnalisés — les moments avant le jour J, le jour J
 /// restant prévenu.
 class BirthdayRemindersPicker extends StatelessWidget {
@@ -39,10 +39,15 @@ class BirthdayRemindersPicker extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.reminders,
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        // Un en-tête de section, comme les autres titres de la page.
+        Semantics(
+          container: true,
+          header: true,
+          child: Text(
+            l10n.reminders,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.xs),

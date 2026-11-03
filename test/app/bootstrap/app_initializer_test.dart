@@ -12,6 +12,7 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
+import 'package:an_ki/features/birthday/screens/person_screen.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
@@ -303,7 +304,7 @@ void main() {
       });
     });
 
-    testWidgets('a tap on the notification itself only opens the app', (
+    testWidgets('a tap on the notification itself opens the person page', (
       tester,
     ) async {
       final notifications = SilentNotificationService();
@@ -318,7 +319,52 @@ void main() {
         notifications.tap(const NotificationTap(payload: 'lea'));
         await tester.pumpAndSettle();
 
+        expect(find.byType(PersonScreen), findsOneWidget);
+        expect(find.text('Léa Martin'), findsOneWidget);
         expect(share.shared, isEmpty);
+        // Retour : l'accueil, resté dessous.
+        await tester.tap(find.byType(BackButton));
+        await tester.pumpAndSettle();
+        expect(find.byType(HomeScreen), findsOneWidget);
+      });
+    });
+
+    testWidgets('never stacks the page of the person already open', (
+      tester,
+    ) async {
+      final notifications = SilentNotificationService();
+      await mockNetworkImages(() async {
+        await pumpSignedInApp(
+          tester,
+          notifications: notifications,
+          share: FakeShareService(),
+        );
+
+        notifications.tap(const NotificationTap(payload: 'lea'));
+        await tester.pumpAndSettle();
+        notifications.tap(const NotificationTap(payload: 'lea'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(BackButton));
+        await tester.pumpAndSettle();
+        expect(find.byType(PersonScreen), findsNothing);
+        expect(find.byType(HomeScreen), findsOneWidget);
+      });
+    });
+
+    testWidgets('opens the person page from the tap that launched the app', (
+      tester,
+    ) async {
+      await mockNetworkImages(() async {
+        await pumpSignedInApp(
+          tester,
+          notifications: SilentNotificationService(
+            launch: const NotificationTap(payload: 'lea'),
+          ),
+          share: FakeShareService(),
+        );
+
+        expect(find.byType(PersonScreen), findsOneWidget);
       });
     });
 

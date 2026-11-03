@@ -2,6 +2,7 @@ import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/common/moon_phase.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
@@ -11,19 +12,19 @@ import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 /// Ligne d'agenda : qui, quand, quel âge. L'anneau de l'avatar porte les
 /// couleurs des catégories de la personne.
 ///
-/// Toucher ouvre la modification. Glisser vers la gauche, ou l'action
+/// Toucher ouvre la page de la personne. Glisser vers la gauche, ou l'action
 /// « Supprimer » des lecteurs d'écran, supprime avec « Annuler ».
 class AgendaTile extends ConsumerWidget {
   const AgendaTile({super.key, required this.birthday, this.highlight});
@@ -77,8 +78,7 @@ class AgendaTile extends ConsumerWidget {
                     deleteWithUndo(context, birthday),
               },
               child: InkWell(
-                onTap: () =>
-                    BirthdayFormSheet.show(context, birthdayToEdit: birthday),
+                onTap: () => context.push(AppRoutes.person(birthday.id)),
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.sm),
                   child: _TileContent(birthday: birthday, highlight: highlight),

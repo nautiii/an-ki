@@ -11,6 +11,7 @@ import 'package:an_ki/features/birthday/data/share_service.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
+import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
 import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:an_ki/features/reminders/data/reminder_preferences_repository.dart';
@@ -191,11 +192,27 @@ class FakeBirthdayRepository extends Fake implements BirthdayRepository {
   @override
   Stream<List<Birthday>> watchBirthdays(String uid) => Stream.value([]);
 
+  var _nextId = 0;
+
+  /// Ids tirés dans l'ordre : `new-1`, `new-2`…
   @override
-  Future<void> createBirthday(String uid, BirthdayDraft draft) async {}
+  String newBirthdayId() => 'new-${++_nextId}';
+
+  @override
+  Future<void> createBirthday(
+    String uid,
+    String birthdayId,
+    BirthdayDraft draft,
+  ) async {}
 
   @override
   Future<void> createBirthdays(String uid, List<BirthdayDraft> drafts) async {}
+
+  @override
+  Future<void> updateReminders(
+    String birthdayId,
+    Set<ReminderLead>? reminders,
+  ) async {}
 
   @override
   Future<void> updateBirthday(
@@ -261,10 +278,30 @@ class RecordingBirthdayRepository extends FakeBirthdayRepository {
     unwished.add((birthdayId, year));
   }
 
+  /// Ids des anniversaires créés un à un, dans l'ordre.
+  final createdIds = <String>[];
+
+  /// Rappels propres écrits, dans l'ordre : (id, rappels).
+  final reminderUpdates = <(String, Set<ReminderLead>?)>[];
+
   @override
-  Future<void> createBirthday(String uid, BirthdayDraft draft) async {
+  Future<void> createBirthday(
+    String uid,
+    String birthdayId,
+    BirthdayDraft draft,
+  ) async {
     _maybeFail();
+    createdIds.add(birthdayId);
     created.add(draft);
+  }
+
+  @override
+  Future<void> updateReminders(
+    String birthdayId,
+    Set<ReminderLead>? reminders,
+  ) async {
+    _maybeFail();
+    reminderUpdates.add((birthdayId, reminders));
   }
 
   @override

@@ -167,7 +167,7 @@ lives in `app/router/`.
 routes are not recommended once deep links matter; go_router stays the team's recommendation for
 most apps and is feature-complete (bug fixes only). Notification taps that must open a screen
 with a correct back stack — including from a cold start — are exactly where a Router helps: the
-« Souhaiter » action (B3) goes through it, the person page (B4) will.
+« Souhaiter » action (B3) and the person page (B4, `/person/:id`) go through it.
 
 **How.** go_router 18 depends on the new `material_ui`/`cupertino_ui` packages, so 17.5.0 (the
 last 17.x, same API) is pinned until the Material decoupling migration. The `GoRouter` is built

@@ -72,12 +72,6 @@ ux-ui backlog (`ux-backlog.md`), not here.
 
 Recommended order: M10 only on a concrete need. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent + review).
 
-### With B4 — a notification tap opens the person page · S
-- Taps already reach the app: `NotificationService` streams them (cold start included) and
-  `app/bootstrap/app_initializer.dart` handles « Souhaiter » (payload = birthday id). A tap on
-  the notification itself only opens the app: once the person page exists, `go` there, behind
-  the access redirects.
-
 ### M10 — Per-user collections · L · system change, only on a concrete need
 - Left out of M8: move `birthday`/`books` to `user/{uid}/…` — data migration with dual read,
   rules update deployed by the maintainer, one release of overlap.

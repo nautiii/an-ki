@@ -13,6 +13,7 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/screens/birthday_search_screen.dart';
 import 'package:an_ki/features/birthday/screens/contact_import_screen.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
+import 'package:an_ki/features/birthday/screens/person_screen.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_off_card.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
@@ -106,6 +107,36 @@ void main() {
         await tester.tap(find.byType(CloseButton));
         await tester.pumpAndSettle();
         expect(find.byType(BookScannerScreen), findsOneWidget);
+      });
+    });
+
+    testWidgets('a person path opens that person above the tab', (
+      tester,
+    ) async {
+      const lea = Birthday(
+        id: 'lea',
+        name: 'Léa',
+        surname: 'Martin',
+        date: BirthDate(month: 3, day: 12),
+      );
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          birthdays: const [lea],
+        );
+        await tester.settleApp();
+
+        unawaited(tester.appRouter.push(AppRoutes.person('lea')));
+        await tester.pumpAndSettle();
+        expect(
+          tester.widget<PersonScreen>(find.byType(PersonScreen)).birthdayId,
+          'lea',
+        );
+        expect(find.text('Léa Martin'), findsOneWidget);
+
+        await tester.tap(find.byType(BackButton));
+        await tester.pumpAndSettle();
+        expect(find.byType(HomeScreen), findsOneWidget);
       });
     });
 

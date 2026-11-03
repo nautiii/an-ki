@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
@@ -74,6 +75,10 @@ void main() {
           repository ?? RecordingBirthdayRepository(),
         ),
       ],
+      routes: {
+        for (final birthday in birthdays)
+          AppRoutes.person(birthday.id): (_) => Text('Page ${birthday.id}'),
+      },
     );
   }
 
@@ -325,7 +330,7 @@ void main() {
     });
   });
 
-  testWidgets('tapping the card opens the edit sheet', (tester) async {
+  testWidgets('tapping the card opens the person page', (tester) async {
     final haptics = recordHaptics(tester);
     await mockNetworkImages(() async {
       await pumpCard(tester, birthdays: [relative(3)]);
@@ -334,7 +339,7 @@ void main() {
       await tester.tap(find.text('Alice Wonderland'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Modifier'), findsOneWidget);
+      expect(find.text('Page 1'), findsOneWidget);
       // Ouvrir n'est pas une action réussie : pas de vibration.
       expect(haptics, isEmpty);
     });
