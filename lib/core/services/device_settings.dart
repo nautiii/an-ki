@@ -5,9 +5,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// masqué. Porte mince sur le stockage de l'appareil, celui de l'empreinte :
 /// pas de paquet de plus pour quelques booléens.
 class DeviceSettings {
-  const DeviceSettings({this._storage = const FlutterSecureStorage()});
+  const DeviceSettings();
 
-  final FlutterSecureStorage _storage;
+  static const _storage = FlutterSecureStorage();
 
   static const _remindersOffDismissedKey = 'reminders_off_dismissed';
 

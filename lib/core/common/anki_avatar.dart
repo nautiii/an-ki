@@ -34,9 +34,8 @@ class AnKiAvatar extends StatelessWidget {
   /// Espace entre l'anneau et l'avatar.
   static const double ringGap = 2;
 
-  /// Côté occupé par un avatar de [radius] avec la place de son anneau.
-  static double ringedExtent([double radius = defaultRadius]) =>
-      2 * (radius + ringGap + ringWidth);
+  /// Côté occupé par un avatar de [defaultRadius] avec la place de son anneau.
+  static double ringedExtent() => 2 * (defaultRadius + ringGap + ringWidth);
 
   // Graines tirées des illustrations : nuit, lotus, feuille, lune, nuage.
   static const List<Color> _seeds = [

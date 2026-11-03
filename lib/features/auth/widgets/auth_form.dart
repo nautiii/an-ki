@@ -42,9 +42,7 @@ class PasswordField extends StatefulWidget {
     required this.textInputAction,
     this.focusNode,
     this.enabled = true,
-    this.errorText,
     this.onChanged,
-    this.onEditingComplete,
     this.onSubmitted,
   });
 
@@ -57,9 +55,7 @@ class PasswordField extends StatefulWidget {
   final TextInputAction textInputAction;
   final FocusNode? focusNode;
   final bool enabled;
-  final String? errorText;
   final ValueChanged<String>? onChanged;
-  final VoidCallback? onEditingComplete;
   final ValueChanged<String>? onSubmitted;
 
   @override
@@ -83,11 +79,9 @@ class _PasswordFieldState extends State<PasswordField> {
       textInputAction: widget.textInputAction,
       autofillHints: widget.autofillHints,
       onChanged: widget.onChanged,
-      onEditingComplete: widget.onEditingComplete,
       onSubmitted: widget.onSubmitted,
       decoration: InputDecoration(
         labelText: widget.label,
-        errorText: widget.errorText,
         suffixIcon: IconButton(
           tooltip: _obscured ? l10n.showPassword : l10n.hidePassword,
           onPressed: () => setState(() => _obscured = !_obscured),
