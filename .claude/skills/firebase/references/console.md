@@ -22,10 +22,7 @@ handing over, quote the runbook's commands with the project id and say what to c
 
 An agent deploys the rules itself after a change (SKILL.md, Workflow D); this runbook is for
 the maintainer's own deploys. A `firestore.rules.hold` at the root stops agents: lift it only
-when its steps are done. Pending on 2026-10-25: private groups and the pinned owner
-(`architecture/references/migration.md` §1). Since A16, the file in git refuses the older
-groups: until §10 is done, deploy the file of `90a83db` (§10 step 1), and the current one only
-at §10 step 5.
+when its steps are done.
 
 ```powershell
 .\scripts\test_firestore_rules.ps1
@@ -122,7 +119,7 @@ Console → Authentication:
 
 Console → Usage and billing. On the free Spark plan Firestore allows 50,000 reads, 20,000 writes
 and 20,000 deletes a day and 1 GiB stored; beyond that requests fail until the next day. On
-Blaze, set a budget alert in Google Cloud Billing. Once §10 is done, the `category` stream
+Blaze, set a budget alert in Google Cloud Billing. Since §10 (2026-11-04), the `category` stream
 reads only the four predefined documents.
 
 ## 9. Production data and test accounts
@@ -131,36 +128,11 @@ Console → Firestore → Data is for looking. Editing a user's document by hand
 (`migrations.md` §4): written list first, then the change, then a check. Experiments happen on
 the emulator (`demo-anki`) or on a test account, never on the maintainer's own data.
 
-## 10. A16 — older groups out of `category`
+## 10. A16 — older groups out of `category` (applied)
 
-When: the filter and rules code of A16 is on main (`migrations.md` §5), before any build that
-carries it. Order matters, do not reorder:
-1. If not done yet (F1), deploy the rules of the commit **before** A16 (`90a83db`: private
-   groups, pinned owner), never the current file, which already refuses the old groups:
-   ```powershell
-   git restore --source=90a83db firestore.rules
-   firebase deploy --only firestore:rules --dry-run --non-interactive --project an-ki-9b02b
-   firebase deploy --only firestore:rules --project an-ki-9b02b
-   git restore firestore.rules
-   ```
-2. Console → Firestore, for each of your accounts: open `user/{uid}` and read `categories`; also
-   list the category ids carried by the account's `birthday` documents (filter `uid ==`). For
-   each id whose `category/{id}` has a `name` other than `family`, `friend`, `colleague`, `other`
-   (compared case-insensitively, as the app does), create `user/{uid}/categories/{id}` with the
-   **same id** and copy `name` (string), `icon` (number) and `tone` (number, only if present):
-   every birthday's `categories` keeps pointing at it. Optional: remove those ids from
-   `user/{uid}.categories`.
-3. Add `predefined: true` (boolean) to the four documents named `family`, `friend`, `colleague`,
-   `other`. If a name appears twice (case-insensitively), the app shows the smallest document
-   id: flag only that one, and treat the other as a user group (step 2).
-4. Install the app built from the commit carrying the filter on every device
-   (`scripts/build_and_deploy.ps1`).
-5. Delete `firestore.rules.hold` and commit it, then deploy the new rules — or ask an agent
-   (Workflow D): `.\scripts\test_firestore_rules.ps1`, the `--dry-run`, then
-   `firebase deploy --only firestore:rules --project an-ki-9b02b` (§1).
-6. Optional: delete the old non-predefined `category` documents (unreadable after step 5).
-
-Why this order: without 3 before 4, Famille, Amis, Travail and Autres vanish from the new app;
-rules deployed (5) before every device runs the new app (4) make the old app's unfiltered query
-fail; without 2 before 4 the copied groups are missing until it is done. Check on a device: the
-four predefined groups and the copied ones still shown and ticked on their birthdays.
+Applied on 2026-11-04, steps 1 to 5 (step 1, a separate deploy of the rules of `90a83db`, was
+skipped: the current file contains everything it brought): older shared groups copied to
+`user/{uid}/categories` under the same id, `predefined: true` on `family`, `friend`, `colleague`
+and `other`, the app with the filtered query installed, `firestore.rules.hold` deleted, rules
+deployed. Step 6 stays optional and not done: delete the old non-predefined `category` documents
+(unreadable now). Kept as a record, not a runbook: a new hold gets its own section.

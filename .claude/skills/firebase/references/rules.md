@@ -44,7 +44,7 @@ disagree, the tests win and this table gets fixed.
    round.
 6. **Shared data is read-only for clients.** Documents everyone reads (predefined groups) are
    written in the console; a client-writable shared collection is an abuse and privacy vector
-   (A16, closed in code).
+   (A16, closed; rules deployed on 2026-11-04).
 7. **Validate what protects others, not what protects the app from itself.** Each user only
    reaches their own documents, so field validation (`keys().hasOnly`, types, sizes) buys little
    and couples every schema change to a rules deploy synchronised with old app versions. Add it

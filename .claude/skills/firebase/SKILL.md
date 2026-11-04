@@ -37,9 +37,8 @@ use `demo-anki`, which can't reach production).
 - **Files**: `firestore.rules`, `firestore.indexes.json` (a copy of production's),
   `firebase.json` (rules, indexes, emulator on port 8080), `test/firestore/firestore_rules_test.dart`
   with its client `test/support/firestore_emulator.dart`, `scripts/test_firestore_rules.ps1`.
-- **What remains** lives in `references/backlog.md`: the rules in git are ahead of production
-  (F1), debt A16 (code done, console steps pending: `console.md` §10), console steps. Read it
-  before Firebase work; keep it current.
+- **What remains** lives in `references/backlog.md`: console steps and open decisions. Read it before
+  Firebase work; keep it current.
 
 ## Read first
 
@@ -112,14 +111,16 @@ marker `<blob>.rules` in the checkout's git dir, one per worktree), and no
    or collection: compatible. A rule that refuses what today's app does (a narrower read, a
    required field, a removed path): not. Then commit a `firestore.rules.hold` (first line: the
    reason; then why, and how to lift it) with its runbook in `references/console.md`, and stop:
-   the maintainer deletes the hold once the app and the data are ready (A16: `console.md` §10).
+   the maintainer deletes the hold once the app and the data are ready
+   (A16 was one, applied 2026-11-04: `console.md` §10).
 2. **Committed and on `main`.** The rules change is committed (verifier, reviewer;
    git-workflow skill) and integrated in `main` (a branch rebased, `--ff-only`). A working
    copy or a branch alone is never deployed.
 3. **Proved.** `scripts/test_firestore_rules.ps1` in full (no filter, no `-Config`) on that
    commit, then the `--dry-run` compilation (Verify).
 4. **Deploy**: `firebase deploy --only firestore:rules --non-interactive --project an-ki-9b02b`
-   — « released rules firestore.rules to cloud.firestore ».
+   — « released rules firestore.rules to cloud.firestore ». In a sandboxed session, see the
+   proxy gotcha below.
 5. **After**: new requests use them within a minute, open listeners within ten. Delete the
    matching line of `references/backlog.md`, keep the device checks in
    `architecture/references/migration.md` §1 until done, and report what was deployed (commit).
@@ -187,3 +188,10 @@ Rollback: the maintainer restores the previous version from the console Rules ta
   any new date field; M10 plans `day`/`month`/`year` instead.
 - Limits that shape the data: 1 MiB per document (base64 photos), 500 operations per batch,
   30 values in an `in` or `array-contains-any` filter.
+- Sandboxed Claude Code sessions set `HTTP_PROXY`/`HTTPS_PROXY`, and firebase-tools 15.34.1 on
+  Node 26 then fails every production request with `InvalidArgumentError: invalid onError
+  method` (shown as « Failed to make request to https://firebaserules.googleapis.com/… »;
+  `--debug` shows the undici error). Run the command alone (no `cd`, pipe or `&&`: `guard-git.sh`
+  refuses them for a deploy), outside the sandbox, with the proxy emptied for that command:
+  `HTTPS_PROXY= HTTP_PROXY= firebase deploy --only firestore:rules --non-interactive --project
+  an-ki-9b02b`; same for the `--dry-run`. The emulator is unaffected.

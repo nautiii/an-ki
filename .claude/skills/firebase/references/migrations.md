@@ -82,8 +82,8 @@ Decision 2026-11-04: no users besides the maintainer's devices, so the lazy in-a
   (mandatory: rules are not filters); the rules are
   `allow read: if request.auth != null && resource.data.predefined == true;`, no `create`; rules
   tests cover them.
-- **Console, pending**: `console.md` §10, in order (copy old groups, flag the four predefined,
-  install the app everywhere, deploy the rules, optional cleanup).
+- **Console, done on 2026-11-04**: `console.md` §10, steps 1-5 (copy old groups, flag the four
+  predefined, install the app everywhere, deploy the rules); step 6, the cleanup, is optional.
 - **Follow-up, not done**: remove the now unreachable shared non-predefined path
   (`GroupKind.shared`, « Retirer de mes groupes », `UserRepository.removeCategory`,
   `UserProfile.categories` / `pickedIds` in `userGroups`); `schema.md` §5 and §9 shrink then.

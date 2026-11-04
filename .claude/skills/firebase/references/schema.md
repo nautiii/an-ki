@@ -164,6 +164,6 @@ everywhere):
 - `birthday` without `yearKnown` (year known), `wishedYears` (never wished) or `reminders` (default setting).
 - `user` without `reminders` (default setting).
 - `user` with `isDark` instead of `themeMode`.
-- `user.categories` (shared groups picked before; unreachable once `console.md` §10 is done, removal pending: `migrations.md` §5).
+- `user.categories` (shared groups picked before; unreachable since 2026-11-04, removal pending: `migrations.md` §5).
 - `category` without `tone`; any group without `icon`.
 - `birthday` without `date`: skipped, not shown.

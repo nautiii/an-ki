@@ -15,11 +15,9 @@ what you discover.
 ## 1. Not verified outside the tests yet
 
 Delete each line once done:
-- A16 console steps (firebase skill, `references/console.md` §10), then, on a device, the four
-  predefined groups and the copied private groups still shown and ticked on their birthdays.
-- `firestore.rules` deployed by the maintainer (owner pinned on update, M0; private groups):
-  the file of `90a83db`, not the current one (A16), firebase skill `references/console.md` §10
-  step 1 — tests in the emulator and a server compilation passed on 2026-10-25.
+- Rules deployed on 2026-11-04 (private groups, pinned owner, A16), on a device: the four
+  predefined groups and the copied private groups shown and ticked on their birthdays, a group
+  created in the birthday form lands in `user/{uid}/categories`; account deletion (A17) checks.
 - M2–M6 and M9 on the emulator (device skill), all behind the maintainer: sign-in (email and
   sign-up land on the app, not on the form; Google, where a cancel stays silent; anonymous), a
   restored session locked behind the fingerprint without the app flashing first, unlock, a
@@ -31,8 +29,7 @@ Delete each line once done:
   off (identity confirmed first: password in the dialog, the Google picker, nothing for a guest;
   birthdays, books and profile gone, no `user/{uid}` left behind, no error) on a test account, birthdays tab shown again
   after signing back in.
-- Private groups (UX piste C, 2026-10-24), once the maintainer has deployed `firestore.rules`
-  (until then the server refuses the writes and the new group vanishes): a group created in the
+- Private groups (UX piste C, 2026-10-24), with the rules deployed on 2026-11-04: a group created in the
   birthday form lands in `user/{uid}/categories` and arrives ticked, offline too; account
   deletion erases those groups.
 - Settings in sections and the Système / Clair / Sombre theme (UX piste B, 2026-10-24): an older
