@@ -118,7 +118,7 @@ The current structure is not sacred: when the right answer is structural, say so
 4. **Build bottom-up**, starting from `assets/example/`: domain → data → providers →
    widgets/screens → wiring (`app/router`, shell, bootstrap, `featureDependencies`) → l10n (FR
    template + EN, `flutter gen-l10n`) → `firestore.rules`, indexes and account deletion (firebase
-   skill: rules tested in the emulator) → tests for every layer touched. For the look and feel of
+   skill: rules tested in the emulator, deployed once committed) → tests for every layer touched. For the look and feel of
    screens, apply the ux-ui skill.
 5. **Verify** (below), then **report**.
 

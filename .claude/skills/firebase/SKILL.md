@@ -1,6 +1,6 @@
 ---
 name: firebase
-description: "AnKi's Firebase backend (project an-ki-9b02b: Auth and Cloud Firestore, no Storage): security rules proved in the Firestore emulator, the map of every collection and field, composite indexes, schema changes and data migrations, account deletion that leaves nothing behind, and the console steps only the maintainer runs (deploying rules and indexes, SHA-1, flutterfire configure, sign-in providers, API keys). Use for ANY change or question touching firestore.rules, firestore.indexes.json, firebase.json, a new collection, field or query, a permission-denied or missing-index error, who can read which data, a migration, or Firebase console setup. Trigger even on French asks: « règles Firestore », « déploie les règles », « index », « migration de données », « permission denied », « la connexion Google échoue », « SHA-1 », « flutterfire ». Not for repository code patterns (architecture) or screens (ux-ui)."
+description: "AnKi's Firebase backend (project an-ki-9b02b: Auth and Cloud Firestore, no Storage): security rules proved in the Firestore emulator, the map of every collection and field, composite indexes, schema changes and data migrations, account deletion that leaves nothing behind, deploying the rules after a change (agents, gated by a hook), and the console steps only the maintainer runs (indexes, SHA-1, flutterfire configure, sign-in providers, API keys). Use for ANY change or question touching firestore.rules, any need to deploy the rules, firestore.indexes.json, firebase.json, a new collection, field or query, a permission-denied or missing-index error, who can read which data, a migration, or Firebase console setup. Trigger even on French asks: « règles Firestore », « déploie les règles », « index », « migration de données », « permission denied », « la connexion Google échoue », « SHA-1 », « flutterfire ». Not for repository code patterns (architecture) or screens (ux-ui)."
 effort: high
 ---
 
@@ -16,10 +16,11 @@ English (git-workflow skill).
 
 | Agents | The maintainer only |
 |--------|---------------------|
-| Edit `firestore.rules`, `firestore.indexes.json`, `firebase.json`, the repositories | Deploy rules and indexes to `an-ki-9b02b` |
+| Edit `firestore.rules`, `firestore.indexes.json`, `firebase.json`, the repositories | Deploy indexes, and anything else than the rules, to `an-ki-9b02b` |
 | Run the emulator and `test/firestore/` (`scripts/test_firestore_rules.ps1`) | Anything in the Firebase or Google Cloud console |
 | Read-only CLI on production: `firestore:indexes`, `projects:list`, `apps:list`, `login:list` | `firebase login`, deletes, imports, exports of user data |
 | Compile rules on the server: `firebase deploy --only firestore:rules --dry-run --non-interactive --project an-ki-9b02b` (releases nothing) | Run a data migration on production data |
+| Deploy `firestore.rules` once committed and proved in the emulator (Workflow D) | Lift a deploy hold (`firestore.rules.hold`) once its steps are done |
 | Prepare the exact commands and checks for a handoff | |
 
 `.claude/hooks/guard-git.sh` lets only these `firebase` commands through (plus `--help`). Never
@@ -48,7 +49,8 @@ use `demo-anki`, which can't reach production).
 | Any change to data: collection, field, query, deletion | `references/schema.md` — the map, kept in sync with the repositories |
 | Writing, reviewing or testing rules | `references/rules.md` |
 | Renaming, retyping or moving data; A16; M10 | `references/migrations.md` |
-| Deploying, SHA-1, flutterfire, providers, API keys, budget | `references/console.md` — the maintainer's runbooks |
+| Deploying the rules after a change | Workflow D below |
+| Deploying indexes, SHA-1, flutterfire, providers, API keys, budget | `references/console.md` — the maintainer's runbooks |
 | Repository code (mapping, failures, batches) | architecture skill, `references/patterns.md` §4 |
 
 ## Workflow A — change the data
@@ -69,8 +71,10 @@ use `demo-anki`, which can't reach production).
    emulator serves every query, so only this step catches it.
 6. **Deletion.** Every per-user path is erased by `AccountDeletion` — subcollections one by one,
    Firestore never cascades — with a test.
-7. **Verify** (below), then **hand off**: the exact deploy commands, what to check on the
-   device afterwards, and a line in `migration.md` §1 until it's checked.
+7. **Verify** (below), commit (git-workflow), then **deploy the rules** (Workflow D) — or, for
+   rules the installed app isn't ready for, commit a hold and hand off. Indexes and console
+   steps stay a handoff: the exact commands. Either way, a line in `migration.md` §1 for what
+   to check on the device until it's checked.
 
 ## Workflow B — review or audit
 
@@ -85,13 +89,43 @@ Reproduce on the emulator or the phone (device skill: logcat), then:
 
 | Symptom | Usual cause | Fix |
 |---------|-------------|-----|
-| `PERMISSION_DENIED` on a query | no `uid` filter (rules are not filters), wrong path, or rules not deployed | add the filter; compare the path with the map; ask for a deploy |
+| `PERMISSION_DENIED` on a query | no `uid` filter (rules are not filters), wrong path, or rules not deployed | add the filter; compare the path with the map; deploy the rules (Workflow D) |
 | `PERMISSION_DENIED` right after launch | the session isn't restored yet: `request.auth` is null | derive the stream from `currentUidProvider` |
 | `FAILED_PRECONDITION … requires an index` | missing composite index (the log carries a console link) | add it to `firestore.indexes.json`; the maintainer deploys |
 | A write that never finishes | offline: write futures resolve on server acknowledgement only | don't await it in the UI (patterns §9) |
-| An item that appears, then vanishes | the server refused an optimistic write (rules not deployed?) | check the rules in production, listen to the controller's error |
+| An item that appears, then vanishes | the server refused an optimistic write (rules not deployed? a hold?) | check the rules in production and `firestore.rules.hold`, listen to the controller's error |
 | Google sign-in fails at once with a configuration error in logcat (`ApiException: 10`, « Developer console is not set up correctly ») | the signing key's SHA-1 isn't registered | console runbook §4 |
 | `requires-recent-login` on account deletion | Auth wants a recent sign-in | account deletion confirms the identity first (`AuthController.confirmIdentity`); elsewhere, re-authenticate before a sensitive operation |
+
+## Workflow D — deploy the rules
+
+Rules changed by an evolution are deployed by the agent that changed them, as the last step of
+that change: no handoff. `guard-git.sh` lets `firebase deploy --only firestore:rules --project
+an-ki-9b02b` through (alone in its command, from the repo folder, options unquoted and given
+once) only when `firestore.rules` and `firebase.json` match HEAD, HEAD's rules are `main`'s, a
+full run of `scripts/test_firestore_rules.ps1` passed on that exact content (it leaves the
+marker `<blob>.rules` in the checkout's git dir, one per worktree), and no
+`firestore.rules.hold` sits at the root or on `main`.
+
+1. **Compatible?** The new rules must accept every request the installed app sends: the
+   maintainer's devices run the last APK they installed, not HEAD. Loosening a rule, a new path
+   or collection: compatible. A rule that refuses what today's app does (a narrower read, a
+   required field, a removed path): not. Then commit a `firestore.rules.hold` (first line: the
+   reason; then why, and how to lift it) with its runbook in `references/console.md`, and stop:
+   the maintainer deletes the hold once the app and the data are ready (A16: `console.md` §10).
+2. **Committed and on `main`.** The rules change is committed (verifier, reviewer;
+   git-workflow skill) and integrated in `main` (a branch rebased, `--ff-only`). A working
+   copy or a branch alone is never deployed.
+3. **Proved.** `scripts/test_firestore_rules.ps1` in full (no filter, no `-Config`) on that
+   commit, then the `--dry-run` compilation (Verify).
+4. **Deploy**: `firebase deploy --only firestore:rules --non-interactive --project an-ki-9b02b`
+   — « released rules firestore.rules to cloud.firestore ».
+5. **After**: new requests use them within a minute, open listeners within ten. Delete the
+   matching line of `references/backlog.md`, keep the device checks in
+   `architecture/references/migration.md` §1 until done, and report what was deployed (commit).
+
+Rollback: the maintainer restores the previous version from the console Rules tab history
+(one click); the fix then goes through this workflow.
 
 ## Verify — show, don't claim
 
@@ -107,7 +141,7 @@ Reproduce on the emulator or the phone (device skill: logcat), then:
   then the whole suite (`test/firestore/` skips itself without the emulator).
 - **Indexes**: `firestore.indexes.json` still parses and still holds production's indexes.
 - **Production behaviour** (rules deployed, an index built, a migration run): only on a device,
-  after the maintainer's step — say it wasn't checked until then.
+  after the deploy or the maintainer's step — say it wasn't checked until then.
 
 ## Report (French)
 
@@ -116,7 +150,8 @@ Reproduce on the emulator or the phone (device skill: logcat), then:
 **Données** — chemins, champs, requêtes ; references/schema.md mis à jour
 **Règles et index** — ce qui change, pour qui ; tests ajoutés (n), mutations détectées
 **Vérifications** — tests de règles · analyze · tests · appareil (ou « non vérifié »)
-**À faire par toi** — commandes exactes (deploy…) et contrôle après coup
+**Déploiement** — règles déployées (commit) ou retenues (firestore.rules.hold, pourquoi)
+**À faire par toi** — commandes exactes (index, console…) et contrôle après coup
 **Suite** — dette ouverte, migration.md mis à jour
 ```
 

@@ -20,7 +20,9 @@ handing over, quote the runbook's commands with the project id and say what to c
 
 ## 1. Deploy the rules
 
-When: `firestore.rules` changed. Pending on 2026-10-25: private groups and the pinned owner
+An agent deploys the rules itself after a change (SKILL.md, Workflow D); this runbook is for
+the maintainer's own deploys. A `firestore.rules.hold` at the root stops agents: lift it only
+when its steps are done. Pending on 2026-10-25: private groups and the pinned owner
 (`architecture/references/migration.md` §1). Since A16, the file in git refuses the older
 groups: until §10 is done, deploy the file of `90a83db` (§10 step 1), and the current one only
 at §10 step 5.
@@ -153,7 +155,8 @@ carries it. Order matters, do not reorder:
    id: flag only that one, and treat the other as a user group (step 2).
 4. Install the app built from the commit carrying the filter on every device
    (`scripts/build_and_deploy.ps1`).
-5. Deploy the new rules: `.\scripts\test_firestore_rules.ps1`, the `--dry-run`, then
+5. Delete `firestore.rules.hold` and commit it, then deploy the new rules — or ask an agent
+   (Workflow D): `.\scripts\test_firestore_rules.ps1`, the `--dry-run`, then
    `firebase deploy --only firestore:rules --project an-ki-9b02b` (§1).
 6. Optional: delete the old non-predefined `category` documents (unreadable after step 5).
 

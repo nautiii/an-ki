@@ -120,9 +120,11 @@ fi
 if has "${git}push[^;&|]*[[:space:]](-f|--force)${end}"; then
   deny "push forcé sans bail : --force-with-lease, et seulement après le oui du mainteneur."
 fi
-# Firebase : seules les commandes locales ou en lecture seule passent. Le reste
-# (deploy, suppressions, imports, connexion…) écrit en production ou touche au
-# compte du mainteneur, qui le lance lui-même (skill firebase).
+# Firebase : seules les commandes locales ou en lecture seule passent, plus le
+# déploiement des règles Firestore commitées et prouvées dans l'émulateur. Le
+# reste (autres déploiements, suppressions, imports, connexion…) écrit en
+# production ou touche au compte du mainteneur, qui le lance lui-même (skill
+# firebase).
 # Un appel est une commande simple dont le premier mot est firebase.
 firebase_calls() {
   simple_commands |
@@ -150,6 +152,50 @@ firestore_dry_run() {
   printf '%s' "$1" | grep -Eq -- '--dry-run([[:space:]]|$)' &&
     printf '%s' "$1" | grep -Eq -- '--only[[:space:]=]+firestore(:(rules|indexes))?(,firestore(:(rules|indexes))?)*([[:space:]]|$)'
 }
+# Nombre d'occurrences de l'option [$2] (alternative de regex) dans l'appel $1.
+option_count() {
+  printf '%s' "$1" | grep -Eo -- "(^|[[:space:]])($2)([[:space:]=]|\$)" | grep -c .
+}
+# Déploiement des seules règles Firestore sur an-ki-9b02b : une seule cible et
+# un seul projet (le CLI garde la dernière valeur d'une option répétée), sans
+# --force ni autre configuration (--config publierait d'autres règles).
+rules_deploy() {
+  printf '%s' "$1" | grep -Eq -- '--only[[:space:]=]+firestore:rules([[:space:]]|$)' &&
+    printf '%s' "$1" | grep -Eq -- '(--project|-P)[[:space:]=]+an-ki-9b02b([[:space:]]|$)' &&
+    [ "$(option_count "$1" '--only')" -eq 1 ] &&
+    [ "$(option_count "$1" '--project|-P')" -eq 1 ] &&
+    ! printf '%s' "$1" | grep -Eq -- '[[:space:]](-f|--force|-c|--config)([[:space:]=]|$)'
+}
+# Les règles qu'un agent publie : celles de main (relues), sans changement en
+# cours ni verrou, et passées dans l'émulateur pour ce contenu exact (marqueur
+# <blob>.rules écrit par scripts/test_firestore_rules.ps1). Tout se juge à la
+# racine du dépôt, d'où le CLI publie.
+rules_ready() {
+  # Seul dans l'appel : l'état vérifié est celui que le CLI publiera.
+  [ "$(simple_commands | grep -c '[^[:space:]]')" -eq 1 ] ||
+    deny "lancer le déploiement des règles seul, depuis le dossier du dépôt."
+  local top hold blob gitdir
+  top=$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null) ||
+    deny "pas de dépôt git ici : déployer depuis le dossier du dépôt."
+  # Règles plus strictes que ce que l'app installée envoie : suspendues tant
+  # que le mainteneur n'a pas fait les étapes que le fichier décrit, ici ou
+  # sur main (un worktree en retard ne l'a pas).
+  if [ -f "$top/firestore.rules.hold" ] ||
+    git -C "$top" cat-file -e main:firestore.rules.hold 2>/dev/null; then
+    hold=$(cat "$top/firestore.rules.hold" 2>/dev/null ||
+      git -C "$top" show main:firestore.rules.hold 2>/dev/null)
+    deny "déploiement des règles suspendu : $(printf '%s\n' "$hold" | head -n 1) (firestore.rules.hold)."
+  fi
+  blob=$(git -C "$top" rev-parse HEAD:firestore.rules 2>/dev/null)
+  git -C "$top" merge-base --is-ancestor main HEAD 2>/dev/null &&
+    [ -n "$blob" ] && [ "$blob" = "$(git -C "$top" rev-parse main:firestore.rules 2>/dev/null)" ] ||
+    deny "seules les règles de main se déploient : intégrer la branche à main (--ff-only) d'abord."
+  git -C "$top" diff --quiet HEAD -- firestore.rules firebase.json 2>/dev/null ||
+    deny "firestore.rules ou firebase.json diffère du dernier commit : commiter (verifier, reviewer) avant de déployer."
+  gitdir=$(git -C "$top" rev-parse --absolute-git-dir 2>/dev/null) &&
+    [ -f "$gitdir/anki-checks/$blob.rules" ] ||
+    deny "ces règles n'ont pas passé l'émulateur : lancer scripts/test_firestore_rules.ps1 en entier (sans filtre), puis déployer."
+}
 while IFS= read -r call; do
   # Une aide n'agit jamais.
   if printf '%s' "$call" | grep -Eq -- '[[:space:]](--help|-h)([[:space:]]|$)'; then continue; fi
@@ -158,8 +204,10 @@ while IFS= read -r call; do
       login:list | projects:list | apps:list | apps:sdkconfig | use | help | \
       --version | -V) ;;
     deploy)
-      firestore_dry_run "$call" ||
-        deny "le mainteneur déploie Firebase lui-même : dire ce qu'il faut déployer (--dry-run --only firestore:rules reste permis pour compiler)."
+      if firestore_dry_run "$call"; then continue; fi
+      rules_deploy "$call" ||
+        deny "un agent ne déploie que les règles Firestore (firebase deploy --only firestore:rules --project an-ki-9b02b) ; le reste, le mainteneur le lance : dire quoi."
+      rules_ready
       ;;
     *) deny "commande Firebase réservée au mainteneur (production ou compte) : dire ce qu'il faut lancer." ;;
   esac

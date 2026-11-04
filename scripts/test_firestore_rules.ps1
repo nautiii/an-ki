@@ -12,6 +12,11 @@
 $ProjectPath = (Get-Item "$PSScriptRoot\..").FullName
 Set-Location $ProjectPath
 
+# Contenu des règles testées : un passage complet qui réussit laisse le marqueur
+# <git-dir>/anki-checks/<blob>.rules, que guard-git.sh exige avant qu'un agent
+# déploie ces règles (skill firebase).
+$rulesBlob = "$(git hash-object firestore.rules)".Trim()
+
 if (-not (Get-Command firebase -ErrorAction SilentlyContinue)) {
     Write-Host "CLI Firebase introuvable : npm install -g firebase-tools" -ForegroundColor Red
     exit 1
@@ -101,5 +106,15 @@ for ($attempt = 1; $attempt -le 2; $attempt++) {
     } else {
         Write-Host "Les règles ne se chargent pas : erreur de syntaxe ? Compiler sur le serveur, sans rien publier : firebase deploy --only firestore:rules --dry-run --non-interactive --project an-ki-9b02b" -ForegroundColor Red
     }
+}
+
+# Marqueur seulement pour les vraies règles (pas de -Config), tous les tests
+# (pas de filtre), et un fichier resté le même pendant le passage.
+if ($code -eq 0 -and $configArgs.Count -eq 0 -and $rest.Count -eq 0 -and
+    "$(git hash-object firestore.rules)".Trim() -eq $rulesBlob) {
+    $checks = Join-Path "$(git rev-parse --absolute-git-dir)".Trim() 'anki-checks'
+    New-Item -ItemType Directory -Force $checks | Out-Null
+    New-Item -ItemType File -Force (Join-Path $checks "$rulesBlob.rules") | Out-Null
+    Write-Host "Règles prouvées dans l'émulateur ($rulesBlob) : un agent peut les déployer une fois commitées."
 }
 exit $code
