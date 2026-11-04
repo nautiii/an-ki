@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
-import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
@@ -12,17 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Retire [group] avec « Annuler » (Gmail), comme un anniversaire supprimé :
-/// le groupe disparaît tout de suite de l'app (page, puces, filtres),
-/// l'écriture ne part qu'à la fermeture de la snackbar sans annulation. Un
-/// groupe privé ([kind] `own`) est supprimé, un groupe partagé quitte le
-/// profil ; ses anniversaires le perdent. Un échec le fait réapparaître ;
+/// Supprime le groupe privé [group] avec « Annuler » (Gmail), comme un
+/// anniversaire supprimé : le groupe disparaît tout de suite de l'app (page,
+/// puces, filtres), l'écriture ne part qu'à la fermeture de la snackbar sans
+/// annulation ; ses anniversaires le perdent. Un échec le fait réapparaître ;
 /// l'accueil l'annonce.
-void removeGroupWithUndo(
-  BuildContext context,
-  BirthdayCategory group,
-  GroupKind kind,
-) {
+void removeGroupWithUndo(BuildContext context, BirthdayCategory group) {
   // Tout est lu maintenant : la feuille qui retire est refermée, la page
   // peut l'être quand la snackbar se ferme.
   final container = ProviderScope.containerOf(context, listen: false);
@@ -38,11 +32,7 @@ void removeGroupWithUndo(
   final closed = snackBar
       .showSnackBar(
         SnackBar(
-          content: Text(
-            kind == GroupKind.own
-                ? l10n.groupDeleted(name)
-                : l10n.groupLeft(name),
-          ),
+          content: Text(l10n.groupDeleted(name)),
           // Depuis Flutter 3.44, une snackbar avec action reste sinon ouverte.
           persist: false,
           duration: accessible ? undoDelay * 2 : undoDelay,
@@ -61,7 +51,7 @@ void removeGroupWithUndo(
       // d'eux-mêmes, un échec le rend visible à nouveau.
       await container
           .read(categoryEditorProvider.notifier)
-          .remove(group.id, kind, uid: uid);
+          .remove(group.id, uid: uid);
       pending.restore(group.id);
     }),
   );

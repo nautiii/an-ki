@@ -15,7 +15,6 @@ import '../../../support/fake_providers.dart';
 import '../../../support/test_harness.dart';
 
 const _family = BirthdayCategory(id: 'fam', name: 'family', icon: 1);
-const _goat = BirthdayCategory(id: 'goat', name: 'goat', icon: 1);
 const _book = BirthdayCategory(
   id: 'book',
   name: 'Club de lecture',
@@ -37,7 +36,6 @@ const _profile = UserProfile(
   id: 'fake-uid',
   name: 'A',
   surname: 'B',
-  categories: ['goat'],
   locale: 'fr',
 );
 
@@ -47,7 +45,7 @@ void main() {
   late RecordingUserRepository users;
 
   setUp(() {
-    categories = RecordingCategoryRepository([_family, _goat], own: [_book]);
+    categories = RecordingCategoryRepository([_family], own: [_book]);
     birthdays = RecordingBirthdayRepository(
       initial: const [
         Birthday(
@@ -118,41 +116,22 @@ void main() {
     expect(birthdays.removedCategories, isEmpty);
   });
 
-  testWidgets('a shared group leaves the profile and the birthdays', (
-    tester,
-  ) async {
-    await pumpGroups(tester);
-
-    await openAndTap(tester, 'GOAT', 'Retirer de mes groupes');
-
-    expect(find.text('GOAT'), findsNothing);
-    expect(find.text('« GOAT » n\'est plus dans vos groupes'), findsOne);
-
-    await tester.pump(undoDelay + const Duration(seconds: 1));
-    await tester.pumpAndSettle();
-
-    expect(users.removedCategories, ['goat']);
-    expect(categories.deleted, isEmpty);
-    expect(birthdays.removedCategories, {
-      'goat': ['lea'],
-    });
-  });
-
   testWidgets('a failed removal brings the group back', (tester) async {
-    users = RecordingUserRepository(
-      stored: _profile,
+    categories = RecordingCategoryRepository(
+      [_family],
+      own: [_book],
       failure: Exception('unavailable'),
     );
     await pumpGroups(tester);
 
-    await openAndTap(tester, 'GOAT', 'Retirer de mes groupes');
-    expect(find.text('GOAT'), findsNothing);
+    await openAndTap(tester, 'Club de lecture', 'Supprimer le groupe');
+    expect(find.text('Club de lecture'), findsNothing);
 
     await tester.pump(undoDelay + const Duration(seconds: 1));
     await tester.pumpAndSettle();
 
-    expect(users.removedCategories, isEmpty);
-    expect(find.text('GOAT'), findsOneWidget);
+    expect(categories.deleted, isEmpty);
+    expect(find.text('Club de lecture'), findsOneWidget);
   });
 
   testWidgets('a switch of account during « Annuler » writes nothing', (
@@ -160,14 +139,13 @@ void main() {
   ) async {
     await pumpGroups(tester);
 
-    await openAndTap(tester, 'GOAT', 'Retirer de mes groupes');
+    await openAndTap(tester, 'Club de lecture', 'Supprimer le groupe');
     ProviderScope.containerOf(tester.element(find.byType(GroupsScreen)))
         .read(_session.notifier)
         .signIn('other-uid');
     await tester.pump(undoDelay + const Duration(seconds: 1));
     await tester.pumpAndSettle();
 
-    expect(users.removedCategories, isEmpty);
     expect(categories.deleted, isEmpty);
     expect(birthdays.removedCategories, isEmpty);
   });

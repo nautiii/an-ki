@@ -23,14 +23,12 @@ void main() {
   /// [user] avec d'autres valeurs pour les champs donnés.
   UserProfile userWith({
     String? pseudo,
-    List<String> categories = const [],
     String? biometricToken = 'token-abc',
   }) => UserProfile(
     id: 'user-1',
     name: 'Quentin',
     surname: 'Maillard',
     pseudo: pseudo,
-    categories: categories,
     locale: 'fr',
     biometricToken: biometricToken,
   );
@@ -71,7 +69,31 @@ void main() {
           name: 'Quentin',
           surname: 'Maillard',
           pseudo: 'Q',
-          categories: ['family', 'friend'],
+          theme: ThemePreference.dark,
+          locale: 'en',
+          biometricToken: 'token-123',
+        ),
+      );
+    });
+
+    test('reads an old document that still carries categories', () async {
+      await firestore.collection('user').doc('user-2').set({
+        'name': 'Quentin',
+        'surname': 'Maillard',
+        'pseudo': 'Q',
+        'categories': ['family', 'friend'],
+        'themeMode': 'dark',
+        'locale': 'en',
+        'biometricToken': 'token-123',
+      });
+
+      expect(
+        await repository.watchUser('user-2').first,
+        const UserProfile(
+          id: 'user-2',
+          name: 'Quentin',
+          surname: 'Maillard',
+          pseudo: 'Q',
           theme: ThemePreference.dark,
           locale: 'en',
           biometricToken: 'token-123',
@@ -132,7 +154,6 @@ void main() {
       expect(doc.data(), {
         'name': 'Quentin',
         'surname': 'Maillard',
-        'categories': <String>[],
         'themeMode': 'system',
         'locale': 'fr',
         'biometricToken': 'token-abc',
@@ -258,14 +279,5 @@ void main() {
 
     final doc = await firestore.collection('user').doc('user-1').get();
     expect(doc.exists, isFalse);
-  });
-
-  test('removeCategory drops one picked category only', () async {
-    await repository.createUser(userWith(categories: ['goat', 'doggo']));
-
-    await repository.removeCategory('user-1', 'goat');
-
-    final doc = await firestore.collection('user').doc('user-1').get();
-    expect(doc.data()!['categories'], ['doggo']);
   });
 }

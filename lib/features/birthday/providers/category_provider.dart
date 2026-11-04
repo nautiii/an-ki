@@ -2,7 +2,6 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
-import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Catégories partagées : les prédéfinies (Famille, Amis, Travail, Autres).
@@ -17,7 +16,7 @@ final ownCategoriesProvider = StreamProvider<List<BirthdayCategory>>((ref) {
   return ref.watch(categoryRepositoryProvider).watchOwnCategories(uid);
 });
 
-/// Groupes supprimés ou retirés mais encore rattrapables : masqués partout
+/// Groupes supprimés mais encore rattrapables : masqués partout
 /// (puces, filtres, page Groupes) pendant le délai « Annuler », puis jusqu'à
 /// la fin de l'écriture. Vide à chaque changement d'utilisateur.
 class PendingGroupRemovals extends Notifier<Set<String>> {
@@ -62,15 +61,12 @@ final categoriesProvider = Provider<List<BirthdayCategory>>(
 /// Groupes de l'utilisateur, dans l'ordre de leur ligne de puces : ceux
 /// proposés à tous, puis les siens (`userGroups`), sans ceux en cours de
 /// retrait.
-final userCategoriesProvider = Provider<List<BirthdayCategory>>((ref) {
-  final user = ref.watch(userProfileProvider).value;
-  if (user == null) return const [];
-  return _visible(
+final userCategoriesProvider = Provider<List<BirthdayCategory>>(
+  (ref) => _visible(
     ref,
     userGroups(
       shared: ref.watch(sharedCategoriesProvider).value ?? const [],
-      pickedIds: user.categories,
       own: ref.watch(ownCategoriesProvider).value ?? const [],
     ),
-  );
-});
+  ),
+);

@@ -6,14 +6,12 @@ void main() {
   UserProfile profile({
     String? pseudo = 'Q',
     String name = 'Quentin',
-    List<String> categories = const ['family'],
     String locale = 'fr',
   }) => UserProfile(
     id: '1',
     name: name,
     surname: 'Maillard',
     pseudo: pseudo,
-    categories: categories,
     locale: locale,
     biometricToken: 'token',
   );
@@ -46,10 +44,9 @@ void main() {
   });
 
   group('equality', () {
-    test('compares by value, categories included', () {
+    test('compares by value', () {
       final base = profile();
-      // Liste distincte, de même contenu.
-      final same = profile(categories: ['family']);
+      final same = profile();
 
       expect(same, base);
       expect(same.hashCode, base.hashCode);
@@ -58,7 +55,6 @@ void main() {
     test('differs when a field differs', () {
       final base = profile();
 
-      expect(profile(categories: ['friend']), isNot(base));
       expect(profile(locale: 'en'), isNot(base));
     });
   });

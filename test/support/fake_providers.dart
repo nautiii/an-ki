@@ -65,9 +65,6 @@ class FakeUserRepository extends Fake implements UserRepository {
   }) async {}
 
   @override
-  Future<void> removeCategory(String uid, String categoryId) async {}
-
-  @override
   Future<void> deleteUser(String uid) async {}
 }
 
@@ -85,7 +82,6 @@ UserProfile _merged(
   name: name ?? user.name,
   surname: surname ?? user.surname,
   pseudo: pseudo ?? user.pseudo,
-  categories: user.categories,
   theme: theme ?? user.theme,
   locale: locale ?? user.locale,
   biometricToken: user.biometricToken,
@@ -160,15 +156,6 @@ class RecordingUserRepository extends FakeUserRepository {
     final user = _merged(_stored!, name: name, surname: surname);
     updated.add(user);
     _emit(user);
-  }
-
-  /// Catégories partagées retirées du profil, dans l'ordre.
-  final removedCategories = <String>[];
-
-  @override
-  Future<void> removeCategory(String uid, String categoryId) async {
-    _maybeFail();
-    removedCategories.add(categoryId);
   }
 
   @override
@@ -451,10 +438,11 @@ class RecordingCategoryRepository extends Fake implements CategoryRepository {
 
   @override
   Future<void> deleteCategory(String uid, String categoryId) async {
+    // Une suppression refusée laisse le groupe en place.
+    if (failure case final error?) throw error;
     deleted.add(categoryId);
     _own.removeWhere((group) => group.id == categoryId);
     _changes.add([..._own]);
-    if (failure case final error?) throw error;
   }
 
   @override

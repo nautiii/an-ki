@@ -124,23 +124,6 @@
       }
     }
   },
-  "leaveGroup": "Retirer de mes groupes",
-  "@leaveGroup": {
-    "description": "Feuille d'un groupe partagé : le retirer du profil ; ses anniversaires le perdent"
-  },
-  "groupLeft": "«\u00a0{name}\u00a0» n'est plus dans vos groupes",
-  "@groupLeft": {
-    "description": "Snackbar après le retrait d'un groupe partagé, avec « Annuler »",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "sharedGroupNote": "Ce groupe est partagé : il ne se renomme pas, mais vous pouvez le retirer de vos groupes et de vos anniversaires.",
-  "@sharedGroupNote": {
-    "description": "Feuille d'un groupe partagé (créé avant les groupes privés) : pourquoi on ne peut que le retirer"
-  },
   "family": "Famille",
   "friend": "Amis",
   "colleague": "Travail",

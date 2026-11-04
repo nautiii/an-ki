@@ -10,13 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
 
-const _user = UserProfile(
-  id: 'u',
-  name: 'A',
-  surname: 'B',
-  categories: ['goat'],
-  locale: 'fr',
-);
+const _user = UserProfile(id: 'u', name: 'A', surname: 'B', locale: 'fr');
 
 void main() {
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 1);
@@ -72,20 +66,20 @@ void main() {
   });
 
   group('userCategoriesProvider', () {
-    test('is empty when there is no profile', () async {
+    test('offers the defaults and private groups without a profile', () async {
       final container = await makeContainer(
-        categories: RecordingCategoryRepository([family, other]),
+        categories: RecordingCategoryRepository([family, other], own: [book]),
         users: RecordingUserRepository(),
       );
 
-      expect(container.read(userCategoriesProvider), isEmpty);
+      expect(container.read(userCategoriesProvider), [family, book, other]);
     });
 
-    test('offers the defaults, then the picked and private groups', () async {
+    test('offers the defaults, then the private groups', () async {
       final container = await makeContainer(
         categories: RecordingCategoryRepository(
-          [family, other, goat, sport],
-          own: [book],
+          [family, other, sport],
+          own: [book, goat],
         ),
       );
 

@@ -84,9 +84,9 @@ Decision 2026-11-04: no users besides the maintainer's devices, so the lazy in-a
   tests cover them.
 - **Console, done on 2026-11-04**: `console.md` §10, steps 1-5 (copy old groups, flag the four
   predefined, install the app everywhere, deploy the rules); step 6, the cleanup, is optional.
-- **Follow-up, not done**: remove the now unreachable shared non-predefined path
-  (`GroupKind.shared`, « Retirer de mes groupes », `UserRepository.removeCategory`,
-  `UserProfile.categories` / `pickedIds` in `userGroups`); `schema.md` §5 and §9 shrink then.
+- **Follow-up, done on 2026-11-04**: the unreachable shared path is gone (`GroupKind.shared`,
+  « Retirer de mes groupes », `UserRepository.removeCategory`, `UserProfile.categories`,
+  `pickedIds`); the app neither reads nor writes `user.categories` any more.
 
 ## 6. Plan M10 — per-user collections
 

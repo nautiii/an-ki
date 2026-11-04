@@ -5,9 +5,7 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
-import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
-import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Création, modification et retrait des groupes (ViewModel de la ligne de
@@ -51,23 +49,13 @@ class CategoryEditor extends AsyncNotifier<void> {
     unawaited(_write(() => categories.updateCategory(uid, trimmed)));
   }
 
-  /// Retire [groupId] de l'utilisateur : un groupe privé ([kind] `own`) est
-  /// supprimé, une catégorie partagée quitte son profil ; dans les deux cas,
-  /// ses anniversaires le perdent. Un groupe verrouillé ne bouge pas.
+  /// Supprime le groupe privé [groupId] ; ses anniversaires le perdent.
   ///
-  /// [uid] est le compte connecté quand le retrait a commencé : différé par
-  /// « Annuler », il est abandonné si le compte a changé entre-temps, sinon
-  /// il viserait l'autre compte.
-  Future<void> remove(
-    String groupId,
-    GroupKind kind, {
-    required String? uid,
-  }) async {
-    if (uid == null ||
-        uid != ref.read(currentUidProvider) ||
-        kind == GroupKind.preset) {
-      return;
-    }
+  /// [uid] est le compte connecté quand la suppression a commencé : différée
+  /// par « Annuler », elle est abandonnée si le compte a changé entre-temps,
+  /// sinon elle viserait l'autre compte.
+  Future<void> remove(String groupId, {required String? uid}) async {
+    if (uid == null || uid != ref.read(currentUidProvider)) return;
     // Tous les anniversaires, même ceux en cours de suppression : rattrapés,
     // ils ne doivent pas ramener le groupe.
     final carriers = [
@@ -76,14 +64,10 @@ class CategoryEditor extends AsyncNotifier<void> {
         if (birthday.categories.contains(groupId)) birthday.id,
     ];
     final categories = ref.read(categoryRepositoryProvider);
-    final users = ref.read(userRepositoryProvider);
     final birthdays = ref.read(birthdayRepositoryProvider);
     await _write(
       () => Future.wait([
-        if (kind == GroupKind.own)
-          categories.deleteCategory(uid, groupId)
-        else
-          users.removeCategory(uid, groupId),
+        categories.deleteCategory(uid, groupId),
         if (carriers.isNotEmpty) birthdays.removeCategory(carriers, groupId),
       ]),
     );

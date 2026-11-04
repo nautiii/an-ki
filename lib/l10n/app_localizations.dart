@@ -332,24 +332,6 @@ abstract class AppLocalizations {
   /// **'« {name} » est supprimé'**
   String groupDeleted(String name);
 
-  /// Feuille d'un groupe partagé : le retirer du profil ; ses anniversaires le perdent
-  ///
-  /// In fr, this message translates to:
-  /// **'Retirer de mes groupes'**
-  String get leaveGroup;
-
-  /// Snackbar après le retrait d'un groupe partagé, avec « Annuler »
-  ///
-  /// In fr, this message translates to:
-  /// **'« {name} » n\'est plus dans vos groupes'**
-  String groupLeft(String name);
-
-  /// Feuille d'un groupe partagé (créé avant les groupes privés) : pourquoi on ne peut que le retirer
-  ///
-  /// In fr, this message translates to:
-  /// **'Ce groupe est partagé : il ne se renomme pas, mais vous pouvez le retirer de vos groupes et de vos anniversaires.'**
-  String get sharedGroupNote;
-
   /// No description provided for @family.
   ///
   /// In fr, this message translates to:

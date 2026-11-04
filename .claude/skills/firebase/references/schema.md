@@ -25,7 +25,7 @@ Owner: the path (`{uid}` = `request.auth.uid`). Rules: owner reads and writes, n
 |-------|------|------------------------------|
 | `name`, `surname` | string | names shown in the greeting; `''` |
 | `pseudo` | string, optional | nickname |
-| `categories` | array of string | ids of shared `category` documents picked before private groups (2026-10-24); `[]` |
+| `categories` | array of string, legacy | shared groups picked before private groups (2026-10-24); ignored since 2026-11-04, never written |
 | `themeMode` | string `system` · `light` · `dark` | absent → the legacy `isDark`, else `system` |
 | `isDark` | bool, legacy | read only when `themeMode` is absent; deleted by the next theme change |
 | `locale` | string | `'fr'` |
@@ -164,6 +164,7 @@ everywhere):
 - `birthday` without `yearKnown` (year known), `wishedYears` (never wished) or `reminders` (default setting).
 - `user` without `reminders` (default setting).
 - `user` with `isDark` instead of `themeMode`.
-- `user.categories` (shared groups picked before; unreachable since 2026-11-04, removal pending: `migrations.md` §5).
+- `user.categories` (shared groups picked before): no longer read nor written since 2026-11-04;
+  older profiles keep it, ignored, until the account is deleted.
 - `category` without `tone`; any group without `icon`.
 - `birthday` without `date`: skipped, not shown.

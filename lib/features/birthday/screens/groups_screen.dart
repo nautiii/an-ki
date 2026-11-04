@@ -117,9 +117,6 @@ class _GroupTile extends StatelessWidget {
       ),
       onTap: switch (entry.kind) {
         GroupKind.own => () => unawaited(GroupEditSheet.show(context, group)),
-        GroupKind.shared => () => unawaited(
-          SharedGroupSheet.show(context, group),
-        ),
         GroupKind.preset => null,
       },
     );

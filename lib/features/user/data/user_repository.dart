@@ -71,12 +71,6 @@ class UserRepository {
     required String surname,
   }) => _users.doc(uid).update({'name': name, 'surname': surname});
 
-  /// Retire la catégorie partagée [categoryId] des groupes choisis du profil.
-  Future<void> removeCategory(String uid, String categoryId) =>
-      _users.doc(uid).update({
-        'categories': FieldValue.arrayRemove([categoryId]),
-      });
-
   Future<void> deleteUser(String uid) async {
     await _users.doc(uid).delete();
   }
@@ -95,9 +89,6 @@ UserProfile _userFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     name: data['name'] as String? ?? '',
     surname: data['surname'] as String? ?? '',
     pseudo: data['pseudo'] as String?,
-    categories: List<String>.from(
-      data['categories'] as List<dynamic>? ?? const [],
-    ),
     theme: _themeFrom(data),
     locale: data['locale'] as String? ?? 'fr',
     biometricToken: data['biometricToken'] as String?,
@@ -123,7 +114,6 @@ Map<String, Object> _userToMap(UserProfile user) => {
   'name': user.name,
   'surname': user.surname,
   'pseudo': ?user.pseudo,
-  'categories': user.categories,
   'themeMode': user.theme.name,
   'locale': user.locale,
   'biometricToken': ?user.biometricToken,

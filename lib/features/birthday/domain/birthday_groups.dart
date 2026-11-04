@@ -13,13 +13,11 @@ const _trailingDefault = 'other';
 const defaultGroupNames = [..._leadingDefaults, _trailingDefault];
 
 /// Groupes de l'utilisateur, dans l'ordre de leur ligne de puces : Famille,
-/// Amis et Travail, puis les siens par nom — catégories partagées choisies
-/// autrefois ([pickedIds] parmi [shared]) et groupes privés ([own]) —,
-/// « Autres » en dernier. Un groupe par défaut absent de [shared] (pas encore
-/// chargé) est omis ; un même id n'apparaît qu'une fois.
+/// Amis et Travail, puis ses groupes privés ([own]) par nom, « Autres » en
+/// dernier. Un groupe par défaut absent de [shared] (pas encore chargé) est
+/// omis ; un même id n'apparaît qu'une fois.
 List<BirthdayCategory> userGroups({
   required Iterable<BirthdayCategory> shared,
-  Iterable<String> pickedIds = const [],
   Iterable<BirthdayCategory> own = const [],
 }) {
   final defaults = <String, BirthdayCategory>{};
@@ -30,12 +28,8 @@ List<BirthdayCategory> userGroups({
     }
   }
   final seen = {for (final category in defaults.values) category.id};
-  final picked = pickedIds.toSet();
   final mine = [
-    for (final category in [
-      ...shared.where((category) => picked.contains(category.id)),
-      ...own,
-    ])
+    for (final category in own)
       if (seen.add(category.id)) category,
   ]..sort((a, b) => searchKey(a.name).compareTo(searchKey(b.name)));
 
@@ -82,9 +76,6 @@ enum GroupKind {
 
   /// Privé (`user/{uid}/categories`) : renommé, recoloré, supprimé.
   own,
-
-  /// Catégorie partagée choisie autrefois (GOAT…) : retirée seulement.
-  shared,
 }
 
 /// Un groupe de la page Groupes : sa nature et le nombre d'anniversaires
@@ -106,8 +97,8 @@ class const GroupEntry({
 }
 
 /// Lignes de la page Groupes, dans l'ordre de [groups] : un groupe de
-/// [ownIds] est privé, un nom prédéfini ([defaultGroupNames]) est verrouillé,
-/// le reste est partagé ; chacun compte ses [birthdays].
+/// [ownIds] est privé, les autres (prédéfinis) sont verrouillés ; chacun
+/// compte ses [birthdays].
 List<GroupEntry> groupEntries(
   Iterable<BirthdayCategory> groups, {
   required Iterable<String> ownIds,
@@ -124,11 +115,7 @@ List<GroupEntry> groupEntries(
     for (final group in groups)
       GroupEntry(
         category: group,
-        kind: own.contains(group.id)
-            ? GroupKind.own
-            : defaultGroupNames.contains(group.name.toLowerCase())
-            ? GroupKind.preset
-            : GroupKind.shared,
+        kind: own.contains(group.id) ? GroupKind.own : GroupKind.preset,
         count: counts[group.id] ?? 0,
       ),
   ];

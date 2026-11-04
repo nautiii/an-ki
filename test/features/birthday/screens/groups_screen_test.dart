@@ -15,12 +15,18 @@ const _book = BirthdayCategory(
   icon: 0xe148,
   tone: 4,
 );
-const _goat = BirthdayCategory(id: 'goat', name: 'goat', icon: 0xe148);
+
+const _sport = BirthdayCategory(
+  id: 'spo',
+  name: 'Escalade',
+  icon: 0xe148,
+  tone: 2,
+);
 
 const _entries = [
   GroupEntry(category: _family, kind: GroupKind.preset, count: 3),
   GroupEntry(category: _book, kind: GroupKind.own, count: 1),
-  GroupEntry(category: _goat, kind: GroupKind.shared, count: 0),
+  GroupEntry(category: _sport, kind: GroupKind.own, count: 0),
 ];
 
 void main() {
@@ -41,7 +47,7 @@ void main() {
     expect(find.text('3 personnes · Proposé à tous'), findsOneWidget);
     expect(find.text('Club de lecture'), findsOneWidget);
     expect(find.text('1 personne'), findsOneWidget);
-    expect(find.text('GOAT'), findsOneWidget);
+    expect(find.text('Escalade'), findsOneWidget);
     expect(find.text('Aucune personne'), findsOneWidget);
     expect(find.byIcon(Icons.lock_outline_rounded), findsOneWidget);
     expect(find.byIcon(Icons.chevron_right_rounded), findsNWidgets(2));

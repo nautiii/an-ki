@@ -168,18 +168,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get leaveGroup => 'Retirer de mes groupes';
-
-  @override
-  String groupLeft(String name) {
-    return '« $name » n\'est plus dans vos groupes';
-  }
-
-  @override
-  String get sharedGroupNote =>
-      'Ce groupe est partagé : il ne se renomme pas, mais vous pouvez le retirer de vos groupes et de vos anniversaires.';
-
-  @override
   String get family => 'Famille';
 
   @override

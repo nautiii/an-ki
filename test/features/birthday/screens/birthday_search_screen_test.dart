@@ -47,13 +47,7 @@ void main() {
         currentUidProvider.overrideWithValue('fake-uid'),
         userProfileProvider.overrideWithValue(
           const AsyncData(
-            UserProfile(
-              id: 'fake-uid',
-              name: 'A',
-              surname: 'B',
-              categories: ['fam'],
-              locale: 'fr',
-            ),
+            UserProfile(id: 'fake-uid', name: 'A', surname: 'B', locale: 'fr'),
           ),
         ),
         birthdaysProvider.overrideWithValue(

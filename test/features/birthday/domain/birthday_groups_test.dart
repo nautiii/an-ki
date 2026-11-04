@@ -9,7 +9,6 @@ void main() {
   const friend = BirthdayCategory(id: 'fri', name: 'friend', icon: 1);
   const work = BirthdayCategory(id: 'wor', name: 'colleague', icon: 1);
   const other = BirthdayCategory(id: 'oth', name: 'other', icon: 1);
-  const goat = BirthdayCategory(id: 'goat', name: 'goat', icon: 1);
   const sport = BirthdayCategory(id: 'spo', name: 'sport', icon: 1);
   const book = BirthdayCategory(id: 'book', name: 'Club de lecture', icon: 1);
   const climbing = BirthdayCategory(id: 'cli', name: 'Écalade', icon: 1);
@@ -24,23 +23,15 @@ void main() {
       ]);
     });
 
-    test('puts the picked and private groups between, by name', () {
+    test('puts the private groups between, by name', () {
       expect(
         userGroups(
-          shared: [family, friend, work, other, goat, sport],
-          pickedIds: ['goat'],
+          shared: [family, friend, work, other, sport],
           own: [climbing, book],
         ),
         // « Écalade » se range à la lettre e, accent ignoré.
-        [family, friend, work, book, climbing, goat, other],
+        [family, friend, work, book, climbing, other],
       );
-    });
-
-    test('lists a group once, even picked as a default', () {
-      expect(userGroups(shared: [family, other], pickedIds: ['fam', 'oth']), [
-        family,
-        other,
-      ]);
     });
 
     test('omits a default not loaded yet', () {
@@ -159,9 +150,9 @@ void main() {
       categories: categories,
     );
 
-    test('locks the presets, tells own groups from shared ones', () {
+    test('locks the presets, tells own groups from them', () {
       final entries = groupEntries(
-        [family, book, goat, other],
+        [family, book, other],
         ownIds: ['book'],
         birthdays: const [],
       );
@@ -169,7 +160,6 @@ void main() {
       expect(entries.map((entry) => entry.kind), [
         GroupKind.preset,
         GroupKind.own,
-        GroupKind.shared,
         GroupKind.preset,
       ]);
     });

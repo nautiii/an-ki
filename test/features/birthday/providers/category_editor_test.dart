@@ -4,10 +4,8 @@ import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
-import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
-import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -31,7 +29,6 @@ Birthday _tagged(String id, List<String> categories) => Birthday(
 void main() {
   late RecordingCategoryRepository categories;
   late RecordingBirthdayRepository birthdays;
-  late RecordingUserRepository users;
 
   Future<ProviderContainer> makeContainer({String? uid = 'u'}) async {
     final container = ProviderContainer.test(
@@ -39,7 +36,6 @@ void main() {
       overrides: [
         categoryRepositoryProvider.overrideWithValue(categories),
         birthdayRepositoryProvider.overrideWithValue(birthdays),
-        userRepositoryProvider.overrideWithValue(users),
         currentUidProvider.overrideWithValue(uid),
       ],
     );
@@ -60,7 +56,6 @@ void main() {
         _tagged('3', ['book', 'goat']),
       ],
     );
-    users = RecordingUserRepository();
   });
 
   group('create', () {
@@ -150,53 +145,40 @@ void main() {
 
       await container
           .read(categoryEditorProvider.notifier)
-          .remove('book', GroupKind.own, uid: 'u');
+          .remove('book', uid: 'u');
 
       expect(categories.deleted, ['book']);
-      expect(users.removedCategories, isEmpty);
       expect(birthdays.removedCategories, {
         'book': ['1', '3'],
       });
       expect(container.read(categoryEditorProvider), isA<AsyncData<void>>());
     });
 
-    test('a shared group leaves the profile and its birthdays', () async {
-      final container = await makeContainer();
-
-      await container
-          .read(categoryEditorProvider.notifier)
-          .remove('goat', GroupKind.shared, uid: 'u');
-
-      expect(categories.deleted, isEmpty);
-      expect(users.removedCategories, ['goat']);
-      expect(birthdays.removedCategories, {
-        'goat': ['3'],
-      });
-    });
-
     test('touches no birthday when none carries the group', () async {
+      categories = RecordingCategoryRepository(
+        const [],
+        own: const [
+          BirthdayCategory(id: 'doggo', name: 'Chiens', icon: 1, tone: 1),
+        ],
+      );
       final container = await makeContainer();
 
       await container
           .read(categoryEditorProvider.notifier)
-          .remove('doggo', GroupKind.shared, uid: 'u');
+          .remove('doggo', uid: 'u');
 
-      expect(users.removedCategories, ['doggo']);
+      expect(categories.deleted, ['doggo']);
       expect(birthdays.removedCategories, isEmpty);
     });
 
-    test('leaves a preset alone, and everything without a session', () async {
-      var container = await makeContainer();
+    test('does nothing without a session', () async {
+      final container = await makeContainer(uid: null);
+
       await container
           .read(categoryEditorProvider.notifier)
-          .remove('fam', GroupKind.preset, uid: 'u');
-      container = await makeContainer(uid: null);
-      await container
-          .read(categoryEditorProvider.notifier)
-          .remove('book', GroupKind.own, uid: null);
+          .remove('book', uid: null);
 
       expect(categories.deleted, isEmpty);
-      expect(users.removedCategories, isEmpty);
       expect(birthdays.removedCategories, isEmpty);
     });
 
@@ -205,10 +187,9 @@ void main() {
 
       await container
           .read(categoryEditorProvider.notifier)
-          .remove('goat', GroupKind.shared, uid: 'u');
+          .remove('book', uid: 'u');
 
       expect(categories.deleted, isEmpty);
-      expect(users.removedCategories, isEmpty);
       expect(birthdays.removedCategories, isEmpty);
       expect(container.read(categoryEditorProvider), isA<AsyncData<void>>());
     });
@@ -224,7 +205,7 @@ void main() {
 
       await container
           .read(categoryEditorProvider.notifier)
-          .remove('book', GroupKind.own, uid: 'u');
+          .remove('book', uid: 'u');
 
       expect(container.read(categoryEditorProvider).hasError, isTrue);
     });

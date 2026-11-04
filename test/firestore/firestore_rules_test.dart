@@ -15,7 +15,6 @@ const String? signedOut = null;
 Map<String, Object?> profile() => {
   'name': 'Alice',
   'surname': '',
-  'categories': <Object?>[],
   'themeMode': 'system',
   'locale': 'fr',
 };

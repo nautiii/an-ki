@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// Thème choisi : celui du téléphone (par défaut), toujours clair ou toujours
 /// sombre. `themeProvider` le traduit en `ThemeMode` pour l'app.
 enum ThemePreference { system, light, dark }
@@ -14,7 +12,6 @@ class const UserProfile({
   required final String name,
   required final String surname,
   final String? pseudo,
-  final List<String> categories = const [],
   final ThemePreference theme = ThemePreference.system,
   required final String locale,
   final String? biometricToken,
@@ -36,20 +33,11 @@ class const UserProfile({
       other.name == name &&
       other.surname == surname &&
       other.pseudo == pseudo &&
-      listEquals(other.categories, categories) &&
       other.theme == theme &&
       other.locale == locale &&
       other.biometricToken == biometricToken;
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    name,
-    surname,
-    pseudo,
-    Object.hashAll(categories),
-    theme,
-    locale,
-    biometricToken,
-  );
+  int get hashCode =>
+      Object.hash(id, name, surname, pseudo, theme, locale, biometricToken);
 }
