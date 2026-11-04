@@ -14,6 +14,7 @@ Firestore types; « absent » means older documents may lack the field and the r
 7. Queries and indexes
 8. Account deletion
 9. Shapes still read for old documents
+10. Guest move to an existing Google account (B5.5)
 
 ---
 
@@ -31,6 +32,7 @@ Owner: the path (`{uid}` = `request.auth.uid`). Rules: owner reads and writes, n
 | `locale` | string | `'fr'` |
 | `biometricToken` | string or null | set by the auth feature when the fingerprint lock is on; null or absent = off |
 | `reminders` | map `{leads: [string], hour: int, minute: int}`, optional | default reminder setting (B6); absent → J-7 + J-0 at 10:00; unknown leads skipped, `sameDay` always added; written only by `ReminderPreferencesRepository.savePreferences` (`update`) |
+| `transferTo` | string, optional | a guest moving to a Google account (§10): that account's address; the marked document is deleted by it |
 
 - Written by `UserRepository.createUser` (transaction: creates only if absent, never overwrites),
   `updatePreferences` (`update`: `pseudo`, `themeMode` + delete `isDark`, `locale`), `updateNames`
@@ -47,6 +49,7 @@ Groups a user creates since 2026-10-24. Owner: the path. Rules: owner reads and 
 | `name` | string | typed by the user |
 | `icon` | int | Material icon code point; absent → `0xe148` (`Icons.category`) |
 | `tone` | int, optional | index of the tone seed (`LabelTones`) |
+| `transferTo` | string, optional | guest move (§10): deleted by the marked address once copied |
 
 - Ids come from `CategoryRepository.newCategoryId()`, generated on the shared `category`
   collection reference, so a private id never collides with a shared one and birthdays can
@@ -69,6 +72,7 @@ update by the owner without changing `uid`.
 | `picture` | string, optional | base64 JPEG (picked at 512 px, quality 80); undecodable → no photo |
 | `wishedYears` | array of int | years the birthday was wished; `[]`; non-int values ignored |
 | `reminders` | array of string, optional | the person's own leads (`monthBefore`, `weekBefore`, `dayBefore`, `sameDay`): absent → the default setting, `[]` → no reminder; written alone by `updateReminders` (person page), erased with `FieldValue.delete()` when back to the default |
+| `transferTo` | string, optional | guest move (§10): the marked address takes the document (`uid` its own, mark removed) or deletes it |
 
 - Written by `BirthdayRepository.createBirthday` (`set` on an id drawn client-side by
   `newBirthdayId`, so the app can open the new person's page offline), `createBirthdays`
@@ -91,6 +95,7 @@ Owner: the `uid` field. Rules: same as `birthday`.
 | `imageUrl`, `publishedDate`, `description` | string, optional | from Google Books (`publishedDate` is its free-form string) |
 | `pageCount` | int, optional | |
 | `scannedAt` | timestamp | the app's clock at saving; the list's order |
+| `transferTo` | string, optional | guest move (§10), as on `birthday` |
 
 - Written by `BookRepository.saveBook` (`add`); erased by `deleteAllUserBooks`.
 - Read by `watchBooks`: `where('uid', isEqualTo: uid).orderBy('scannedAt', descending: true)` —
@@ -168,3 +173,25 @@ everywhere):
   older profiles keep it, ignored, until the account is deleted.
 - `category` without `tone`; any group without `icon`.
 - `birthday` without `date`: skipped, not shown.
+
+## 10. Guest move to an existing Google account (B5.5)
+
+A guest whose Google account already has AnKi data opens that account with its birthdays
+(`GuestMerge`, settings feature; app code lands after these rules). Signing in replaces the anonymous session, so a plain copy
+would leave the guest's documents orphaned under a uid nobody opens again. They move instead:
+
+1. As the guest, online (server reads, marks awaited until the server acknowledges them):
+   `markForTransfer` on `birthday`, `books`, `user/{uid}/categories` and `user/{uid}` writes
+   `transferTo` = the chosen Google address (an owner's ordinary update).
+2. Sign-in with that Google account (`AuthController.openGoogleAccount`).
+3. As the target, by the ids kept in memory (no query on someone else's data): `takeOver`
+   gives each guest birthday and book to the target (`uid`, remapped `categories`, `transferTo`
+   removed), or deletes a birthday the target already has (the import's matching rule: folded
+   name, day and month); guest groups are recreated under `user/{target}/categories` with their
+   ids, or mapped to a target group of the same folded name, then deleted with the guest
+   profile.
+
+Rules (`rules.md` §1): the marked address may delete a marked document, and update a marked
+`birthday` or `books` document only to make it its own without the mark; it never reads them.
+What stays: the empty anonymous Auth user; a move cut between steps 2 and 3 (app killed) leaves
+marked documents nobody claims.

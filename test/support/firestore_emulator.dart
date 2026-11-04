@@ -32,6 +32,11 @@ class FirestoreEmulator {
   final String _projectId;
   final http.Client _client = http.Client();
 
+  /// Adresse de chaque uid connecté par e-mail ou Google, portée par son
+  /// jeton (`request.auth.token.email`) ; un uid absent n'en a pas, comme un
+  /// invité.
+  final Map<String, ({String email, bool verified})> identities = {};
+
   String get _database =>
       'http://$_host/v1/projects/$_projectId/databases/(default)/documents';
 
@@ -84,15 +89,17 @@ class FirestoreEmulator {
 
   /// `update` des seuls champs de [data] sur un document existant, comme
   /// `DocumentReference.update` : les règles voient le document fusionné.
+  /// [removing] : champs effacés (`FieldValue.delete()`).
   Future<bool> canUpdate(
     String? uid,
     String path,
-    Map<String, Object?> data,
-  ) async {
+    Map<String, Object?> data, {
+    List<String> removing = const [],
+  }) async {
     final response = await _client.patch(
       Uri.parse('$_database/$path').replace(
         queryParameters: {
-          'updateMask.fieldPaths': data.keys.toList(),
+          'updateMask.fieldPaths': [...data.keys, ...removing],
           'currentDocument.exists': 'true',
         },
       ),
@@ -194,6 +201,10 @@ class FirestoreEmulator {
       'auth_time': issuedAt,
       'sub': uid,
       'user_id': uid,
+      if (identities[uid] case (:final email, :final verified)) ...{
+        'email': email,
+        'email_verified': verified,
+      },
       'firebase': {'sign_in_provider': 'custom'},
     };
     // Signature vide : le jeton finit par un point.

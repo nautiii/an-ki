@@ -18,11 +18,14 @@ change like a schema change: test first, prove it in the emulator, deploy delibe
 
 | Path | Read | Create | Update | Delete |
 |------|------|--------|--------|--------|
-| `user/{uid}` | owner | owner | owner | owner |
-| `user/{uid}/categories/{id}` | owner | owner | owner | owner |
-| `birthday/{id}`, `books/{id}` | `resource.data.uid` = caller | `request.resource.data.uid` = caller | owner, `uid` unchanged | owner |
+| `user/{uid}` | owner | owner | owner | owner, or its marked address |
+| `user/{uid}/categories/{id}` | owner | owner | owner | owner, or its marked address |
+| `birthday/{id}`, `books/{id}` | `resource.data.uid` = caller | `request.resource.data.uid` = caller | owner, `uid` unchanged; or its marked address, taking it (`uid` its own, mark removed) | owner, or its marked address |
 | `category/{id}` | signed-in, `resource.data.predefined == true` | nobody | nobody | nobody |
 | anything else | nobody | nobody | nobody | nobody |
+
+« Its marked address »: a caller whose token carries `email_verified` and the `email` the
+document's `transferTo` names — a guest moving to an existing Google account (`schema.md` §10).
 
 `test/firestore/firestore_rules_test.dart` is the executable version of this table: when they
 disagree, the tests win and this table gets fixed.

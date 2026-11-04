@@ -274,6 +274,191 @@ void main() {
         });
       });
 
+      // B5.5 : un invité marque ses documents de l'adresse du compte Google
+      // qu'il ouvre ; ce compte, adresse vérifiée, les reprend ou les efface.
+      group('transfer from a guest', () {
+        const guest = 'guest';
+        const carol = 'carol';
+        const bobUnverified = 'bob-unverified';
+        const bobEmail = 'bob@gmail.com';
+
+        Map<String, Object?> marked(Map<String, Object?> data) => {
+          ...data,
+          'transferTo': bobEmail,
+        };
+
+        setUp(() {
+          db.identities
+            ..[bob] = (email: bobEmail, verified: true)
+            ..[carol] = (email: 'carol@gmail.com', verified: true)
+            ..[bobUnverified] = (email: bobEmail, verified: false);
+        });
+        tearDown(() => db.identities.clear());
+
+        test('its owner marks a birthday for an address', () async {
+          await db.seed('birthday/b1', birthdayOf(guest));
+
+          expect(
+            await db.canUpdate(guest, 'birthday/b1', {'transferTo': bobEmail}),
+            isTrue,
+          );
+        });
+
+        test('the marked address takes a birthday, unmarked', () async {
+          await db.seed('birthday/b1', marked(birthdayOf(guest)));
+
+          expect(
+            await db.canUpdate(
+              bob,
+              'birthday/b1',
+              {'uid': bob, 'categories': <Object?>[]},
+              removing: ['transferTo'],
+            ),
+            isTrue,
+          );
+        });
+
+        test('the address matches whatever its case', () async {
+          await db.seed('birthday/b1', {
+            ...birthdayOf(guest),
+            'transferTo': 'Bob@Gmail.com',
+          });
+
+          expect(
+            await db.canUpdate(
+              bob,
+              'birthday/b1',
+              {'uid': bob},
+              removing: ['transferTo'],
+            ),
+            isTrue,
+          );
+        });
+
+        test('the marked address deletes a duplicate birthday', () async {
+          await db.seed('birthday/b1', marked(birthdayOf(guest)));
+
+          expect(await db.canDelete(bob, 'birthday/b1'), isTrue);
+        });
+
+        test('a taken birthday loses its mark and goes to the taker', () async {
+          await db.seed('birthday/b1', marked(birthdayOf(guest)));
+
+          // Marque gardée : le document resterait réclamable.
+          expect(await db.canUpdate(bob, 'birthday/b1', {'uid': bob}), isFalse);
+          expect(
+            await db.canUpdate(
+              bob,
+              'birthday/b1',
+              {'uid': carol},
+              removing: ['transferTo'],
+            ),
+            isFalse,
+          );
+        });
+
+        test('nobody else takes, deletes or reads it', () async {
+          await db.seed('birthday/b1', marked(birthdayOf(guest)));
+          await db.seed('birthday/b2', birthdayOf(guest));
+
+          for (final caller in [carol, bobUnverified, alice, signedOut]) {
+            expect(
+              await db.canUpdate(
+                caller,
+                'birthday/b1',
+                {'uid': ?caller},
+                removing: ['transferTo'],
+              ),
+              isFalse,
+              reason: '$caller takes it',
+            );
+            expect(
+              await db.canDelete(caller, 'birthday/b1'),
+              isFalse,
+              reason: '$caller deletes it',
+            );
+          }
+          // Sans marque, rien ne passe ; marqué, il ne se lit pas pour autant.
+          expect(await db.canDelete(bob, 'birthday/b2'), isFalse);
+          expect(
+            await db.canUpdate(
+              bob,
+              'birthday/b2',
+              {'uid': bob},
+              removing: ['transferTo'],
+            ),
+            isFalse,
+          );
+          expect(await db.canGet(bob, 'birthday/b1'), isFalse);
+        });
+
+        test('books follow birthdays', () async {
+          await db.seed('books/k1', marked(bookOf(guest)));
+          await db.seed('books/k2', marked(bookOf(guest)));
+          await db.seed('books/k3', bookOf(guest));
+
+          expect(
+            await db.canUpdate(
+              carol,
+              'books/k1',
+              {'uid': carol},
+              removing: ['transferTo'],
+            ),
+            isFalse,
+          );
+          expect(
+            await db.canUpdate(
+              bob,
+              'books/k1',
+              {'uid': bob},
+              removing: ['transferTo'],
+            ),
+            isTrue,
+          );
+          expect(await db.canDelete(carol, 'books/k2'), isFalse);
+          expect(await db.canDelete(bob, 'books/k2'), isTrue);
+          expect(await db.canDelete(bob, 'books/k3'), isFalse);
+        });
+
+        test(
+          'the marked address deletes the guest groups and profile',
+          () async {
+            await db.seed('user/guest', marked(profile()));
+            await db.seed('user/guest/categories/g1', marked(userGroup()));
+            await db.seed('user/guest/categories/g2', userGroup());
+
+            expect(
+              await db.canUpdate(guest, 'user/guest/categories/g2', {
+                'transferTo': bobEmail,
+              }),
+              isTrue,
+            );
+            for (final caller in [carol, bobUnverified]) {
+              expect(await db.canDelete(caller, 'user/guest'), isFalse);
+              expect(
+                await db.canDelete(caller, 'user/guest/categories/g1'),
+                isFalse,
+              );
+            }
+            expect(await db.canGet(bob, 'user/guest'), isFalse);
+            expect(
+              await db.canUpdate(bob, 'user/guest', {'name': 'x'}),
+              isFalse,
+            );
+            expect(await db.canDelete(bob, 'user/guest/categories/g1'), isTrue);
+            expect(await db.canDelete(bob, 'user/guest'), isTrue);
+          },
+        );
+
+        test('an unmarked profile or group stays out of reach', () async {
+          await db.seed('user/guest', profile());
+          await db.seed('user/guest/categories/g1', userGroup());
+
+          expect(await db.canDelete(bob, 'user/guest'), isFalse);
+          expect(await db.canDelete(bob, 'user/guest/categories/g1'), isFalse);
+        });
+      });
+
       test('everything else is closed', () async {
         expect(await db.canGet(alice, 'other/x'), isFalse);
         expect(await db.canCreate(alice, 'other/x', {'a': 1}), isFalse);

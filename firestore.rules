@@ -3,36 +3,67 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Transfert d'un invité vers un compte Google existant (B5.5) : l'invité
+    // marque ses documents de l'adresse de ce compte (`transferTo`), puis s'y
+    // connecte ; ce compte, adresse vérifiée, les reprend ou les efface. Sans
+    // cela, ils resteraient orphelins sous un uid que plus personne n'ouvre.
+    // Un compte anonyme n'a pas d'adresse : la condition échoue, donc refuse.
+    // Casse ignorée : l'adresse de Google Sign-In et celle du jeton peuvent
+    // différer de casse, et un refus laisserait les documents orphelins.
+    function isMarkedFor(data) {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && data.transferTo.lower() == request.auth.token.email.lower();
+    }
+
+    // Reprise d'un document marqué : il passe au compte qui le reprend et
+    // perd sa marque, pour ne plus être réclamable.
+    function isTakenOver(data) {
+      return isMarkedFor(data)
+        && request.resource.data.uid == request.auth.uid
+        && !('transferTo' in request.resource.data);
+    }
+
     // A user can only read/write their own profile document (id == uid).
     match /user/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if isMarkedFor(resource.data);
 
       // Groupes privés : seul leur propriétaire les lit et les écrit.
       match /categories/{categoryId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow delete: if isMarkedFor(resource.data);
       }
     }
 
     // Birthdays are owned via the `uid` field.
     match /birthday/{birthdayId} {
-      allow read, delete: if request.auth != null
+      allow read: if request.auth != null
         && resource.data.uid == request.auth.uid;
-      // Une mise à jour ne peut pas changer le propriétaire du document.
+      allow delete: if request.auth != null
+        && (resource.data.uid == request.auth.uid || isMarkedFor(resource.data));
+      // Une mise à jour ne peut pas changer le propriétaire du document, sauf
+      // la reprise d'un document marqué.
       allow update: if request.auth != null
-        && resource.data.uid == request.auth.uid
-        && request.resource.data.uid == resource.data.uid;
+        && ((resource.data.uid == request.auth.uid
+            && request.resource.data.uid == resource.data.uid)
+          || isTakenOver(resource.data));
       allow create: if request.auth != null
         && request.resource.data.uid == request.auth.uid;
     }
 
     // Scanned books are owned via the `uid` field.
     match /books/{bookId} {
-      allow read, delete: if request.auth != null
+      allow read: if request.auth != null
         && resource.data.uid == request.auth.uid;
-      // Une mise à jour ne peut pas changer le propriétaire du document.
+      allow delete: if request.auth != null
+        && (resource.data.uid == request.auth.uid || isMarkedFor(resource.data));
+      // Une mise à jour ne peut pas changer le propriétaire du document, sauf
+      // la reprise d'un document marqué.
       allow update: if request.auth != null
-        && resource.data.uid == request.auth.uid
-        && request.resource.data.uid == resource.data.uid;
+        && ((resource.data.uid == request.auth.uid
+            && request.resource.data.uid == resource.data.uid)
+          || isTakenOver(resource.data));
       allow create: if request.auth != null
         && request.resource.data.uid == request.auth.uid;
     }
