@@ -1,7 +1,0 @@
-A16: these rules refuse the older shared groups, deploy them only after the console steps
-Hold on deploying firestore.rules to an-ki-9b02b, read by .claude/hooks/guard-git.sh.
-
-Why: deployed before the maintainer copies the older groups and flags the predefined ones,
-the installed app loses Famille, Amis, Travail, Autres and every older group.
-Lift: once firebase skill references/console.md §10 steps 1 to 4 are done, delete this file
-(commit it), then deploy (step 5).
