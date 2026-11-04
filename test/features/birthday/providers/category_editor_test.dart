@@ -6,6 +6,7 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
+import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -42,8 +43,10 @@ void main() {
     // Provider autoDispose : un listener le garde en vie pendant le test.
     container
       ..listen(categoryEditorProvider, (_, _) {})
-      ..listen(birthdaysProvider, (_, _) {});
+      ..listen(birthdaysProvider, (_, _) {})
+      ..listen(ownCategoriesProvider, (_, _) {});
     await container.read(birthdaysProvider.future);
+    await container.read(ownCategoriesProvider.future);
     return container;
   }
 
@@ -148,7 +151,7 @@ void main() {
           .remove('book', uid: 'u');
 
       expect(categories.deleted, ['book']);
-      expect(birthdays.removedCategories, {
+      expect(categories.deletedCarriers, {
         'book': ['1', '3'],
       });
       expect(container.read(categoryEditorProvider), isA<AsyncData<void>>());
@@ -168,7 +171,7 @@ void main() {
           .remove('doggo', uid: 'u');
 
       expect(categories.deleted, ['doggo']);
-      expect(birthdays.removedCategories, isEmpty);
+      expect(categories.deletedCarriers, {'doggo': isEmpty});
     });
 
     test('does nothing without a session', () async {
@@ -179,7 +182,7 @@ void main() {
           .remove('book', uid: null);
 
       expect(categories.deleted, isEmpty);
-      expect(birthdays.removedCategories, isEmpty);
+      expect(categories.deletedCarriers, isEmpty);
     });
 
     test('drops a removal started on another account', () async {
@@ -190,15 +193,14 @@ void main() {
           .remove('book', uid: 'u');
 
       expect(categories.deleted, isEmpty);
-      expect(birthdays.removedCategories, isEmpty);
+      expect(categories.deletedCarriers, isEmpty);
       expect(container.read(categoryEditorProvider), isA<AsyncData<void>>());
     });
 
     test('publishes a failed removal as an AsyncError', () async {
-      birthdays = RecordingBirthdayRepository(
-        initial: [
-          _tagged('1', ['book']),
-        ],
+      categories = RecordingCategoryRepository(
+        const [],
+        own: const [_book],
         failure: Exception('unavailable'),
       );
       final container = await makeContainer();
@@ -208,6 +210,19 @@ void main() {
           .remove('book', uid: 'u');
 
       expect(container.read(categoryEditorProvider).hasError, isTrue);
+      expect(categories.deletedCarriers, isEmpty);
+    });
+
+    test("leaves a group that isn't private alone", () async {
+      final container = await makeContainer();
+
+      await container
+          .read(categoryEditorProvider.notifier)
+          .remove('fam', uid: 'u');
+
+      expect(categories.deleted, isEmpty);
+      expect(categories.deletedCarriers, isEmpty);
+      expect(container.read(categoryEditorProvider), isA<AsyncData<void>>());
     });
   });
 }

@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Création, modification et retrait des groupes (ViewModel de la ligne de
@@ -49,13 +49,18 @@ class CategoryEditor extends AsyncNotifier<void> {
     unawaited(_write(() => categories.updateCategory(uid, trimmed)));
   }
 
-  /// Supprime le groupe privé [groupId] ; ses anniversaires le perdent.
+  /// Supprime le groupe privé [groupId] et le retire de ses anniversaires,
+  /// en une écriture : refusée, le groupe et ses anniversaires restent.
   ///
   /// [uid] est le compte connecté quand la suppression a commencé : différée
   /// par « Annuler », elle est abandonnée si le compte a changé entre-temps,
   /// sinon elle viserait l'autre compte.
   Future<void> remove(String groupId, {required String? uid}) async {
     if (uid == null || uid != ref.read(currentUidProvider)) return;
+    // Seul un groupe privé se supprime : un groupe prédéfini resterait, mais
+    // ses anniversaires le perdraient.
+    final own = ref.read(ownCategoriesProvider).value ?? const [];
+    if (!own.any((group) => group.id == groupId)) return;
     // Tous les anniversaires, même ceux en cours de suppression : rattrapés,
     // ils ne doivent pas ramener le groupe.
     final carriers = [
@@ -64,12 +69,8 @@ class CategoryEditor extends AsyncNotifier<void> {
         if (birthday.categories.contains(groupId)) birthday.id,
     ];
     final categories = ref.read(categoryRepositoryProvider);
-    final birthdays = ref.read(birthdayRepositoryProvider);
     await _write(
-      () => Future.wait([
-        categories.deleteCategory(uid, groupId),
-        if (carriers.isNotEmpty) birthdays.removeCategory(carriers, groupId),
-      ]),
+      () => categories.deleteCategory(uid, groupId, carriers: carriers),
     );
   }
 

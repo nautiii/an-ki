@@ -218,12 +218,6 @@ class FakeBirthdayRepository extends Fake implements BirthdayRepository {
   Future<void> unmarkWished(String birthdayId, int year) async {}
 
   @override
-  Future<void> removeCategory(
-    Iterable<String> birthdayIds,
-    String categoryId,
-  ) async {}
-
-  @override
   Future<void> deleteAllUserBirthdays(String uid) async {}
 }
 
@@ -314,18 +308,6 @@ class RecordingBirthdayRepository extends FakeBirthdayRepository {
     deleted.add(birthdayId);
   }
 
-  /// Groupes retirés : id du groupe → ids des anniversaires.
-  final removedCategories = <String, List<String>>{};
-
-  @override
-  Future<void> removeCategory(
-    Iterable<String> birthdayIds,
-    String categoryId,
-  ) async {
-    _maybeFail();
-    removedCategories[categoryId] = birthdayIds.toList();
-  }
-
   @override
   Future<void> deleteAllUserBirthdays(String uid) async {
     _maybeFail();
@@ -357,7 +339,11 @@ class FakeCategoryRepository extends Fake implements CategoryRepository {
   Future<void> updateCategory(String uid, BirthdayCategory category) async {}
 
   @override
-  Future<void> deleteCategory(String uid, String categoryId) async {}
+  Future<void> deleteCategory(
+    String uid,
+    String categoryId, {
+    Iterable<String> carriers = const [],
+  }) async {}
 
   @override
   Future<void> deleteAllUserCategories(String uid) async {}
@@ -428,6 +414,10 @@ class RecordingCategoryRepository extends Fake implements CategoryRepository {
   final edited = <BirthdayCategory>[];
   final deleted = <String>[];
 
+  /// Anniversaires dont chaque groupe supprimé a été retiré : id du groupe →
+  /// ids des anniversaires.
+  final deletedCarriers = <String, List<String>>{};
+
   @override
   Future<void> updateCategory(String uid, BirthdayCategory category) async {
     edited.add(category);
@@ -437,10 +427,15 @@ class RecordingCategoryRepository extends Fake implements CategoryRepository {
   }
 
   @override
-  Future<void> deleteCategory(String uid, String categoryId) async {
+  Future<void> deleteCategory(
+    String uid,
+    String categoryId, {
+    Iterable<String> carriers = const [],
+  }) async {
     // Une suppression refusée laisse le groupe en place.
     if (failure case final error?) throw error;
     deleted.add(categoryId);
+    deletedCarriers[categoryId] = carriers.toList();
     _own.removeWhere((group) => group.id == categoryId);
     _changes.add([..._own]);
   }

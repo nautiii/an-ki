@@ -59,7 +59,6 @@ so « keeps its search » no longer applies.
 
 | # | Debt | Evidence | Consequence | Step |
 |---|------|----------|-------------|------|
-| A19 | Group removal not atomic | `CategoryEditor.remove` runs the profile or category write and `BirthdayRepository.removeCategory` in a `Future.wait`, not one batch; reviewer pass of 2026-11-03 | the profile write fails, the birthdays lose the group anyway: it comes back, its people no longer carry it | structural: one `WriteBatch` across the user/category and birthday repositories (a repository method taking a batch, or the write moved to one repository) |
 | A20 | Birthday deletion follows the live account | `deleteWithUndo` (`birthday_deletion.dart`) deletes when the undo snackbar closes, as group removal did before A18 | an account switch inside the window: the rules refuse the delete, the new account reads an error about a stranger, the old one keeps the birthday | local fix: capture the uid when the deletion starts, as `removeGroupWithUndo` |
 
 UX debt (contrast, 200 % text, labels, raw colors, dates without `DateFormat`) is tracked in the

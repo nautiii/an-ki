@@ -122,6 +122,61 @@ void main() {
       expect(left.docs.map((doc) => doc.id), ['b']);
     });
 
+    Future<String> person(List<String> categories) async =>
+        (await firestore.collection('birthday').add({
+          'uid': 'u1',
+          'name': 'P',
+          'surname': '',
+          'date': Timestamp.fromDate(DateTime(1990)),
+          'categories': categories,
+        })).id;
+
+    Future<List<dynamic>> categoriesOf(String id) async =>
+        (await firestore.collection('birthday').doc(id).get())
+                .data()!['categories']
+            as List<dynamic>;
+
+    test('deleteCategory drops the group from its carriers only', () async {
+      await own('u1').doc('book').set({'name': 'Livres', 'icon': 1});
+      final lea = await person(['book', 'family']);
+      final tom = await person(['book']);
+      final other = await person(['book']);
+
+      await repository.deleteCategory('u1', 'book', carriers: [lea, tom]);
+
+      expect((await own('u1').get()).docs, isEmpty);
+      expect(await categoriesOf(lea), ['family']);
+      expect(await categoriesOf(tom), isEmpty);
+      expect(await categoriesOf(other), ['book']);
+    });
+
+    test('deleteCategory without carriers only erases the group', () async {
+      await own('u1').doc('book').set({'name': 'Livres', 'icon': 1});
+      final lea = await person(['book']);
+
+      await repository.deleteCategory('u1', 'book');
+
+      expect((await own('u1').get()).docs, isEmpty);
+      expect(await categoriesOf(lea), ['book']);
+    });
+
+    test('deleteCategory spans several batches', () async {
+      await own('u1').doc('book').set({'name': 'Livres', 'icon': 1});
+      final ids = [
+        for (var i = 0; i < 600; i++) await person(['book']),
+      ];
+
+      await repository.deleteCategory('u1', 'book', carriers: ids);
+
+      expect((await own('u1').get()).docs, isEmpty);
+      final left = await firestore.collection('birthday').get();
+      expect(left.docs, hasLength(600));
+      expect(
+        left.docs.every((doc) => (doc.data()['categories'] as List).isEmpty),
+        isTrue,
+      );
+    });
+
     test('deleteAllUserCategories erases the owner groups only', () async {
       await own('u1').doc('a').set({'name': 'A', 'icon': 1});
       await own('u1').doc('b').set({'name': 'B', 'icon': 1});

@@ -97,7 +97,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(categories.deleted, ['book']);
-    expect(birthdays.removedCategories, {
+    expect(categories.deletedCarriers, {
       'book': ['lea'],
     });
   });
@@ -113,7 +113,7 @@ void main() {
     await tester.pump(undoDelay + const Duration(seconds: 1));
     await tester.pumpAndSettle();
     expect(categories.deleted, isEmpty);
-    expect(birthdays.removedCategories, isEmpty);
+    expect(categories.deletedCarriers, isEmpty);
   });
 
   testWidgets('a failed removal brings the group back', (tester) async {
@@ -131,6 +131,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(categories.deleted, isEmpty);
+    expect(categories.deletedCarriers, isEmpty);
     expect(find.text('Club de lecture'), findsOneWidget);
   });
 
@@ -147,6 +148,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(categories.deleted, isEmpty);
-    expect(birthdays.removedCategories, isEmpty);
+    expect(categories.deletedCarriers, isEmpty);
   });
 }

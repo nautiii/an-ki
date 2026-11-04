@@ -48,10 +48,28 @@ class CategoryRepository {
   Future<void> updateCategory(String uid, BirthdayCategory category) =>
       _own(uid).doc(category.id).update(_categoryToMap(category));
 
-  /// Supprime le groupe privé [categoryId] de [uid] ; les anniversaires qui
-  /// le portent sont l'affaire de `BirthdayRepository.removeCategory`.
-  Future<void> deleteCategory(String uid, String categoryId) =>
-      _own(uid).doc(categoryId).delete();
+  /// Supprime le groupe privé [categoryId] de [uid] et le retire des
+  /// anniversaires [carriers] (l'appelant les connaît : pas de requête
+  /// `array-contains` ni d'index), dans le même lot : refusé, rien ne change
+  /// (un porteur supprimé sur un autre appareil le fait refuser ; un nouvel
+  /// essai passe une fois le cache à jour). Au-delà de 499 anniversaires, les
+  /// autres lots partent en parallèle, sans atomicité avec le premier : un
+  /// échec partiel laisse le groupe, ou son id sur une partie des
+  /// anniversaires (ignoré à l'affichage).
+  Future<void> deleteCategory(
+    String uid,
+    String categoryId, {
+    Iterable<String> carriers = const [],
+  }) {
+    final birthdays = _db.collection('birthday');
+    return _db.writeInBatches<void Function(WriteBatch)>([
+      (batch) => batch.delete(_own(uid).doc(categoryId)),
+      for (final birthdayId in carriers)
+        (batch) => batch.update(birthdays.doc(birthdayId), {
+          'categories': FieldValue.arrayRemove([categoryId]),
+        }),
+    ], (batch, write) => write(batch));
+  }
 
   /// Efface les groupes privés de [uid] (suppression du compte) : Firestore
   /// ne supprime pas une sous-collection avec son document parent.
