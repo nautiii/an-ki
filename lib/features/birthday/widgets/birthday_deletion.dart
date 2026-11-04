@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
@@ -27,6 +28,7 @@ void deleteWithUndo(
   // refermée) n'existe sans doute plus quand la snackbar se ferme.
   final container = ProviderScope.containerOf(context, listen: false);
   final pending = container.read(pendingDeletionsProvider.notifier);
+  final uid = container.read(currentUidProvider);
   final l10n = context.l10n;
   final accessible = MediaQuery.accessibleNavigationOf(context);
 
@@ -53,7 +55,9 @@ void deleteWithUndo(
       if (reason == SnackBarClosedReason.action) return;
       // Masquée jusqu'à la fin de l'écriture : le flux Firestore la retire
       // de lui-même, un échec la rend visible à nouveau.
-      await container.read(birthdayEditorProvider.notifier).delete(birthday.id);
+      await container
+          .read(birthdayEditorProvider.notifier)
+          .delete(birthday.id, uid: uid);
       pending.restore(birthday.id);
     }),
   );

@@ -57,9 +57,16 @@ class BirthdayEditor extends AsyncNotifier<void> {
             .updateReminders(birthdayId, reminders),
       );
 
-  Future<void> delete(String birthdayId) => _write(
-    (_) => ref.read(birthdayRepositoryProvider).deleteBirthday(birthdayId),
-  );
+  /// Supprime [birthdayId]. [uid] est le compte connecté quand la suppression
+  /// a commencé : différée par « Annuler », elle est abandonnée si le compte a
+  /// changé entre-temps (les règles la refuseraient, et l'autre compte lirait
+  /// une erreur sur une personne qu'il ne connaît pas).
+  Future<void> delete(String birthdayId, {required String? uid}) async {
+    if (uid == null || uid != ref.read(currentUidProvider)) return;
+    await _write(
+      (_) => ref.read(birthdayRepositoryProvider).deleteBirthday(birthdayId),
+    );
+  }
 
   /// Marque souhaité l'anniversaire de [year] (`BirthdayWishes.wishYear`).
   Future<void> markWished(String birthdayId, int year) => _write(

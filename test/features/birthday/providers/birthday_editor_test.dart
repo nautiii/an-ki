@@ -52,7 +52,7 @@ void main() {
 
     await editor.create(_input());
     await editor.edit('id-1', _input());
-    await editor.delete('id-2');
+    await editor.delete('id-2', uid: 'u1');
 
     expect(repo.created, hasLength(2));
     expect(repo.updated, ['id-1']);
@@ -175,11 +175,37 @@ void main() {
     });
   });
 
+  test('drops a deletion started on another account', () async {
+    final repo = RecordingBirthdayRepository();
+    final container = makeContainer(repo, uid: 'u2');
+
+    await container
+        .read(birthdayEditorProvider.notifier)
+        .delete('id-1', uid: 'u1');
+
+    expect(repo.deleted, isEmpty);
+    expect(container.read(birthdayEditorProvider), isA<AsyncData<void>>());
+  });
+
+  test('drops a deletion when the account signed out meanwhile', () async {
+    final repo = RecordingBirthdayRepository();
+    final container = makeContainer(repo, uid: null);
+
+    await container
+        .read(birthdayEditorProvider.notifier)
+        .delete('id-1', uid: 'u1');
+
+    expect(repo.deleted, isEmpty);
+    expect(container.read(birthdayEditorProvider), isA<AsyncData<void>>());
+  });
+
   test('publishes a failed write as an AsyncError', () async {
     final repo = RecordingBirthdayRepository(failure: Exception('denied'));
     final container = makeContainer(repo);
 
-    await container.read(birthdayEditorProvider.notifier).delete('id-1');
+    await container
+        .read(birthdayEditorProvider.notifier)
+        .delete('id-1', uid: 'u1');
 
     expect(container.read(birthdayEditorProvider).hasError, isTrue);
   });

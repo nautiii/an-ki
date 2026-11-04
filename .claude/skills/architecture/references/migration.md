@@ -57,9 +57,10 @@ so « keeps its search » no longer applies.
 
 ## 2. Open debt
 
+None open (A15–A20 cleared on 2026-11-03/04). Record new debt as a row:
+
 | # | Debt | Evidence | Consequence | Step |
 |---|------|----------|-------------|------|
-| A20 | Birthday deletion follows the live account | `deleteWithUndo` (`birthday_deletion.dart`) deletes when the undo snackbar closes, as group removal did before A18 | an account switch inside the window: the rules refuse the delete, the new account reads an error about a stranger, the old one keeps the birthday | local fix: capture the uid when the deletion starts, as `removeGroupWithUndo` |
 
 UX debt (contrast, 200 % text, labels, raw colors, dates without `DateFormat`) is tracked in the
 ux-ui backlog (`ux-backlog.md`), not here.
