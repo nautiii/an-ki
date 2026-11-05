@@ -11,7 +11,8 @@ paths:
 ## Android (`android/`)
 
 - Toolchain: Gradle 9.3.1, AGP 9.1.1, Kotlin Gradle plugin 2.4.21, google-services 4.5.0 — the
-  newest combination within Flutter 3.47.9's tested range; Java/Kotlin target 17, builds run on
+  newest combination Flutter 3.47.9's tool knows (Gradle at its tested ceiling, AGP and KGP
+  within their lines); Java/Kotlin target 17, builds run on
   JDK 21. Keep `android.builtInKotlin=false` and `android.newDsl=false` (written by Flutter's
   migrator; plugins that apply KGP break on AGP 9 otherwise). Bumping any of them is a toolchain
   upgrade: approval and its own `BUILD` commit.
