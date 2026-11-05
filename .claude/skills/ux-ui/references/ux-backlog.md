@@ -5,44 +5,27 @@ Living list of what to improve, from a full audit with the snapshot tool (light,
 below deliberately question structure, not just polish.
 
 Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, calendar, loading,
-scanner, settings, auth). Roadmap steps 1 (F2, F3, A1–A8), 2 (B1, Q1, Q2, A9) and 3 (B2)
-shipped on 2026-10-12, step 4 (B3, D7) and steps 5.1–5.2 (B5 welcome and contacts import, Q5)
-on 2026-10-18, steps 5.3 (B5 reminders in context, D19 for the J-0 notification) and 5.4 (B5
-guest backup) on 2026-10-19, small fixes D6, D19, D20 and D21, Q6 and D18, the e-mail sign-in
-and sign-up forms (D3, their part of F5, D11 and D1, their copy), the settings (Q4, F4, the
-rest of D1, their part of F5 and D11), the groups (B7, Q7, the rest of D11) and the
-reminders-off card (Q8), the forgotten password link (Q9) and the auth messages (D23) on
-2026-10-24, then the sign-up's single password (Q11), D24, D9, D22, D12, D14 (its message),
-D8, F5 and D4, and the groups page (Q10) on 2026-10-25, then D25 and D15 (the belated wish) on
-2026-10-27, then D27 (« e-mail » with a plain hyphen, U+00A0 for the narrow U+202F Outfit
-lacks) on 2026-11-02, then B4a (the person page, with D14's « Voir ») on 2026-11-03, then D10
-(the scanner tab's pinned app bar, its carousel at its own height) and B5.5 (a guest opens the
-Google account AnKi knows with its birthdays) on 2026-11-05: the items they fixed are gone from
-this list.
+scanner, settings, auth). Everything shipped from 2026-10-12 to 2026-11-05 (foundation F1–F6,
+the quick wins, B1–B3, B4a person page, B5 onboarding, B6 reminder settings, B7 groups, D1–D27
+but D17) is gone from this list: git history and the patterns hold the details, and the device
+checks still owed are in architecture `migration.md` §1.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
 auth or dependencies → design brief + maintainer approval first.
 
 ## Contents
-- Big bets (B4's gift ideas, deferred; B8; B5 and B6 shipped) — structural redesigns with the highest impact
-- Foundation (none open) — design system, prerequisite for consistency
-- P2 — polish (D17, D28)
+- Big bets (B4's gift ideas, deferred; B8) — structural redesigns with the highest impact
+- P2 — polish (D17, D28, D29)
 - Suggested roadmap
 
 ---
 
 ## Big bets
 
-### B4 — Person page (view-first) + gift ideas per person
-- **Shipped, B4a person page** (2026-11-03, branch `claude/b4-brief-4e460b`): a tap on a person
-  (agenda row, hero, « Hier » card, calendar day sheet, a reminder notification) opens
-  `/person/:id`, not the edit sheet: large avatar ringed by its groups, moon countdown, birth
-  date, age, group chips, « Souhaiter » on the day and the day after, the person's reminders
-  (moved out of the edit sheet, written at once), the wish history (`wishedYears`) whose current
-  year can be undone; « Modifier » opens the edit sheet. The add confirmation (D14) gains
-  « Voir », which opens the new page. Notes stay out (a new field).
-- **Deferred — gift ideas** (maintainer, 2026-11-03: a good idea, for later, not now): tab 2
+### B4 — Gift ideas per person (deferred)
+- B4a, the person page `/person/:id`, shipped on 2026-11-03; notes stay out (a new field).
+- **Deferred** (maintainer, 2026-11-03: a good idea, for later, not now): tab 2
   « Scanner » → « Idées », ideas per person + an unassigned inbox, added by text, link or ISBN
   scan (the scanner becomes one input); then the ideas on the person page (B4c: a slot built by
   `ideas`, passed by `app/router`, no edge from `birthday`), « Idée cadeau » on the J-0 hero and
@@ -59,52 +42,13 @@ auth or dependencies → design brief + maintainer approval first.
     next birthday);
   - `url_launcher` approved (2026-11-03) to open a link; the existing `books` documents: migrate
     them or let them go, to decide then;
-  - the scanner's book carousel goes (debt A15 was fixed on 2026-11-03; its pinned app bar
-    shipped with D10 on 2026-11-05).
+  - the scanner's book carousel goes.
 - **Refs**: Apple/Google Contacts cards, wishlist apps, Pinterest boards (lightweight).
-- **Cost of what's left**: medium (ideas model and rules, the tab, scanner integration).
-
-### B5 — Value-first onboarding (approved 2026-10-18, candidate B « directement chez soi »)
-- **Shipped, 5.3** (2026-10-19): no permission request at launch; `ReminderOfferSheet` after an
-  import, the first birthdays added by hand or a sign-in that brings an agenda (« 12
-  anniversaires ajoutés / retrouvés », the cadence, the next real J-0 reminder); at most once per
-  session; Settings › Rappels (`RemindersTile`); blocked → « Ouvrir les réglages ». Details:
-  patterns §H, `.claude/rules/reminders.md`.
-- **Shipped, 5.4** (2026-10-19): from 3 birthdays a guest finds `GuestBackupCard` after the
-  agenda's last month, never in the calendar (« Gardez vos 12 anniversaires » · « Sauvegarder
-  avec Google »); linked, the card goes, « Vos 12 anniversaires sont sauvegardés », and the
-  profile takes the Google names. A Google account AnKi already knows
-  (`credential-already-in-use`, or its address on an e-mail account) changes nothing: the card
-  explains it and offers « Choisir un autre compte ». Details: patterns §H. Not seen on a device
-  yet (architecture `migration.md` §1).
-- **Shipped, 5.5** (2026-11-05, branch `claude/b5-5-merge`): a Google account AnKi already
-  knows → « Ouvrir ce compte avec mes 12 anniversaires » moves the guest's birthdays, groups,
-  books and profile into it without duplicates (the import's matching rule), orphaned only if
-  the move is cut after the sign-in (`transferTo` marks, firebase `schema.md` §10); « 9
-  anniversaires ajoutés à ce compte · 3 y étaient déjà ». Not seen on a device yet
-  (architecture `migration.md` §1). A duplicate keeps the account's record: the guest's photo,
-  wished years and own reminders on it are dropped (to complete the account's record later, if
-  it matters).
-- Prototypes in `build/ui_snapshots/_src/` (local only — `flutter clean` wipes `build/`):
-  `etape5_test.dart` (the flow, Q8's card), `etape54_test.dart` (each state of the shipped card).
-- **Refs**: Duolingo lazy sign-up, Google Keep/Todoist empty-state onboarding, Instagram priming.
-
-### B6 — Reminders you control (approved 2026-10-25)
-- **Shipped** (2026-10-25, branch `claude/peaceful-noether-e0fb53`): Settings › Anniversaires
-  gains « Me prévenir » (J-30, J-7, J-1 chips; J-0 always) and « Heure des rappels » (system time
-  picker), stored in `user/{uid}.reminders`; the « Rappels » row sums it up (« 7 jours avant ·
-  Le jour J · 10:00 ») and the offer sheet follows it. The birthday sheet gains « Rappels »:
-  Comme d'habitude / Aucun / Personnalisés (`birthday/{id}.reminders`), moved to the person
-  page with B4a (2026-11-03). Notifications before the day are personal: « 🎉 Léa Martin », « Demain, Léa fête
-  son anniversaire. ». The plan stays under Android's 500-alarm limit, J-0 first.
-- **Dropped**: quiet hours (one chosen time makes them redundant); the Monday digest (maintainer,
-  2026-10-25).
-- **Left**: the age in the text (« Léa fête ses 30 ans ») → B8.
+- **Cost**: medium (ideas model and rules, the tab, scanner integration).
 
 ### B8 — The age in reminders (brief 2026-10-25; workmanager approved 2026-11-01)
-- **Shipped, step 1** (2026-11-01): workmanager 0.10.10, a daily background replan on Android,
-  texts unchanged (`reminders.md`). Step 2 waits for the measure on the maintainer's Honor
-  (does the job run every day?).
+- **Step 1 shipped** (2026-11-01): workmanager 0.10.10, a daily background replan on Android,
+  texts unchanged (`reminders.md`). Step 2 waits for the measure on the maintainer's Honor.
 - **Left, step 1**:
   - Not proven on a device: a run offline with the app's process dead. The emulator can't show it: earlier clock
     moves left a future « FORCE STOP » exit record, then the job vanished from JobScheduler
@@ -124,12 +68,13 @@ auth or dependencies → design brief + maintainer approval first.
   the yearly ageless repeat beyond it, on the same ids (`planReminders(…, oneShotUntil:)`,
   `PlannedReminder.repeats`, `ReminderNotification.repeats`); ARB age variants of the two
   bodies (ICU plural, « son premier anniversaire » for 1); `reminders.md` invariants rewritten.
-  D13 was dropped (2026-11-01): contacts imported before 2026-10-12 without a year read as born
-  in 2000, so they get an age too; each is fixed in the sheet. Step 3: iOS (BGTaskScheduler identifier in `Info.plist`, registration on iOS, with D17).
+  Contacts imported before 2026-10-12 without a year read as born in 2000, so they get an age
+  too; each is fixed in the sheet. Step 3: iOS (BGTaskScheduler identifier in `Info.plist`,
+  registration on iOS, with D17).
 - **Problem**: reminders say « Demain, Léa fête son anniversaire. », not « Demain, Léa fête ses
   30 ans » — the detail that turns a reminder into a thoughtful wish (patterns §I). A yearly
-  repeating notification keeps the text it was scheduled with, so an age would go stale. The
-  B6 idea (one-shot with the age + yearly ageless fallback) fails on Android:
+  repeating notification keeps the text it was scheduled with, so an age would go stale. A
+  one-shot with the age + a yearly ageless fallback fails on Android:
   `matchDateTimeComponents` drops the year (`getNextFireDateMatchingDateTimeComponents`,
   flutter_local_notifications 22.3), so the fallback fires the same day as the one-shot.
 - **For whom / job**: everyone with known birth years (most of an imported agenda), at the
@@ -137,10 +82,9 @@ auth or dependencies → design brief + maintainer approval first.
 - **Proposal — rolling window, replanned in the background**: each reminder keeps one stable
   id (B6 ranges). Inside a window (the next 45 days, beyond J-30) it is a **one-shot** with the
   exact age; beyond it, the **yearly ageless repeat** it is today. Every replan (app start, data
-  change, and now a **daily background task**) turns the reminders entering the window into
+  change, and the **daily background task**) turns the reminders entering the window into
   one-shots, on the same id, so nothing is ever scheduled twice. Unknown year → ageless as
-  today. Background replan with **workmanager** (Android WorkManager / iOS BGTaskScheduler,
-  periodic ~24 h, no network needed): a callback isolate initializes Firebase, reads the
+  today. The background replan (step 1) initializes Firebase in a callback isolate, reads the
   signed-in user's birthdays and preferences from the Firestore offline cache, and runs the same
   `planReminders` + `NotificationService.scheduleAll`. Reference: calendar apps (Google Agenda,
   Fantastical) roll their alarms over a short window the same way; Facebook-style « Léa a 30 ans
@@ -160,27 +104,14 @@ auth or dependencies → design brief + maintainer approval first.
 - **Risk check**: the window's one-shot is the only scheduled alarm for that occurrence; if
   neither the app nor the worker runs between its firing and the next window (~320 days), the
   following year is missed. A force-stop already cancels every alarm today, and WorkManager runs
-  at least daily on stock Android; aggressive OEMs (Honor, Xiaomi) can delay it: measure on the
-  maintainer's phone before step 2, and keep the window wide (45 days) so a late worker still
-  catches up.
-- **Impact**: `pubspec.yaml` + `workmanager` pinned (new plugin: approval; androidx.work merges
-  `RECEIVE_BOOT_COMPLETED` into the manifest, already granted to flutter_local_notifications);
-  `main.dart` registers the callback dispatcher; a background entry in `app/bootstrap` (Firebase
-  init, timezone, notification strings from the profile locale through
-  `lookupAppLocalizations`, no `BuildContext`); domain: `planReminders(…, oneShotUntil:)` and
-  `PlannedReminder.repeats`; core: `ReminderNotification.repeats` (`matchDateTimeComponents`
-  only when true); ARB: age variants of the two notification bodies (ICU plural on `age`, « son
-  premier anniversaire » for 1); tests per layer; `reminders.md` invariants rewritten (an age is
-  allowed in a one-shot only). No Firestore change, no migration. iOS: BGTaskScheduler identifier
-  in `Info.plist` once iOS builds; the same window also answers iOS's 64-pending cap.
-- **Steps**: 1) workmanager + daily background replan, texts unchanged — prove on the phone that
-  it runs (`adb shell dumpsys jobscheduler`), offline and after a reboot; 2) one-shots with the
-  age inside the window; 3) iOS rolling window, when iOS builds (with D17).
-- **Cost**: medium (one plugin, a background isolate, plan and service changes).
-
-## Foundation
-
-None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
+  at least daily on stock Android; aggressive OEMs (Honor, Xiaomi) can delay it: hence the
+  measure before step 2, and a wide window (45 days) so a late worker still catches up.
+- **Impact of step 2**: domain `planReminders(…, oneShotUntil:)` and `PlannedReminder.repeats`;
+  core `ReminderNotification.repeats` (`matchDateTimeComponents` only when true); ARB age
+  variants of the two notification bodies; tests per layer; `reminders.md` invariants rewritten
+  (an age is allowed in a one-shot only). No Firestore change, no migration. iOS: the same window
+  also answers iOS's 64-pending cap.
+- **Cost of what's left**: medium (plan and service changes, the measure).
 
 ## P2 — polish
 
@@ -191,9 +122,13 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
   (`app/router/app_router.dart`) is an empty `Scaffold` painted with `ThemeMode.system`, since
   `themeProvider` waits for the profile → paint it in the splash colour, or start from the last
   theme kept on the device. Priority: medium, seen on every cold start.
+- **D29 guest details lost on a merge duplicate** (B5.5, 2026-11-05): when a guest's birthday
+  matches one already in the Google account, the account's record wins and the guest's photo,
+  wished years and own reminders on it are dropped → fill the account record's empty fields from
+  the guest's. Priority: low, only if it matters.
 
 ## Suggested roadmap
 
-1. **B8, D17, D28** — depth and polish;
+1. **B8, D17, D28** — depth and polish (D29 if it matters);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
 2. **B4's gift ideas** — when the maintainer picks them up.
