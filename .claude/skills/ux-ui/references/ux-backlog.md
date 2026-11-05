@@ -27,7 +27,7 @@ auth or dependencies → design brief + maintainer approval first.
 ## Contents
 - Big bets (B4's gift ideas, deferred; B8; B5 and B6 shipped) — structural redesigns with the highest impact
 - Foundation (none open) — design system, prerequisite for consistency
-- P2 — polish (D17)
+- P2 — polish (D17, D28)
 - Suggested roadmap
 
 ---
@@ -186,9 +186,14 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
 
 - **D17 iOS wish button**: iOS notifications have no « Souhaiter » (Darwin categories are
   declared at initialization, before the texts are localized) → add a category once iOS builds.
+- **D28 light flash at cold start** (seen 2026-11-05 on the emulator, dark profile, light
+  system): native splash (#121318) → blank light screen → dark home. `_StartupScreen`
+  (`app/router/app_router.dart`) is an empty `Scaffold` painted with `ThemeMode.system`, since
+  `themeProvider` waits for the profile → paint it in the splash colour, or start from the last
+  theme kept on the device. Priority: medium, seen on every cold start.
 
 ## Suggested roadmap
 
-1. **B8, D17** — depth and polish;
+1. **B8, D17, D28** — depth and polish;
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
 2. **B4's gift ideas** — when the maintainer picks them up.
