@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/app/app.dart';
+import 'package:an_ki/app/bootstrap/notification_strings.dart';
 import 'package:an_ki/app/router/app_router.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/contacts_service.dart';
@@ -52,9 +53,6 @@ class SilentNotificationService extends Fake implements NotificationService {
   void tap(NotificationTap tap) => _taps.add(tap);
 
   @override
-  void configure(NotificationStrings strings) {}
-
-  @override
   Future<NotificationAccess> access() async => current;
 
   @override
@@ -71,7 +69,10 @@ class SilentNotificationService extends Fake implements NotificationService {
   Future<void> openSettings() async => settingsOpened++;
 
   @override
-  Future<void> scheduleAll(List<ReminderNotification> reminders) async {}
+  Future<void> scheduleAll(
+    List<ReminderNotification> reminders, {
+    required NotificationStrings strings,
+  }) async {}
 
   @override
   Stream<NotificationTap> get taps => _taps.stream;
@@ -121,6 +122,7 @@ extension AppTesterExt on WidgetTester {
           notificationServiceProvider.overrideWithValue(
             notifications ?? SilentNotificationService(),
           ),
+          localizedNotificationStrings,
           shareServiceProvider.overrideWithValue(share ?? FakeShareService()),
           contactsServiceProvider.overrideWithValue(
             contacts ?? FakeContactsService(),

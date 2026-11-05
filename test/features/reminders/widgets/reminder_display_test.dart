@@ -13,7 +13,7 @@ void main() {
     lead: ReminderLead.sameDay,
     birthdayId: 'hugo',
     name: 'Hugo',
-    surname: 'Bernard',
+    fullName: 'Hugo Bernard',
     age: 34,
     at: DateTime(2026, 10, 21, 10),
   );

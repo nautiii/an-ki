@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:an_ki/app/bootstrap/notification_strings.dart';
 import 'package:an_ki/core/firebase_options.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/services/notification_service.dart';
@@ -8,12 +9,9 @@ import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
 import 'package:an_ki/features/reminders/providers/reminder_preferences_provider.dart';
 import 'package:an_ki/features/reminders/providers/reminder_sync_provider.dart';
-import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
-import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart' show basicLocaleListResolution;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -58,7 +56,10 @@ void backgroundReplanDispatcher() {
       );
       await NotificationService.instance.initialize();
       // Sans nouvel essai de Riverpod : WorkManager s'en charge.
-      final container = ProviderContainer(retry: (_, _) => null);
+      final container = ProviderContainer(
+        retry: (_, _) => null,
+        overrides: [localizedNotificationStrings],
+      );
       try {
         await replanInBackground(container);
       } finally {
@@ -95,20 +96,18 @@ Future<void> replanInBackground(ProviderContainer container) async {
   final preferences = await container
       .read(reminderPreferencesProvider.future)
       .onError((_, _) => const ReminderPreferences());
-  // Profil illisible : la langue par défaut de [localeProvider].
+  // Profil illisible : la langue par défaut de `localeProvider`.
   await container.read(userProfileProvider.future).onError((_, _) => null);
-  // Langue absente des traductions : la même que choisit `MaterialApp`.
-  final locale = basicLocaleListResolution([
-    container.read(localeProvider),
-  ], AppLocalizations.supportedLocales);
+  // Textes dans la langue du profil ([localizedNotificationStrings]).
+  final strings = container.read(notificationStringsProvider);
 
-  final notifications = container.read(notificationServiceProvider)
-    ..configure(NotificationStrings.fromL10n(lookupAppLocalizations(locale)));
+  final notifications = container.read(notificationServiceProvider);
   await scheduleReminders(
     notifications,
     birthdays,
     now: container.read(clockProvider)(),
     preferences: preferences,
+    strings: strings,
   );
 
   // L'app ouverte a pu changer la liste ou le réglage pendant la
@@ -129,5 +128,6 @@ Future<void> replanInBackground(ProviderContainer container) async {
     latest,
     now: container.read(clockProvider)(),
     preferences: latestPreferences,
+    strings: strings,
   );
 }

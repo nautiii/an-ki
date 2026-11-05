@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:an_ki/app/app.dart';
 import 'package:an_ki/app/bootstrap/background_replan.dart';
+import 'package:an_ki/app/bootstrap/notification_strings.dart';
 import 'package:an_ki/core/firebase_options.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,5 +24,10 @@ void main() async {
   // Sans attendre : l'ouverture ne paie pas l'enregistrement.
   unawaited(registerBackgroundReplan());
 
-  runApp(const ProviderScope(child: App()));
+  runApp(
+    ProviderScope(
+      overrides: [localizedNotificationStrings],
+      child: const App(),
+    ),
+  );
 }

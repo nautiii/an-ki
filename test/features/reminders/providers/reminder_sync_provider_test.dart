@@ -11,21 +11,50 @@ import 'package:an_ki/features/reminders/data/reminder_preferences_repository.da
 import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
 import 'package:an_ki/features/reminders/providers/reminder_preferences_provider.dart';
 import 'package:an_ki/features/reminders/providers/reminder_sync_provider.dart';
+import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart' show User;
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
 
-/// Service de notifications qui enregistre chaque replanification.
+/// Service de notifications qui enregistre chaque replanification et ses
+/// textes.
 class _RecordingNotificationService extends Fake
     implements NotificationService {
   final scheduled = <List<ReminderNotification>>[];
+  final strings = <NotificationStrings>[];
 
   @override
-  Future<void> scheduleAll(List<ReminderNotification> reminders) async =>
-      scheduled.add(reminders);
+  Future<void> scheduleAll(
+    List<ReminderNotification> reminders, {
+    required NotificationStrings strings,
+  }) async {
+    scheduled.add(reminders);
+    this.strings.add(strings);
+  }
 }
+
+NotificationStrings _textsIn(String languageCode) =>
+    NotificationStrings.fromL10n(lookupAppLocalizations(Locale(languageCode)));
+
+/// Textes des rappels, que `app/` tire de la langue du profil ; le test les
+/// change à la main.
+class _Texts extends Notifier<NotificationStrings> {
+  @override
+  NotificationStrings build() => _textsIn('fr');
+
+  void set(NotificationStrings texts) => state = texts;
+}
+
+final _textsProvider = NotifierProvider<_Texts, NotificationStrings>(
+  _Texts.new,
+);
+
+final _texts = notificationStringsProvider.overrideWith(
+  (ref) => ref.watch(_textsProvider),
+);
 
 /// Laisse passer les flux (anniversaires, réglage) et les reconstructions que
 /// Riverpod planifie après eux.
@@ -59,6 +88,7 @@ void main() {
       retry: (_, _) => null,
       overrides: [
         notificationServiceProvider.overrideWithValue(notifications),
+        _texts,
         authUserProvider.overrideWithValue(AsyncData(MockUser(uid: 'u1'))),
         birthdaysProvider.overrideWith((ref) => birthdays.stream),
         reminderPreferencesRepositoryProvider.overrideWithValue(preferences),
@@ -87,7 +117,7 @@ void main() {
           id: base + 500000,
           daysBefore: 7,
           name: 'Léa',
-          surname: 'Martin',
+          fullName: 'Léa Martin',
           age: 32,
           at: DateTime(2026, 3, 5, 10),
           payload: 'lea',
@@ -96,7 +126,7 @@ void main() {
           id: base,
           daysBefore: 0,
           name: 'Léa',
-          surname: 'Martin',
+          fullName: 'Léa Martin',
           age: 32,
           at: DateTime(2026, 3, 12, 10),
           payload: 'lea',
@@ -124,11 +154,28 @@ void main() {
     ]);
   });
 
+  test('replans in the new language when it changes', () async {
+    final container = makeContainer();
+    await settle();
+    birthdays.add([lea]);
+    await settle();
+
+    container.read(_textsProvider.notifier).set(_textsIn('en'));
+    await settle();
+
+    expect(notifications.scheduled, hasLength(2));
+    expect(notifications.strings.map((texts) => texts.wishAction), [
+      'Souhaiter',
+      'Send wishes',
+    ]);
+  });
+
   test('keeps reminding with the former cadence if preferences fail', () async {
     final container = ProviderContainer.test(
       retry: (_, _) => null,
       overrides: [
         notificationServiceProvider.overrideWithValue(notifications),
+        _texts,
         authUserProvider.overrideWithValue(AsyncData(MockUser(uid: 'u1'))),
         birthdaysProvider.overrideWith((ref) => birthdays.stream),
         reminderPreferencesProvider.overrideWithValue(
@@ -173,6 +220,7 @@ void main() {
         retry: (_, _) => null,
         overrides: [
           notificationServiceProvider.overrideWithValue(notifications),
+          _texts,
           authUserProvider.overrideWith((ref) => auth.stream),
           birthdayRepositoryProvider.overrideWithValue(
             RecordingBirthdayRepository(initial: [lea]),

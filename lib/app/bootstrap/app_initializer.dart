@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/domain/guest_linked.dart';
@@ -22,9 +21,8 @@ import 'package:go_router/go_router.dart';
 /// Widget de bootstrap au niveau application, monté une fois l'utilisateur
 /// authentifié.
 ///
-/// Réagit au cycle de vie de la session : garde les textes des notifications
-/// dans la langue active, crée le profil Firestore au premier lancement d'un
-/// compte et attend le premier profil ; un invité qui se lie à Google prend
+/// Réagit au cycle de vie de la session : crée le profil Firestore au premier
+/// lancement d'un compte et attend le premier profil ; un invité qui se lie à Google prend
 /// les noms de ce compte. Le bouton « Souhaiter » d'une
 /// notification ramène à l'accueil et ouvre la feuille de partage dès que la
 /// personne est chargée ; toucher la notification ouvre sa page. Les données
@@ -89,15 +87,6 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
     ref.listenManual(guestLinksProvider, (_, linked) {
       if (linked != null) unawaited(_takeGoogleNames(linked));
     });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Garde les textes des notifications locales synchronisés avec la locale active.
-    ref
-        .read(notificationServiceProvider)
-        .configure(NotificationStrings.fromL10n(context.l10n));
   }
 
   @override

@@ -50,10 +50,10 @@ No web target (`web/` removed). `lib/core/firebase_options.dart` and
 ## Plugin wrappers (`lib/core/services/`)
 
 - A service is a thin, stateless door to a plugin: no business rule, no policy (*when* to remind
-  is a domain rule of the `reminders` feature, `reminder_plan.dart`), no text of its own (the
-  one exception: `NotificationService`'s French fallback texts, replaced by the ARB ones at
-  startup), no feature import. Features map their objects onto `core` value objects
-  (`ReminderNotification`, `ImportedBirthday`).
+  is a domain rule of the `reminders` feature, `reminder_plan.dart`), no text of its own, no
+  feature import. Features map their objects onto `core` value objects
+  (`ReminderNotification`, `ImportedBirthday`). Before calling a plugin once per item, check what
+  each call costs natively (`reminders.md`: `zonedSchedule` is O(n)).
 - `.instance` singletons serve `main()` initialization and provider defaults
   (`notificationServiceProvider`, `biometricServiceProvider`, `firestoreProvider`…), or sit inside
   a plugin wrapper (`share_service.dart`); everything else reads the provider, so tests can

@@ -98,6 +98,7 @@ class MockNotificationsPlugin extends Fake
   final List<ZonedScheduleCall> zonedScheduleCalls = [];
   bool allCancelled = false;
   bool throwOnSchedule = false;
+  bool throwOnPending = false;
 
   final android = FakeAndroidNotifications();
   final ios = FakeIosNotifications();
@@ -144,6 +145,7 @@ class MockNotificationsPlugin extends Fake
 
   @override
   Future<List<PendingNotificationRequest>> pendingNotificationRequests() async {
+    if (throwOnPending) throw PlatformException(code: 'unavailable');
     return pendingRequests;
   }
 
@@ -219,24 +221,27 @@ void main() {
     await service.initialize();
   });
 
+  final fr = NotificationStrings.fromL10n(
+    lookupAppLocalizations(const Locale('fr')),
+  );
+  final en = NotificationStrings.fromL10n(
+    lookupAppLocalizations(const Locale('en')),
+  );
+
   group('NotificationService', () {
-    ReminderNotification reminder(
-      int daysBefore, {
-      int id = 1,
-      DateTime? at,
-      String surname = 'Doe',
-    }) => ReminderNotification(
-      id: id,
-      daysBefore: daysBefore,
-      name: 'John',
-      surname: surname,
-      age: 36,
-      at: at ?? DateTime(2026, 6, 30, 10),
-      payload: 'john',
-    );
+    ReminderNotification reminder(int daysBefore, {int id = 1, DateTime? at}) =>
+        ReminderNotification(
+          id: id,
+          daysBefore: daysBefore,
+          name: 'John',
+          fullName: 'John Doe',
+          age: 36,
+          at: at ?? DateTime(2026, 6, 30, 10),
+          payload: 'john',
+        );
 
     test('adds « Souhaiter » to the notification of the day only', () async {
-      await service.scheduleAll([reminder(0), reminder(7, id: 2)]);
+      await service.scheduleAll([reminder(0), reminder(7, id: 2)], strings: fr);
 
       final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
       final wish = day.actions!.single;
@@ -247,14 +252,8 @@ void main() {
       expect(weekBefore.actions, isNull);
     });
 
-    test('names the wish button in the configured language', () async {
-      service.configure(
-        NotificationStrings.fromL10n(
-          lookupAppLocalizations(const Locale('en')),
-        ),
-      );
-
-      await service.scheduleAll([reminder(0)]);
+    test('names the wish button in the given language', () async {
+      await service.scheduleAll([reminder(0)], strings: en);
 
       expect(
         mockPlugin.zonedScheduleCalls.single.actions!.single.title,
@@ -263,7 +262,7 @@ void main() {
     });
 
     test('carries the payload of each reminder', () async {
-      await service.scheduleAll([reminder(0), reminder(7, id: 2)]);
+      await service.scheduleAll([reminder(0), reminder(7, id: 2)], strings: fr);
 
       expect(mockPlugin.zonedScheduleCalls.map((c) => c.payload), [
         'john',
@@ -277,7 +276,7 @@ void main() {
         PendingNotificationRequest(999, 'Old', 'Body', 'Payload'),
       ]);
 
-      await service.scheduleAll([reminder(0)]);
+      await service.scheduleAll([reminder(0)], strings: fr);
 
       expect(mockPlugin.cancelledIds, [999]);
     });
@@ -286,7 +285,7 @@ void main() {
       await service.scheduleAll([
         reminder(0, at: DateTime(2026, 6, 30, 10)),
         reminder(7, id: 2, at: DateTime(2026, 6, 23, 10)),
-      ]);
+      ], strings: fr);
 
       expect(mockPlugin.zonedScheduleCalls.map((c) => c.id), [1, 2]);
       expect(mockPlugin.zonedScheduleCalls.map((c) => c.scheduledDate), [
@@ -296,7 +295,7 @@ void main() {
     });
 
     test('words each reminder by its days before', () async {
-      await service.scheduleAll([reminder(0), reminder(7, id: 2)]);
+      await service.scheduleAll([reminder(0), reminder(7, id: 2)], strings: fr);
 
       final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
       expect(day.title, '🎂 John Doe');
@@ -308,7 +307,10 @@ void main() {
     });
 
     test('words the day before as « Demain »', () async {
-      await service.scheduleAll([reminder(1), reminder(30, id: 2)]);
+      await service.scheduleAll([
+        reminder(1),
+        reminder(30, id: 2),
+      ], strings: fr);
 
       final [dayBefore, monthBefore] = mockPlugin.zonedScheduleCalls;
       expect(dayBefore.body, 'Demain, John fête son anniversaire.');
@@ -317,35 +319,114 @@ void main() {
       expect(dayBefore.actions, isNull);
     });
 
-    test('names a person without a last name with no stray space', () async {
-      await service.scheduleAll([
-        reminder(0, surname: ''),
-        reminder(7, id: 2, surname: ''),
-      ]);
-
-      final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
-      expect(day.title, '🎂 John');
-      expect(weekBefore.title, '🎉 John');
-    });
-
-    test('words reminders with the configured localized texts', () async {
-      service.configure(
-        NotificationStrings.fromL10n(
-          lookupAppLocalizations(const Locale('en')),
-        ),
-      );
-
-      await service.scheduleAll([reminder(0), reminder(7, id: 2)]);
+    test('words reminders with the given localized texts', () async {
+      await service.scheduleAll([reminder(0), reminder(7, id: 2)], strings: en);
 
       final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
       expect(day.title, '🎂 John Doe');
       expect(day.body, "It's John's birthday today!");
       expect(weekBefore.title, '🎉 John Doe');
       expect(weekBefore.body, "John's birthday is in 7 days.");
+      expect(en.reminderBody('John', 1), "John's birthday is tomorrow.");
+    });
+
+    test('runs overlapping calls one after the other', () async {
+      // Sans file, la plus ancienne replanifierait ce que la récente annule.
+      final first = service.scheduleAll([
+        reminder(0),
+        reminder(7, id: 2),
+      ], strings: fr);
+      final second = service.scheduleAll([
+        reminder(0, id: 3),
+        reminder(7, id: 4),
+      ], strings: fr);
+      await Future.wait([first, second]);
+
+      expect(mockPlugin.zonedScheduleCalls.map((c) => c.id), [1, 2, 3, 4]);
+    });
+
+    test('skips a plan identical to the last one', () async {
+      await service.scheduleAll([reminder(0)], strings: fr);
+      await service.scheduleAll([reminder(0)], strings: fr);
+
+      expect(mockPlugin.zonedScheduleCalls, hasLength(1));
+    });
+
+    test('replans the same plan in another language', () async {
+      await service.scheduleAll([reminder(0)], strings: fr);
+      await service.scheduleAll([reminder(0)], strings: en);
+
+      expect(mockPlugin.zonedScheduleCalls.map((c) => c.title), [
+        '🎂 John Doe',
+        '🎂 John Doe',
+      ]);
       expect(
-        NotificationStrings.fromL10n(lookupAppLocalizations(const Locale('en')))
-            .reminderBody('John', 1),
-        "John's birthday is tomorrow.",
+        mockPlugin.zonedScheduleCalls.last.actions!.single.title,
+        'Send wishes',
+      );
+    });
+
+    test('retries the same plan after a refused reminder', () async {
+      mockPlugin.throwOnSchedule = true;
+      await service.scheduleAll([reminder(0)], strings: fr);
+      mockPlugin.throwOnSchedule = false;
+
+      await service.scheduleAll([reminder(0)], strings: fr);
+
+      expect(mockPlugin.zonedScheduleCalls, hasLength(1));
+    });
+
+    test('replans after a failure and keeps the queue going', () async {
+      mockPlugin.throwOnPending = true;
+      await expectLater(
+        service.scheduleAll([reminder(0)], strings: fr),
+        throwsException,
+      );
+      mockPlugin.throwOnPending = false;
+
+      await service.scheduleAll([reminder(0)], strings: fr);
+
+      expect(mockPlugin.zonedScheduleCalls, hasLength(1));
+    });
+
+    test('replans a plan a failed pass came between', () async {
+      await service.scheduleAll([reminder(0)], strings: fr);
+      // Le plan suivant échoue en route : le plugin est entre deux plans.
+      mockPlugin.throwOnPending = true;
+      await expectLater(
+        service.scheduleAll([reminder(7, id: 2)], strings: fr),
+        throwsException,
+      );
+      mockPlugin.throwOnPending = false;
+
+      // Retour au premier plan (« Annuler ») : il n'est pas sauté.
+      await service.scheduleAll([reminder(0)], strings: fr);
+
+      expect(mockPlugin.zonedScheduleCalls, hasLength(2));
+    });
+
+    test('schedules in the time zone the phone has now', () async {
+      await service.scheduleAll([reminder(0)], strings: fr);
+      // Voyage : le téléphone change de fuseau, l'app tourne encore.
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(
+        const MethodChannel('flutter_timezone'),
+        (call) async => 'America/New_York',
+      );
+      addTearDown(() {
+        messenger.setMockMethodCallHandler(
+          const MethodChannel('flutter_timezone'),
+          (call) async => 'UTC',
+        );
+        tz.setLocalLocation(tz.UTC);
+      });
+
+      await service.scheduleAll([reminder(0)], strings: fr);
+
+      expect(
+        mockPlugin.zonedScheduleCalls.map((c) => c.scheduledDate.location.name),
+        ['UTC', 'America/New_York'],
       );
     });
 
@@ -354,7 +435,7 @@ void main() {
         const PendingNotificationRequest(123, 'Title', 'Body', 'Payload'),
       );
 
-      await service.scheduleAll([]);
+      await service.scheduleAll([], strings: fr);
 
       expect(mockPlugin.cancelledIds, contains(123));
       expect(mockPlugin.zonedScheduleCalls, isEmpty);
@@ -363,7 +444,7 @@ void main() {
     test('swallows scheduling failures without throwing', () async {
       mockPlugin.throwOnSchedule = true;
 
-      await service.scheduleAll([reminder(0)]);
+      await service.scheduleAll([reminder(0)], strings: fr);
 
       expect(mockPlugin.zonedScheduleCalls, isEmpty);
     });

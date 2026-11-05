@@ -34,11 +34,15 @@ Riverpod 3.4 with hand-written providers. Patterns with code: architecture skill
   operation the user can trigger twice starts with `if (state.isLoading) return…;`
   (`AuthController`, `BirthdayWisher`, `ContactImport`).
 - UI state (search text, filters, view mode): a small `Notifier<T>` whose `build` watches the
-  session, so it resets at sign-out.
+  session, so it resets at sign-out. Ids hidden during an « Annuler » delay: one more provider
+  of `PendingIds` (`birthday/providers/pending_ids.dart`), not a new class.
 - Derived views: a `Provider` calling a domain function; `autoDispose` + `family` per screen or
   id; several family arguments → a record.
 - Side effects on data changes (rescheduling notifications): a provider activated from `app/`
   by `ref.watch` in an always-mounted widget — Riverpod 3 pauses providers nobody listens to.
+  It watches every input of the effect (data, settings, language), so any change re-runs it; a
+  value only `app/` knows comes through a `core` provider that `app/` overrides
+  (`notificationStringsProvider`), never a setter on a service.
 - Lifecycle reactions (profile creation, offering the reminders after a capture or a sign-in)
   belong to `app/bootstrap`, never to a screen. A permission is asked only on a user action,
   through its controller (`ReminderPermission`, `ContactImport`), never at launch.

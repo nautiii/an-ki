@@ -39,7 +39,13 @@ A missed reminder breaks the one promise AnKi makes: treat every change here as 
   app updates.
 - `NotificationService` only schedules what it's given: it cancels the pending ids missing from
   the new plan, then schedules each reminder (`zonedSchedule`, `exactAllowWhileIdle`, repeating
-  yearly through `matchDateTimeComponents: dateAndTime`).
+  yearly through `matchDateTimeComponents: dateAndTime`). `scheduleAll` calls run one after the
+  other (overlapping, the older one re-schedules what the newer cancelled), re-read the phone's
+  time zone first (travel) and skip a plan identical to the last one (same reminders, texts and
+  zone): the Android plugin rewrites its whole stored list on every `zonedSchedule`, so a full
+  replan costs O(n²) and every Firestore emission (a wish tap) triggers one. That memory lives
+  per isolate and holds only a fully scheduled plan; it doesn't see what the background task
+  writes.
 - A repeating notification keeps the text written when it was scheduled: never put an age, or
   anything else that changes yearly, in a notification text (`age` travels with the plan but
   stays out of the texts). A one-shot with the age plus a yearly ageless fallback doesn't work
@@ -51,8 +57,10 @@ A missed reminder breaks the one promise AnKi makes: treat every change here as 
 - `ReminderNotification.daysBefore` picks the text: 0 is the day (« 🎂 Léa Martin », « Léa fête
   son anniversaire aujourd'hui ! », « Souhaiter »), otherwise « 🎉 Léa Martin », « Demain, Léa
   fête son anniversaire. » or « Dans 7 jours, … ».
-- `reminderSyncProvider` replans on every new birthdays list and every new setting (sign-out →
+- `reminderSyncProvider` replans on every new birthdays list, setting and language (sign-out →
   empty list → all cancelled); `app/` keeps it alive by watching it from an always-mounted widget.
+  Everything a notification depends on is an input it watches: never push a value into the
+  service on the side (a former `configure()` left reminders in the old language).
 - A daily background task replans too (B8 step 1, `app/bootstrap/background_replan.dart`):
   `main.dart` registers it with workmanager (Android only for now; periodic 24 h, no network
   constraint, `ExistingPeriodicWorkPolicy.keep`). Its isolate initializes Firebase and
@@ -63,9 +71,11 @@ A missed reminder breaks the one promise AnKi makes: treat every change here as 
   (same process, cache and alarms): if the list or setting changed while it scheduled, the task
   replans once more with the latest. A failure returns false and WorkManager retries.
   Why workmanager: architecture `decisions.md` D12.
-- Texts come from the ARB through `NotificationStrings.fromL10n`, injected by `app/` (the
-  background task builds them from the profile locale with `lookupAppLocalizations`); the French
-  set in the service is only the fallback before that.
+- Texts come from the ARB through `NotificationStrings.fromL10n`: `notificationStringsProvider`
+  (core, throws unless overridden) is overridden by `app/bootstrap/notification_strings.dart`
+  (`localizedNotificationStrings`, from the profile locale) in `main()`, in the background
+  task's container and in `pumpApp`; each `scheduleAll` receives them. `ReminderNotification`
+  carries `name` and `fullName` (`Birthday.fullName`).
 - The J-0 notification carries « Souhaiter » (`NotificationActions.wish`, Android only); its
   payload is the birthday id, routed by `app/bootstrap/app_initializer.dart` (a tap on any
   reminder opens that person's page). A person's own reminders are set on their page, written

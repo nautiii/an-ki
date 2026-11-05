@@ -9,11 +9,9 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
-/// Textes localisés utilisés pour afficher les notifications planifiées.
-///
-/// Le service est sans contexte (singleton) : le texte localisé est injecté
-/// depuis la couche `app/` via [NotificationService.configure] ; le jeu français
-/// sert de repli avant que la configuration ne soit appliquée.
+/// Textes localisés des notifications planifiées, dans la langue de l'app :
+/// `app/` les fournit ([notificationStringsProvider]) et chaque planification
+/// les reçoit ([NotificationService.scheduleAll]).
 class NotificationStrings {
   final String channelName;
   final String channelDescription;
@@ -42,18 +40,6 @@ class NotificationStrings {
     required this.reminderBody,
     required this.wishAction,
   });
-
-  static final NotificationStrings french = NotificationStrings(
-    channelName: 'Anniversaires',
-    channelDescription: 'Rappels d\'anniversaire du jour',
-    birthdayTitle: (fullName) => '🎂 $fullName',
-    birthdayBody: (name) => '$name fête son anniversaire aujourd\'hui !',
-    reminderTitle: (fullName) => '🎉 $fullName',
-    reminderBody: (name, days) => days == 1
-        ? 'Demain, $name fête son anniversaire.'
-        : 'Dans $days jours, $name fête son anniversaire.',
-    wishAction: 'Souhaiter',
-  );
 
   factory NotificationStrings.fromL10n(AppLocalizations l10n) =>
       NotificationStrings(
@@ -117,8 +103,12 @@ class const ReminderNotification({
   /// Jours de calendrier avant l'anniversaire ; 0 le jour J, qui a son
   /// texte et le bouton « Souhaiter ».
   required final int daysBefore,
+
+  /// Prénom, en tête du texte (« Léa fête son anniversaire… »).
   required final String name,
-  required final String surname,
+
+  /// Prénom et nom réunis, en titre (« 🎂 Léa Martin »).
+  required final String fullName,
 
   /// Âge atteint le jour de l'anniversaire, null si l'année de naissance est
   /// inconnue. Pas affiché tant que les notifications se répètent chaque
@@ -139,14 +129,14 @@ class const ReminderNotification({
       other.id == id &&
       other.daysBefore == daysBefore &&
       other.name == name &&
-      other.surname == surname &&
+      other.fullName == fullName &&
       other.age == age &&
       other.at == at &&
       other.payload == payload;
 
   @override
   int get hashCode =>
-      Object.hash(id, daysBefore, name, surname, age, at, payload);
+      Object.hash(id, daysBefore, name, fullName, age, at, payload);
 }
 
 /// Service singleton des notifications locales : initialisation du plugin,
@@ -173,15 +163,21 @@ class NotificationService {
     'an_ki/notification_permission',
   );
 
-  NotificationStrings _strings = NotificationStrings.french;
-
   final _taps = StreamController<NotificationTap>.broadcast();
 
   /// Le toucher qui a lancé l'app n'est rendu qu'une fois.
   bool _launchTapTaken = false;
 
-  /// Injecte les textes localisés utilisés pour les notifications planifiées.
-  void configure(NotificationStrings strings) => _strings = strings;
+  /// Planifications en file : deux qui se chevauchent laisseraient la plus
+  /// ancienne replanifier ce que la plus récente vient d'annuler.
+  Future<void> _queue = Future.value();
+
+  /// Dernier plan appliqué, ses textes et son fuseau : un plan identique ne
+  /// refait pas les centaines d'appels au plugin (qui réécrit sa liste
+  /// sauvegardée à chacun).
+  List<ReminderNotification>? _lastPlan;
+  NotificationStrings? _lastStrings;
+  String? _lastZone;
 
   /// Touchers sur une notification pendant que l'app tourne.
   Stream<NotificationTap> get taps => _taps.stream;
@@ -208,14 +204,9 @@ class NotificationService {
     // 1. Charger toutes les zones horaires.
     tz_data.initializeTimeZones();
 
-    // 2. Positionner la zone locale du device.
-    try {
-      final tzInfo = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(tzInfo.identifier));
-    } catch (e) {
-      debugPrint('[NotificationService] Failed to load the timezone: $e');
-      tz.setLocalLocation(tz.UTC);
-    }
+    // 2. Positionner la zone locale du device (UTC si elle est illisible).
+    tz.setLocalLocation(tz.UTC);
+    await _refreshLocalZone();
 
     // 3. Paramètres d'init Android / iOS.
     const androidSettings = AndroidInitializationSettings(
@@ -238,6 +229,17 @@ class NotificationService {
     );
 
     _initialized = true;
+  }
+
+  /// Zone locale du téléphone, relue avant chaque planification : elle a pu
+  /// changer (voyage) depuis le lancement. Illisible, la zone actuelle reste.
+  Future<void> _refreshLocalZone() async {
+    try {
+      final info = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(info.identifier));
+    } catch (e) {
+      debugPrint('[NotificationService] Failed to load the timezone: $e');
+    }
   }
 
   AndroidFlutterLocalNotificationsPlugin? get _android => _plugin
@@ -340,10 +342,36 @@ class NotificationService {
     }
   }
 
-  /// Remplace les rappels planifiés par [reminders] : annule ceux qui n'y
-  /// sont plus, planifie (ou replanifie) les autres.
-  Future<void> scheduleAll(List<ReminderNotification> reminders) async {
+  /// Remplace les rappels planifiés par [reminders], rédigés avec [strings] :
+  /// annule ceux qui n'y sont plus, planifie (ou replanifie) les autres.
+  /// Les appels passent l'un après l'autre ; un échec n'arrête pas les
+  /// suivants.
+  Future<void> scheduleAll(
+    List<ReminderNotification> reminders, {
+    required NotificationStrings strings,
+  }) {
+    final run = _queue.then((_) => _scheduleAll(reminders, strings));
+    _queue = run.catchError((Object _) {});
+    return run;
+  }
+
+  Future<void> _scheduleAll(
+    List<ReminderNotification> reminders,
+    NotificationStrings strings,
+  ) async {
     if (!_initialized) return;
+    await _refreshLocalZone();
+    final zone = tz.local.name;
+    if (identical(strings, _lastStrings) &&
+        zone == _lastZone &&
+        listEquals(reminders, _lastPlan)) {
+      return;
+    }
+    // Oublié dès qu'un passage commence : interrompu (annulation refusée…),
+    // il laisse le plugin entre deux plans, que le cache ne doit pas couvrir.
+    _lastPlan = null;
+    _lastStrings = null;
+    _lastZone = null;
 
     final ids = {for (final reminder in reminders) reminder.id};
     final pending = await _plugin.pendingNotificationRequests();
@@ -354,8 +382,15 @@ class NotificationService {
       }
     }
 
+    var allScheduled = true;
     for (final reminder in reminders) {
-      await _schedule(reminder);
+      allScheduled &= await _schedule(reminder, strings);
+    }
+    // Un rappel refusé (alarmes exactes coupées…) : le même plan sera retenté.
+    if (allScheduled) {
+      _lastPlan = reminders;
+      _lastStrings = strings;
+      _lastZone = zone;
     }
 
     debugPrint(
@@ -363,22 +398,21 @@ class NotificationService {
     );
   }
 
-  Future<void> _schedule(ReminderNotification reminder) async {
-    // Sans espace de trop quand le nom manque (« Mamie »).
-    final fullName = [
-      reminder.name,
-      reminder.surname,
-    ].where((part) => part.isNotEmpty).join(' ');
+  /// Planifie [reminder] ; faux si le plugin l'a refusé.
+  Future<bool> _schedule(
+    ReminderNotification reminder,
+    NotificationStrings strings,
+  ) async {
     final isBirthday = reminder.daysBefore == 0;
     try {
       await _plugin.zonedSchedule(
         id: reminder.id,
         title: isBirthday
-            ? _strings.birthdayTitle(fullName)
-            : _strings.reminderTitle(fullName),
+            ? strings.birthdayTitle(reminder.fullName)
+            : strings.reminderTitle(reminder.fullName),
         body: isBirthday
-            ? _strings.birthdayBody(reminder.name)
-            : _strings.reminderBody(reminder.name, reminder.daysBefore),
+            ? strings.birthdayBody(reminder.name)
+            : strings.reminderBody(reminder.name, reminder.daysBefore),
         scheduledDate: tz.TZDateTime(
           tz.local,
           reminder.at.year,
@@ -387,24 +421,29 @@ class NotificationService {
           reminder.at.hour,
           reminder.at.minute,
         ),
-        notificationDetails: _notificationDetails(isBirthday: isBirthday),
+        notificationDetails: _notificationDetails(strings, isBirthday),
         payload: reminder.payload,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.dateAndTime,
       );
+      return true;
     } catch (e) {
       debugPrint(
         '[NotificationService] Failed to schedule reminder ${reminder.id}: $e',
       );
+      return false;
     }
   }
 
-  NotificationDetails _notificationDetails({required bool isBirthday}) {
+  NotificationDetails _notificationDetails(
+    NotificationStrings strings,
+    bool isBirthday,
+  ) {
     return NotificationDetails(
       android: AndroidNotificationDetails(
         _channelId,
-        _strings.channelName,
-        channelDescription: _strings.channelDescription,
+        strings.channelName,
+        channelDescription: strings.channelDescription,
         importance: Importance.max,
         priority: Priority.high,
         // Le jour J, « Souhaiter » ouvre l'app sur la feuille de partage.
@@ -414,7 +453,7 @@ class NotificationService {
             ? [
                 AndroidNotificationAction(
                   NotificationActions.wish,
-                  _strings.wishAction,
+                  strings.wishAction,
                   showsUserInterface: true,
                 ),
               ]
@@ -434,4 +473,13 @@ class NotificationService {
 /// tests remplacent.
 final notificationServiceProvider = Provider<NotificationService>(
   (ref) => NotificationService.instance,
+);
+
+/// Textes des rappels dans la langue de l'app. `app/` le remplace (elle seule
+/// connaît la langue du profil) dans `main()` et dans la tâche de fond ; un
+/// changement de langue replanifie donc les rappels.
+final notificationStringsProvider = Provider<NotificationStrings>(
+  (ref) => throw UnimplementedError(
+    'notificationStringsProvider is overridden by app/.',
+  ),
 );

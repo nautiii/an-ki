@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/app/bootstrap/background_replan.dart';
+import 'package:an_ki/app/bootstrap/notification_strings.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
@@ -29,10 +30,11 @@ class _RecordingNotificationService extends Fake
   Future<void> Function()? whileScheduling;
 
   @override
-  void configure(NotificationStrings strings) => this.strings = strings;
-
-  @override
-  Future<void> scheduleAll(List<ReminderNotification> reminders) async {
+  Future<void> scheduleAll(
+    List<ReminderNotification> reminders, {
+    required NotificationStrings strings,
+  }) async {
+    this.strings = strings;
     scheduled.add(reminders);
     final during = whileScheduling;
     whileScheduling = null;
@@ -195,6 +197,7 @@ void main() {
       retry: (_, _) => null,
       overrides: [
         notificationServiceProvider.overrideWithValue(notifications),
+        localizedNotificationStrings,
         authUserProvider.overrideWith((ref) => Stream.value(user)),
         birthdayRepositoryProvider.overrideWithValue(
           birthdays ?? _LiveBirthdayRepository([lea]),
@@ -239,7 +242,7 @@ void main() {
               id: base + 500000,
               daysBefore: 7,
               name: 'Léa',
-              surname: 'Martin',
+              fullName: 'Léa Martin',
               age: 32,
               at: DateTime(2026, 3, 5, 10),
               payload: 'lea',
@@ -248,7 +251,7 @@ void main() {
               id: base,
               daysBefore: 0,
               name: 'Léa',
-              surname: 'Martin',
+              fullName: 'Léa Martin',
               age: 32,
               at: DateTime(2026, 3, 12, 10),
               payload: 'lea',

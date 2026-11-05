@@ -22,7 +22,9 @@ class const PlannedReminder({
   /// Anniversaire rappelé : le toucher de la notification y ramène.
   required final String birthdayId,
   required final String name,
-  required final String surname,
+
+  /// [Birthday.fullName] de la personne, comme dans la notification.
+  required final String fullName,
 
   /// Âge atteint le jour de l'anniversaire ; null quand l'année de naissance
   /// est inconnue.
@@ -31,11 +33,6 @@ class const PlannedReminder({
   /// Moment du rappel, heure locale.
   required final DateTime at,
 }) {
-  /// Prénom et nom réunis, sans espace de trop quand l'un manque
-  /// (« Mamie »), comme dans la notification.
-  String get fullName =>
-      [name, surname].where((part) => part.isNotEmpty).join(' ');
-
   @override
   bool operator ==(Object other) =>
       other is PlannedReminder &&
@@ -43,12 +40,13 @@ class const PlannedReminder({
       other.lead == lead &&
       other.birthdayId == birthdayId &&
       other.name == name &&
-      other.surname == surname &&
+      other.fullName == fullName &&
       other.age == age &&
       other.at == at;
 
   @override
-  int get hashCode => Object.hash(id, lead, birthdayId, name, surname, age, at);
+  int get hashCode =>
+      Object.hash(id, lead, birthdayId, name, fullName, age, at);
 }
 
 /// Rappels de chaque anniversaire selon [preferences] (et le réglage propre
@@ -134,7 +132,7 @@ PlannedReminder _plan(
     lead: lead,
     birthdayId: birthday.id,
     name: birthday.name,
-    surname: birthday.surname,
+    fullName: birthday.fullName,
     age: switch (birthday.date.year) {
       final year? => occurrence.year - year,
       null => null,
