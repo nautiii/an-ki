@@ -47,8 +47,7 @@ ReminderPreferences _preferencesFrom(Object? stored) {
   final names = ReminderLead.values.asNameMap();
   final leads = switch (stored['leads']) {
     final List<dynamic> list => {
-      for (final name in list)
-        ?names[name],
+      for (final name in list) ?names[name],
       ReminderLead.sameDay,
     },
     _ => defaults.leads,
