@@ -10,19 +10,36 @@ AVD=Honor_Magic7_Pro
 PKG=com.github.nautiii.an_ki
 TZ_ID=Europe/Paris
 SDK=${ANDROID_HOME:-${LOCALAPPDATA:-$HOME/AppData/Local}/Android/Sdk}
-ADB=$SDK/platform-tools/adb.exe
+ADB=${DEVICE_ADB:-$SDK/platform-tools/adb.exe}
 [ -x "$ADB" ] || ADB=adb
 EMULATOR=$SDK/emulator/emulator.exe
-OUT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)/build/device
+TOP=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+OUT=$TOP/build/device
 SERIAL=
+KEY=
+
+# Guichet : un appareil sert une session à la fois, les autres attendent leur
+# tour. L'état est hors du dépôt pour être commun aux clones et aux worktrees.
+STATE=${DEVICE_STATE_DIR:-$HOME/.android/anki-device}
+LEASE=${DEVICE_LEASE:-900}            # s sans commande avant qu'une autre session reprenne la main
+CLAIM_WAIT=${DEVICE_CLAIM_WAIT:-300}  # s d'attente par appel de claim : avec un démarrage, sous les 10 min du Bash
+TICKET_TTL=120                        # s : un ticket non rafraîchi appartient à une session partie
+# Les sous-agents partagent l'identifiant de leur session : ils agissent pour elle.
+OWNER=${DEVICE_OWNER:-${CLAUDE_CODE_SESSION_ID:-$TOP}}
+OWNER=${OWNER//[^A-Za-z0-9_.-]/_}
+LABEL=${DEVICE_LABEL:-${CLAUDE_CODE_HOST_SESSION_ID:-$OWNER} · ${TOP##*/}}
 
 usage() {
   cat <<'EOF'
 device.sh <commande> — cible : $DEVICE, sinon l'unique appareil, sinon l'émulateur.
 
+Guichet    claim (attend son tour, démarre l'émulateur, affiche la série) · release · status
+           Toute autre commande exige d'avoir le guichet de l'appareil visé.
 Appareil   boot · info · start · stop
-Observer   shot [nom] · ui · logs [n] · crash [n] · alarms · notifs
-Piloter    tap <libellé> | tap <x> <y> · type <texte ASCII> · key <back|home|enter|tab|del|recents>
+Observer   shot [nom] · ui · look [nom] (capture + ui) · wait <libellé> [s] · logs [n] · crash [n]
+           alarms · notifs
+Piloter    tap <libellé> (attend qu'il apparaisse) | tap <x> <y> · type <texte ASCII>
+           key <back|home|enter|tab|del|recents>
            scroll <down|up>
 Varier     theme <dark|light> · text <échelle> · size <compact|reset|LxH> · motion <off|on>
            net <off|on> · tz <zone> · time <+3d|+2h|+10m|'AAAA-MM-JJ HH:MM'|auto>
@@ -57,16 +74,168 @@ pick_serial() {
   fi
   local ready
   ready=$(devices | awk '$2 == "device" { print $1 }')
-  [ -n "$ready" ] || die "aucun appareil prêt : lance « device.sh boot » ou branche le téléphone"
+  [ -n "$ready" ] || die "aucun appareil prêt : lance « device.sh claim » ou branche le téléphone"
   if [ "$(printf '%s\n' "$ready" | wc -l)" -eq 1 ]; then
     SERIAL=$ready
     return
   fi
-  SERIAL=$(printf '%s\n' "$ready" | grep -m1 '^emulator-' || true)
+  SERIAL=$(running_avd)
   [ -n "$SERIAL" ] || die "plusieurs appareils : précise DEVICE=<série> parmi $(printf '%s ' $ready)"
 }
 
 emulator_only() { is_emulator || die "$1 : émulateur seulement, jamais sur le téléphone"; }
+
+# --- Guichet ----------------------------------------------------------------
+# $STATE/<clé>/held/ : la session qui tient l'appareil (owner, info) ; la date
+# de held/owner est celle de sa dernière commande. $STATE/<clé>/queue/ : un
+# ticket par session en attente, nommé par son heure d'arrivée.
+
+now() { date +%s; }
+age() { echo $(($(now) - $(stat -c %Y "$1" 2>/dev/null || now))); }
+# Durée lisible : secondes sous la minute, minutes au-delà.
+dur() { if [ "$1" -lt 60 ]; then echo "$1 s"; else echo "$(($1 / 60)) min"; fi; }
+# Clé du guichet : l'AVD pour l'émulateur, la série pour un téléphone.
+target_key() {
+  if [ -n "${DEVICE:-}" ] && [[ $DEVICE != emulator-* ]]; then KEY=${DEVICE//[^A-Za-z0-9_.-]/_}; else KEY=$AVD; fi
+}
+serial_key() { if is_emulator; then KEY=$AVD; else KEY=${SERIAL//[^A-Za-z0-9_.-]/_}; fi; }
+slot() { printf '%s/%s' "$STATE" "$KEY"; }
+holder() { cat "$(slot)/held/owner" 2>/dev/null || true; }
+holder_label() { sed -n 1p "$(slot)/held/info" 2>/dev/null || echo "une session qui démarre"; }
+holder_since() { sed -n 2p "$(slot)/held/info" 2>/dev/null || now; }
+
+# Inactivité du détenteur ; un held/ sans owner est une prise interrompue.
+holder_idle() {
+  local h
+  h=$(slot)/held
+  if [ -f "$h/owner" ]; then age "$h/owner"; elif [ "$(age "$h")" -gt 30 ]; then echo "$LEASE"; else echo 0; fi
+}
+
+holder_line() {
+  printf '%s, depuis %s (dernière commande il y a %s)' "$(holder_label)" \
+    "$(dur $(($(now) - $(holder_since))))" "$(dur "$(holder_idle)")"
+}
+
+require_hold() {
+  local h
+  h=$(holder)
+  if [ "$h" != "$OWNER" ]; then
+    [ -d "$(slot)/held" ] || die "personne ne tient $KEY : lance d'abord « device.sh claim »"
+    die "$KEY est tenu par $(holder_line) : lance « device.sh claim » pour prendre ton tour"
+  fi
+  touch "$(slot)/held/owner"
+}
+
+# Prend le guichet $KEY dans l'ordre d'arrivée. Code 75 si le tour n'est pas
+# venu après $CLAIM_WAIT s : relancer garde la place dans la file.
+acquire() {
+  local sd q t head start pos
+  sd=$(slot)
+  start=$(now)
+  mkdir -p "$sd/queue"
+  if [ "$(holder)" = "$OWNER" ]; then
+    touch "$sd/held/owner"
+    say "déjà à toi : ta session tient $KEY (un sous-agent ne fait pas release)"
+    return 0
+  fi
+  t=
+  for q in "$sd/queue"/*; do
+    q=${q##*/}
+    [ "${q#*-}" != "$OWNER" ] || t=$q # <arrivée>-<session>, comparé exactement
+  done
+  [ -n "$t" ] || t=$(date +%s%N)-$OWNER
+  while :; do
+    printf '%s\n' "$LABEL" >"$sd/queue/$t"
+    for q in "$sd/queue"/*; do
+      [ "$q" = "$sd/queue/$t" ] || [ "$(age "$q")" -le "$TICKET_TTL" ] || rm -f "$q"
+    done
+    head=$(ls "$sd/queue" | sort | head -n 1)
+    if [ "$head" = "$t" ]; then
+      if [ -d "$sd/held" ] && [ "$(holder_idle)" -ge "$LEASE" ]; then
+        # Un seul renommage réussit : deux sessions ne reprennent pas la main ensemble.
+        say "reprise de $KEY : $(holder_line), bail expiré"
+        mv "$sd/held" "$sd/stale.$$" 2>/dev/null && rm -rf "$sd/stale.$$"
+      fi
+      if mkdir "$sd/held" 2>/dev/null; then
+        printf '%s\n' "$OWNER" >"$sd/held/owner"
+        printf '%s\n%s\n%s\n' "$LABEL" "$(now)" "$TOP" >"$sd/held/info"
+        rm -f "$sd/queue/$t"
+        TOOK=1
+        WAITED=$(($(now) - start))
+        [ "$WAITED" -lt 5 ] || say "guichet $KEY pris après $(dur "$WAITED") d'attente"
+        return 0
+      fi
+    fi
+    if [ $(($(now) - start)) -ge "$CLAIM_WAIT" ]; then
+      pos=$(ls "$sd/queue" | sort | grep -n -- "^$t\$" | cut -d: -f1)
+      printf 'en attente : position %s sur %s — %s tient %s. Relance « device.sh claim » : la place est gardée.\n' \
+        "$pos" "$(ls "$sd/queue" | wc -l)" "$(holder_line)" "$KEY"
+      exit 75
+    fi
+    sleep 3
+  done
+}
+
+cmd_claim() {
+  TOOK= WAITED=0
+  target_key
+  acquire
+  if [ "$KEY" = "$AVD" ]; then
+    # Attente plus démarrage dépasseraient les 10 min du Bash, qui tuerait l'émulateur
+    # en plein démarrage : le claim suivant, déjà détenteur, le démarre.
+    if [ "$WAITED" -gt 30 ] && [ -z "$(running_avd)" ]; then
+      echo "guichet $KEY pris, émulateur éteint : relance « device.sh claim » pour le démarrer."
+      exit 75
+    fi
+    cmd_boot >/dev/null
+  else
+    SERIAL=$DEVICE
+  fi
+  # Réglages laissés par une session partie sans release, jamais ceux de sa propre session.
+  if [ -n "$TOOK" ] && [ -f "$(baseline_file)" ]; then
+    say "réglages laissés par la session précédente :"
+    (cmd_reset) || say "remise ratée : lance « device.sh reset »"
+  fi
+  printf '%s\n' "$SERIAL"
+}
+
+cmd_release() {
+  target_key
+  if [ "$(holder)" != "$OWNER" ]; then
+    say "tu ne tiens pas $KEY : rien à libérer"
+    return 0
+  fi
+  if [ -f "$(baseline_file)" ]; then
+    if [ "$KEY" = "$AVD" ]; then SERIAL=$(running_avd); else SERIAL=$DEVICE; fi
+    # Un échec ne doit pas garder le guichet : le relevé reste et la prochaine prise le remet.
+    if [ -z "$SERIAL" ] || ! (cmd_reset); then say "réglages non remis : la prochaine prise s'en charge"; fi
+  fi
+  local since
+  since=$(holder_since)
+  rm -rf "$(slot)/held"
+  say "$KEY libéré après $(dur $(($(now) - since))) ; en attente : $(ls "$(slot)/queue" 2>/dev/null | wc -l)"
+}
+
+cmd_status() {
+  local sd q
+  [ -d "$STATE" ] || {
+    echo "guichet vide"
+    return
+  }
+  for sd in "$STATE"/*/; do
+    KEY=$(basename "$sd")
+    [ -d "$sd/queue" ] || [ -d "$sd/held" ] || continue
+    if [ -d "$sd/held" ]; then
+      printf '%s : tenu par %s%s\n' "$KEY" "$(holder_line)" "$([ "$(holder)" = "$OWNER" ] && echo ' — toi')"
+    else
+      printf '%s : libre\n' "$KEY"
+    fi
+    for q in $(ls "$sd/queue" 2>/dev/null | sort); do
+      [ "$(age "$sd/queue/$q")" -le "$TICKET_TTL" ] && printf '  attend : %s\n' "$(cat "$sd/queue/$q")"
+    done
+  done
+  return 0
+}
 
 # --- Appareil ---------------------------------------------------------------
 
@@ -82,24 +251,88 @@ running_avd() {
   done
 }
 
+# Le qemu de $AVD seulement : un autre AVD ouvert dans Android Studio ne compte pas.
+qemu_alive() {
+  powershell.exe -NoProfile -Command \
+    "Get-CimInstance Win32_Process -Filter \"Name like 'qemu-system%'\" | ForEach-Object CommandLine" \
+    </dev/null 2>/dev/null | tr -d '\r' | grep -qE -- "-avd $AVD( |\$)"
+}
+
+# Attend jusqu'à $1 s que l'AVD apparaisse dans adb ; échoue tout de suite si
+# l'émulateur lancé ($2, facultatif) est déjà mort.
+wait_avd() {
+  local waited=0
+  until SERIAL=$(running_avd) && [ -n "$SERIAL" ]; do
+    if [ -n "${2:-}" ] && ! kill -0 "$2" 2>/dev/null; then
+      die "l'émulateur s'est arrêté au lancement : $(tail -n 6 "$STATE/emulator.log" | tr -d '\r' | tr '\n' ' ')"
+    fi
+    [ $waited -lt "$1" ] || return 1
+    sleep 2
+    waited=$((waited + 2))
+  done
+}
+
+wait_booted() {
+  timeout "$1" "$ADB" -s "$SERIAL" wait-for-device shell \
+    'while [ "$(getprop sys.boot_completed)" != 1 ]; do sleep 1; done' </dev/null >/dev/null 2>&1
+}
+
+launch() { # [options de l'émulateur]
+  local avd_dir=${ANDROID_AVD_HOME:-$HOME/.android/avd}/$AVD.avd pid
+  # Sans qemu vivant, ces verrous viennent d'un émulateur planté et bloqueraient le lancement.
+  qemu_alive || rm -rf "$avd_dir"/*.lock
+  mkdir -p "$STATE"
+  say "Démarrage de $AVD${*:+ $*} (≈ 20 s depuis l'instantané, ≈ 1 min à froid)…"
+  # Détaché : l'émulateur survit au script ; son journal est dans le dossier du guichet.
+  nohup "$EMULATOR" -avd "$AVD" -no-boot-anim -timezone "$TZ_ID" "$@" >"$STATE/emulator.log" 2>&1 &
+  pid=$!
+  wait_avd 60 "$pid" || die "l'émulateur n'apparaît pas, voir $(win_path "$STATE/emulator.log")"
+}
+
 cmd_boot() {
+  local launched=
   SERIAL=$(running_avd)
+  if [ -z "$SERIAL" ] && qemu_alive; then
+    # Soit il finit de s'éteindre, soit il tourne (souvent lancé par Android Studio) et
+    # adb l'a perdu : en relancer un second se heurterait à son verrou.
+    local gone=0
+    while [ $gone -lt 15 ] && qemu_alive; do
+      sleep 3
+      gone=$((gone + 3))
+    done
+  fi
+  if [ -z "$SERIAL" ] && qemu_alive; then
+    say "l'émulateur tourne sans être visible d'adb : reconnexion…"
+    adb_ reconnect offline >/dev/null 2>&1 || true
+    if ! wait_avd 10; then
+      # Redémarrer le serveur adb coupe les flutter run de tous les appareils.
+      if ls -d "$STATE"/*/held 2>/dev/null | grep -qvx "$(slot)/held"; then
+        die "qemu tourne mais adb ne voit pas $AVD, et une autre session tient un appareil : demande au mainteneur"
+      fi
+      adb_ kill-server >/dev/null 2>&1 || true
+      adb_ start-server >/dev/null 2>&1 || true
+      wait_avd 30 || die "qemu tourne mais adb ne voit pas $AVD : ferme l'émulateur (Android Studio ou gestionnaire des tâches), puis relance claim"
+    fi
+  fi
   if [ -z "$SERIAL" ]; then
-    mkdir -p "$OUT"
-    say "Démarrage de $AVD (≈ 20 s depuis l'instantané, ≈ 1 min à froid)…"
-    # Détaché : l'émulateur survit au script ; son journal est dans build/device/.
-    nohup "$EMULATOR" -avd "$AVD" -no-boot-anim -timezone "$TZ_ID" \
-      >"$OUT/emulator.log" 2>&1 &
+    launch
+    launched=1
+  fi
+  # Pire cas, reprise à froid comprise : 60 + 120 + 30 + 60 + 240 s, sous les 10 min du Bash.
+  if ! wait_booted 120; then
+    # Un instantané abîmé bloque le démarrage : une seule reprise, à froid.
+    [ -n "$launched" ] || die "$SERIAL n'a pas fini de démarrer en 120 s"
+    say "pas démarré en 120 s : arrêt, puis démarrage à froid sans instantané…"
+    dev emu kill >/dev/null 2>&1 || true
     local waited=0
-    until SERIAL=$(running_avd) && [ -n "$SERIAL" ]; do
-      [ $waited -lt 180 ] || die "l'émulateur n'apparaît pas, voir $(win_path "$OUT/emulator.log")"
+    while [ -n "$(running_avd)" ] || qemu_alive; do
+      [ $waited -lt 30 ] || die "l'émulateur bloqué ne s'arrête pas : ferme-le à la main"
       sleep 2
       waited=$((waited + 2))
     done
+    launch -no-snapshot-load
+    wait_booted 240 || die "$SERIAL n'a pas fini de démarrer, même à froid : voir $(win_path "$STATE/emulator.log")"
   fi
-  timeout 300 "$ADB" -s "$SERIAL" wait-for-device shell \
-    'while [ "$(getprop sys.boot_completed)" != 1 ]; do sleep 1; done' </dev/null ||
-    die "$SERIAL n'a pas fini de démarrer"
   sh_ wm dismiss-keyguard >/dev/null
   # Un démarrage à froid remet GMT : l'émulateur ne lit pas le fuseau de Windows.
   [ "$(sh_ getprop persist.sys.timezone)" = "$TZ_ID" ] || sh_ cmd alarm set-timezone "$TZ_ID"
@@ -164,6 +397,41 @@ ui_list() {
 
 cmd_ui() { ui_list; }
 
+# Libellé exact d'abord, sinon le premier qui le contient (casse ignorée).
+find_label() {
+  ui_list 2>/dev/null | awk -F ' [|] ' -v w="$1" '
+    BEGIN { w = tolower(w) }
+    tolower($1) == w { print; found = 1; exit }
+    first == "" && index(tolower($1), w) { first = $0 }
+    END { if (!found && first != "") print first }'
+}
+
+await_label() { # <secondes> <libellé> : affiche « libellé | classe | x,y » dès qu'il est là
+  local deadline hit
+  deadline=$(($(now) + $1))
+  while :; do
+    hit=$(find_label "$2" || true)
+    [ -z "$hit" ] || {
+      printf '%s\n' "$hit"
+      return 0
+    }
+    [ "$(now)" -lt "$deadline" ] || return 1
+    sleep 1
+  done
+}
+
+visible_labels() { ui_list 2>/dev/null | cut -d '|' -f 1 | sed 's/ *$//' | head -n 20 | paste -sd ';' - || true; }
+
+cmd_wait() {
+  [ -n "${1:-}" ] || die "wait <libellé> [secondes]"
+  await_label "${2:-10}" "$1" || die "« $1 » n'est pas apparu en ${2:-10} s. Visibles : $(visible_labels)"
+}
+
+cmd_look() {
+  cmd_shot "${1:-}"
+  ui_list
+}
+
 cmd_logs() {
   local n=${1:-60} pid
   pid=$(app_pid)
@@ -211,13 +479,8 @@ cmd_tap() {
   fi
   [ $# -ge 1 ] || die "tap <libellé> | tap <x> <y>"
   local hit xy
-  # Libellé exact d'abord, sinon le premier qui le contient (casse ignorée).
-  hit=$(ui_list | awk -F ' [|] ' -v w="$*" '
-    BEGIN { w = tolower(w) }
-    tolower($1) == w { print; found = 1; exit }
-    first == "" && index(tolower($1), w) { first = $0 }
-    END { if (!found && first != "") print first }')
-  [ -n "$hit" ] || die "« $* » introuvable à l'écran (device.sh ui liste les libellés)"
+  # Attendre le libellé absorbe les transitions : un tap envoyé pendant l'une d'elles se perd.
+  hit=$(await_label 6 "$*") || die "« $* » introuvable à l'écran en 6 s. Visibles : $(visible_labels)"
   xy=${hit##* | }
   dev shell input tap "${xy%,*}" "${xy#*,}"
   say "tap $xy — ${hit%% | *}"
@@ -261,7 +524,8 @@ cmd_scroll() {
 
 # --- Varier, puis remettre ------------------------------------------------------
 
-baseline_file() { printf '%s/baseline-%s.env' "$OUT" "$SERIAL"; }
+# Dans le guichet, pour qu'une session qui reprend la main remette ce qu'une autre a varié.
+baseline_file() { printf '%s/baseline.env' "$(slot)"; }
 
 # Note les réglages d'origine avant la première variation, pour `reset`.
 save_baseline() {
@@ -278,7 +542,10 @@ save_baseline() {
     done
     echo "airplane=$(settings get global airplane_mode_on)"
     echo "auto_time=$(settings get global auto_time)"
-    echo "timezone=$(getprop persist.sys.timezone)"' >"$file"
+    echo "timezone=$(getprop persist.sys.timezone)"' >"$file.tmp"
+  # Un relevé partiel ferait échouer toutes les remises suivantes.
+  grep -q '^timezone=' "$file.tmp" || die "relevé des réglages impossible : $(head -c 200 "$file.tmp")"
+  mv "$file.tmp" "$file"
 }
 
 put_or_delete() { # <namespace> <clé> <valeur> : « null » = valeur par défaut
@@ -306,7 +573,8 @@ cmd_reset() {
   done
   script+=" cmd connectivity airplane-mode $([ "$airplane" = 1 ] && echo enable || echo disable);"
   script+=" $(put_or_delete global auto_time "$auto_time") cmd alarm set-timezone $timezone"
-  sh_ "$script"
+  # Le relevé ne part qu'une fois remis, sinon la session suivante prendrait ces réglages pour l'origine.
+  sh_ "$script" >/dev/null || return 1
   rm -f "$file"
   say "réglages d'origine rétablis sur $SERIAL"
 }
@@ -438,10 +706,17 @@ main() {
   shift || true
   case $cmd in
     help | -h | --help) usage ;;
-    boot) cmd_boot "$@" ;;
+    claim | release | status) "cmd_$cmd" "$@" ;;
+    boot)
+      target_key
+      require_hold
+      cmd_boot "$@"
+      ;;
     *)
       declare -F "cmd_$cmd" >/dev/null || die "commande inconnue : $cmd (device.sh help)"
       pick_serial
+      serial_key
+      require_hold
       "cmd_$cmd" "$@"
       ;;
   esac

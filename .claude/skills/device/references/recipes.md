@@ -13,7 +13,8 @@ Everything here was run on the emulator, except what §15 lists.
 8. [Contacts for the import](#8-contacts-for-the-import) · 9. [Fingerprint](#9-fingerprint) ·
 10. [Camera](#10-camera) · 11. [App data](#11-app-data) · 12. [Release startup](#12-release-startup) ·
 13. [Fallback build](#13-fallback-build-without-the-terminal-panel) · 14. [Dart MCP server](#14-dart-mcp-server) ·
-15. [Not verified yet](#15-not-verified-yet)
+15. [Not verified yet](#15-not-verified-yet) · 16. [One device, many sessions](#16-one-device-many-sessions) ·
+17. [Rarer gotchas](#17-rarer-gotchas)
 
 ## 1. The AVD
 
@@ -28,10 +29,24 @@ Everything here was run on the emulator, except what §15 lists.
   `-wipe-data` factory reset: erases the signed-in session and the contacts, ask first.
 - A killed emulator stays « offline » in `adb devices` for a few seconds: `device.sh boot` asks
   the emulator console (`adb emu avd name`) instead of trusting that list.
+- What `boot` (run by `claim`) repairs, in order. It only counts the qemu whose command line
+  has `-avd Honor_Magic7_Pro` (another AVD in Android Studio is ignored).
+  - That qemu alive but unseen by adb (shutting down, or Android Studio's emulator after an adb
+    restart) → up to 15 s for it to exit, then `adb reconnect offline`, then an adb server
+    restart only if no other session holds a device (it would cut their `flutter run`); never a
+    second instance.
+  - No such qemu but `*.lock` left in the AVD folder by a crash → removed before launching.
+  - The emulator dying at launch → fails at once with the end of
+    `~/.android/anki-device/emulator.log`.
+  - No `sys.boot_completed` after 120 s on an emulator it launched → `emu kill`, then one cold
+    boot with `-no-snapshot-load` (240 s). Worst case ≈ 510 s, under the Bash's 10 min.
+- Stop it only when asked: `adb -s emulator-5554 emu kill` saves the quick-boot snapshot.
+  Started from the Bash tool, it lives in Claude's process tree; whether it survives a restart
+  of the Claude app wasn't checked (§15).
 - System language, once per factory reset (needs root, then a reboot):
   ```bash
   adb root && adb wait-for-device shell 'setprop persist.sys.locale fr-FR; settings put system system_locales fr-FR' && adb reboot
-  bash .claude/skills/device/scripts/device.sh boot
+  bash .claude/skills/device/scripts/device.sh boot   # you hold the device: claim came first
   ```
   `system_locales` wins over the property: setting only `persist.sys.locale` leaves English.
 - To mirror the phone exactly, read `adb shell wm size` and `adb shell wm density` on the phone,
@@ -205,3 +220,46 @@ after that sees the `mcp__dart__*` tools:
 - §12 release build and timings, §2 on the phone (none was plugged in), §10 poster.
 - `motion off` sets Android's animation scales to 0; whether AnKi's animations honour it
   (`MediaQuery.disableAnimations`) wasn't checked.
+- Whether an emulator started by `claim` from the Bash tool survives a restart of the Claude app.
+- §16 on the phone, and two real sessions queuing (the self-test and two sub-agents with
+  different `DEVICE_OWNER` were run).
+
+## 16. One device, many sessions
+
+- State, shared by every clone and worktree: `~/.android/anki-device/<key>/` (key: the AVD name
+  for the emulator, the serial for a phone). `held/owner` is the holder's session id; its
+  modification time is the holder's last command; `held/info` holds its label, start time and
+  checkout. `queue/<arrival ns>-<session>` is one ticket per waiting session, refreshed every
+  3 s while its `claim` runs and dropped after 120 s without refresh. `baseline.env` is the
+  settings recorded before the first variation, so whoever takes over can restore them.
+- Identity: `$DEVICE_OWNER`, else `$CLAUDE_CODE_SESSION_ID` (sub-agents inherit their session's),
+  else the checkout's path; label: `$DEVICE_LABEL`, else the app's `local_…` session id and the
+  checkout's folder name.
+- Only the head of the queue takes a free device; a holder idle for `$DEVICE_LEASE` s (900) is
+  taken over by a rename, which only one session can win. `$DEVICE_CLAIM_WAIT` (300 s) bounds
+  one `claim` call; after a wait of more than 30 s with the emulator off, `claim` takes the device
+  but exits 75 before booting, and the next call (already holder) boots.
+- A session's sub-agents share its identity: a second `claim` from the same session answers
+  « déjà à toi », takes nothing and resets nothing, and any `release` frees the whole session.
+- `reset` deletes `baseline.env` only once the device took the settings back; `release` frees
+  the device even when that fails, and the next taker retries the reset.
+- Stuck by hand (a session you know is gone): `device.sh status`, then remove
+  `~/.android/anki-device/<key>/held`; the next `claim` restores its settings.
+- Self-test, no device needed (fake adb, temporary state, 19 cases):
+  `bash .claude/skills/device/scripts/test_queue.sh`. Run it after any change to the queue.
+
+## 17. Rarer gotchas
+
+- Google Sign-In needs the debug key's SHA-1 in Firebase (platform rule): e-mail works meanwhile.
+- Git Bash turns `/sdcard/x` into `C:/Program Files/Git/sdcard/x` for `adb.exe`: export
+  `MSYS_NO_PATHCONV=1` before raw adb commands (`device.sh` does). In PowerShell never redirect
+  binary output (`exec-out screencap > x.png` corrupts it): `adb shell screencap -p /sdcard/x.png`
+  then `adb pull`.
+- `ping` doesn't work in the emulator: `device.sh info` shows airplane mode, or run
+  `adb shell nc -z 8.8.8.8 53`.
+- The emulator renders with Impeller on OpenGL ES, the phone on Vulkan: settle a rendering doubt
+  on the phone.
+- `flutter gen-l10n` (run by every build) writes `lib/l10n/app_localizations*.dart` with
+  `pubspec.yaml`'s line endings: keep `pubspec.yaml` in LF (`.gitattributes`), or every build
+  shows the l10n files as changed.
+- The system language only changes Android's dialogs and pickers (§1 sets it).
