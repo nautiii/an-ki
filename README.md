@@ -17,7 +17,7 @@ anniversaire. Simple, élégante et efficace.
 
 ## 🛠️ Stack Technique
 
-- **Framework** : [Flutter](https://flutter.dev/) 3.47.6 · Dart 3.13.5 · Material 3
+- **Framework** : [Flutter](https://flutter.dev/) 3.47.9 · Dart 3.13.7 · Material 3
 - **Plateformes** : Android (testé sur appareil), iOS (non testé) ; la cible web a été retirée
 - **Backend** : [Firebase](https://firebase.google.com/) (Auth, Firestore avec persistance hors ligne)
 - **Gestion d'état** : [Riverpod](https://riverpod.dev/) 3, sans génération de code

@@ -55,7 +55,7 @@ and why.
 
 ## Stack
 
-Flutter 3.47.6 · Dart 3.13.5 · Material 3 · Riverpod 3.4 (hand-written providers, no codegen) ·
+Flutter 3.47.9 · Dart 3.13.7 · Material 3 · Riverpod 3.4 (hand-written providers, no codegen) ·
 Firebase Auth and Cloud Firestore (offline persistence on, no Storage) ·
 flutter_local_notifications with timezone · share_plus (system share sheet) · gen-l10n (French
 template, English).
