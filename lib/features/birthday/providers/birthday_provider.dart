@@ -9,6 +9,7 @@ import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
+import 'package:an_ki/features/birthday/providers/pending_ids.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Anniversaires de l'utilisateur courant, en temps réel ; liste vide hors
@@ -29,26 +30,11 @@ final birthdaysLoadingProvider = Provider<bool>((ref) {
   return birthdays.isLoading && !birthdays.hasValue && !birthdays.hasError;
 });
 
-/// Anniversaires supprimés mais encore rattrapables : masqués partout pendant
-/// le délai « Annuler », puis jusqu'à la fin de l'écriture. Vide à chaque
-/// changement d'utilisateur.
-class PendingDeletions extends Notifier<Set<String>> {
-  @override
-  Set<String> build() {
-    ref.watch(currentUidProvider);
-    return const {};
-  }
-
-  void hide(String birthdayId) => state = {...state, birthdayId};
-
-  void restore(String birthdayId) => state = {
-    for (final id in state)
-      if (id != birthdayId) id,
-  };
-}
-
-final pendingDeletionsProvider =
-    NotifierProvider<PendingDeletions, Set<String>>(PendingDeletions.new);
+/// Anniversaires supprimés mais encore rattrapables : masqués partout
+/// ([PendingIds]).
+final pendingDeletionsProvider = NotifierProvider<PendingIds, Set<String>>(
+  PendingIds.new,
+);
 
 /// Liste courante des anniversaires, sans ceux en cours de suppression :
 /// vide pendant le premier chargement ou en cas d'erreur, la précédente

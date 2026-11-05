@@ -2,6 +2,7 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
+import 'package:an_ki/features/birthday/providers/pending_ids.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Catégories partagées : les prédéfinies (Famille, Amis, Travail, Autres).
@@ -16,28 +17,11 @@ final ownCategoriesProvider = StreamProvider<List<BirthdayCategory>>((ref) {
   return ref.watch(categoryRepositoryProvider).watchOwnCategories(uid);
 });
 
-/// Groupes supprimés mais encore rattrapables : masqués partout
-/// (puces, filtres, page Groupes) pendant le délai « Annuler », puis jusqu'à
-/// la fin de l'écriture. Vide à chaque changement d'utilisateur.
-class PendingGroupRemovals extends Notifier<Set<String>> {
-  @override
-  Set<String> build() {
-    ref.watch(currentUidProvider);
-    return const {};
-  }
-
-  void hide(String groupId) => state = {...state, groupId};
-
-  void restore(String groupId) => state = {
-    for (final id in state)
-      if (id != groupId) id,
-  };
-}
-
-final pendingGroupRemovalsProvider =
-    NotifierProvider<PendingGroupRemovals, Set<String>>(
-      PendingGroupRemovals.new,
-    );
+/// Groupes supprimés mais encore rattrapables : masqués partout (puces,
+/// filtres, page Groupes ; [PendingIds]).
+final pendingGroupRemovalsProvider = NotifierProvider<PendingIds, Set<String>>(
+  PendingIds.new,
+);
 
 /// [categories] sans les groupes en cours de retrait.
 List<BirthdayCategory> _visible(Ref ref, List<BirthdayCategory> categories) {
