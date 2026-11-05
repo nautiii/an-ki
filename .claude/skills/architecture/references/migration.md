@@ -15,7 +15,7 @@ what you discover.
 ## 1. Not verified outside the tests yet
 
 Delete each line once done:
-- B5.5 (2026-11-05), once the rules of `6a84751` are deployed, behind the maintainer on a test
+- B5.5 (2026-11-05; rules of `6495647` deployed the same day), behind the maintainer on a test
   Google account that already has AnKi data: a guest with ≥ 3 birthdays (one shared with the
   account) taps « Sauvegarder avec Google », picks that account, then « Ouvrir ce compte avec
   mes N anniversaires »: no second picker (else note it), the account's agenda gains the others
