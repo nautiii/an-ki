@@ -39,7 +39,7 @@ ContactImportPreview previewContactImport(
 }) {
   final inAnKi = {
     for (final birthday in existing)
-      _personKey(birthday.fullName, birthday.date),
+      personKey(birthday.fullName, birthday.date),
   };
   final sorted = [for (final contact in contacts) ?_named(contact)]
     ..sort((a, b) {
@@ -47,7 +47,8 @@ ContactImportPreview previewContactImport(
           .daysUntilNext(today)
           .compareTo(b.date.daysUntilNext(today));
       if (byDay != 0) return byDay;
-      final byName = _fold(a.fullName).compareTo(_fold(b.fullName));
+      final byName = foldForMatching(a.fullName)
+          .compareTo(foldForMatching(b.fullName));
       if (byName != 0) return byName;
       // Le même jour, sous le même nom : l'année connue d'abord.
       return (b.date.year ?? 0).compareTo(a.date.year ?? 0);
@@ -57,7 +58,7 @@ ContactImportPreview previewContactImport(
   final fresh = <BirthdayDraft>[];
   final known = <BirthdayDraft>[];
   for (final contact in sorted) {
-    final key = _personKey(contact.fullName, contact.date);
+    final key = personKey(contact.fullName, contact.date);
     if (!seen.add(key)) continue;
     (inAnKi.contains(key) ? known : fresh).add(contact);
   }
@@ -77,11 +78,14 @@ BirthdayDraft? _named(BirthdayDraft contact) {
   );
 }
 
-String _personKey(String fullName, BirthDate date) =>
-    '${_fold(fullName)}|${date.month}|${date.day}';
+/// Clé d'une personne : deux anniversaires de même clé sont la même personne
+/// (nom replié par [foldForMatching], même jour, même mois). Partagée avec la
+/// fusion d'un invité dans un compte.
+String personKey(String fullName, BirthDate date) =>
+    '${foldForMatching(fullName)}|${date.month}|${date.day}';
 
 /// [text] sans majuscules, accents ni tirets, les espaces réduits à un seul.
-String _fold(String text) {
+String foldForMatching(String text) {
   final buffer = StringBuffer();
   for (final rune in text.toLowerCase().runes) {
     final char = String.fromCharCode(rune);

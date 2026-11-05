@@ -2,7 +2,6 @@ import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/auth/widgets/guest_backup_card.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
@@ -210,16 +209,17 @@ void main() {
       isGuestProvider.overrideWithValue(true),
     ];
 
+    // La carte vient de `settings`, par `app/router` : ici, une doublure.
+    final home = HomeScreen(guestBackup: (count) => _BackupCard(count));
+    final backupCard = find.byType(_BackupCard, skipOffstage: false);
+
     testWidgets('offers a guest to save, after the last month', (tester) async {
-      await tester.pumpHarness(
-        const HomeScreen(),
-        overrides: guestOverrides(agenda),
-      );
+      await tester.pumpHarness(home, overrides: guestOverrides(agenda));
       await tester.pumpAndSettle();
 
-      final card = find.byType(GuestBackupCard, skipOffstage: false);
+      final card = backupCard;
       expect(card, findsOneWidget);
-      expect(tester.widget<GuestBackupCard>(card).count, 4);
+      expect(tester.widget<_BackupCard>(card).count, 4);
       // Sous le dernier mois de l'agenda, jamais devant.
       expect(
         tester.getTopLeft(card).dy,
@@ -231,35 +231,29 @@ void main() {
 
     testWidgets('waits for three birthdays', (tester) async {
       await tester.pumpHarness(
-        const HomeScreen(),
+        home,
         overrides: guestOverrides(agenda.take(2).toList()),
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(GuestBackupCard, skipOffstage: false), findsNothing);
+      expect(backupCard, findsNothing);
     });
 
     testWidgets('never shows for a saved account', (tester) async {
-      await tester.pumpHarness(
-        const HomeScreen(),
-        overrides: overrides(birthdays: agenda),
-      );
+      await tester.pumpHarness(home, overrides: overrides(birthdays: agenda));
       await tester.pumpAndSettle();
 
-      expect(find.byType(GuestBackupCard, skipOffstage: false), findsNothing);
+      expect(backupCard, findsNothing);
     });
 
     testWidgets('leaves the calendar alone', (tester) async {
-      await tester.pumpHarness(
-        const HomeScreen(),
-        overrides: guestOverrides(agenda),
-      );
+      await tester.pumpHarness(home, overrides: guestOverrides(agenda));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Calendrier'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(GuestBackupCard, skipOffstage: false), findsNothing);
+      expect(backupCard, findsNothing);
     });
   });
 
@@ -587,4 +581,14 @@ void main() {
       semantics.dispose();
     });
   });
+}
+
+/// Doublure de la carte de sauvegarde que `app/router` confie à l'accueil.
+class _BackupCard extends StatelessWidget {
+  const _BackupCard(this.count);
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) => Text('Sauvegarde $count');
 }

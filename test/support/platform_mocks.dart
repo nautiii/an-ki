@@ -75,10 +75,13 @@ class FakeBiometricChannels {
 /// with fake tokens; without one, it is not supported.
 class FakeGoogleSignInPlatform extends GoogleSignInPlatform
     with MockPlatformInterfaceMixin {
-  FakeGoogleSignInPlatform({this.account});
+  FakeGoogleSignInPlatform({this.account, this.remembered});
 
   /// Compte que rend le sélecteur Google.
   final GoogleSignInUserData? account;
+
+  /// Compte que Google connaît encore, rendu sans sélecteur.
+  final GoogleSignInUserData? remembered;
 
   @override
   Future<void> init(InitParameters params) async {}
@@ -86,7 +89,13 @@ class FakeGoogleSignInPlatform extends GoogleSignInPlatform
   @override
   Future<AuthenticationResults?>? attemptLightweightAuthentication(
     AttemptLightweightAuthenticationParameters params,
-  ) => Future<AuthenticationResults?>.value();
+  ) async => switch (remembered) {
+    final user? => AuthenticationResults(
+      user: user,
+      authenticationTokens: const AuthenticationTokenData(idToken: 'id-token'),
+    ),
+    null => null,
+  };
 
   @override
   bool supportsAuthenticate() => true;
@@ -111,7 +120,8 @@ class FakeGoogleSignInPlatform extends GoogleSignInPlatform
   @override
   Future<ClientAuthorizationTokenData?> clientAuthorizationTokensForScopes(
     ClientAuthorizationTokensForScopesParameters params,
-  ) async => account != null && params.request.promptIfUnauthorized
+  ) async =>
+      (account ?? remembered) != null && params.request.promptIfUnauthorized
       ? const ClientAuthorizationTokenData(accessToken: 'access-token')
       : null;
 

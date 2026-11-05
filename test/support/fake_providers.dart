@@ -548,7 +548,9 @@ class FakeAuthRepository extends Fake implements AuthRepository {
   });
 
   firebase_auth.User? _user;
-  final Exception? failure;
+
+  /// Refus des connexions et de la liaison ; un test peut le changer en cours.
+  Exception? failure;
   final Exception? deleteFailure;
 
   /// Refus de la confirmation d'identité, quand il est défini.
@@ -617,6 +619,28 @@ class FakeAuthRepository extends Fake implements AuthRepository {
   @override
   Future<firebase_auth.User?> signInAnonymously() =>
       _signIn('signInAnonymously', MockUser(isAnonymous: true));
+
+  /// Compte Google déjà connu d'AnKi qu'ouvre [signInWithGoogleAccount].
+  static const googleUid = 'google-uid';
+  static const googleEmail = 'lea@gmail.com';
+
+  /// Refus de [signInWithGoogleAccount], quand il est défini.
+  Exception? googleAccountFailure;
+
+  /// Comme Firebase : [prepare] reçoit l'adresse du compte pendant que la
+  /// session courante est encore ouverte ; s'il renvoie false, rien ne
+  /// s'ouvre.
+  @override
+  Future<firebase_auth.User?> signInWithGoogleAccount(
+    Future<bool> Function(String email) prepare,
+  ) async {
+    calls.add('signInWithGoogleAccount');
+    if (googleAccountFailure case final error?) throw error;
+    if (!await prepare(googleEmail)) return null;
+    final user = MockUser(uid: googleUid);
+    _emit(user);
+    return user;
+  }
 
   /// Comme Firebase : le compte lié garde l'uid de l'invité.
   @override

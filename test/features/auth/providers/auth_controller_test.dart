@@ -62,17 +62,19 @@ class _LinkingAuthRepository extends AuthRepository {
 
   final Exception? error;
 
-  /// Le compte Google choisi a été oublié (déconnexion du plugin).
-  bool googleSignedOut = false;
+  /// Appels, dans l'ordre : `link`, et `signOutGoogle` quand le compte Google
+  /// choisi est oublié.
+  final events = <String>[];
 
   @override
   Future<User?> linkCurrentUserWithGoogle() async {
+    events.add('link');
     if (error case final error?) throw error;
     return MockUser(uid: 'uid-1');
   }
 
   @override
-  Future<void> signOutGoogle() async => googleSignedOut = true;
+  Future<void> signOutGoogle() async => events.add('signOutGoogle');
 }
 
 const _reason = 'Empreinte ?';
@@ -385,7 +387,9 @@ void main() {
         container.read(guestLinksProvider),
         const GuestLinked(uid: 'uid-1', displayName: 'Test User'),
       );
-      expect(repository.googleSignedOut, isFalse);
+      // Le dernier compte choisi est oublié avant : le sélecteur les propose
+      // tous.
+      expect(repository.events, ['signOutGoogle', 'link']);
     });
 
     test('stays silent when the user cancels', () async {
@@ -409,29 +413,80 @@ void main() {
       expect(await link(repository), (false, AuthFailure.googleSignInFailed));
     });
 
-    test(
-      'reports a Google account already used by AnKi, and forgets it',
-      () async {
-        final repository = _LinkingAuthRepository(
-          error: AuthFailure.credentialAlreadyInUse,
-        );
+    test('reports a Google account already used by AnKi, and keeps it for '
+        'opening it', () async {
+      final repository = _LinkingAuthRepository(
+        error: AuthFailure.credentialAlreadyInUse,
+      );
 
-        expect(await link(repository), (
-          false,
-          AuthFailure.credentialAlreadyInUse,
-        ));
-        // Un nouvel essai repropose tous les comptes Google.
-        expect(repository.googleSignedOut, isTrue);
-        expect(container.read(guestLinksProvider), isNull);
-      },
-    );
+      expect(await link(repository), (
+        false,
+        AuthFailure.credentialAlreadyInUse,
+      ));
+      // Gardé pour `openGoogleAccount` ; un nouvel essai l'oublie d'abord.
+      expect(repository.events, ['signOutGoogle', 'link']);
+      expect(container.read(guestLinksProvider), isNull);
+    });
 
-    test('reports a Firebase refusal', () async {
+    test('reports another refusal, and forgets the account', () async {
       final repository = _LinkingAuthRepository(
         error: AuthFailure.emailAlreadyInUse,
       );
 
       expect(await link(repository), (false, AuthFailure.emailAlreadyInUse));
+      expect(repository.events, ['signOutGoogle', 'link', 'signOutGoogle']);
+    });
+  });
+
+  group('opening a Google account AnKi knows', () {
+    late FakeAuthRepository repository;
+    late ProviderContainer container;
+
+    setUp(() {
+      repository = FakeAuthRepository(
+        user: MockUser(uid: 'guest', isAnonymous: true),
+      );
+      container = makeContainer(MockFirebaseAuth(), repository: repository);
+    });
+
+    test('prepares as the guest, then opens it as a fresh sign-in', () async {
+      await settle();
+      String? preparedAs;
+
+      final ok = await controllerOf(container).openGoogleAccount((email) async {
+        preparedAs = '${repository.currentUser?.uid} $email';
+        return true;
+      });
+      await settle();
+
+      expect(ok, isTrue);
+      expect(preparedAs, 'guest ${FakeAuthRepository.googleEmail}');
+      expect(container.read(currentUidProvider), FakeAuthRepository.googleUid);
+      expect(container.read(freshSignInProvider), FakeAuthRepository.googleUid);
+      expect(container.read(authControllerProvider), isA<AsyncData<void>>());
+    });
+
+    test('opens nothing when preparing fails, and reports nothing', () async {
+      await settle();
+
+      final ok = await controllerOf(container)
+          .openGoogleAccount((_) async => false);
+      await settle();
+
+      expect(ok, isFalse);
+      expect(container.read(currentUidProvider), 'guest');
+      expect(container.read(freshSignInProvider), isNull);
+      expect(container.read(authControllerProvider), isA<AsyncData<void>>());
+    });
+
+    test('reports a refusal', () async {
+      repository.googleAccountFailure = AuthFailure.network;
+
+      expect(
+        await controllerOf(container).openGoogleAccount((_) async => true),
+        isFalse,
+      );
+      expect(failureOf(container), AuthFailure.network);
     });
   });
 

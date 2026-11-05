@@ -94,6 +94,44 @@ class BirthdayRepository {
   Future<void> deleteBirthday(String birthdayId) =>
       _birthdays.doc(birthdayId).delete();
 
+  /// Anniversaires de [uid] lus une fois (le serveur, ou le cache hors ligne).
+  Future<List<Birthday>> fetchBirthdays(String uid) async {
+    final snapshot = await _birthdays.where('uid', isEqualTo: uid).get();
+    return snapshot.docs.map(_birthdayFromDoc).nonNulls.toList();
+  }
+
+  /// Marque les anniversaires de [uid], un invité, pour le compte Google
+  /// [email] qui va les reprendre ([takeOver]), et les renvoie. Lus sur le
+  /// serveur : hors ligne, échoue avant d'écrire ; le Future attend l'accusé
+  /// du serveur, la marque doit y être avant que la session change.
+  Future<List<Birthday>> markForTransfer(String uid, String email) async {
+    final snapshot = await _birthdays
+        .where('uid', isEqualTo: uid)
+        .get(const GetOptions(source: Source.server));
+    await _firestore.writeInBatches(
+      snapshot.docs,
+      (batch, doc) => batch.update(doc.reference, {'transferTo': email}),
+    );
+    return snapshot.docs.map(_birthdayFromDoc).nonNulls.toList();
+  }
+
+  /// Reprend pour [uid] des anniversaires marqués pour lui
+  /// ([markForTransfer]) : ceux de [moves] deviennent les siens, avec les
+  /// groupes donnés et sans marque ; ceux de [duplicates] sont effacés.
+  Future<void> takeOver(
+    String uid, {
+    required Map<String, List<String>> moves,
+    required Iterable<String> duplicates,
+  }) => _firestore.writeInBatches<void Function(WriteBatch)>([
+    for (final MapEntry(key: id, value: categories) in moves.entries)
+      (batch) => batch.update(_birthdays.doc(id), {
+        'uid': uid,
+        'categories': categories,
+        'transferTo': FieldValue.delete(),
+      }),
+    for (final id in duplicates) (batch) => batch.delete(_birthdays.doc(id)),
+  ], (batch, write) => write(batch));
+
   /// Efface tous les anniversaires de [uid] (suppression du compte), par lots
   /// d'écritures : un gros import de contacts dépasse vite la limite d'un lot.
   /// Lu sur le serveur : hors ligne, l'effacement échoue avant de commencer

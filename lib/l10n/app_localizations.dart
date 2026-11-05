@@ -1370,6 +1370,42 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Votre anniversaire est sauvegardé} other{Vos {count} anniversaires sont sauvegardés}}'**
   String guestBackupDone(int count);
 
+  /// La carte de sauvegarde, quand le compte Google choisi a déjà un agenda AnKi que l'invité peut ouvrir avec ses anniversaires.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Ouvrez-le avec votre anniversaire : s\'il y est déjà, il ne sera pas doublé. Vous pouvez aussi choisir un autre compte Google.} other{Ouvrez-le avec vos {count} anniversaires : ceux qu\'il a déjà ne seront pas doublés. Vous pouvez aussi choisir un autre compte Google.}}'**
+  String guestBackupMergeMessage(int count);
+
+  /// No description provided for @guestBackupMergeAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Ouvrir ce compte avec mon anniversaire} other{Ouvrir ce compte avec mes {count} anniversaires}}'**
+  String guestBackupMergeAction(int count);
+
+  /// Message après l'ouverture d'un compte avec les anniversaires d'un invité : ceux ajoutés, puis ceux que le compte avait déjà.
+  ///
+  /// In fr, this message translates to:
+  /// **'{added, plural, =0{Rien à ajouter} =1{1 anniversaire ajouté à ce compte} other{{added} anniversaires ajoutés à ce compte}}{known, plural, =0{} =1{ · 1 y était déjà} other{ · {known} y étaient déjà}}'**
+  String guestMergeDone(int added, int known);
+
+  /// No description provided for @guestMergeOffline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de connexion : vos anniversaires restent sur ce téléphone. Réessayez une fois en ligne.'**
+  String get guestMergeOffline;
+
+  /// No description provided for @guestMergeFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'ouverture du compte n\'a pas abouti : vos anniversaires restent sur ce téléphone. Réessayez.'**
+  String get guestMergeFailed;
+
+  /// No description provided for @guestMergeIncomplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte ouvert, mais vos anniversaires n\'ont pas pu y être ajoutés.'**
+  String get guestMergeIncomplete;
+
   /// No description provided for @biometricEnabled.
   ///
   /// In fr, this message translates to:

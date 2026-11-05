@@ -156,11 +156,14 @@ A spinner is acceptable only inside the control that triggered a short action.
   on the welcome (`welcome_screen.dart`) — one promise on the night hero, « Commencer » opens an
   anonymous session at once, « J'ai déjà un compte » pushes the sign-in above it. Saving the
   account comes at a moment of value, never as a wall — shipped in step 5.4: from 3 birthdays a
-  guest finds `GuestBackupCard` (`features/auth/widgets`) after the agenda's last month;
-  « Sauvegarder avec Google » links the anonymous account (same uid, same data), then the
-  profile takes the Google names. A Google account AnKi already knows changes nothing: the card
-  says so, keeps everything and offers « Choisir un autre compte »; other failures show under
-  its text, a closed picker says nothing.
+  guest finds `GuestBackupCard` (`features/settings/widgets`, through the home's `guestBackup`
+  slot) after the agenda's last month; « Sauvegarder avec Google » links the anonymous account
+  (same uid, same data), then the profile takes the Google names. A Google account AnKi already
+  knows (B5.5, 2026-11-05): the card offers « Ouvrir ce compte avec mes 12 anniversaires »
+  (full width, the label wraps at 200 %) and « Choisir un autre compte » below; opening moves
+  the guest's data into that account without duplicates, then « 9 anniversaires ajoutés à ce
+  compte · 3 y étaient déjà ». Its address is an e-mail account's: only « Choisir un autre
+  compte ». Other failures show under its text, a closed picker says nothing.
 - The sign-in (`auth_choice_screen.dart`, « Bon retour ») offers Google (one tap) › e-mail ›
   sign-up; no guest there. Locked by the fingerprint, it stands alone, prompts at once and puts
   « Déverrouiller » first so a dismissed prompt can be retried.

@@ -308,4 +308,51 @@ void main() {
       expect(remaining.map((d) => d.data()['title']), ['Keep']);
     });
   });
+
+  group('guest move (B5.5)', () {
+    late FakeFirebaseFirestore firestore;
+    late BookRepository repository;
+
+    setUp(() {
+      firestore = FakeFirebaseFirestore();
+      repository = repositoryReturning(
+        (_) => http.Response('', 200),
+        firestore: firestore,
+      );
+    });
+
+    Future<void> seed(String id, String uid) =>
+        firestore.collection('books').doc(id).set({
+          'uid': uid,
+          'title': 'Dune',
+          'authors': <String>[],
+          'isbn': '1',
+          'scannedAt': Timestamp.fromDate(DateTime(2026)),
+        });
+
+    test('marks only the guest books and returns their ids', () async {
+      await seed('k1', 'guest');
+      await seed('k2', 'other');
+
+      expect(await repository.markForTransfer('guest', 'lea@gmail.com'), [
+        'k1',
+      ]);
+      final k1 = await firestore.collection('books').doc('k1').get();
+      final k2 = await firestore.collection('books').doc('k2').get();
+      expect(k1.data()?['transferTo'], 'lea@gmail.com');
+      expect(k2.data()?.containsKey('transferTo'), isFalse);
+    });
+
+    test('takes over marked books, unmarked', () async {
+      await seed('k1', 'guest');
+      await repository.markForTransfer('guest', 'lea@gmail.com');
+
+      await repository.takeOver('target', ['k1']);
+
+      final k1 = (await firestore.collection('books').doc('k1').get()).data();
+      expect(k1?['uid'], 'target');
+      expect(k1?.containsKey('transferTo'), isFalse);
+      expect(k1?['title'], 'Dune');
+    });
+  });
 }

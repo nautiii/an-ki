@@ -673,6 +673,30 @@
       "count": { "type": "int" }
     }
   },
+  "guestBackupMergeMessage": "{count, plural, =1{Ouvrez-le avec votre anniversaire : s'il y est déjà, il ne sera pas doublé. Vous pouvez aussi choisir un autre compte Google.} other{Ouvrez-le avec vos {count} anniversaires : ceux qu'il a déjà ne seront pas doublés. Vous pouvez aussi choisir un autre compte Google.}}",
+  "@guestBackupMergeMessage": {
+    "description": "La carte de sauvegarde, quand le compte Google choisi a déjà un agenda AnKi que l'invité peut ouvrir avec ses anniversaires.",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "guestBackupMergeAction": "{count, plural, =1{Ouvrir ce compte avec mon anniversaire} other{Ouvrir ce compte avec mes {count} anniversaires}}",
+  "@guestBackupMergeAction": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "guestMergeDone": "{added, plural, =0{Rien à ajouter} =1{1 anniversaire ajouté à ce compte} other{{added} anniversaires ajoutés à ce compte}}{known, plural, =0{} =1{ · 1 y était déjà} other{ · {known} y étaient déjà}}",
+  "@guestMergeDone": {
+    "description": "Message après l'ouverture d'un compte avec les anniversaires d'un invité : ceux ajoutés, puis ceux que le compte avait déjà.",
+    "placeholders": {
+      "added": { "type": "int" },
+      "known": { "type": "int" }
+    }
+  },
+  "guestMergeOffline": "Pas de connexion : vos anniversaires restent sur ce téléphone. Réessayez une fois en ligne.",
+  "guestMergeFailed": "L'ouverture du compte n'a pas abouti : vos anniversaires restent sur ce téléphone. Réessayez.",
+  "guestMergeIncomplete": "Compte ouvert, mais vos anniversaires n'ont pas pu y être ajoutés.",
   "biometricEnabled": "Connexion biométrique activée",
   "biometricDisabled": "Connexion biométrique désactivée",
   "errorWeakPassword": "Mot de passe trop faible. Choisissez-en un plus long.",

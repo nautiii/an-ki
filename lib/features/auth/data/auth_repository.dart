@@ -92,28 +92,42 @@ class AuthRepository {
     return credential.user;
   });
 
+  /// Ouvre le compte Google que l'utilisateur vient de choisir (celui d'une
+  /// liaison refusée, repris sans sélecteur quand Google le connaît encore ;
+  /// sinon le sélecteur s'ouvre). [prepare] reçoit son adresse pendant que la
+  /// session courante est encore ouverte : s'il renvoie false, rien ne
+  /// s'ouvre et le résultat est null.
+  Future<User?> signInWithGoogleAccount(
+    Future<bool> Function(String email) prepare,
+  ) async {
+    try {
+      return await _guard(() async {
+        final googleUser =
+            await _googleSignIn.attemptLightweightAuthentication() ??
+            await _googleSignIn.authenticate(scopeHint: ['email']);
+        final credential = await _credentialFor(googleUser);
+        if (!await prepare(googleUser.email)) return null;
+        return (await _auth.signInWithCredential(credential)).user;
+      });
+    } on AuthFailure catch (failure, stackTrace) {
+      // Comme à la connexion : un jeton Google refusé n'est pas un mot de passe.
+      if (failure != AuthFailure.invalidCredentials) rethrow;
+      Error.throwWithStackTrace(AuthFailure.googleSignInFailed, stackTrace);
+    }
+  }
+
   /// Lie le compte invité courant au compte Google choisi : même uid, mêmes
   /// données. Sans nom, le compte prend celui du compte Google, que le profil
   /// reprendra. Un compte Google déjà connu d'AnKi est refusé
-  /// ([AuthFailure.credentialAlreadyInUse]) sans rien changer.
+  /// ([AuthFailure.credentialAlreadyInUse]), comme une adresse qui est déjà
+  /// celle d'un compte e-mail ([AuthFailure.emailAlreadyInUse]), sans rien
+  /// changer.
   Future<User?> linkCurrentUserWithGoogle() => _guard(() async {
     final user = _auth.currentUser;
     if (user == null) return null;
     final googleUser = await _googleSignIn.authenticate(scopeHint: ['email']);
     final credential = await _credentialFor(googleUser);
-    final User? linked;
-    try {
-      linked = (await user.linkWithCredential(credential)).user;
-    } on FirebaseAuthException catch (error, stackTrace) {
-      // Son adresse est déjà celle d'un compte AnKi par e-mail : même refus.
-      if (error.code == 'email-already-in-use') {
-        Error.throwWithStackTrace(
-          AuthFailure.credentialAlreadyInUse,
-          stackTrace,
-        );
-      }
-      rethrow;
-    }
+    final linked = (await user.linkWithCredential(credential)).user;
     final googleName = googleUser.displayName?.trim() ?? '';
     if (linked != null &&
         (linked.displayName?.trim() ?? '').isEmpty &&

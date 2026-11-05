@@ -16,15 +16,16 @@ reminders-off card (Q8), the forgotten password link (Q9) and the auth messages 
 D8, F5 and D4, and the groups page (Q10) on 2026-10-25, then D25 and D15 (the belated wish) on
 2026-10-27, then D27 (« e-mail » with a plain hyphen, U+00A0 for the narrow U+202F Outfit
 lacks) on 2026-11-02, then B4a (the person page, with D14's « Voir ») on 2026-11-03, then D10
-(the scanner tab's pinned app bar, its carousel at its own height) on 2026-11-05: the items
-they fixed are gone from this list.
+(the scanner tab's pinned app bar, its carousel at its own height) and B5.5 (a guest opens the
+Google account AnKi knows with its birthdays) on 2026-11-05: the items they fixed are gone from
+this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
 auth or dependencies → design brief + maintainer approval first.
 
 ## Contents
-- Big bets (B4's gift ideas, deferred; B8; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
+- Big bets (B4's gift ideas, deferred; B8; B5 and B6 shipped) — structural redesigns with the highest impact
 - Foundation (none open) — design system, prerequisite for consistency
 - P2 — polish (D17)
 - Suggested roadmap
@@ -76,10 +77,14 @@ auth or dependencies → design brief + maintainer approval first.
   (`credential-already-in-use`, or its address on an e-mail account) changes nothing: the card
   explains it and offers « Choisir un autre compte ». Details: patterns §H. Not seen on a device
   yet (architecture `migration.md` §1).
-- **Later — 5.5 merge** (option B, set aside on 2026-10-19): « Ouvrir ce compte avec mes 12
-  anniversaires » signs in to the existing account, then copies the guest's birthdays without
-  duplicates (the import's matching rule). A copy between accounts leaves the guest's documents
-  orphaned in Firestore, out of the app's reach → system change, brief and approval first.
+- **Shipped, 5.5** (2026-11-05, branch `claude/b5-5-merge`): a Google account AnKi already
+  knows → « Ouvrir ce compte avec mes 12 anniversaires » moves the guest's birthdays, groups,
+  books and profile into it without duplicates (the import's matching rule), orphaned only if
+  the move is cut after the sign-in (`transferTo` marks, firebase `schema.md` §10); « 9
+  anniversaires ajoutés à ce compte · 3 y étaient déjà ». Not seen on a device yet
+  (architecture `migration.md` §1). A duplicate keeps the account's record: the guest's photo,
+  wished years and own reminders on it are dropped (to complete the account's record later, if
+  it matters).
 - Prototypes in `build/ui_snapshots/_src/` (local only — `flutter clean` wipes `build/`):
   `etape5_test.dart` (the flow, Q8's card), `etape54_test.dart` (each state of the shipped card).
 - **Refs**: Duolingo lazy sign-up, Google Keep/Todoist empty-state onboarding, Instagram priming.
@@ -184,7 +189,6 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
 
 ## Suggested roadmap
 
-1. **B5's 5.5 merge** once guests with an existing Google account show up.
-2. **B8, D17** — depth and polish;
+1. **B8, D17** — depth and polish;
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
-3. **B4's gift ideas** — when the maintainer picks them up.
+2. **B4's gift ideas** — when the maintainer picks them up.

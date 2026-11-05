@@ -835,6 +835,60 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String guestBackupMergeMessage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Open it with your $count birthdays: those it already has won\'t be doubled. You can also choose another Google account.',
+      one: 'Open it with your birthday: if it\'s already there, it won\'t be doubled. You can also choose another Google account.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String guestBackupMergeAction(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Open this account with my $count birthdays',
+      one: 'Open this account with my birthday',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String guestMergeDone(int added, int known) {
+    String _temp0 = intl.Intl.pluralLogic(
+      added,
+      locale: localeName,
+      other: '$added birthdays added to this account',
+      one: '1 birthday added to this account',
+      zero: 'Nothing to add',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      known,
+      locale: localeName,
+      other: ' · $known were already there',
+      one: ' · 1 was already there',
+      zero: '',
+    );
+    return '$_temp0$_temp1';
+  }
+
+  @override
+  String get guestMergeOffline =>
+      'No connection: your birthdays stay on this phone. Try again once you\'re online.';
+
+  @override
+  String get guestMergeFailed =>
+      'Opening the account didn\'t work: your birthdays stay on this phone. Try again.';
+
+  @override
+  String get guestMergeIncomplete =>
+      'Account opened, but your birthdays couldn\'t be added to it.';
+
+  @override
   String get biometricEnabled => 'Biometric login enabled';
 
   @override

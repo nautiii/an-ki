@@ -496,4 +496,63 @@ void main() {
       expect(remaining.docs, isEmpty);
     });
   });
+
+  group('guest move (B5.5)', () {
+    Future<void> seed(String id, String uid, {String name = 'Léa'}) =>
+        firestore.collection('birthday').doc(id).set({
+          'uid': uid,
+          'name': name,
+          'surname': '',
+          'date': Timestamp.fromDate(DateTime(2000, 10, 9)),
+          'yearKnown': false,
+          'categories': ['g1'],
+        });
+
+    test('marks only the guest birthdays and returns them', () async {
+      await seed('b1', 'guest');
+      await seed('b2', 'other');
+
+      final marked = await repository.markForTransfer('guest', 'lea@gmail.com');
+
+      expect(marked.map((birthday) => birthday.id), ['b1']);
+      final b1 = await firestore.collection('birthday').doc('b1').get();
+      final b2 = await firestore.collection('birthday').doc('b2').get();
+      expect(b1.data()?['transferTo'], 'lea@gmail.com');
+      expect(b2.data()?.containsKey('transferTo'), isFalse);
+    });
+
+    test('fetches a user birthdays once', () async {
+      await seed('b1', 'target');
+      await seed('b2', 'guest');
+
+      final fetched = await repository.fetchBirthdays('target');
+
+      expect(fetched.map((birthday) => birthday.id), ['b1']);
+    });
+
+    test('takes over moved birthdays unmarked, deletes duplicates', () async {
+      await seed('b1', 'guest');
+      await seed('b2', 'guest', name: 'Tom');
+      await repository.markForTransfer('guest', 'lea@gmail.com');
+
+      await repository.takeOver(
+        'target',
+        moves: {
+          'b1': ['t1', 'family'],
+        },
+        duplicates: ['b2'],
+      );
+
+      final b1 = (await firestore.collection('birthday').doc('b1').get())
+          .data();
+      expect(b1?['uid'], 'target');
+      expect(b1?['categories'], ['t1', 'family']);
+      expect(b1?.containsKey('transferTo'), isFalse);
+      expect(b1?['name'], 'Léa');
+      expect(
+        (await firestore.collection('birthday').doc('b2').get()).exists,
+        isFalse,
+      );
+    });
+  });
 }

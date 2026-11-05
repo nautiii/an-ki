@@ -367,10 +367,10 @@ void main() {
       );
     });
 
-    test('so is its address, used by an e-mail account', () async {
+    test('tells apart its address, used by an e-mail account', () async {
       await expectRefused(
         'email-already-in-use',
-        AuthFailure.credentialAlreadyInUse,
+        AuthFailure.emailAlreadyInUse,
       );
     });
 
@@ -382,6 +382,75 @@ void main() {
       final repo = build(MockFirebaseAuth(), FakeFirebaseFirestore());
 
       expect(await repo.linkCurrentUserWithGoogle(), isNull);
+    });
+  });
+
+  group('opening a Google account AnKi knows', () {
+    const lea = GoogleSignInUserData(email: 'lea@example.com', id: 'google-1');
+
+    late GoogleSignInPlatform previousPlatform;
+
+    setUp(() => previousPlatform = GoogleSignInPlatform.instance);
+    tearDown(() => GoogleSignInPlatform.instance = previousPlatform);
+
+    test('prepares with its address while the guest is still signed in, '
+        'then signs in', () async {
+      GoogleSignInPlatform.instance = FakeGoogleSignInPlatform(account: lea);
+      // Le double de firebase_auth_mocks ne connecte pas par-dessus un compte
+      // anonyme : la session à préserver est ici un compte ordinaire.
+      final auth = MockFirebaseAuth(
+        signedIn: true,
+        mockUser: MockUser(uid: 'guest'),
+      );
+      final repo = build(auth, FakeFirebaseFirestore());
+      final prepared = <(String, String?)>[];
+
+      final user = await repo.signInWithGoogleAccount((email) async {
+        prepared.add((email, auth.currentUser?.uid));
+        return true;
+      });
+
+      expect(prepared, [('lea@example.com', 'guest')]);
+      expect(user, isNotNull);
+    });
+
+    test('reuses the account Google still knows, without the picker', () async {
+      // Sans `account`, le sélecteur échouerait : seul le compte connu passe.
+      GoogleSignInPlatform.instance = FakeGoogleSignInPlatform(remembered: lea);
+      final repo = build(MockFirebaseAuth(), FakeFirebaseFirestore());
+      String? preparedFor;
+
+      await repo.signInWithGoogleAccount((email) async {
+        preparedFor = email;
+        return true;
+      });
+
+      expect(preparedFor, 'lea@example.com');
+    });
+
+    test('opens nothing when preparing fails', () async {
+      GoogleSignInPlatform.instance = FakeGoogleSignInPlatform(account: lea);
+      final auth = MockFirebaseAuth();
+      final repo = build(auth, FakeFirebaseFirestore());
+
+      expect(await repo.signInWithGoogleAccount((_) async => false), isNull);
+      expect(auth.currentUser, isNull);
+    });
+
+    test('a refused Google token is a Google failure', () async {
+      GoogleSignInPlatform.instance = FakeGoogleSignInPlatform(account: lea);
+      final auth = MockFirebaseAuth();
+      whenCalling(Invocation.method(#signInWithCredential, null))
+          .on(auth)
+          .thenThrow(FirebaseAuthException(code: 'invalid-credential'));
+
+      await expectLater(
+        build(
+          auth,
+          FakeFirebaseFirestore(),
+        ).signInWithGoogleAccount((_) async => true),
+        throwsA(AuthFailure.googleSignInFailed),
+      );
     });
   });
 

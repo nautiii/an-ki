@@ -71,6 +71,18 @@ class UserRepository {
     required String surname,
   }) => _users.doc(uid).update({'name': name, 'surname': surname});
 
+  /// Marque le profil de [uid], un invité, pour le compte Google [email] qui
+  /// l'effacera une fois ses données reprises ; false s'il n'existe pas. Lu
+  /// sur le serveur ; le Future attend l'accusé du serveur.
+  Future<bool> markForTransfer(String uid, String email) async {
+    final doc = await _users
+        .doc(uid)
+        .get(const GetOptions(source: Source.server));
+    if (!doc.exists) return false;
+    await doc.reference.update({'transferTo': email});
+    return true;
+  }
+
   Future<void> deleteUser(String uid) async {
     await _users.doc(uid).delete();
   }

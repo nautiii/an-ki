@@ -17,6 +17,7 @@ import 'package:an_ki/features/birthday/screens/person_screen.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_off_card.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
+import 'package:an_ki/features/settings/widgets/guest_backup_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -80,6 +81,11 @@ void main() {
         await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
         await tester.settleApp();
         expect(find.byType(HomeScreen), findsOneWidget);
+        // L'accueil reçoit la carte de sauvegarde de `settings`.
+        final guestBackup = tester
+            .widget<HomeScreen>(find.byType(HomeScreen))
+            .guestBackup;
+        expect(guestBackup?.call(3), isA<GuestBackupCard>());
 
         tester.appRouter.go(AppRoutes.scanner);
         await tester.pumpAndSettle();

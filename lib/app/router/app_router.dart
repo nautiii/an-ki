@@ -16,6 +16,7 @@ import 'package:an_ki/features/birthday/screens/person_screen.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_off_card.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
+import 'package:an_ki/features/settings/widgets/guest_backup_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -66,8 +67,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.birthdays,
-                // Les rappels coupés se disent en haut de l'accueil.
-                builder: (_, _) => const HomeScreen(notice: RemindersOffCard()),
+                // Les rappels coupés se disent en haut de l'accueil, la
+                // sauvegarde d'un invité en fin d'agenda.
+                builder: (_, _) => HomeScreen(
+                  notice: const RemindersOffCard(),
+                  guestBackup: (count) => GuestBackupCard(count: count),
+                ),
               ),
             ],
           ),

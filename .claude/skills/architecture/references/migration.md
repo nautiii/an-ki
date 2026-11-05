@@ -15,6 +15,14 @@ what you discover.
 ## 1. Not verified outside the tests yet
 
 Delete each line once done:
+- B5.5 (2026-11-05), once the rules of `6a84751` are deployed, behind the maintainer on a test
+  Google account that already has AnKi data: a guest with ≥ 3 birthdays (one shared with the
+  account) taps « Sauvegarder avec Google », picks that account, then « Ouvrir ce compte avec
+  mes N anniversaires »: no second picker (else note it), the account's agenda gains the others
+  once, « … ajoutés à ce compte · 1 y était déjà »; in the console no `transferTo` left, no
+  `user/{guestUid}` nor its `categories`. Offline before the tap: « Pas de connexion… », still a
+  guest. A Google address whose `email_verified` is false (non-Gmail Workspace?) would be refused
+  by the rules: check one if you can.
 - Rules deployed on 2026-11-04 (private groups, pinned owner, A16), on a device: the four
   predefined groups and the copied private groups shown and ticked on their birthdays, a group
   created in the birthday form lands in `user/{uid}/categories`; account deletion (A17) checks.

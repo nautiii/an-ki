@@ -848,6 +848,60 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String guestBackupMergeMessage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Ouvrez-le avec vos $count anniversaires : ceux qu\'il a déjà ne seront pas doublés. Vous pouvez aussi choisir un autre compte Google.',
+      one: 'Ouvrez-le avec votre anniversaire : s\'il y est déjà, il ne sera pas doublé. Vous pouvez aussi choisir un autre compte Google.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String guestBackupMergeAction(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ouvrir ce compte avec mes $count anniversaires',
+      one: 'Ouvrir ce compte avec mon anniversaire',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String guestMergeDone(int added, int known) {
+    String _temp0 = intl.Intl.pluralLogic(
+      added,
+      locale: localeName,
+      other: '$added anniversaires ajoutés à ce compte',
+      one: '1 anniversaire ajouté à ce compte',
+      zero: 'Rien à ajouter',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      known,
+      locale: localeName,
+      other: ' · $known y étaient déjà',
+      one: ' · 1 y était déjà',
+      zero: '',
+    );
+    return '$_temp0$_temp1';
+  }
+
+  @override
+  String get guestMergeOffline =>
+      'Pas de connexion : vos anniversaires restent sur ce téléphone. Réessayez une fois en ligne.';
+
+  @override
+  String get guestMergeFailed =>
+      'L\'ouverture du compte n\'a pas abouti : vos anniversaires restent sur ce téléphone. Réessayez.';
+
+  @override
+  String get guestMergeIncomplete =>
+      'Compte ouvert, mais vos anniversaires n\'ont pas pu y être ajoutés.';
+
+  @override
   String get biometricEnabled => 'Connexion biométrique activée';
 
   @override

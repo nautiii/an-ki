@@ -71,6 +71,43 @@ class CategoryRepository {
     ], (batch, write) => write(batch));
   }
 
+  /// Groupes privés de [uid] lus une fois (le serveur, ou le cache hors
+  /// ligne).
+  Future<List<BirthdayCategory>> fetchOwnCategories(String uid) async =>
+      (await _own(uid).get()).docs.map(_categoryFromDoc).toList();
+
+  /// Marque les groupes privés de [uid], un invité, pour le compte Google
+  /// [email] qui va les reprendre ([takeOver]), et les renvoie. Lus sur le
+  /// serveur ; le Future attend l'accusé du serveur.
+  Future<List<BirthdayCategory>> markForTransfer(
+    String uid,
+    String email,
+  ) async {
+    final snapshot = await _own(uid)
+        .get(const GetOptions(source: Source.server));
+    await _db.writeInBatches(
+      snapshot.docs,
+      (batch, doc) => batch.update(doc.reference, {'transferTo': email}),
+    );
+    return snapshot.docs.map(_categoryFromDoc).toList();
+  }
+
+  /// Reprend pour [uid] les groupes de l'invité [guestUid] : [copies] sont
+  /// recréés chez lui sous leur id, puis les groupes marqués [guestGroupIds]
+  /// de l'invité sont effacés.
+  Future<void> takeOver(
+    String uid, {
+    required String guestUid,
+    required Iterable<BirthdayCategory> copies,
+    required Iterable<String> guestGroupIds,
+  }) => _db.writeInBatches<void Function(WriteBatch)>([
+    for (final category in copies)
+      (batch) =>
+          batch.set(_own(uid).doc(category.id), _categoryToMap(category)),
+    for (final id in guestGroupIds)
+      (batch) => batch.delete(_own(guestUid).doc(id)),
+  ], (batch, write) => write(batch));
+
   /// Efface les groupes privés de [uid] (suppression du compte) : Firestore
   /// ne supprime pas une sous-collection avec son document parent.
   /// Lu sur le serveur : hors ligne, l'effacement échoue avant de commencer.

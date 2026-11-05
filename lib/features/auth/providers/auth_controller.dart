@@ -8,6 +8,7 @@ import 'package:an_ki/features/auth/domain/sign_in_method.dart';
 import 'package:an_ki/features/auth/providers/fresh_sign_in_provider.dart';
 import 'package:an_ki/features/auth/providers/guest_links.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:firebase_auth/firebase_auth.dart' show User;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -71,19 +72,19 @@ class AuthController extends AsyncNotifier<void> {
   /// Lie le compte anonyme courant à un compte Google : ses données restent,
   /// et la liaison se note ([guestLinksProvider]) pour que le profil prenne
   /// les noms du compte Google. Refusée (compte Google déjà pris, réseau…),
-  /// rien ne change ; le compte Google choisi est oublié, pour qu'un nouvel
-  /// essai propose de nouveau tous les comptes.
+  /// rien ne change. Chaque essai propose tous les comptes : le dernier
+  /// choisi est oublié avant, et après un refus, sauf un compte déjà connu
+  /// d'AnKi, que [openGoogleAccount] reprend sans sélecteur.
   Future<bool> linkWithGoogle() {
     final repository = _repository;
     final guestLinks = ref.read(guestLinksProvider.notifier);
     return _run(AuthFailure.googleSignInFailed, () async {
+      await _forgetGoogleAccount(repository);
       try {
         await repository.linkCurrentUserWithGoogle();
-      } on AuthFailure {
-        try {
-          await repository.signOutGoogle();
-        } on Exception {
-          // Oubli au mieux : l'échec à annoncer reste celui de la liaison.
+      } on AuthFailure catch (failure) {
+        if (failure != AuthFailure.credentialAlreadyInUse) {
+          await _forgetGoogleAccount(repository);
         }
         rethrow;
       }
@@ -94,6 +95,29 @@ class AuthController extends AsyncNotifier<void> {
       }
       return true;
     });
+  }
+
+  /// Ouvre le compte Google déjà connu d'AnKi que la liaison vient de refuser
+  /// ([AuthFailure.credentialAlreadyInUse]), comme une connexion : la session
+  /// d'invité est remplacée. [prepare] reçoit son adresse pendant qu'elle est
+  /// encore ouverte ; s'il renvoie false, rien ne s'ouvre et l'issue reste
+  /// `AsyncData` : l'appelant publie son propre échec.
+  Future<bool> openGoogleAccount(Future<bool> Function(String email) prepare) {
+    final repository = _repository;
+    return _signIn(
+      AuthFailure.googleSignInFailed,
+      () => repository.signInWithGoogleAccount(prepare),
+    );
+  }
+
+  /// Oublie le compte Google choisi, au mieux : l'issue à annoncer reste celle
+  /// de l'opération en cours.
+  Future<void> _forgetGoogleAccount(AuthRepository repository) async {
+    try {
+      await repository.signOutGoogle();
+    } on Exception {
+      // Rien à faire : le sélecteur reprendra peut-être ce compte.
+    }
   }
 
   /// Déverrouille la session Firebase par l'empreinte ; sans session, rien à
@@ -245,14 +269,15 @@ class AuthController extends AsyncNotifier<void> {
 
   /// Connexion explicite : elle passe aussi le verrou biométrique et se note
   /// ([freshSignInProvider]). L'empreinte d'un autre compte est oubliée : sa
-  /// session vient d'être remplacée.
-  Future<bool> _signIn(AuthFailure fallback, Future<Object?> Function() call) {
+  /// session vient d'être remplacée. [call] sans utilisateur : rien ne s'est
+  /// ouvert, rien ne change.
+  Future<bool> _signIn(AuthFailure fallback, Future<User?> Function() call) {
     final biometrics = _biometrics;
     final repository = _repository;
     final lock = _lock;
     final freshSignIn = ref.read(freshSignInProvider.notifier);
     return _run(fallback, () async {
-      await call();
+      if (await call() == null) return false;
       if (repository.currentUser?.uid case final uid?) freshSignIn.record(uid);
       final fingerprintUid = await biometrics.getStoredUserId();
       if (fingerprintUid != null &&

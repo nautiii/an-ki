@@ -4,7 +4,6 @@ import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
-import 'package:an_ki/features/auth/widgets/guest_backup_card.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
@@ -26,13 +25,18 @@ import 'package:go_router/go_router.dart';
 /// Une seule surface qui défile sous la barre d'app épinglée et sous la barre
 /// de navigation flottante, dont le padding du bas réserve la place.
 class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key, this.notice});
+  const HomeScreen({super.key, this.notice, this.guestBackup});
 
   /// Avis d'une autre feature au-dessus du héros, dès que l'agenda a des
   /// anniversaires (les rappels désactivés) ; `app/router` le fournit, pour
   /// que `birthday` n'importe pas `reminders`. Il dit lui-même s'il a
   /// quelque chose à montrer, et porte l'écart qui le suit.
   final Widget? notice;
+
+  /// Carte de sauvegarde d'un invité, en fin d'agenda, pour ses `count`
+  /// anniversaires ([guestBackupOfferProvider]) ; `app/router` la fournit
+  /// (`settings`, qui orchestre l'ouverture d'un compte avec eux).
+  final Widget Function(int count)? guestBackup;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -104,7 +108,7 @@ class HomeScreen extends ConsumerWidget {
               const AgendaSliver(),
               // Invité dont l'agenda vaut la peine d'être gardé : la
               // sauvegarde, après le dernier mois, jamais en travers.
-              if (backupCount != null)
+              if ((backupCount, guestBackup) case (final count?, final card?))
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.gutter,
@@ -112,9 +116,7 @@ class HomeScreen extends ConsumerWidget {
                     AppSpacing.gutter,
                     0,
                   ),
-                  sliver: SliverToBoxAdapter(
-                    child: GuestBackupCard(count: backupCount),
-                  ),
+                  sliver: SliverToBoxAdapter(child: card(count)),
                 ),
             ] else
               // Marges réduites : des cases d'au moins 48 dp dès 360 dp.

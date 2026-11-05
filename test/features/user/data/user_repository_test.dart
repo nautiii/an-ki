@@ -280,4 +280,28 @@ void main() {
     final doc = await firestore.collection('user').doc('user-1').get();
     expect(doc.exists, isFalse);
   });
+
+  group('guest move (B5.5)', () {
+    test('marks an existing profile', () async {
+      await firestore.collection('user').doc('guest').set({'name': ''});
+
+      expect(
+        await repository.markForTransfer('guest', 'lea@gmail.com'),
+        isTrue,
+      );
+      final doc = await firestore.collection('user').doc('guest').get();
+      expect(doc.data()?['transferTo'], 'lea@gmail.com');
+    });
+
+    test('has nothing to mark without a profile', () async {
+      expect(
+        await repository.markForTransfer('guest', 'lea@gmail.com'),
+        isFalse,
+      );
+      expect(
+        (await firestore.collection('user').doc('guest').get()).exists,
+        isFalse,
+      );
+    });
+  });
 }

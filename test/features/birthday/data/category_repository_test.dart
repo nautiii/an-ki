@@ -201,4 +201,55 @@ void main() {
 
     expect(category.tone, 9);
   });
+
+  group('guest move (B5.5)', () {
+    CollectionReference<Map<String, dynamic>> own(String uid) =>
+        firestore.collection('user').doc(uid).collection('categories');
+
+    test('marks the guest groups and returns them', () async {
+      await own('guest').doc('g1').set({'name': 'Escalade', 'icon': 1});
+
+      final marked = await repository.markForTransfer('guest', 'lea@gmail.com');
+
+      expect(marked, [
+        const BirthdayCategory(id: 'g1', name: 'Escalade', icon: 1),
+      ]);
+      expect(
+        (await own('guest').doc('g1').get()).data()?['transferTo'],
+        'lea@gmail.com',
+      );
+    });
+
+    test('fetches a user groups once', () async {
+      await own('target').doc('t1').set({'name': 'Voisins', 'icon': 2});
+
+      expect(await repository.fetchOwnCategories('target'), [
+        const BirthdayCategory(id: 't1', name: 'Voisins', icon: 2),
+      ]);
+    });
+
+    test(
+      'recreates copies under their id, then deletes the guest groups',
+      () async {
+        await own('guest').doc('g1').set({'name': 'Escalade', 'icon': 1});
+        await own('guest').doc('g2').set({'name': 'Voisins', 'icon': 2});
+
+        await repository.takeOver(
+          'target',
+          guestUid: 'guest',
+          copies: const [
+            BirthdayCategory(id: 'g2', name: 'Voisins', icon: 2, tone: 3),
+          ],
+          guestGroupIds: ['g1', 'g2'],
+        );
+
+        expect((await own('guest').get()).docs, isEmpty);
+        expect((await own('target').doc('g2').get()).data(), {
+          'name': 'Voisins',
+          'icon': 2,
+          'tone': 3,
+        });
+      },
+    );
+  });
 }

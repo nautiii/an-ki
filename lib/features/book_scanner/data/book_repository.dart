@@ -108,6 +108,31 @@ class BookRepository {
     await _books.add(_bookToMap(book, uid: uid, scannedAt: scannedAt));
   }
 
+  /// Marque les livres de [uid], un invité, pour le compte Google [email] qui
+  /// va les reprendre ([takeOver]), et renvoie leurs ids. Lus sur le serveur ;
+  /// le Future attend l'accusé du serveur.
+  Future<List<String>> markForTransfer(String uid, String email) async {
+    final snapshot = await _books
+        .where('uid', isEqualTo: uid)
+        .get(const GetOptions(source: Source.server));
+    await _firestore.writeInBatches(
+      snapshot.docs,
+      (batch, doc) => batch.update(doc.reference, {'transferTo': email}),
+    );
+    return [for (final doc in snapshot.docs) doc.id];
+  }
+
+  /// Reprend pour [uid] les livres [bookIds] marqués pour lui : ils deviennent
+  /// les siens, sans marque.
+  Future<void> takeOver(String uid, Iterable<String> bookIds) =>
+      _firestore.writeInBatches(
+        bookIds,
+        (batch, id) => batch.update(_books.doc(id), {
+          'uid': uid,
+          'transferTo': FieldValue.delete(),
+        }),
+      );
+
   /// Efface tous les livres de [uid] (suppression du compte), par lots
   /// d'écritures.
   /// Lu sur le serveur : hors ligne, l'effacement échoue avant de commencer.
