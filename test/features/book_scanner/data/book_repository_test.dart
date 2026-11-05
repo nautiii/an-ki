@@ -58,6 +58,20 @@ void main() {
       );
     });
 
+    test('encodes the ISBN and the key in the query', () async {
+      Uri? asked;
+      final repository = repositoryReturning((request) {
+        asked = request.url;
+        return http.Response(jsonEncode({'totalItems': 0}), 200);
+      });
+
+      await repository.fetchBookByIsbn('97%&8#');
+
+      expect(asked?.host, 'www.googleapis.com');
+      expect(asked?.path, '/books/v1/volumes');
+      expect(asked?.queryParameters, {'q': 'isbn:97%&8#', 'key': 'test-key'});
+    });
+
     test('falls back to defaults when volumeInfo is missing', () async {
       final body = jsonEncode({
         'totalItems': 1,

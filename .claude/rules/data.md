@@ -34,6 +34,9 @@ Patterns with code: architecture skill, `references/patterns.md` §1–4; decisi
   `FirebaseFirestore.instance` default. `xRepositoryProvider` sits next to the class.
 - Translate SDK exceptions into the feature's failures at the boundary, keeping the stack trace
   (`Error.throwWithStackTrace`).
+- HTTP URLs are built with `Uri.https(host, path, queryParameters)`, never by interpolating a
+  value into a string. Device input (a scanned code) is checked by a domain rule before any call
+  (`isBookIsbn`); the camera reads only the formats it needs.
 - `snapshots()` streams are the source of truth, no second cache. Write futures resolve on server
   acknowledgement only: return them, the UI doesn't wait.
 - Ids generated client-side (`collection.doc()`); timestamps from the clock, not

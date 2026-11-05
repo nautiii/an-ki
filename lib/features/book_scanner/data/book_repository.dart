@@ -45,9 +45,11 @@ class BookRepository {
   /// quota de l'API est dépassé, [BookFailure.unavailable] pour toute autre
   /// erreur ou réponse illisible.
   Future<Book?> fetchBookByIsbn(String isbn) async {
-    final url = Uri.parse(
-      'https://www.googleapis.com/books/v1/volumes?q=isbn:$isbn&key=$_apiKey',
-    );
+    // Paramètres encodés : une valeur lue par la caméra ne casse pas l'URL.
+    final url = Uri.https('www.googleapis.com', '/books/v1/volumes', {
+      'q': 'isbn:$isbn',
+      'key': _apiKey,
+    });
     final http.Response response;
     try {
       response = await _httpClient.get(url);
