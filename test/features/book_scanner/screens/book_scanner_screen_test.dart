@@ -18,16 +18,19 @@ import '../../../support/fake_mobile_scanner_platform.dart';
 import '../../../support/fake_providers.dart';
 import '../../../support/test_harness.dart';
 
+/// ISBN-13 lu sur un code-barres de livre.
+const _isbn = '9780451524935';
+
 Book _book({String id = '1', String? imageUrl}) => Book(
   id: id,
-  isbn: '987654321',
+  isbn: _isbn,
   title: '1984',
   authors: const ['George Orwell'],
   description: 'Big Brother is watching you.',
   imageUrl: imageUrl,
 );
 
-/// Profil chargé : l'en-tête affiche le nom, pas son squelette.
+/// Profil chargé : la barre salue par le prénom.
 const _profile = UserProfile(
   id: 'fake-uid',
   name: 'Camille',
@@ -83,10 +86,23 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.settings_rounded));
+      await tester.tap(find.byTooltip('Paramètres'));
       await tester.pumpAndSettle();
 
       expect(find.text('Settings route'), findsOneWidget);
+    });
+
+    testWidgets('greets in a pinned app bar, like the home', (tester) async {
+      await pumpScreen(tester, const AsyncData([]));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.textContaining('Camille'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('displays saved books in a carousel', (tester) async {
@@ -94,6 +110,64 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('1984'), findsOneWidget);
+      // Le carrousel garde sa hauteur au lieu de s'étirer sur l'onglet.
+      expect(tester.getSize(find.byType(PageView)).height, 180);
+    });
+
+    testWidgets('grows the carousel with large text', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await pumpScreen(tester, AsyncData([_book()]));
+      await tester.pumpAndSettle();
+
+      expect(tester.getSize(find.byType(PageView)).height, 360);
+    });
+
+    testWidgets('grows the carousel with Android 14 non-linear scaling', (
+      tester,
+    ) async {
+      await tester.pumpHarness(
+        Builder(
+          builder: (context) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: const _NonLinearScaler()),
+            child: const BookScannerScreen(),
+          ),
+        ),
+        overrides: [
+          savedBooksProvider.overrideWithValue(AsyncData([_book()])),
+          userProfileProvider.overrideWithValue(const AsyncData(_profile)),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.getSize(find.byType(PageView)).height, 360);
+    });
+
+    testWidgets('scrolls to a whole card on a compact phone at 200 %', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await pumpScreen(tester, AsyncData([_book()]));
+      await tester.pumpAndSettle();
+
+      // Aucun débordement, et la carte garde toute sa hauteur.
+      expect(tester.takeException(), isNull);
+      expect(tester.getSize(find.byType(PageView)).height, 360);
+    });
+
+    testWidgets('labels and sizes its app bar buttons', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpScreen(tester, const AsyncData([]));
+      await tester.pumpAndSettle();
+
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
     });
   });
 
@@ -134,7 +208,7 @@ void main() {
       await pumpScreen(tester, repo);
       await tester.pump();
 
-      detect(tester, '987654321');
+      detect(tester, _isbn);
       await settleScan(tester);
 
       expect(find.byType(BookInfoSheet), findsOneWidget);
@@ -155,7 +229,7 @@ void main() {
       await tester.pump();
       final startsBefore = platform.startCalls;
 
-      detect(tester, '987654321');
+      detect(tester, _isbn);
       await settleScan(tester);
       expect(find.byType(BookInfoSheet), findsOneWidget);
 
@@ -177,7 +251,7 @@ void main() {
       await pumpScreen(tester, repo);
       await tester.pump();
 
-      detect(tester, '987654321');
+      detect(tester, _isbn);
       await settleScan(tester);
       await tester.tap(find.text('Ajouter'));
       await settleScan(tester);
@@ -189,13 +263,28 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
+    testWidgets('ignores a code that is not a book ISBN', (tester) async {
+      final repo = RecordingBookRepository(bookByIsbn: _book());
+      await pumpScreen(tester, repo);
+      await tester.pump();
+      final stopsBefore = platform.stopCalls;
+
+      // Un QR code, puis le code-barres d'un produit (EAN-13 sans 978/979).
+      detect(tester, 'https://example.com/?q=1%');
+      detect(tester, '3017620422003');
+      await settleScan(tester);
+
+      expect(find.byType(BookInfoSheet), findsNothing);
+      expect(platform.stopCalls, stopsBefore);
+    });
+
     testWidgets('an unknown ISBN shows the "not found" message', (
       tester,
     ) async {
       await pumpScreen(tester, RecordingBookRepository());
       await tester.pump();
 
-      detect(tester, '000');
+      detect(tester, _isbn);
       await settleScan(tester);
 
       expect(find.text('Livre non trouvé'), findsOneWidget);
@@ -212,7 +301,7 @@ void main() {
       );
       await tester.pump();
 
-      detect(tester, '111');
+      detect(tester, _isbn);
       await settleScan(tester);
 
       expect(
@@ -229,7 +318,7 @@ void main() {
       );
       await tester.pump();
 
-      detect(tester, '222');
+      detect(tester, _isbn);
       await settleScan(tester);
 
       expect(
@@ -246,7 +335,7 @@ void main() {
       );
       await tester.pump();
 
-      detect(tester, '123');
+      detect(tester, _isbn);
       await settleScan(tester);
 
       expect(
@@ -258,4 +347,21 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
   });
+}
+
+/// Grand texte à la manière d'Android 14+ : le petit texte double, le grand
+/// grandit à peine.
+class _NonLinearScaler extends TextScaler {
+  const _NonLinearScaler();
+
+  @override
+  double scale(double fontSize) =>
+      fontSize <= 24 ? fontSize * 2 : fontSize + 24;
+
+  @override
+  double get textScaleFactor => 2;
+
+  @override
+  TextScaler clamp({double minScaleFactor = 0, double maxScaleFactor = 2}) =>
+      this;
 }

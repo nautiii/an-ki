@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:math' as math;
 
+import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/common/anki_empty_state.dart';
-import 'package:an_ki/core/common/header.dart';
+import 'package:an_ki/core/common/greeting_title.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
@@ -10,6 +12,7 @@ import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
+import 'package:an_ki/features/book_scanner/domain/isbn.dart';
 import 'package:an_ki/features/book_scanner/providers/book_editor.dart';
 import 'package:an_ki/features/book_scanner/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/book_scanner/providers/isbn_lookup.dart';
@@ -29,10 +32,13 @@ class BookScannerScreen extends ConsumerStatefulWidget {
 }
 
 class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
-  /// Hauteur du carrousel de livres, reprise par son squelette.
+  /// Hauteur du carrousel de livres au texte normal, reprise par son squelette.
   static const double _bookCardHeight = 180;
 
-  final MobileScannerController controller = MobileScannerController();
+  /// Les livres portent un EAN-13 : la caméra ne lit que ce format.
+  final MobileScannerController controller = MobileScannerController(
+    formats: const [BarcodeFormat.ean13],
+  );
   final PageController _booksController = PageController(
     viewportFraction: 0.85,
   );
@@ -48,14 +54,20 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
   void _onDetect(BarcodeCapture capture) {
     if (_isProcessing) return;
 
-    final barcode = capture.barcodes.firstOrNull;
-    if (barcode == null || barcode.rawValue == null) return;
+    // Un code qui n'est pas un ISBN (produit, QR) est ignoré, sans message :
+    // la caméra le relirait en boucle.
+    final isbn = capture.barcodes
+        .map((barcode) => barcode.rawValue)
+        .nonNulls
+        .where(isBookIsbn)
+        .firstOrNull;
+    if (isbn == null) return;
 
     setState(() {
       _isProcessing = true;
     });
 
-    _processIsbn(barcode.rawValue!);
+    _processIsbn(isbn);
   }
 
   Future<void> _processIsbn(String isbn) async {
@@ -126,29 +138,58 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
         savedBooks.isLoading && !savedBooks.hasValue && !savedBooks.hasError;
     final isScanning = ref.watch(isbnLookupProvider.select((s) => s.isLoading));
     final books = savedBooks.value ?? const <Book>[];
-    final profileLoaded = ref.watch(
-      userProfileProvider.select((profile) => profile.hasValue),
-    );
-    final greetingName = ref.watch(greetingNameProvider);
+    final l10n = context.l10n;
+    final period = ref.watch(greetingProvider).name;
+    // Sans nom (invité, profil pas encore chargé) : la salutation seule.
+    final name = ref.watch(greetingNameProvider);
+    final greeting = l10n.greeting(period);
+    // La carte grandit comme son petit texte : à 200 %, titre, ISBN et date
+    // tiennent. Le facteur vient d'une taille de police réelle, car l'échelle
+    // d'Android 14+ n'est pas linéaire (scale(180) ne grandirait presque pas).
+    final cardFontSize = Theme.of(context).textTheme.bodySmall?.fontSize ?? 12;
+    final bookCardHeight =
+        _bookCardHeight *
+        math.max(
+          1,
+          MediaQuery.textScalerOf(context).scale(cardFontSize) / cardFontSize,
+        );
 
     return Scaffold(
+      // Même barre épinglée que l'accueil, réglages compris.
+      appBar: AppBar(
+        centerTitle: false,
+        backgroundColor: colorScheme.surface,
+        titleSpacing: AppSpacing.gutter,
+        toolbarHeight: GreetingTitle.toolbarHeight(context),
+        title: GreetingTitle(
+          greeting: greeting,
+          name: name,
+          oneLine: name == null ? greeting : l10n.greetingName(period, name),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () => context.push(AppRoutes.settings),
+            tooltip: l10n.settings,
+            icon: AnKiAvatar(name: name ?? '', radius: 16),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+        ],
+      ),
+      // Un seul défilement, jusqu'au-dessus de la barre flottante : sur un
+      // petit écran en grand texte, la carte du livre reste entière.
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
+        bottom: false,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.gutter,
+            0,
+            AppSpacing.gutter,
+            MediaQuery.paddingOf(context).bottom + AppSpacing.lg,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: AppSpacing.md),
-              Header(
-                greeting: context.l10n.greeting(
-                  ref.watch(greetingProvider).name,
-                ),
-                // Squelette tant que le profil charge ; ensuite le prénom, ou
-                // rien pour un invité.
-                userName: profileLoaded ? greetingName ?? '' : null,
-                onOpenSettings: () => context.push(AppRoutes.settings),
-              ),
-              const SizedBox(height: AppSpacing.lg),
 
               ClipRSuperellipse(
                 borderRadius: const BorderRadius.all(
@@ -210,53 +251,37 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
 
               const SizedBox(height: AppSpacing.lg),
 
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.l10n.bookScannerTitle,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Expanded(
-                      child: isLoading
-                          ? const Align(
-                              alignment: Alignment.topLeft,
-                              child: FractionallySizedBox(
-                                widthFactor: 0.85,
-                                child: SkeletonBox(
-                                  height: _bookCardHeight,
-                                  radius: AppRadii.lg,
-                                ),
-                              ),
-                            )
-                          : books.isEmpty
-                          ? SingleChildScrollView(
-                              padding: const EdgeInsets.only(
-                                bottom: AppSpacing.xl,
-                              ),
-                              child: AnKiEmptyState(
-                                illustration: Image.asset(AppAssets.moon),
-                                title: context.l10n.noBooksYet,
-                                message: context.l10n.noBooksMessage,
-                              ),
-                            )
-                          : SizedBox(
-                              height: _bookCardHeight,
-                              child: PageView.builder(
-                                itemCount: books.length,
-                                controller: _booksController,
-                                padEnds: false,
-                                itemBuilder: (context, index) {
-                                  return BookCard(book: books[index]);
-                                },
-                              ),
-                            ),
-                    ),
-                  ],
-                ),
+              Text(
+                context.l10n.bookScannerTitle,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
+              const SizedBox(height: AppSpacing.md),
+              if (isLoading)
+                FractionallySizedBox(
+                  widthFactor: 0.85,
+                  child: SkeletonBox(
+                    height: bookCardHeight,
+                    radius: AppRadii.lg,
+                  ),
+                )
+              else if (books.isEmpty)
+                AnKiEmptyState(
+                  illustration: Image.asset(AppAssets.moon),
+                  title: context.l10n.noBooksYet,
+                  message: context.l10n.noBooksMessage,
+                )
+              else
+                SizedBox(
+                  height: bookCardHeight,
+                  child: PageView.builder(
+                    itemCount: books.length,
+                    controller: _booksController,
+                    padEnds: false,
+                    itemBuilder: (context, index) {
+                      return BookCard(book: books[index]);
+                    },
+                  ),
+                ),
             ],
           ),
         ),

@@ -1,4 +1,3 @@
-import 'package:an_ki/core/common/header.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/notification_service.dart';
@@ -69,27 +68,6 @@ void main() {
       RecordingCategoryRepository(const []),
     ),
   ];
-
-  testWidgets('Header opens the settings screen', (tester) async {
-    await tester.pumpHarness(
-      Builder(
-        builder: (context) => Header(
-          greeting: 'Bonjour',
-          userName: 'Quentin',
-          onOpenSettings: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
-          ),
-        ),
-      ),
-      overrides: overridesWith(),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byIcon(Icons.settings_rounded));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Paramètres'), findsOneWidget);
-  });
 
   testWidgets('groups the settings in titled sections, account last', (
     tester,

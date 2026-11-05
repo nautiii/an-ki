@@ -214,7 +214,7 @@ flutter test build/ui_snapshots/_src/palette_audit_test.dart
 - Signed-in screens live in a go_router shell branch: `showModalBottomSheet` needs
   `useRootNavigator: true`, or the sheet opens inside the tab, under the floating bar (its CTA
   hidden, the bar still tappable). Dialogs already default to the root navigator.
-- `Header` shows a skeleton while `userName` is null and `SkeletonBox` pulses forever: a widget
-  test that `pumpAndSettle`s a screen with one needs a loaded `userProfileProvider`.
+- `SkeletonBox` pulses forever: a widget test that `pumpAndSettle`s a screen showing one never
+  settles; pin its data loaded first.
 - `containsSemantics` is deprecated since Flutter 3.40: assert with `isSemantics`; custom
   semantics actions run with `tester.semantics.customAction(...)`.

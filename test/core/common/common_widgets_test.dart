@@ -1,6 +1,4 @@
 import 'package:an_ki/core/common/bottom_bar.dart';
-import 'package:an_ki/core/common/header.dart';
-import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,61 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../support/test_harness.dart';
 
 void main() {
-  group('Header', () {
-    testWidgets('shows the greeting and the name, opens the settings', (
-      tester,
-    ) async {
-      var settingsOpened = 0;
-
-      await tester.pumpHarness(
-        Header(
-          greeting: 'Bonsoir',
-          userName: 'Q',
-          onOpenSettings: () => settingsOpened++,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Bonsoir'), findsOneWidget);
-      expect(find.text('Q'), findsOneWidget);
-
-      await tester.tap(find.byTooltip('Paramètres'));
-      await tester.pumpAndSettle();
-      expect(settingsOpened, 1);
-    });
-
-    testWidgets('shows the greeting alone without a name', (tester) async {
-      await tester.pumpHarness(
-        Header(greeting: 'Bonjour', userName: '', onOpenSettings: () {}),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Bonjour'), findsOneWidget);
-      expect(find.byType(SkeletonBox), findsNothing);
-    });
-
-    testWidgets('shows a skeleton while the name loads', (tester) async {
-      await tester.pumpHarness(
-        Header(greeting: 'Bonjour', userName: null, onOpenSettings: () {}),
-      );
-      await tester.pump();
-
-      expect(find.byType(SkeletonBox), findsOneWidget);
-    });
-
-    testWidgets('labels its buttons for screen readers', (tester) async {
-      final semantics = tester.ensureSemantics();
-      await tester.pumpHarness(
-        Header(greeting: 'Bonjour', userName: 'Q', onOpenSettings: () {}),
-      );
-      await tester.pumpAndSettle();
-
-      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
-      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-      semantics.dispose();
-    });
-  });
-
   group('BottomBar', () {
     const destinations = [
       BottomBarDestination(

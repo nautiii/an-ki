@@ -104,10 +104,10 @@ haptics · 6. Focus & forms · 7. Testing
 there checks the default theme; real-theme contrast is the job of the palette audit + snapshots.
 
 ```dart
-testWidgets('header actions are accessible', (tester) async {
+testWidgets('app bar actions are accessible', (tester) async {
   final semantics = tester.ensureSemantics();
   await tester.pumpHarness(
-    Header(greeting: 'Bonjour', userName: 'Camille', onOpenSettings: () {}),
+    const CustomScrollView(slivers: [HomeAppBar(canSearch: true)]),
   );
   await tester.pumpAndSettle();
 

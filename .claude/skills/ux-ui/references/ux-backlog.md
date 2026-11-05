@@ -15,7 +15,8 @@ reminders-off card (Q8), the forgotten password link (Q9) and the auth messages 
 2026-10-24, then the sign-up's single password (Q11), D24, D9, D22, D12, D14 (its message),
 D8, F5 and D4, and the groups page (Q10) on 2026-10-25, then D25 and D15 (the belated wish) on
 2026-10-27, then D27 (« e-mail » with a plain hyphen, U+00A0 for the narrow U+202F Outfit
-lacks) on 2026-11-02, then B4a (the person page, with D14's « Voir ») on 2026-11-03: the items
+lacks) on 2026-11-02, then B4a (the person page, with D14's « Voir ») on 2026-11-03, then D10
+(the scanner tab's pinned app bar, its carousel at its own height) on 2026-11-05: the items
 they fixed are gone from this list.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
@@ -25,7 +26,7 @@ auth or dependencies → design brief + maintainer approval first.
 ## Contents
 - Big bets (B4's gift ideas, deferred; B8; B5 and B6 shipped but their merge) — structural redesigns with the highest impact
 - Foundation (none open) — design system, prerequisite for consistency
-- P2 — polish (D10, D17)
+- P2 — polish (D17)
 - Suggested roadmap
 
 ---
@@ -57,7 +58,8 @@ auth or dependencies → design brief + maintainer approval first.
     next birthday);
   - `url_launcher` approved (2026-11-03) to open a link; the existing `books` documents: migrate
     them or let them go, to decide then;
-  - D10 (pinned app bar, the carousel gone) goes with it (debt A15 was fixed on 2026-11-03).
+  - the scanner's book carousel goes (debt A15 was fixed on 2026-11-03; its pinned app bar
+    shipped with D10 on 2026-11-05).
 - **Refs**: Apple/Google Contacts cards, wishlist apps, Pinterest boards (lightweight).
 - **Cost of what's left**: medium (ideas model and rules, the tab, scanner integration).
 
@@ -177,11 +179,6 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
 
 ## P2 — polish
 
-- **D10 Scanner header**: the scanner tab keeps the old two-line `Header` while the home has the
-  pinned app bar → align the two tabs when B4's gift ideas (deferred) rework the scanner. Same
-  rework: the book
-  carousel's `SizedBox(height: 180)` sits in an `Expanded`, so the cards stretch over all the
-  space left (≈ 320 dp at 412×915, `scanner` snapshot, 2026-10-25).
 - **D17 iOS wish button**: iOS notifications have no « Souhaiter » (Darwin categories are
   declared at initialization, before the texts are localized) → add a category once iOS builds.
 
@@ -190,4 +187,4 @@ None open: F1 (bundled Outfit) and F6 (error ring on fields) shipped 2026-10-26.
 1. **B5's 5.5 merge** once guests with an existing Google account show up.
 2. **B8, D17** — depth and polish;
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
-3. **B4's gift ideas, with D10** — when the maintainer picks them up.
+3. **B4's gift ideas** — when the maintainer picks them up.
