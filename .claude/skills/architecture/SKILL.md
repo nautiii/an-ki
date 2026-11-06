@@ -147,10 +147,11 @@ Propose the fixes; apply them only when asked or when they are in scope.
 
 ## Verify — show, don't claim
 
-- `dart format` on touched files; `flutter analyze` and `dart analyze` both clean (only
-  `dart analyze` runs the `riverpod_lint` plugin).
+- `dart format` on touched files; `dart analyze --fatal-infos` clean (what `flutter analyze`
+  reports, plus the `riverpod_lint` plugin).
 - `flutter test` for the touched features and `flutter test test/architecture`, then the whole
-  suite.
+  suite. In Claude Code, `bash .claude/hooks/verify-index.sh` runs all of it, project norms
+  included.
 - Tests exist at each layer touched; screen tests cover loading, empty, data and error.
 - Visible behaviour changed → run it on the emulator or the phone (device skill), or say it wasn't run.
 - If unrelated tests fail, report them rather than fixing them silently.

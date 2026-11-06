@@ -49,5 +49,5 @@ Fait — <tâche>
 - <fichier> : <ce qui a changé>
 Non fait / à décider : <point> — <pourquoi>   (ou « rien »)
 Format : dart format passé (<n> fichiers)
-Vérifications : non lancées (verifier) | gen-l10n lancé
+Vérifications : non lancées (verify-index.sh, session principale) | gen-l10n lancé
 ```

@@ -108,23 +108,48 @@ run scripts/migrate_categories.ps1 once per environment.
    of another feature), propose a split before committing — list the commits with their messages
    and the files in each, and let the user validate. Each commit should build and pass tests on
    its own, so that `git bisect` and reverts stay usable. Tests belong with the code they cover.
-4. **Check before recording.** Stage first (step 2), then the `verifier` runs format, analyze and
-   tests and the `reviewer` reviews the staged diff, in parallel. The checks record their verdicts
-   themselves, never from an agent's message: the verifier runs
-   `bash .claude/hooks/verify-index.sh static` and `... tests`, which record the verdict for the
-   exact staged index once both pass with the working copy matching it; the reviewer ends its
-   review with `bash .claude/hooks/record-review.sh` (per HEAD, refused outside the reviewer). A
-   branch older than these scripts runs the main checkout's ones from its own folder, or rebases.
-   `guard-git.sh` refuses the commit otherwise: code paths need both, any other non-markdown path
-   needs the reviewer, markdown-only commits need none. Other agents run the same two scripts, or
-   the checks by hand: `dart format --output=none --set-exit-if-changed <files>`, `flutter analyze`,
-   `dart analyze` and `flutter test`. The reviewer runs once per commit, on the staged diff: apply its
-   findings (blocking ones included), re-stage, run the verifier again on the final index, then
-   commit — no second review. The verifier must pass on the exact staged index. This keeps token use
-   reasonable. Never
-   commit red; never work around the gate — if it blocks wrongly, tell the user. Commit the index
-   as it is: no paths after `git commit`, no `-C` or `cd` (run from the repo folder). A reword is
-   `git commit --amend --only -F -`.
+4. **Check before recording.** Mandatory, not advice, in every session, side sessions included.
+   One review per logical change, the checks on every commit:
+   - Stage the whole logical change (step 2), then in parallel: the checks,
+     `bash .claude/hooks/verify-index.sh` (Bash in the background, no agent: project norms,
+     l10n, format, analysis, tests; prints only failures), and the `reviewer` on the staged diff.
+     Its model comes from `bash .claude/hooks/review-model.sh`: over 50 lines or a sensitive zone
+     (state, data, reminders, navigation, Firebase, dependencies, platforms, the gate) → Opus at
+     high effort, the agent's default; otherwise `model: "sonnet"`, `effort: "medium"`. A
+     structural or system change (AGENTS.md) always gets Opus.
+   - Apply its findings (blocking ones included), re-stage, run the checks again — no second
+     review, which keeps token use reasonable.
+   - Commit, as one or several atomic commits (step 3). To split, keep only the first commit's
+     paths staged and set the rest aside (`git restore --staged <paths>`, then
+     `git stash push --include-untracked -- <paths>`), run the checks on that index, commit,
+     `git stash pop`, and go on with the next. The checks must pass on each exact staged index.
+
+   Never commit red; never work around the gate — if it blocks wrongly, tell the user. Commit the
+   index as it is, in a call of its own: stage in an earlier call, no paths after `git commit`, no
+   `-C` or `cd` (run from the repo folder). A reword is `git commit --amend --only -F -`.
+
+   How the gate works (`guard-git.sh`):
+   - Code paths (lib, test, platform, pubspec, Firebase config) need the checks' verdict and a
+     review; any other non-markdown path needs a review; markdown-only commits need none.
+   - The checks record their verdicts themselves, never from an agent's message:
+     `verify-index.sh` records one for the staged index once everything passes on an index that
+     didn't move and that the working copy matches (otherwise it checks the working copy and
+     records nothing); the reviewer ends its review with `bash .claude/hooks/record-review.sh`
+     (refused outside the reviewer), which records the base commit and the staged paths.
+   - A review covers each path it saw until that path is committed (an `--amend` reopens the
+     last commit's), plus new test files, while its base stays an ancestor of HEAD, for 48 hours
+     at most. Anything else needs a new review: the next change, a path already committed (a
+     file split across two commits included), a path the review didn't see (tell the reviewer
+     which paths are new). Stage nothing while the reviewer runs: it records the index as it
+     stands when it finishes.
+   - Other agents run the same scripts, or the checks by hand:
+     `dart format --output=none --set-exit-if-changed <files>`, `dart analyze --fatal-infos` and
+     `flutter test`.
+   - In a worktree session the hooks run the main checkout's scripts (`$CLAUDE_PROJECT_DIR`, the
+     payload's `cwd` being the worktree): a hook change applies once it is on main, and a branch
+     older than the check scripts runs the main checkout's ones from its own folder, or rebases
+     on main.
+   - The gate protects against forgetting, not against deliberate bypass.
 5. **Guard secrets.** Never stage `secrets.json`, `key.properties`, `*.jks`, `*.keystore`, `.env`
    or service-account JSON. `android/app/google-services.json` is tracked on purpose (Firebase
    client config) — commit it only when the change is intended (e.g. a new SHA-1).
@@ -169,9 +194,9 @@ In Claude Code, `.claude/hooks/guard-git.sh` enforces this: it blocks merge comm
 without `--rebase`/`--ff-only`, blind `git add`, `git commit -a`, forced pushes without lease,
 `--no-verify` and every Firebase command that writes production (firebase skill), and makes the
 maintainer confirm a push, `reset --hard`, `clean -f`, discarding all changes, `branch -D`,
-`stash drop` or rewriting pushed commits. It also gates `git commit`: without the `verifier` and `reviewer` verdicts recorded (the verifier's for the exact
-staged index, the reviewer's since the last commit, step 4), the commit is refused. A blocked command is a signal to change approach, not
-to work around the guard.
+`stash drop` or rewriting pushed commits. It also gates `git commit`: without the checks' verdict
+for the exact staged index and a review covering its paths (step 4), the commit is refused. A
+blocked command is a signal to change approach, not to work around the guard.
 
 ## Examples
 

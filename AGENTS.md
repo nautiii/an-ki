@@ -27,31 +27,19 @@ correct but hasn't been built on the current setup.
 
 ## Delegation (Claude Code, `.claude/agents/`)
 
-The main session keeps every judgement (design, briefs, decisions, the code that needs them) and
-delegates the rest with a complete brief, since agents don't see the conversation:
-`verifier` (Haiku) runs the checks of any verify step and returns only failures; `implementer`
-(Sonnet) applies a fully specified mechanical change and sends back any open choice;
-`device-runner` (Sonnet) makes every emulator or phone check; `reviewer` (Opus, high effort)
-reviews the diff before every commit touching code or tooling; only markdown-only commits are exempt.
-
-These steps are mandatory, not advice, in every session including side sessions: implement
-(mechanical parts → `implementer`) → stage explicit paths → `verifier` and `reviewer` on that index
-(in parallel) → commit. The reviewer runs once per commit, on the staged diff: apply its findings
-(blocking ones included), re-stage, run the verifier again on the final index, then commit — no
-second review. The verifier must pass on the exact staged index. This keeps token use reasonable.
-A hook enforces it: `guard-git.sh` refuses a commit touching code (lib, test, platform, pubspec,
-Firebase config) without the verifier's verdict for the staged tree and the reviewer's review since
-the last commit, and any other commit that isn't markdown-only without the reviewer's. The checks
-record them themselves, never an agent's message: the verifier runs `.claude/hooks/verify-index.sh
-static` and `tests`, which write the verdict once both pass on an index that didn't move and that
-the working copy matches; the reviewer ends its review with `.claude/hooks/record-review.sh`, bound
-to HEAD, which `guard-git.sh` refuses outside the reviewer. The gate protects against forgetting,
-not against deliberate bypass. In a worktree session the hooks run the main checkout's scripts
-(`$CLAUDE_PROJECT_DIR`, the payload's `cwd` being the worktree): a hook change applies once it is on
-main, and a branch older than the check scripts runs the main checkout's ones from its own folder,
-or rebases on main. Every change visible in the app also
-goes through `device-runner` before the final report, or the report says « appareil : non vérifié »
-and why.
+The main session keeps every judgement (design, briefs, decisions) and delegates the rest with a
+complete brief: mechanical changes → `implementer`, emulator or phone checks → `device-runner`.
+It runs the checks itself, without an agent: `bash .claude/hooks/verify-index.sh` (Bash in the
+background; prints only failures), always at the end of a session that changed code or tooling,
+and whenever there is a real need: before each commit, or to settle a doubt mid-task, never
+after every edit.
+Every logical change, side sessions included: implement → stage it whole (explicit paths) →
+checks + `reviewer` in parallel, the reviewer's model given by `bash .claude/hooks/review-model.sh`
+(a structural or system change: Opus) → apply the findings, re-stage, checks again → commit, in
+one or several atomic commits, the checks passing on each index (one review per change, none for
+markdown). `guard-git.sh` blocks the commit otherwise (git-workflow skill).
+A change visible in the app goes through `device-runner` before the final report, or the report
+says « appareil : non vérifié » and why.
 
 ## Stack
 
@@ -67,25 +55,18 @@ Every dependency is pinned to an exact version.
 |------|---------|
 | Dependencies | `flutter pub get` |
 | Format | `dart format <files>` |
-| Analysis — must be clean | `flutter analyze` and `dart analyze` (only the latter runs the `riverpod_lint` plugin) |
+| Analysis — must be clean | `dart analyze --fatal-infos` (what `flutter analyze` reports, plus the `riverpod_lint` plugin) |
 | Tests | `flutter test`, or `flutter test test/features/<feature>` |
-| Commit checks on the staged index (what the `verifier` runs; records the verdict) | `bash .claude/hooks/verify-index.sh static` and `bash .claude/hooks/verify-index.sh tests` |
+| All checks (Claude Code): project norms, l10n, format, analysis, tests; on a staged index, records the commit verdict | `bash .claude/hooks/verify-index.sh [static\|tests]` |
 | Firestore rules, in the emulator (Firebase CLI, Java 21+) | `scripts/test_firestore_rules.ps1` (firebase skill) |
 | Strings, after any `.arb` change | `flutter gen-l10n` |
-| Run on a device | `scripts/run.ps1 [-Example] [-d <device id>]` (= `flutter run --dart-define-from-file=secrets.json`, or `secrets.example.json` with `-Example`); agents start it with `-Example` on the emulator, in the Terminal panel (device skill) |
+| Run on a device | `scripts/run.ps1 [-Example] [-d <device id>]` (`secrets.json`, or `secrets.example.json` with `-Example`; agents: device skill) |
 | Build and install an APK | `scripts/build_and_deploy.ps1 [-Release] [-Clean]` |
 | Icon / splash, after changing their pubspec config | `dart run flutter_launcher_icons` · `dart run flutter_native_splash:create` |
 
 The app reads `GOOGLE_BOOKS_API_KEY` from `secrets.json` through `--dart-define-from-file`.
-In Claude Code, hooks (`.claude/settings.json`, scripts in `.claude/hooks/`) show the git state
-at session start, format every `.dart` file right after it is written or edited, block blind,
-merging or forced git commands and any Firebase command that writes production (the emulator,
-read-only commands, a rules `--dry-run` and the deploy of committed, emulator-proved rules
-without a `firestore.rules.hold` pass), and ask the maintainer before a push or
-anything that discards work, and refuse a commit without the agents' verdicts for the staged index
-(`verifier` and `reviewer` for code, `reviewer` alone for other non-markdown files, nothing for
-markdown-only commits); reading `secrets.json` is denied. Other agents follow the same
-rules by hand.
+Claude Code hooks (`.claude/hooks/`) format edited `.dart` files and guard git and Firebase
+commands (git-workflow, firebase skills); other agents follow the same rules by hand.
 
 ## Code map
 
@@ -141,18 +122,14 @@ is in `.claude/skills/architecture/references/migration.md`.
 
 ## Where to look
 
-| Need | Read |
-|------|------|
-| Add or reshape behaviour: feature, model, repository, provider, service, Firestore shape, navigation, refactor, migration, structure review | `.claude/skills/architecture/SKILL.md` |
-| Anything visual or interactive: screen, flow, states, theme, motion, copy, accessibility | `.claude/skills/ux-ui/SKILL.md` |
-| Run, see or debug the app on the emulator or the phone: launch, screenshots, logs, dark mode, 200 % text, permissions, reminders | `.claude/skills/device/SKILL.md` |
-| Firebase backend: security rules and their emulator tests, deploying the rules (always through this skill, never by hand), the data map, indexes, migrations, account deletion, console steps (SHA-1, flutterfire) | `.claude/skills/firebase/SKILL.md` |
-| Commit, branch, pull request | `.claude/skills/git-workflow/SKILL.md` |
-| Upgrade Flutter, packages or the Android toolchain | `/deps-upgrade` — only the maintainer starts it (`.claude/skills/deps-upgrade/SKILL.md`); asked for an upgrade otherwise, suggest it |
-| Find and remove dead code: unused or test-only declarations, never-passed parameters, dead ARB keys | `/dead-code` — only the maintainer starts it (`.claude/skills/dead-code/SKILL.md`); asked for a cleanup otherwise, suggest it |
-| Rules for the zone you edit: UI, state, data, navigation, reminders, tests, l10n, platform | `.claude/rules/*.md` — loaded automatically by Claude Code; other agents read the matching file |
-| Why the architecture is what it is, and when to revisit it | `.claude/skills/architecture/references/decisions.md` |
-| What to do next | `.claude/skills/ux-ui/references/ux-backlog.md` (product, UX) · `.claude/skills/architecture/references/migration.md` (code) |
+- Skills: `.claude/skills/<name>/SKILL.md` (other agents open the one the task needs).
+  `/deps-upgrade` and `/dead-code` are started by the maintainer only; asked for an upgrade or a
+  cleanup, suggest them.
+- Rules of the zone you edit (UI, state, data, navigation, reminders, tests, l10n, platform):
+  `.claude/rules/*.md`, loaded by Claude Code; other agents read the matching file.
+- Why the architecture is what it is: `.claude/skills/architecture/references/decisions.md`.
+- What to do next: `.claude/skills/ux-ui/references/ux-backlog.md` (product, UX) ·
+  `.claude/skills/architecture/references/migration.md` (code).
 
 ## Glossary
 
@@ -160,14 +137,13 @@ is in `.claude/skills/architecture/references/migration.md`.
   category ids, optional photo stored as base64 in the document, the years it was wished
   (`wishedYears`). Firestore `birthday/{id}`, owned through its `uid` field; an unknown year is
   stored as 2000 with `yearKnown: false`.
-- **Category** (« groupe » in the UI) — a name, an icon and, for groups created since
-  2026-10-24, a tone. Predefined ones live in the shared top-level `category` collection
-  (Famille, Amis, Travail and Autres offered to everyone); groups a user creates are private,
-  in `user/{uid}/categories` (older shared ones were copied there on 2026-11-04). The
-  « Groupes » page (Settings › Anniversaires) renames, recolours or deletes a private group;
-  its birthdays lose a deleted one. The four offered to everyone are locked.
-- **User** — the profile document `user/{uid}`: name, surname, pseudo, theme
-  (`themeMode`: system, light or dark; an older `isDark` still reads), locale, biometric token.
+- **Category** (« groupe » in the UI) — a name, an icon, an optional tone. The four offered to
+  everyone (Famille, Amis, Travail, Autres) live in the shared `category` collection and are
+  locked; groups a user creates are private, in `user/{uid}/categories`. The « Groupes » page
+  (Settings › Anniversaires) renames, recolours or deletes a private group; its birthdays lose a
+  deleted one.
+- **User** — the profile document `user/{uid}`: name, surname, pseudo, theme (`themeMode`:
+  system, light or dark), locale, biometric token.
 - **Reminder** — local notifications on the day (J-0) and, by default, 7 days before (J-7), at
   10:00 device time; Settings › Anniversaires picks J-30, J-7, J-1 and the time
   (`user/{uid}.reminders`), and a birthday may have its own or none (`birthday/{id}.reminders`).

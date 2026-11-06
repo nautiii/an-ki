@@ -54,10 +54,10 @@ simple_commands() {
 }
 
 # Les verdicts ne s'écrivent que par les vérifications elles-mêmes :
-# verify-index.sh (verifier) et record-review.sh (reviewer). Une commande simple
-# qui écrit dans anki-checks (commande d'écriture ou redirection) est refusée ;
-# les lectures (ls, cat, grep) passent.
-markers_only="les marqueurs anki-checks ne s'écrivent que par verify-index.sh (verifier) et record-review.sh (reviewer) : lancer le verifier et le reviewer."
+# verify-index.sh (vérifications) et record-review.sh (reviewer). Une commande
+# simple qui écrit dans anki-checks (commande d'écriture ou redirection) est
+# refusée ; les lectures (ls, cat, grep) passent.
+markers_only="les marqueurs anki-checks ne s'écrivent que par verify-index.sh et record-review.sh (reviewer) : lancer les vérifications et le reviewer."
 if printf '%s' "$cmd" | grep -q 'anki-checks'; then
   writers='touch|cp|mv|mkdir|rm|tee|New-Item|Set-Content|Add-Content|Out-File|Copy-Item|Move-Item|Remove-Item'
   if simple_commands | grep -E 'anki-checks' |
@@ -191,7 +191,7 @@ rules_ready() {
     [ -n "$blob" ] && [ "$blob" = "$(git -C "$top" rev-parse main:firestore.rules 2>/dev/null)" ] ||
     deny "seules les règles de main se déploient : intégrer la branche à main (--ff-only) d'abord."
   git -C "$top" diff --quiet HEAD -- firestore.rules firebase.json 2>/dev/null ||
-    deny "firestore.rules ou firebase.json diffère du dernier commit : commiter (verifier, reviewer) avant de déployer."
+    deny "firestore.rules ou firebase.json diffère du dernier commit : commiter (vérifications, reviewer) avant de déployer."
   gitdir=$(git -C "$top" rev-parse --absolute-git-dir 2>/dev/null) &&
     [ -f "$gitdir/anki-checks/$blob.rules" ] ||
     deny "ces règles n'ont pas passé l'émulateur : lancer scripts/test_firestore_rules.ps1 en entier (sans filtre), puis déployer."
@@ -213,15 +213,64 @@ while IFS= read -r call; do
   esac
 done < <(firebase_calls)
 
-# Un commit exige le verdict positif du verifier sur exactement l'index actuel
-# (empreinte) et/ou la revue du reviewer depuis le dernier commit (marqueur lié
-# à HEAD : une seule revue par commit). Marqueurs écrits par verify-index.sh et
-# record-review.sh.
+# Vrai si une revue enregistrée couvre les chemins du commit ($to_review) : elle
+# date de moins de 48 h, sa base est HEAD ou un ancêtre, et chaque chemin du
+# commit est un chemin revu pas encore commité depuis la base (un --amend rouvre
+# ceux du dernier commit), ou un nouveau fichier de test (réponse à une
+# remarque). Elle s'épuise quand aucun chemin revu n'attend plus sans avoir été
+# commité. Une revue vaut ainsi pour tous les commits du changement revu, et
+# plus pour le suivant. Sinon, review_gap dit ce qui manque.
+review_covers() {
+  local m base range reviewed committed open pending uncovered p best=''
+  # Ancien marqueur, une revue par commit liée à HEAD (branche d'avant).
+  [ -f "$gitdir/anki-checks/head-$head.reviewer" ] && return 0
+  pending=$({
+    git -C "$top" -c core.quotepath=off diff HEAD --name-only --no-renames
+    git -C "$top" -c core.quotepath=off diff --cached --name-only --no-renames
+    git -C "$top" -c core.quotepath=off ls-files --others --exclude-standard
+  } 2>/dev/null | sort -u)
+  for m in "$gitdir"/anki-checks/*.review; do
+    [ -f "$m" ] || continue
+    [ -n "$(find "$m" -mmin -2880 2>/dev/null)" ] || continue
+    base=$(head -n 1 "$m")
+    git -C "$top" merge-base --is-ancestor "$base" HEAD 2>/dev/null || continue
+    range="$base..HEAD"
+    [ -n "$amend" ] && [ "$base" != "$head" ] && range="$base..HEAD^"
+    reviewed=$(tail -n +2 "$m" | sort -u)
+    committed=$(git -C "$top" -c core.quotepath=off log --no-renames --name-only --format= "$range" 2>/dev/null | sort -u)
+    open=$(comm -23 <(printf '%s\n' "$reviewed") <(printf '%s\n' "$committed"))
+    [ -n "$(comm -12 <(printf '%s\n' "$open") <(printf '%s\n' "$pending"))" ] || continue
+    uncovered=$(comm -23 <(printf '%s\n' "$to_review" | sort -u) <(printf '%s\n' "$open") |
+      while IFS= read -r p; do
+        case "$p" in test/*) git -C "$top" cat-file -e "$base:$p" 2>/dev/null || continue ;; esac
+        printf '%s\n' "$p"
+      done)
+    [ -z "$uncovered" ] && return 0
+    best=$uncovered
+  done
+  if [ -n "$best" ]; then
+    review_gap="la revue de $(printf '%s\n' "$best" | head -n 5 | paste -sd ' ') (hors de la revue en cours : relancer le reviewer sur le diff indexé en lui nommant ces chemins)"
+  else
+    review_gap="la revue de ce changement (aucune revue en cours ne le couvre : reviewer sur tout le changement indexé, avant son premier commit)"
+  fi
+  return 1
+}
+
+# Un commit exige le verdict positif de verify-index.sh sur exactement l'index
+# actuel (empreinte) et/ou une revue qui couvre ses chemins (review_covers).
+# Marqueurs écrits par verify-index.sh et record-review.sh.
 if has "${git}commit${end}"; then
   msg_index="commiter l'index tel quel : indexer les chemins avec git add, sans chemins après git commit."
   # Pas de -C, --git-dir, --work-tree ni cd : le dépôt vérifié est celui du cwd.
   if simple_commands | grep -Eq '^(cd|chdir|pushd|Push-Location|Set-Location|sl)([[:space:]]|$)'; then
     deny "commiter depuis le dossier du dépôt, sans -C ni cd."
+  fi
+  # L'index se juge tel qu'il est avant l'appel : un seul commit par appel, et
+  # rien d'autre n'y touche dans le même appel.
+  if [ "$(printf '%s\n' "$git_cmds" | grep -Ec -- "${git}commit${end}")" -gt 1 ] ||
+    printf '%s\n' "$git_cmds" |
+    grep -Eq -- "${git}(add|rm|mv|apply|restore|reset|update-index|stash|checkout|switch|read-tree|cherry-pick|revert|am|rebase|merge|pull)${end}"; then
+    deny "indexer puis commiter en deux appels, un commit par appel : le garde-fou juge l'index tel qu'il est avant l'appel."
   fi
   # Vrai dès qu'un appel commit n'est pas une simple reformulation (--amend --only).
   needs_verdict=''
@@ -280,13 +329,13 @@ if has "${git}commit${end}"; then
 
   if [ -n "$needs_verdict" ]; then
     staged=$(git -C "$dir" -c core.quotepath=off diff --cached --name-only --no-renames 2>/dev/null)
-    need=''
+    # Code : vérifications et revue ; tout autre chemin hors markdown : revue.
+    need_checks=''
     if printf '%s\n' "$staged" | grep -Eq '^(lib/|test/|android/|ios/|pubspec\.(yaml|lock)$|analysis_options\.yaml$|l10n\.yaml$|firestore\.rules$|firestore\.indexes\.json$|firebase\.json$)|\.dart$|\.arb$'; then
-      need='verifier reviewer'
-    elif printf '%s\n' "$staged" | grep -Eqv '(\.md$|^$)'; then
-      need='reviewer'
+      need_checks=1
     fi
-    if [ -n "$need" ]; then
+    to_review=$(printf '%s\n' "$staged" | grep -Ev '(\.md$|^$)')
+    if [ -n "$to_review" ]; then
       gitdir=$(git -C "$dir" rev-parse --absolute-git-dir 2>/dev/null) &&
         top=$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null) ||
         deny "dépôt introuvable depuis le cwd du hook : commiter depuis le dossier du dépôt."
@@ -296,22 +345,19 @@ if has "${git}commit${end}"; then
       head=$(git -C "$dir" rev-parse HEAD 2>/dev/null) || head=unborn
       [ -n "$head" ] || head=unborn
       missing=''
-      for agent in $need; do
-        if [ "$agent" = reviewer ]; then
-          [ -f "$gitdir/anki-checks/head-$head.reviewer" ] ||
-            missing="${missing:+$missing et }la revue du reviewer depuis le dernier commit (il l'enregistre avec record-review.sh en fin de revue)"
-        else
-          [ -n "$tree" ] && [ -f "$gitdir/anki-checks/$tree.$agent" ] ||
-            missing="${missing:+$missing et }le verdict du verifier pour l'index actuel, empreinte ${tree:0:7} (verify-index.sh static et tests passés sur cet index)"
-        fi
-      done
+      if [ -n "$need_checks" ]; then
+        [ -n "$tree" ] && [ -f "$gitdir/anki-checks/$tree.verifier" ] ||
+          missing="le verdict des vérifications pour l'index actuel, empreinte ${tree:0:7} (bash .claude/hooks/verify-index.sh passé sur cet index)"
+      fi
+      review_gap=''
+      review_covers || missing="${missing:+$missing et }$review_gap"
       if [ -n "$missing" ]; then
         # Branche d'avant les scripts : ceux du checkout principal (où tournent
         # les hooks) agissent sur le dépôt du dossier courant.
         older=''
         [ -f "$top/.claude/hooks/verify-index.sh" ] ||
           older=" Ce dossier n'a pas encore ces scripts (branche antérieure) : lancer ceux de ${CLAUDE_PROJECT_DIR//\\//}/.claude/hooks/ depuis ce dossier, ou rebaser la branche sur main."
-        deny "commit refusé : il manque $missing. Après une correction, réindexer et relancer le verifier (l'empreinte change) ; le reviewer ne repasse pas : une revue par commit.$older"
+        deny "commit refusé : il manque $missing. Après une correction, réindexer et relancer verify-index.sh (l'empreinte change) ; la revue ne repasse pas pour ce qu'elle couvre déjà.$older"
       fi
     fi
   fi

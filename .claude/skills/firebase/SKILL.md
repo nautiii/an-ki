@@ -113,7 +113,7 @@ marker `<blob>.rules` in the checkout's git dir, one per worktree), and no
    reason; then why, and how to lift it) with its runbook in `references/console.md`, and stop:
    the maintainer deletes the hold once the app and the data are ready
    (A16 was one, applied 2026-11-04: `console.md` §10).
-2. **Committed and on `main`.** The rules change is committed (verifier, reviewer;
+2. **Committed and on `main`.** The rules change is committed (checks, reviewer;
    git-workflow skill) and integrated in `main` (a branch rebased, `--ff-only`). A working
    copy or a branch alone is never deployed.
 3. **Proved.** `scripts/test_firestore_rules.ps1` in full (no filter, no `-Config`) on that
