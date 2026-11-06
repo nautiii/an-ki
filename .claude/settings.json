@@ -1,12 +1,34 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
+    "allow": [
+      "Bash(flutter --version *)",
+      "PowerShell(flutter --version *)",
+      "Bash(dart --version *)",
+      "PowerShell(dart --version *)",
+      "Bash(flutter gen-l10n)",
+      "PowerShell(flutter gen-l10n)",
+      "Bash(dart format *)",
+      "PowerShell(dart format *)",
+      "Bash(flutter analyze *)",
+      "PowerShell(flutter analyze *)",
+      "Bash(dart analyze *)",
+      "PowerShell(dart analyze *)",
+      "Bash(flutter test *)",
+      "PowerShell(flutter test *)",
+      "Bash(bash .claude/hooks/verify-index.sh *)",
+      "Bash(bash .claude/hooks/review-model.sh)"
+    ],
     "deny": [
       "Read(./secrets.json)",
       "Write(//**/anki-checks/**)",
       "Edit(//**/anki-checks/**)"
     ],
     "ask": [
+      "Bash(flutter analyze *--write*)",
+      "PowerShell(flutter analyze *--write*)",
+      "Bash(flutter test *--file-reporter*)",
+      "PowerShell(flutter test *--file-reporter*)",
       "Bash(git push *)",
       "PowerShell(git push *)",
       "Bash(git reset --hard *)",

@@ -5,6 +5,15 @@ disable-model-invocation: true
 argument-hint: "[check | flutter | pub | android | <package>…]"
 model: opus
 effort: high
+allowed-tools:
+  - Bash(dart .claude/skills/deps-upgrade/scripts/inventory.dart *)
+  - Bash(flutter pub outdated *)
+  - Bash(dart pub add --dry-run *)
+  - WebFetch(domain:docs.flutter.dev)
+  - WebFetch(domain:github.com)
+  - WebFetch(domain:docs.gradle.org)
+  - WebFetch(domain:developer.android.com)
+  - WebFetch(domain:kotlinlang.org)
 ---
 
 # Upgrading AnKi's stack
@@ -116,6 +125,12 @@ outside that overlay (device skill).
   `dart pub add --dry-run`, both analyzers and `flutter test` once the packages are fetched.
 - A Gradle build started from Claude's shells anyway: `android\gradlew.bat --stop` afterwards, so
   the IDE never reuses that daemon.
+- Prompts: `allowed-tools` (frontmatter) pre-approves the reads of the turn that starts the skill
+  only (inventory, release notes, dry runs); the grant ends at the maintainer's next message. The
+  checks are allowed for good in `.claude/settings.json` (`flutter test` runs Dart code: that
+  allow is an allow to execute code). Still asking on purpose: `curl` (a prefix rule would let
+  extra URLs, `-d @file` or `-o` through while reading third-party changelogs) and
+  `run_in_terminal` (an MCP rule can't filter the command).
 
 ## 4. Upgrade, one commit per intent
 
