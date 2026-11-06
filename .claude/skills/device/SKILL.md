@@ -89,7 +89,10 @@ and ask the maintainer before `-wipe-data` or closing an emulator Android Studio
 **Dart MCP** (`dart` server, recipes §14): `dtd` `listDtdUris`, `connect` to the run whose
 « Workspace Root » is *your* checkout, then `hot_reload`, `hot_restart`, `get_runtime_errors`,
 `widget_inspector` `get_widget_tree` (`summaryOnly: true`). Never launch through it (it drops
-`--dart-define-from-file`). Not connected: ask the maintainer to press `r`.
+`--dart-define-from-file`). Not connected: ask the maintainer to press `r`. No `mcp__dart__*`
+tool listed (server not approved yet, or not Windows: `.mcp.json` starts it with `cmd /c`):
+don't look for it; after an edit, relaunch (step 2), since `device.sh start` only reopens the
+build already installed.
 
 ## `device.sh`
 

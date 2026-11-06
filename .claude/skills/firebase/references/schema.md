@@ -42,13 +42,14 @@ Owner: the path (`{uid}` = `request.auth.uid`). Rules: owner reads and writes, n
 
 ## 2. `user/{uid}/categories/{id}` — private groups
 
-Groups a user creates since 2026-10-24. Owner: the path. Rules: owner reads and writes.
+Groups a user creates since 2026-10-24, plus the older ones copied from `category` on
+2026-11-04 (§5). Owner: the path. Rules: owner reads and writes.
 
 | Field | Type | Meaning |
 |-------|------|---------|
 | `name` | string | typed by the user |
 | `icon` | int | Material icon code point; absent → `0xe148` (`Icons.category`) |
-| `tone` | int, optional | index of the tone seed (`LabelTones`) |
+| `tone` | int, optional | index of the tone seed (`LabelTones`); absent on groups older than 2026-10-24 |
 | `transferTo` | string, optional | guest move (§10): deleted by the marked address once copied |
 
 - Ids come from `CategoryRepository.newCategoryId()`, generated on the shared `category`
@@ -105,8 +106,8 @@ Owner: the `uid` field. Rules: same as `birthday`.
 
 The four predefined groups, created by hand in the console and flagged `predefined: true`. Rules:
 a signed-in user reads documents with `predefined == true`; nobody creates, updates or deletes.
-Older users' groups (app versions before 2026-10-24) are copied by the maintainer under
-`user/{uid}/categories` (`console.md` §10) and are no longer readable here.
+Older users' groups (app versions before 2026-10-24) were copied by the maintainer under
+`user/{uid}/categories` on 2026-11-04 (`console.md` §10) and are no longer readable here.
 
 | Field | Type | Meaning |
 |-------|------|---------|
