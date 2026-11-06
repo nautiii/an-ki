@@ -1,6 +1,6 @@
 ---
 name: ux-ui
-description: "Senior UX/UI designer for the AnKi Flutter app (birthday reminders), from quick polish to bold redesigns. Use for ANY visual or interaction work — designing, redesigning, reviewing or fixing a screen, widget, user flow, form, list, navigation, empty/loading/error state, animation, haptics, theme, colors, dark mode, typography, spacing, icons, illustrations, onboarding, notification or microcopy text, accessibility. Trigger even on vague asks such as « c'est moche », « améliore l'écran X », « refais le design », « rends ça plus fluide », « simplifie l'ajout », ergonomie, UX, UI, parcours utilisateur, thème sombre, accessibilité. Applies AnKi's moonlit-garden identity in light and dark, WCAG 2.2 AA, friction removal and proven patterns from Google, Apple, Spotify, Netflix, Airbnb or Duolingo, verified with PNG snapshots and an accessibility audit. Not for pure data, Firebase or scheduling logic with no UI impact."
+description: "Senior UX/UI for AnKi: any visual or interaction work — screen, widget, flow, form, states, motion, theme, dark mode, typography, icons, microcopy, accessibility (« c'est moche », « améliore l'écran X »). Applies the moonlit-garden identity and WCAG 2.2 AA, verified with PNG snapshots. Not for data, Firebase or scheduling logic without UI impact."
 effort: high
 ---
 

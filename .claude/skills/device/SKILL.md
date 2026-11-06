@@ -1,6 +1,6 @@
 ---
 name: device
-description: "Run, see and debug AnKi on a real Android system: the Honor_Magic7_Pro emulator by default, the maintainer's phone over USB on request. One emulator shared by every session through a first-come queue (claim, release), booted and repaired on demand; launches with secrets.example.json from the Terminal panel, hot reloads through the Dart MCP server, takes screenshots Claude reads back, lists the UI and taps by label, filters logcat and crashes, switches dark mode, 200 % text, compact screen, offline, reduced motion and permissions, moves the clock to fire reminders, reads scheduled alarms and posted notifications, seeds test contacts. Use whenever a change must be seen or checked in the running app, not only in tests; it is the project skill the built-in run skill looks for. Trigger even on short or French asks: « lance l'app », « teste sur l'émulateur / le téléphone », « fais une capture de l'app », « ça plante », « regarde les logs », « le rappel part ? », « installe l'APK », « l'émulateur ne démarre pas », « qui utilise l'émulateur ? ». Not for host-side widget tests or PNG snapshots (ux-ui)."
+description: "Run, see and debug AnKi on the shared Honor_Magic7_Pro emulator (claim/release queue) or the phone: launch, screenshots, taps, logs, crashes, dark mode, 200 % text, offline, permissions, reminders. The project skill the built-in run skill looks for; use when a change must be checked in the running app (« lance l'app », « ça plante »). Not for widget tests or PNG snapshots (ux-ui)."
 effort: low
 ---
 
