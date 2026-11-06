@@ -1,6 +1,6 @@
 ---
 name: firebase
-description: "AnKi's Firebase backend (project an-ki-9b02b: Auth and Cloud Firestore, no Storage): security rules proved in the Firestore emulator, the map of every collection and field, composite indexes, schema changes and data migrations, account deletion that leaves nothing behind, deploying the rules after a change (agents, gated by a hook), and the console steps only the maintainer runs (indexes, SHA-1, flutterfire configure, sign-in providers, API keys). Use for ANY change or question touching firestore.rules, any need to deploy the rules, firestore.indexes.json, firebase.json, a new collection, field or query, a permission-denied or missing-index error, who can read which data, a migration, or Firebase console setup. Trigger even on French asks: « règles Firestore », « déploie les règles », « index », « migration de données », « permission denied », « la connexion Google échoue », « SHA-1 », « flutterfire ». Not for repository code patterns (architecture) or screens (ux-ui)."
+description: "AnKi's Firebase backend (an-ki-9b02b, Auth + Firestore): security rules and their emulator tests, rules deploy, data map, indexes, migrations, account deletion, console steps. Use for any change or question on firestore.rules, firestore.indexes.json, firebase.json, a collection, field or query, permission-denied, SHA-1, flutterfire. Not for repository code (architecture) or screens (ux-ui)."
 effort: high
 ---
 
