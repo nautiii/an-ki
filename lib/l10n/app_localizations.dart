@@ -428,12 +428,6 @@ abstract class AppLocalizations {
   /// **'Impossible d\'enregistrer le groupe. Vérifiez votre connexion et réessayez.'**
   String get errorSavingGroup;
 
-  /// No description provided for @nextBirthday.
-  ///
-  /// In fr, this message translates to:
-  /// **'Prochain anniversaire'**
-  String get nextBirthday;
-
   /// No description provided for @today.
   ///
   /// In fr, this message translates to:
@@ -806,23 +800,35 @@ abstract class AppLocalizations {
   /// **'Dans les 7 jours'**
   String get agendaSoon;
 
-  /// Ligne d'agenda : date du prochain anniversaire et âge atteint
+  /// Ligne d'agenda : date courte du prochain anniversaire (« 14 nov. ») et âge atteint, sans « aura » pour tenir sur une ligne
   ///
   /// In fr, this message translates to:
-  /// **'{age, plural, one{{date} · aura {age} an} other{{date} · aura {age} ans}}'**
+  /// **'{age, plural, one{{date} · {age} an} other{{date} · {age} ans}}'**
   String agendaLine(String date, int age);
 
-  /// Pastille de compte à rebours d'une ligne d'agenda
+  /// Compte à rebours en toutes lettres : surtitre du héros avant le jour J, lecture de l'orbite par TalkBack
   ///
   /// In fr, this message translates to:
-  /// **'{days, plural, =0{Aujourd\'hui} =1{Demain} other{J-{days}}}'**
+  /// **'{days, plural, =0{Aujourd\'hui} =1{Demain} other{Dans {days} jours}}'**
   String countdownDays(int days);
 
-  /// Au-dessus de l'âge du héros, avant le jour J (« aura 34 ans »)
+  /// Unité sous le nombre de jours, dans l'orbite d'une ligne d'agenda (« 12 jours ») ou du héros sans année de naissance
   ///
   /// In fr, this message translates to:
-  /// **'aura'**
-  String get heroTurning;
+  /// **'{days, plural, one{jour} other{jours}}'**
+  String orbitDaysUnit(int days);
+
+  /// Sous le nom, dans le héros du jour J (« Léa Martin / fête ses 30 ans aujourd'hui »)
+  ///
+  /// In fr, this message translates to:
+  /// **'{age, plural, one{fête son {age} an aujourd\'hui} other{fête ses {age} ans aujourd\'hui}}'**
+  String heroCelebrating(int age);
+
+  /// Sous le nom, dans le héros du jour J, sans année de naissance
+  ///
+  /// In fr, this message translates to:
+  /// **'fête son anniversaire aujourd\'hui'**
+  String get heroCelebratingNoAge;
 
   /// Infobulle du bouton qui ouvre la recherche
   ///

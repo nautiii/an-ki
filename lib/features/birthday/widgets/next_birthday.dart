@@ -1,5 +1,5 @@
 import 'package:an_ki/core/common/anki_avatar.dart';
-import 'package:an_ki/core/common/moon_phase.dart';
+import 'package:an_ki/core/common/orbit_countdown.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
@@ -11,8 +11,8 @@ import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_display.dart';
-import 'package:an_ki/features/birthday/widgets/blossom_rain.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
+import 'package:an_ki/features/birthday/widgets/blossom_rain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +20,8 @@ import 'package:go_router/go_router.dart';
 
 /// Héros « prochain anniversaire » (signature S1) : la ou les personnes dont
 /// l'anniversaire arrive en premier, empilées quand elles tombent le même jour.
-/// Le jour J, il passe en fête : dégradé nuit → lotus et pleine lune.
+/// Avant le jour J, l'âge à venir tourne dans son orbite (S3) ; le jour J, la
+/// carte passe en fête : dégradé nuit → lotus, phrase et âge en grand.
 ///
 /// Squelette pendant le chargement ; rien sans anniversaire, l'accueil
 /// affichant alors son état vide.
@@ -66,58 +67,12 @@ class _HeroCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.ankiColors;
     final isToday = birthday.daysUntilNext(today) == 0;
+    // Le vœu fait, les actions s'effacent : la carte se resserre sur la
+    // personne, la pastille « ✓ Souhaité » rejoint la phrase.
+    final wished = isToday && birthday.isWished(today);
+    final showActions = isToday && !wished;
     // Le jour J, le dégradé de fête (S1) et sa couleur de texte.
     final onColor = isToday ? colors.onCelebration : colors.onHero;
-    final picture = birthday.picture;
-    final avatar = AnKiAvatar(
-      name: birthday.fullName,
-      image: picture != null ? MemoryImage(picture) : null,
-      radius: 28,
-    );
-    final details = _HeroDetails(
-      birthday: birthday,
-      today: today,
-      onColor: onColor,
-    );
-    // Sans année de naissance, aucun âge : le texte prend la place.
-    final age = switch (birthday.turningAge(today)) {
-      final turning? => _HeroAge(
-        age: turning,
-        isToday: isToday,
-        onColor: onColor,
-      ),
-      null => null,
-    };
-    // Grand texte : avatar et âge passent au-dessus, le texte prend la largeur.
-    final reflow = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
-    final identity = Padding(
-      // Le jour J, les actions prennent le bas de la carte.
-      padding: isToday
-          ? const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.sm,
-            )
-          : const EdgeInsets.all(AppSpacing.md),
-      child: reflow
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [avatar, const Spacer(), ?age]),
-                const SizedBox(height: AppSpacing.sm),
-                details,
-              ],
-            )
-          : Row(
-              children: [
-                avatar,
-                const SizedBox(width: AppSpacing.md),
-                Expanded(child: details),
-                if (age != null) ...[const SizedBox(width: AppSpacing.sm), age],
-              ],
-            ),
-    );
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -132,11 +87,33 @@ class _HeroCard extends ConsumerWidget {
               onTap: () => context.push(AppRoutes.person(birthday.id)),
               splashColor: onColor.withValues(alpha: 0.12),
               highlightColor: onColor.withValues(alpha: 0.08),
-              child: identity,
+              child: Padding(
+                // Les actions prennent le bas de la carte.
+                padding: showActions
+                    ? const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        AppSpacing.sm,
+                      )
+                    : const EdgeInsets.all(AppSpacing.md),
+                child: isToday
+                    ? _TodayIdentity(
+                        birthday: birthday,
+                        today: today,
+                        onColor: onColor,
+                        wished: wished,
+                      )
+                    : _ComingIdentity(
+                        birthday: birthday,
+                        today: today,
+                        onColor: onColor,
+                      ),
+              ),
             ),
           ),
         ),
-        if (isToday)
+        if (showActions)
           Padding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.md,
@@ -144,11 +121,7 @@ class _HeroCard extends ConsumerWidget {
               AppSpacing.md,
               AppSpacing.md,
             ),
-            child: WishActions(
-              birthday: birthday,
-              wished: birthday.isWished(today),
-              onColor: onColor,
-            ),
+            child: WishActions(birthday: birthday, onColor: onColor),
           ),
       ],
     );
@@ -194,10 +167,118 @@ class _HeroCard extends ConsumerWidget {
   }
 }
 
-/// Qui et quand : surtitre, nom, lune et compte à rebours, date. Le jour J,
-/// la pleine lune et « Aujourd'hui » suffisent : la date est celle du jour.
-class _HeroDetails extends StatelessWidget {
-  const _HeroDetails({
+/// Le jour J : petit avatar et « Aujourd'hui », le nom, la phrase « fête ses
+/// 30 ans aujourd'hui » (puis « ✓ Souhaité »), et l'âge en grand à droite (S6),
+/// muet pour TalkBack : la phrase le dit déjà.
+class _TodayIdentity extends StatelessWidget {
+  const _TodayIdentity({
+    required this.birthday,
+    required this.today,
+    required this.onColor,
+    required this.wished,
+  });
+
+  final Birthday birthday;
+  final DateTime today;
+  final Color onColor;
+  final bool wished;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    // Texte secondaire à 85 % : contraste AA sur tout le dégradé.
+    final secondary = onColor.withValues(alpha: 0.85);
+    // Né aujourd'hui : pas de « 0 » en grand, la phrase sans âge.
+    final age = switch (birthday.turningAge(today)) {
+      final turning? when turning > 0 => turning,
+      _ => null,
+    };
+    final picture = birthday.picture;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  AnKiAvatar(
+                    name: birthday.fullName,
+                    image: picture != null ? MemoryImage(picture) : null,
+                    radius: 20,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Flexible(
+                    child: Text(
+                      context.l10n.today,
+                      style: textTheme.labelLarge?.copyWith(color: secondary),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                birthday.fullName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.titleLarge?.copyWith(color: onColor),
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xxs,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    age != null
+                        ? context.l10n.heroCelebrating(age)
+                        : context.l10n.heroCelebratingNoAge,
+                    style: textTheme.bodyMedium?.copyWith(color: secondary),
+                  ),
+                  if (wished) const WishedPill(dense: true),
+                ],
+              ),
+            ],
+          ),
+        ),
+        if (age != null) ...[
+          const SizedBox(width: AppSpacing.md),
+          ExcludeSemantics(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '$age',
+                  style: textTheme.displaySmall?.copyWith(
+                    color: onColor,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -1,
+                    height: 1,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+                Text(
+                  context.l10n.heroAgeUnit(age),
+                  style: textTheme.labelMedium?.copyWith(color: secondary),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Avant le jour J : l'avatar, « Dans 3 jours », le nom et la date, et l'âge
+/// à venir dans son orbite (S3), qui se referme à l'approche du jour J. Sans
+/// année de naissance, l'orbite porte les jours restants.
+class _ComingIdentity extends StatelessWidget {
+  const _ComingIdentity({
     required this.birthday,
     required this.today,
     required this.onColor,
@@ -207,125 +288,134 @@ class _HeroDetails extends StatelessWidget {
   final DateTime today;
   final Color onColor;
 
+  static const double _avatarRadius = 28;
+
+  /// Diamètre de l'orbite à taille de texte normale.
+  static const double _orbitDiameter = 64;
+
+  /// Croissance de l'orbite avec le texte, tant qu'elle reste sur la ligne.
+  static const double _orbitMaxScale = 1.2;
+
+  /// Largeur de texte sous laquelle avatar et orbite passent au-dessus, à
+  /// taille de texte normale.
+  static const double _minTextWidth = 120;
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    // Texte secondaire à 85 % : contraste AA sur tout le dégradé.
     final secondary = onColor.withValues(alpha: 0.85);
     final days = birthday.daysUntilNext(today);
-    final moon = MoonPhase(
-      daysLeft: days,
-      size: 16,
-      litColor: onColor,
-      shadowColor: onColor.withValues(alpha: 0.25),
+    final age = birthday.turningAge(today);
+    final picture = birthday.picture;
+    final avatar = AnKiAvatar(
+      name: birthday.fullName,
+      image: picture != null ? MemoryImage(picture) : null,
+      radius: _avatarRadius,
     );
-    final name = Text(
-      birthday.fullName,
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-      style: textTheme.titleLarge?.copyWith(color: onColor),
-    );
-
-    if (days == 0) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              moon,
-              const SizedBox(width: AppSpacing.xs),
-              Flexible(
-                child: Text(
-                  context.l10n.today,
-                  style: textTheme.labelLarge?.copyWith(color: onColor),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xxs),
-          name,
-        ],
-      );
-    }
-
-    return Column(
+    final details = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          context.l10n.nextBirthday,
-          style: textTheme.labelMedium?.copyWith(color: secondary),
+          context.l10n.countdownDays(days),
+          style: textTheme.labelLarge?.copyWith(color: secondary),
         ),
-        const SizedBox(height: AppSpacing.xxs),
-        name,
-        const SizedBox(height: AppSpacing.xxs),
-        // La date passe à la ligne plutôt que de déborder (grand texte).
-        Wrap(
-          spacing: AppSpacing.xs,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                moon,
-                const SizedBox(width: AppSpacing.xs),
-                Flexible(
-                  child: Text(
-                    days == 1
-                        ? context.l10n.tomorrow
-                        : context.l10n.inDays(days),
-                    style: textTheme.labelLarge?.copyWith(color: onColor),
-                  ),
-                ),
-              ],
-            ),
-            Text(
-              birthday.formattedDate(context, includeYear: false),
-              style: textTheme.bodyMedium?.copyWith(color: secondary),
-            ),
-          ],
+        Text(
+          birthday.fullName,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: textTheme.titleLarge?.copyWith(color: onColor),
+        ),
+        Text(
+          birthday.formattedDate(context, includeYear: false),
+          style: textTheme.bodyMedium?.copyWith(color: secondary),
         ),
       ],
     );
-  }
-}
 
-/// Âge atteint au prochain anniversaire, en grand : « aura » au-dessus avant
-/// le jour J, l'unité accordée dessous.
-class _HeroAge extends StatelessWidget {
-  const _HeroAge({
-    required this.age,
-    required this.isToday,
-    required this.onColor,
-  });
-
-  final int age;
-  final bool isToday;
-  final Color onColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final secondary = textTheme.labelMedium?.copyWith(
-      color: onColor.withValues(alpha: 0.85),
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (!isToday) Text(context.l10n.heroTurning, style: secondary),
-        Text(
-          '$age',
-          style: textTheme.headlineSmall?.copyWith(
-            color: onColor,
-            fontFeatures: const [FontFeature.tabularFigures()],
+    Widget orbit({double? maxTextScale}) {
+      final drawn = ExcludeSemantics(
+        child: OrbitCountdown(
+          daysLeft: days,
+          diameter: _orbitDiameter,
+          maxTextScale: maxTextScale,
+          trackColor: onColor.withValues(alpha: 0.25),
+          arcColor: onColor,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${age ?? days}',
+                style: textTheme.headlineSmall?.copyWith(
+                  color: onColor,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1,
+                  height: 1,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+              Text(
+                age != null
+                    ? context.l10n.heroAgeUnit(age)
+                    : context.l10n.orbitDaysUnit(days),
+                style: textTheme.labelMedium?.copyWith(
+                  color: secondary,
+                  height: 1.2,
+                ),
+              ),
+            ],
           ),
         ),
-        Text(context.l10n.heroAgeUnit(age), style: secondary),
-      ],
+      );
+      // L'âge se lit « Aura 34 ans » ; les jours, déjà dits au-dessus du nom,
+      // ne se relisent pas.
+      return age != null
+          ? Semantics(label: context.l10n.personTurning(age), child: drawn)
+          : drawn;
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scaler = MediaQuery.textScalerOf(context);
+        final textWidth =
+            constraints.maxWidth -
+            2 * _avatarRadius -
+            OrbitCountdown.extentOf(
+              context,
+              diameter: _orbitDiameter,
+              maxTextScale: _orbitMaxScale,
+            ) -
+            2 * AppSpacing.md;
+        // Grand texte ou écran étroit : avatar et orbite au-dessus, le texte
+        // sur toute la largeur, l'orbite libre de grandir.
+        final reflow =
+            scaler.scale(16) / 16 > 1.5 ||
+            textWidth < scaler.scale(_minTextWidth);
+        if (reflow) {
+          // Bâtie de bas en haut, comme une ligne d'agenda empilée : TalkBack
+          // lit « Dans 3 jours », le nom, la date, puis l'âge, bien que
+          // l'orbite soit au-dessus.
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            verticalDirection: VerticalDirection.up,
+            children: [
+              details,
+              const SizedBox(height: AppSpacing.sm),
+              Row(children: [avatar, const Spacer(), orbit()]),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            avatar,
+            const SizedBox(width: AppSpacing.md),
+            Expanded(child: details),
+            const SizedBox(width: AppSpacing.md),
+            orbit(maxTextScale: _orbitMaxScale),
+          ],
+        );
+      },
     );
   }
 }

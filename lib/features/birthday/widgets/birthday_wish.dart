@@ -15,21 +15,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Actions du héros le jour J : « Souhaiter » par la feuille de partage, ou
-/// « Déjà souhaité » quand c'est fait autrement ; puis la pastille menthe
-/// « ✓ Souhaité » à leur place, à la même hauteur : la carte ne saute pas.
+/// Actions du héros le jour J, tant que l'anniversaire n'est pas souhaité :
+/// « Souhaiter » par la feuille de partage, ou « Déjà souhaité » quand
+/// c'est fait autrement. Une fois le vœu fait, le héros les retire.
 class WishActions extends ConsumerWidget {
-  const WishActions({
-    super.key,
-    required this.birthday,
-    required this.wished,
-    required this.onColor,
-  });
+  const WishActions({super.key, required this.birthday, required this.onColor});
 
   final Birthday birthday;
-
-  /// L'anniversaire du jour est déjà souhaité (`BirthdayWishes.isWished`).
-  final bool wished;
 
   /// Couleur du texte sur le dégradé de fête.
   final Color onColor;
@@ -41,12 +33,6 @@ class WishActions extends ConsumerWidget {
       birthdayWisherProvider.select((state) => state.isLoading),
     );
 
-    if (wished) {
-      return const Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: WishedPill(),
-      );
-    }
     return Wrap(
       spacing: AppSpacing.xs,
       runSpacing: AppSpacing.xs,
@@ -82,10 +68,10 @@ class WishActions extends ConsumerWidget {
   }
 }
 
-/// « ✓ Souhaité » en menthe (accent de succès). Dans le héros, haute comme
-/// une cible tactile : elle prend la place des boutons sans faire sauter la
-/// carte. [dense] dans une ligne (agenda, recherche, feuille du jour), à la
-/// taille du compte à rebours « J-12 ».
+/// « ✓ Souhaité » en menthe (accent de succès). Sur la page de la personne,
+/// haute comme une cible tactile : elle prend la place des boutons sans
+/// faire sauter la page. [dense] dans une phrase ou une ligne (héros du
+/// jour J, feuille du jour du calendrier), à la hauteur du texte.
 class WishedPill extends StatelessWidget {
   const WishedPill({super.key, this.dense = false});
 

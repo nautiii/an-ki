@@ -38,11 +38,10 @@ void main() {
     WidgetTester tester, {
     required DateTime today,
     Birthday birthday = lea,
-    bool wished = false,
   }) async {
     haptics = recordHaptics(tester);
     await tester.pumpHarness(
-      WishActions(birthday: birthday, wished: wished, onColor: Colors.white),
+      WishActions(birthday: birthday, onColor: Colors.white),
       overrides: [
         clockProvider.overrideWithValue(() => today),
         currentUidProvider.overrideWithValue('fake-uid'),
@@ -181,10 +180,9 @@ void main() {
   testWidgets('shows the wished pill at the height of a button', (
     tester,
   ) async {
-    await pumpActions(tester, today: DateTime(2026, 12, 31), wished: true);
+    await tester.pumpHarness(const Center(child: WishedPill()));
 
     expect(find.text('Souhaité'), findsOneWidget);
-    expect(find.byType(TextButton), findsNothing);
     final pill = find
         .ancestor(
           of: find.text('Souhaité'),

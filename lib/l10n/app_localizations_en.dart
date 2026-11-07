@@ -197,8 +197,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       age,
       locale: localeName,
-      other: 'years old',
-      one: 'year old',
+      other: 'years',
+      one: 'year',
     );
     return '$_temp0';
   }
@@ -230,9 +230,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorSavingGroup =>
       'Couldn\'t save the group. Check your connection and try again.';
-
-  @override
-  String get nextBirthday => 'Next birthday';
 
   @override
   String get today => 'Today 🎉';
@@ -447,7 +444,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days days',
+      other: 'In $days days',
       one: 'Tomorrow',
       zero: 'Today',
     );
@@ -455,7 +452,29 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get heroTurning => 'turns';
+  String orbitDaysUnit(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'days',
+      one: 'day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String heroCelebrating(int age) {
+    String _temp0 = intl.Intl.pluralLogic(
+      age,
+      locale: localeName,
+      other: 'turns $age today',
+      one: 'turns $age today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get heroCelebratingNoAge => 'has a birthday today';
 
   @override
   String get searchTooltip => 'Search';

@@ -162,7 +162,6 @@
   "@errorSavingGroup": {
     "description": "Snackbar de l'accueil : la création d'un groupe a échoué"
   },
-  "nextBirthday": "Prochain anniversaire",
   "today": "Aujourd'hui 🎉",
   "tomorrow": "Demain",
   "yesterday": "Hier",
@@ -395,24 +394,38 @@
   "@agendaSoon": {
     "description": "En-tête de la première section de l'agenda"
   },
-  "agendaLine": "{age, plural, one{{date} · aura {age}\u00a0an} other{{date} · aura {age}\u00a0ans}}",
+  "agendaLine": "{age, plural, one{{date} · {age}\u00a0an} other{{date} · {age}\u00a0ans}}",
   "@agendaLine": {
-    "description": "Ligne d'agenda : date du prochain anniversaire et âge atteint",
+    "description": "Ligne d'agenda : date courte du prochain anniversaire (« 14 nov. ») et âge atteint, sans « aura » pour tenir sur une ligne",
     "placeholders": {
       "date": { "type": "String" },
       "age": { "type": "int" }
     }
   },
-  "countdownDays": "{days, plural, =0{Aujourd'hui} =1{Demain} other{J-{days}}}",
+  "countdownDays": "{days, plural, =0{Aujourd'hui} =1{Demain} other{Dans {days} jours}}",
   "@countdownDays": {
-    "description": "Pastille de compte à rebours d'une ligne d'agenda",
+    "description": "Compte à rebours en toutes lettres : surtitre du héros avant le jour J, lecture de l'orbite par TalkBack",
     "placeholders": {
       "days": { "type": "int" }
     }
   },
-  "heroTurning": "aura",
-  "@heroTurning": {
-    "description": "Au-dessus de l'âge du héros, avant le jour J (« aura 34 ans »)"
+  "orbitDaysUnit": "{days, plural, one{jour} other{jours}}",
+  "@orbitDaysUnit": {
+    "description": "Unité sous le nombre de jours, dans l'orbite d'une ligne d'agenda (« 12 jours ») ou du héros sans année de naissance",
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "heroCelebrating": "{age, plural, one{fête son {age}\u00a0an aujourd'hui} other{fête ses {age}\u00a0ans aujourd'hui}}",
+  "@heroCelebrating": {
+    "description": "Sous le nom, dans le héros du jour J (« Léa Martin / fête ses 30 ans aujourd'hui »)",
+    "placeholders": {
+      "age": { "type": "int" }
+    }
+  },
+  "heroCelebratingNoAge": "fête son anniversaire aujourd'hui",
+  "@heroCelebratingNoAge": {
+    "description": "Sous le nom, dans le héros du jour J, sans année de naissance"
   },
   "searchTooltip": "Rechercher",
   "@searchTooltip": {

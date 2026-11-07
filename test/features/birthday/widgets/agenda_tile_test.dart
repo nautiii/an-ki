@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:an_ki/core/common/anki_avatar.dart';
+import 'package:an_ki/core/common/orbit_countdown.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/label_tones.dart';
@@ -89,16 +90,19 @@ void main() {
     await pumpTile(tester, birthday());
 
     expect(find.text('Alice Wonderland'), findsOneWidget);
-    expect(find.text('24 octobre · aura 36 ans'), findsOneWidget);
-    expect(find.text('J-12'), findsOneWidget);
+    expect(find.text('24 oct. · 36 ans'), findsOneWidget);
+    // Les jours restants dans leur orbite.
+    expect(find.byType(OrbitCountdown), findsOneWidget);
+    expect(find.text('12'), findsOneWidget);
+    expect(find.text('jours'), findsOneWidget);
   });
 
   testWidgets('shows the date alone without a birth year', (tester) async {
     await pumpTile(tester, birthday(date: const BirthDate(month: 10, day: 24)));
 
-    expect(find.text('24 octobre'), findsOneWidget);
-    expect(find.textContaining('aura'), findsNothing);
-    expect(find.text('J-12'), findsOneWidget);
+    expect(find.text('24 oct.'), findsOneWidget);
+    expect(find.textContaining('ans'), findsNothing);
+    expect(find.text('12'), findsOneWidget);
   });
 
   testWidgets('names a person without a last name, no stray space', (
@@ -140,14 +144,17 @@ void main() {
         date: const BirthDate(year: 1990, month: 10, day: 12),
         wishedYears: const [2026],
       ),
+      // La police de test, plus large, demande la largeur d'une ligne réelle.
+      width: 420,
     );
 
-    expect(find.text('Souhaité'), findsOneWidget);
-    // Empilée (« Aujourd'hui » est large) : le vœu se lit en dernier.
-    expect(stacked(tester), isTrue);
+    // L'orbite bouclée passe du gâteau à la coche, sans élargir la ligne.
+    expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.cake_rounded), findsNothing);
+    expect(stacked(tester), isFalse);
     expect(
       tester.getSemantics(find.text('Alice Wonderland')).label,
-      "Amis, Famille\nAlice Wonderland\n12 octobre · aura 36 ans\n"
+      "Amis, Famille\nAlice Wonderland\n12 oct. · 36 ans\n"
       "Aujourd'hui\nSouhaité",
     );
     semantics.dispose();
@@ -160,7 +167,8 @@ void main() {
       tester,
       birthday(date: const BirthDate(year: 1990, month: 10, day: 12)),
     );
-    expect(find.text('Souhaité'), findsNothing);
+    expect(find.byIcon(Icons.cake_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.check_rounded), findsNothing);
 
     // Souhaité hier : le vœu compte toujours, mais la ligne n'est plus celle
     // du jour.
@@ -171,16 +179,23 @@ void main() {
         wishedYears: const [2026],
       ),
     );
-    expect(find.text('Souhaité'), findsNothing);
+    expect(find.byIcon(Icons.check_rounded), findsNothing);
   });
 
-  testWidgets('says tomorrow rather than J-1', (tester) async {
+  testWidgets('shows one day and reads tomorrow', (tester) async {
+    final semantics = tester.ensureSemantics();
     await pumpTile(
       tester,
       birthday(date: const BirthDate(year: 1990, month: 10, day: 13)),
     );
 
-    expect(find.text('Demain'), findsOneWidget);
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text('jour'), findsOneWidget);
+    expect(
+      tester.getSemantics(find.text('Alice Wonderland')).label,
+      endsWith('\nDemain'),
+    );
+    semantics.dispose();
   });
 
   testWidgets('rings the avatar with the categories, in the person order', (
@@ -218,7 +233,7 @@ void main() {
       tester.getSemantics(find.text('Alice Wonderland')),
       isSemantics(
         label:
-            'Amis, Famille\nAlice Wonderland\n24 octobre · aura 36 ans\nJ-12',
+            'Amis, Famille\nAlice Wonderland\n24 oct. · 36 ans\nDans 12 jours',
         isButton: true,
         hasTapAction: true,
         customActions: [const CustomSemanticsAction(label: 'Supprimer')],
@@ -294,7 +309,7 @@ void main() {
     // Le compte à rebours est au-dessus du nom, mais se lit après lui.
     expect(
       tester.getSemantics(find.text('Alice Wonderland')).label,
-      'Amis, Famille\nAlice Wonderland\n24 octobre · aura 36 ans\nJ-12',
+      'Amis, Famille\nAlice Wonderland\n24 oct. · 36 ans\nDans 12 jours',
     );
     semantics.dispose();
   });
@@ -311,29 +326,63 @@ void main() {
     expect(stacked(tester), isTrue);
     expect(
       tester.getSemantics(find.text('Alice Wonderland')).label,
-      'Alice Wonderland\n24 octobre · aura 36 ans\nJ-12',
+      'Alice Wonderland\n24 oct. · 36 ans\nDans 12 jours',
     );
     semantics.dispose();
   });
 
-  testWidgets('keeps one row while the date fits on two lines', (tester) async {
+  // La police des tests est plus large que Outfit : 420 dp y valent la
+  // largeur d'une ligne d'agenda sur un téléphone.
+  testWidgets('keeps one row while the date fits on one line', (tester) async {
     await pumpTile(tester, birthday(), width: 420);
 
     expect(stacked(tester), isFalse);
   });
 
-  testWidgets('stacks the row of the day, its countdown being wider', (
+  testWidgets('keeps the same height whatever the length of the name', (
     tester,
   ) async {
-    // À 420, une ligne à « J-12 » tient (test précédent) ; « Aujourd'hui »,
-    // plus large, ne laisse plus deux lignes à la date.
-    await pumpTile(
-      tester,
-      birthday(date: const BirthDate(year: 1990, month: 10, day: 12)),
-      width: 420,
+    const long = Birthday(
+      id: '2',
+      name: 'Marie-Charlotte',
+      surname: 'Delacroix-Fontaine de La Tour',
+      date: BirthDate(year: 1990, month: 10, day: 24),
     );
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        Center(
+          child: SizedBox(
+            width: 420,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AgendaTile(birthday: birthday()),
+                const AgendaTile(birthday: long),
+              ],
+            ),
+          ),
+        ),
+        overrides: overrides(),
+      );
+      await tester.pumpAndSettle();
+    });
 
-    expect(find.text("Aujourd'hui"), findsOneWidget);
+    // Le nom long s'arrête sur « … » au lieu d'ajouter une ligne.
+    final heights = [
+      for (final tile in tester.elementList(find.byType(AgendaTile)))
+        tile.size!.height,
+    ];
+    expect(heights.first, heights.last);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('stacks once the date no longer fits on one line', (
+    tester,
+  ) async {
+    await pumpTile(tester, birthday(), width: 200);
+
+    expect(find.text('24 oct. · 36 ans'), findsOneWidget);
     expect(stacked(tester), isTrue);
+    expect(tester.takeException(), isNull);
   });
 }
