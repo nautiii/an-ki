@@ -123,3 +123,10 @@ app.*.symbols
 
 secrets.json
 .firebaserc
+
+# Notes locales (compte git, réglages du poste) : jamais dans le dépôt
+*.local.md
+
+# Secrets (AGENTS.md) : clés de signature et variables locales, où qu'elles soient
+*.keystore
+.env
