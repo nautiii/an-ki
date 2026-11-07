@@ -196,7 +196,6 @@ List<Override> sampleOverrides({
           name: 'Camille',
           surname: 'Durand',
           pseudo: 'Camille',
-          categories: [for (final c in cats) c.id],
           locale: 'fr',
         ),
       ),
