@@ -24,7 +24,7 @@ service cloud.firestore {
         && !('transferTo' in request.resource.data);
     }
 
-    // A user can only read/write their own profile document (id == uid).
+    // Profil : seul son propriétaire (id du document == uid) le lit et l'écrit.
     match /user/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
       allow delete: if isMarkedFor(resource.data);
@@ -36,7 +36,7 @@ service cloud.firestore {
       }
     }
 
-    // Birthdays are owned via the `uid` field.
+    // Anniversaires : le propriétaire est le champ `uid`.
     match /birthday/{birthdayId} {
       allow read: if request.auth != null
         && resource.data.uid == request.auth.uid;
@@ -52,7 +52,7 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid;
     }
 
-    // Scanned books are owned via the `uid` field.
+    // Livres scannés : le propriétaire est le champ `uid`.
     match /books/{bookId} {
       allow read: if request.auth != null
         && resource.data.uid == request.auth.uid;

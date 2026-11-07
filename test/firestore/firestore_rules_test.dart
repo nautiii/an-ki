@@ -85,30 +85,61 @@ void main() {
           expect(await db.canCreate(bob, 'user/carol', profile()), isFalse);
           expect(await db.canGet(signedOut, 'user/alice'), isFalse);
         });
+
+        test('nothing is written without a session', () async {
+          expect(
+            await db.canCreate(signedOut, 'user/alice', profile()),
+            isFalse,
+          );
+          await db.seed('user/alice', profile());
+
+          expect(
+            await db.canUpdate(signedOut, 'user/alice', {'pseudo': 'x'}),
+            isFalse,
+          );
+          expect(await db.canDelete(signedOut, 'user/alice'), isFalse);
+        });
       });
 
       group('user/{uid}/categories private groups', () {
-        test('their owner creates, lists and deletes them', () async {
+        test('their owner creates, lists, edits and deletes them', () async {
           const path = 'user/alice/categories/g1';
 
           expect(await db.canCreate(alice, path, userGroup()), isTrue);
           expect(await db.canQuery(alice, 'user/alice/categories'), isTrue);
+          // Page « Groupes » : renommer, changer de ton.
+          expect(
+            await db.canUpdate(alice, path, {'name': 'Grimpe', 'tone': 3}),
+            isTrue,
+          );
           expect(await db.canDelete(alice, path), isTrue);
         });
 
         test('nobody else lists or writes them', () async {
-          await db.seed('user/alice/categories/g1', userGroup());
+          const path = 'user/alice/categories/g1';
+          await db.seed(path, userGroup());
 
           expect(await db.canQuery(bob, 'user/alice/categories'), isFalse);
           expect(
             await db.canCreate(bob, 'user/alice/categories/g2', userGroup()),
             isFalse,
           );
-          expect(await db.canDelete(bob, 'user/alice/categories/g1'), isFalse);
+          expect(await db.canUpdate(bob, path, {'name': 'x'}), isFalse);
+          expect(await db.canDelete(bob, path), isFalse);
           expect(
             await db.canQuery(signedOut, 'user/alice/categories'),
             isFalse,
           );
+          expect(
+            await db.canCreate(
+              signedOut,
+              'user/alice/categories/g2',
+              userGroup(),
+            ),
+            isFalse,
+          );
+          expect(await db.canUpdate(signedOut, path, {'name': 'x'}), isFalse);
+          expect(await db.canDelete(signedOut, path), isFalse);
         });
       });
 
@@ -181,6 +212,12 @@ void main() {
             isFalse,
           );
           expect(await db.canDelete(bob, 'birthday/b1'), isFalse);
+          expect(await db.canGet(signedOut, 'birthday/b1'), isFalse);
+          expect(
+            await db.canUpdate(signedOut, 'birthday/b1', {'name': 'x'}),
+            isFalse,
+          );
+          expect(await db.canDelete(signedOut, 'birthday/b1'), isFalse);
           expect(await db.canDelete(alice, 'birthday/b1'), isTrue);
         });
 
