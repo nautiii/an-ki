@@ -63,7 +63,7 @@ haptics · 6. Focus & forms · 7. Testing
 - Clamp only tiny decorative labels (badges) with
   `MediaQuery.withClampedTextScaling(maxScaleFactor: 1.3, child: …)`; never body text or buttons.
   Two deliberate exceptions: the calendar grid (numbers stay in their cells, like Material's date
-  picker) and the nav-pill labels (backlog D20).
+  picker) and the nav-pill labels (ux D20).
 - Screens must scroll when content can exceed the viewport.
 - Verify with the snapshot variants `light-text200` and `compact-360x640`.
 
@@ -121,8 +121,7 @@ testWidgets('app bar actions are accessible', (tester) async {
 **Snapshot audit** (`scripts/ui_snapshot_test.dart`) — tap targets, labels, contrast heuristic,
 layout overflow at 200 % and 360×640, light and dark, with the real theme.
 
-**Manual pass on a device** before shipping a redesign (commands: device skill,
-`references/recipes.md` §5):
+**Manual pass on a device** before shipping a redesign (run by the `device-runner` agent, which loads the device skill, `references/recipes.md` §5; without it, the report says « appareil : non vérifié » and why):
 1. TalkBack: swipe through the screen — each element announced once, meaningful, in visual order;
    every action reachable (including swipe actions via the actions menu).
 2. Font size and display size at maximum.

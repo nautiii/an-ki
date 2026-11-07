@@ -14,6 +14,8 @@ Rules: verify an item still exists before acting (code moves); delete items you 
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
 auth or dependencies → design brief + maintainer approval first.
 
+Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The architecture decisions D1–D12 live in `architecture/references/decisions.md` and are cited « decision D9 ».
+
 ## Contents
 - Big bets (B4's gift ideas, deferred; B8) — structural redesigns with the highest impact
 - P2 — polish (D17, D28, D29)

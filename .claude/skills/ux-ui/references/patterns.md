@@ -259,7 +259,7 @@ full moon + « Aujourd'hui 🎉 », the age (S6), and S4 petals once per person 
   one button (opens the sheet); the actions are separate targets for TalkBack.
 - Model: `wishedYears` (`arrayUnion` / `arrayRemove`), rule `BirthdayWishes.isWished(today)` —
   the year of the latest birthday, so a belated wish on 1 January counts for 31 December.
-- Later: « Idée cadeau » (B4), a belated wish (D15).
+- Later: « Idée cadeau » (B4), a belated wish (ux D15).
 
 ## M. 2025–2026 trends — adopt, adapt or skip
 

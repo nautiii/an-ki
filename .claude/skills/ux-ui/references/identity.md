@@ -1,7 +1,7 @@
 # AnKi identity — « Jardin au clair de lune »
 
 The source of truth for what makes a screen *look and feel like AnKi*. Every value below was
-computed with `ColorScheme.fromSeed` (tonalSpot) on 2026-10-07 — identical on Flutter 3.44.9 and 3.47.6; if a seed changes,
+computed with `ColorScheme.fromSeed` (tonalSpot) on 2026-10-07 — identical on Flutter 3.44.9 and 3.47.6; re-measured on Flutter 3.47.9 on 2026-11-07 with the palette audit: unchanged; if a seed changes,
 re-run `scripts/palette_audit_test.dart` and update the tables.
 
 ## Contents
