@@ -44,9 +44,11 @@ says « appareil : non vérifié » and why.
 ## Stack
 
 Flutter 3.47.9 · Dart 3.13.7 · Material 3 · Riverpod 3.4 (hand-written providers, no codegen) ·
-Firebase Auth and Cloud Firestore (offline persistence on, no Storage) ·
-flutter_local_notifications with timezone · share_plus (system share sheet) · gen-l10n (French
-template, English).
+go_router 17 (pinned, decision D9) · Firebase Auth (Google through google_sign_in, email,
+anonymous) and Cloud Firestore (offline persistence on, no Storage) · flutter_local_notifications
+with timezone, replanned daily by workmanager · local_auth with flutter_secure_storage (fingerprint
+lock) · mobile_scanner (ISBN) · flutter_contacts (import) · image_picker (photos) · share_plus
+(system share sheet) · gen-l10n (French template, English).
 Every dependency is pinned to an exact version.
 
 ## Commands
@@ -112,7 +114,9 @@ is in `.claude/skills/architecture/references/migration.md`.
 - Strong typing: no `dynamic` in app code (analyzer strict modes are on); `const` wherever
   possible; past ~300 lines, split a widget into private widget classes.
 - Every Firestore read and write is scoped to the signed-in user (path or `uid` filter), except
-  the shared `category` collection; multi-document writes go through `writeInBatches`.
+  the shared `category` collection and a guest's documents marked for the Google account taking
+  them over (`transferTo`, firebase skill `references/schema.md` §10); multi-document writes go
+  through `writeInBatches`.
 - Ask before adding a package, a plugin, an Android permission or a data migration; pin exact
   versions (no `^`).
 - Every change ships with tests at each layer it touches; aim for meaningful coverage close to
