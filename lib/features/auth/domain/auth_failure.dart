@@ -22,6 +22,11 @@ enum AuthFailure implements Exception {
   /// Serveur injoignable : pas de réseau.
   network,
 
+  /// Connexion sans réponse de Firebase dans le délai imparti
+  /// (`AuthRepository.defaultSignInTimeout`) : réseau instable, ou service
+  /// lent.
+  signInTimeout,
+
   /// Trop d'essais d'affilée : Firebase bloque l'appareil un moment.
   tooManyRequests,
 

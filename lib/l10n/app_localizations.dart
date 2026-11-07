@@ -1484,6 +1484,12 @@ abstract class AppLocalizations {
   /// **'Pas de connexion. Vérifiez votre réseau et réessayez.'**
   String get errorNetwork;
 
+  /// Connexion (e-mail ou Google) restée sans réponse pendant 30 secondes.
+  ///
+  /// In fr, this message translates to:
+  /// **'La connexion prend trop de temps. Vérifiez votre réseau, puis réessayez.'**
+  String get errorSignInTimeout;
+
   /// No description provided for @errorUnknown.
   ///
   /// In fr, this message translates to:

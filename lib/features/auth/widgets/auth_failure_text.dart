@@ -15,6 +15,7 @@ extension AuthFailureText on AuthFailure {
       AuthFailure.wrongPassword => l10n.errorWrongPassword,
       AuthFailure.invalidCredentials => l10n.errorInvalidCredentials,
       AuthFailure.network => l10n.errorNetwork,
+      AuthFailure.signInTimeout => l10n.errorSignInTimeout,
       AuthFailure.tooManyRequests => l10n.errorTooManyRequests,
       AuthFailure.userDisabled => l10n.errorUserDisabled,
       AuthFailure.userMismatch => l10n.errorUserMismatch,

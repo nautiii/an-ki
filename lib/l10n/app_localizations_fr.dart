@@ -951,6 +951,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pas de connexion. Vérifiez votre réseau et réessayez.';
 
   @override
+  String get errorSignInTimeout =>
+      'La connexion prend trop de temps. Vérifiez votre réseau, puis réessayez.';
+
+  @override
   String get errorUnknown =>
       'Quelque chose s\'est mal passé. Réessayez dans un instant.';
 

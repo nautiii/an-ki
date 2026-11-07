@@ -273,6 +273,7 @@
   "errorWrongPassword": "Wrong password. Try again, or ask for a new one.",
   "errorInvalidCredentials": "Wrong e-mail or password. Check them, or ask for a new password.",
   "errorNetwork": "You're offline. Check your connection and try again.",
+  "errorSignInTimeout": "Signing in is taking too long. Check your connection, then try again.",
   "errorUnknown": "Something went wrong. Try again in a moment.",
   "errorGoogleLogin": "Couldn't connect with Google. Try again.",
   "errorGoogleAccountInUse": "This Google account is already used by AnKi. Choose another one to save your birthdays.",

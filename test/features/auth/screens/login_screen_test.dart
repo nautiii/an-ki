@@ -140,6 +140,39 @@ void main() {
       expect(haptics, isEmpty);
     });
 
+    testWidgets('a sign-in left unanswered says so and can be retried', (
+      tester,
+    ) async {
+      final repository = FakeAuthRepository(failure: AuthFailure.signInTimeout);
+      await tester.pumpHarness(
+        const LoginScreen(),
+        overrides: authOverrides(repository),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).at(0), 'a@b.com');
+      await tester.enterText(find.byType(TextField).at(1), 'secret');
+      await tester.pump();
+      await tester.tap(find.text('Se connecter').last);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'La connexion prend trop de temps. Vérifiez votre réseau, puis '
+          'réessayez.',
+        ),
+        findsOneWidget,
+      );
+      // Le chargement est fini : un nouvel essai part.
+      repository.failure = null;
+      await tester.tap(find.text('Se connecter').last);
+      await tester.pumpAndSettle();
+      expect(
+        repository.calls.where((call) => call == 'signInWithEmail'),
+        hasLength(2),
+      );
+    });
+
     testWidgets('toggles password visibility', (tester) async {
       await tester.pumpHarness(const LoginScreen());
       await tester.pumpAndSettle();
