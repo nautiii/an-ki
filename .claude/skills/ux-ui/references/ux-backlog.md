@@ -5,10 +5,8 @@ Living list of what to improve, from a full audit with the snapshot tool (light,
 below deliberately question structure, not just polish.
 
 Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, calendar, loading,
-scanner, settings, auth). Everything shipped from 2026-10-12 to 2026-11-05 (foundation F1–F6,
-the quick wins, B1–B3, B4a person page, B5 onboarding, B6 reminder settings, B7 groups, D1–D27
-but D17) is gone from this list: git history and the patterns hold the details, and the device
-checks still owed are in architecture `migration.md` §1.
+scanner, settings, auth). Shipped items are gone (git history holds them); device checks still
+owed are in architecture `migration.md` §1.
 
 Rules: verify an item still exists before acting (code moves); delete items you fix; add what you
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
@@ -26,7 +24,7 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
 ## Big bets
 
 ### B4 — Gift ideas per person (deferred)
-- B4a, the person page `/person/:id`, shipped on 2026-11-03; notes stay out (a new field).
+- Notes on the person page stay out (a new field).
 - **Deferred** (maintainer, 2026-11-03: a good idea, for later, not now): tab 2
   « Scanner » → « Idées », ideas per person + an unassigned inbox, added by text, link or ISBN
   scan (the scanner becomes one input); then the ideas on the person page (B4c: a slot built by
@@ -49,8 +47,8 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
 - **Cost**: medium (ideas model and rules, the tab, scanner integration).
 
 ### B8 — The age in reminders (brief 2026-10-25; workmanager approved 2026-11-01)
-- **Step 1 shipped** (2026-11-01): workmanager 0.10.10, a daily background replan on Android,
-  texts unchanged (`reminders.md`). Step 2 waits for the measure on the maintainer's Honor.
+- Step 1 is in (workmanager, daily background replan on Android, `reminders.md`); step 2 waits
+  for the measure on the maintainer's Honor.
 - **Left, step 1**:
   - Not proven on a device: a run offline with the app's process dead. The emulator can't show it: earlier clock
     moves left a future « FORCE STOP » exit record, then the job vanished from JobScheduler
