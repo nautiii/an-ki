@@ -1,6 +1,6 @@
 ---
 name: dead-code
-description: "Sweep AnKi for dead code precisely: a throwaway Dart package on analyzer 14.5.0 resolves lib/ and test/ in one context and lists what lib/ declares but nobody references, what only tests use, optional parameters lib/ never passes and dead ARB keys. Every finding is checked by hand and shown in French with file:line and a recommendation; only what the maintainer approves is removed, with tests, both analyzers and the architecture test green, one commit per intent. `check` only reports."
+description: "Sweep AnKi for dead code precisely: a throwaway Dart package on analyzer 14.5.0 resolves lib/ and test/ in one context and lists what lib/ declares but nobody references, what only tests use, optional parameters lib/ never passes and dead ARB keys. Every finding is checked by hand and shown in French with file:line and a recommendation; only what the maintainer approves is removed, through the commit gate (checks and reviewer), one commit per intent. `check` only reports."
 disable-model-invocation: true
 argument-hint: "[check]"
 model: opus
@@ -10,14 +10,15 @@ effort: high
 # Sweeping AnKi's dead code
 
 Grep can't do this: extensions are used through their members, member names repeat across
-classes, dot shorthands (`.standard`) never name their type, and the analyzer's own
+classes, dot shorthands (`.standard`; AnKi uses none on 2026-11-07) never name their type, and the analyzer's own
 `unused_element` only sees private declarations. The finder resolves lib/ and test/ the way the
 compiler does and compares what lib/ declares with what lib/ and test/ reference. Its output is
 a list of candidates, not a verdict: the review in step 2 is the real work.
 
 The maintainer typed the command: that is a go for running the finder and reporting. Removing
-waits for their approval, finding by finding or group by group. Talk French; commit messages stay
-in English (git-workflow skill).
+waits for their approval, finding by finding or group by group. `model: opus` and `effort: high`
+apply to the turn that starts the skill; the removals after the maintainer's go run with the
+session's model.
 
 **Requested:** `$ARGUMENTS` — `check` stops after the report (step 2); empty means report, then
 remove what the maintainer approves.
@@ -35,16 +36,18 @@ cp -r .claude/skills/dead-code/scripts/. build/dead_code/
 Read-only for the app, about 1 to 1.5 min. The finder is a package of its own: the app's
 `pubspec.yaml` never sees analyzer, and `build/` is gitignored and excluded from analysis
 (`flutter clean` wipes the copy, harmless). It needs the app's `.dart_tool/package_config.json`:
-run `flutter pub get` first in a fresh worktree.
+run `flutter pub get` first in a fresh worktree, in the Terminal panel (deps-upgrade skill).
 
 - **Check the header** before reading further: `1 contexte(s)` (more means lib/ and test/ were
   resolved apart and every « tests seuls » turns into « inutilisé »: stop and fix the finder), a
   non-zero `clés ARB` count (zero means `l10n.yaml` wasn't read), no `non résolu` line on stderr.
 - **Offline resolution fails** (analyzer 14.5.0 left the pub cache): `dart pub get` with the
   network, inside `build/dead_code/` only.
-- **After a Dart SDK upgrade**, parse errors or `non résolu` lines mean analyzer 14.5.0 doesn't
-  know the new language version: bump the pin in `scripts/pubspec.yaml` to a release that does,
-  adapt the finder to its API, and commit that alone.
+- **After a Dart SDK upgrade**, the finder prints no analysis diagnostic (a `non résolu` line only
+  means a file wasn't resolved at all): compare the project's language version with the
+  analyzer's (deps-upgrade skill). If analyzer 14.5.0 doesn't know it, bump the pin in
+  `scripts/pubspec.yaml` to a release that does, adapt the finder to its API, and commit that
+  alone.
 
 ## How the finder decides
 
@@ -70,8 +73,8 @@ Knowing its rules is what makes the review fast.
   constants-class idiom; a closing line names those classes).
 - **Blind spots** — what Dart code never references but something else needs: model fields read
   or written by Firestore (stored data, not dead), assets declared in `pubspec.yaml`, anything a
-  platform or plugin calls by name. A parameter « jamais passé » may still be passed by a caller
-  the finder can't see through (a function stored in a variable, then called).
+  platform or plugin calls by name. A tear-off counts as passing every optional parameter; the
+  real blind spot is Dart outside `lib/` and `test/`.
 
 ## 2. Review, then report
 
@@ -84,7 +87,19 @@ cites it changes with it. Then recommend:
 | Inutilisé dans lib/ et test/ | remove | one step of a deliberate scale (spacing, radii, motion tokens): removing it breaks the vocabulary, ask; a field Firestore stores; something the backlog (`ux-backlog.md`, `migration.md`) plans to use soon |
 | Utilisé seulement par les tests | remove it from lib/ and move the tests onto the real API | `@visibleForTesting` constructors of plugin wrappers stay (platform rule); a test-only `copyWith` goes (house rule: only where code copies); a domain constructor tests use as a fixture, or something only `test/architecture/` reads: decide with the maintainer |
 | Paramètres optionnels jamais passés par lib/ | remove the parameter, keep its default behaviour | it completes a widget's public API the next screen will need; « passé par les tests seuls » means a test checks a configuration the app never uses: remove both |
-| Clés ARB mortes | remove the key from `intl_fr.arb` and `intl_en.arb` (with its `@key` block), `flutter gen-l10n` | the string belongs to a feature in progress |
+| Clés ARB mortes | remove the key from `intl_fr.arb` and `intl_en.arb` (with its `@key` block), then `flutter gen-l10n` (`.claude/rules/l10n.md`) | the string belongs to a feature in progress |
+
+Rules while reviewing:
+- An optional parameter marked `@visibleForTesting` and passed only by tests is an injection
+  point: keep it (`.claude/rules/platform.md`, `registerBackgroundReplan`).
+- A use in `.claude/skills/*/scripts` or `assets/example` is real (e.g. `BirthDate.fromDate` in
+  `ui_snapshot_test.dart`): keep or adapt, then rerun that tool.
+- After a removal, look for orphaned fakes in `test/support/` (a3b0a53 removed
+  `RecordingUserRepository.removedCategories` by hand).
+- Code unreachable because of the data but referenced (a3b0a53, `GroupKind.shared`) is out
+  of the finder's reach: look for it in the architecture skill's `references/migration.md`.
+- Probes go in a worktree, with the finder run on its root: an untracked file under `lib/` or
+  `test/` makes `verify-index.sh` fail for every session.
 
 Report in French, grouped by section, one line per finding: `chemin:ligne` — the element — the
 recommendation (« supprimer », « garder », « à décider ») and why, in a few words. Then ask which
@@ -95,23 +110,22 @@ lines to remove. `check` stops here.
 - **Shared tree.** `git status --short` again: if a file to edit holds someone else's uncommitted
   work, stop and ask.
 - **Only the removal.** The declaration, its doc comment, imports left unused, the tests that only
-  tested it (or rewrite them on the real API), ARB keys in both files then `flutter gen-l10n`,
-  and the docs that cite it. No refactoring on the way (`AGENTS.md`).
+  tested it (or rewrite them on the real API), ARB keys in both files then `flutter gen-l10n`
+  (`.claude/rules/l10n.md`), and the docs that cite it. No refactoring on the way (`AGENTS.md`).
 - **Knock-on effects.** A removal can orphan private helpers (`flutter analyze` reports
   `unused_element`) or new public ones: rerun the finder until the approved sections hold
   nothing new, and bring new findings back to the maintainer before removing them.
-- **Green before each commit:** `dart format --output=none --set-exit-if-changed <files>`,
-  `flutter analyze`, `dart analyze` (riverpod_lint), `flutter test` (it runs
-  `test/architecture/architecture_test.dart`; a removed file in its known-debt list leaves the
-  list).
+- **Green before each commit:** `bash .claude/hooks/verify-index.sh` (format, project norms,
+  l10n, `dart analyze --fatal-infos`, tests).
 - **One commit per intent**, git-workflow skill: `REFACTOR(<scope>): remove unused <what>` for
-  code, `CHORE(l10n): remove unused strings` for ARB keys, the scope from the path. Stage
-  explicit paths and commit them alone: `git add <paths> && git commit -F - -- <paths>`.
+  code, `CHORE(l10n): remove unused strings` for ARB keys, the scope from the path. Commit
+  through the git-workflow skill, step 4 (stage in one call, commit the index in the next, after
+  the checks and the reviewer; the gate refuses paths after `git commit`).
 
 ## 4. Report
 
-In French: what was removed and in which commit (`git log --oneline -<n>`), what was kept and
-why, what ran (finder, format, both analyzers, tests) and what didn't.
+In French: what was removed and in which commit, what was kept and why, and what ran
+(AGENTS.md: show what ran).
 
 ## Maintaining the finder
 
@@ -126,9 +140,12 @@ finder with `dart analyze .` inside `build/dead_code/`. Analyzer 14 traps it alr
 - **Primary constructors** (`class const BirthDate({…})`) aren't `Declaration` nodes: they get
   their own visit, and their declaring parameters (`isDeclaring`) declare fields.
 - **Normalized Windows paths** (`C:\…`, not `C:/…`): the collection rejects the others.
+- **Enum values.** An enum value has no `ConstructorName` node: count
+  `EnumConstantDeclaration.constructorElement`, else `ReminderLead.new` reads unused — d53077f
+  (`find_dead_code.dart`, `visitDeclaration`).
 - Comments (`visitComment`) and `show`/`hide` combinators aren't uses; arguments map to
   parameters through `argument.correspondingParameter`.
 
-To prove a change, add a throwaway probe file to lib/ and test/ (a dead class, a test-only
+To prove a change, in a worktree, add a throwaway probe file to lib/ and test/ (a dead class, a test-only
 member, a parameter never passed, a tear-off, an extension member…), run the finder, read the
 sections, and delete the probes.
