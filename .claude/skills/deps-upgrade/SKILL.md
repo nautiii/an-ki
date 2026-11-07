@@ -21,12 +21,12 @@ allowed-tools:
 The 2026-10-07 upgrade (Flutter 3.44.9 → 3.47.6, every package, Gradle/AGP/KGP) took a whole
 session: `flutter upgrade` failed on files the IDE kept open, packages fetched from Claude's
 sandboxed shell were invisible to the IDE's Gradle, the newest AGP was outside what Flutter
-supports, google_fonts 9 broke the theme, and everything landed in one commit (`f4ae5de`) that
-can be neither bisected nor partly reverted. Each step below avoids one of those.
+supports, and everything landed in one commit (`bf5f136`) that can be neither bisected nor
+partly reverted. A package major can also break the look (google_fonts 9 did, bf5f136; the
+package was removed in 2316591). Each step below avoids one of those.
 
 The maintainer typed the command: that is a go for the inventory and the plan. Bumping still
-waits for their go on the plan (`AGENTS.md`: packages and toolchain are *system* changes). Talk
-French; commit messages stay in English (git-workflow skill).
+waits for their go on the plan (`.claude/rules/platform.md`: approval, its own commit).
 
 **Requested:** `$ARGUMENTS` — read it against this table (empty means everything).
 
@@ -45,22 +45,22 @@ French; commit messages stay in English (git-workflow skill).
   Gradle/AGP/KGP range its tool supports: the other way round, work gets redone.
 - **Stable only.** No alpha, beta, rc, `-dev` or `-pre`, no channel switch, no
   `dependency_overrides`, no `flutter upgrade --force`.
-- **Exact pins.** Every dependency reads `name: x.y.z`; `environment` keeps
-  `sdk: ^<installed Dart>` and `flutter: ">=<installed Flutter>"`; riverpod_lint is pinned in
-  `analysis_options.yaml`, outside the pubspec. `pubspec.lock` is tracked and travels with the
+- **Pins.** `environment` keeps `sdk: ^<installed Dart>` and `flutter: ">=<installed Flutter>"`;
+  riverpod_lint is pinned in `analysis_options.yaml`, outside the pubspec. `pubspec.lock` is tracked and travels with the
   pubspec.
 - **Deliberate pins.** A package the inventory marks « épinglé dans decisions.md » is held back
-  on purpose — go_router stays on 17.x until the Material decoupling (decision D9). Read the
-  decision before planning it; for any major, grep the rules and pubspec comments for the
+  on purpose — go_router stays 17.x (decision D9). Read the decision before planning it; for
+  any major, grep the rules and pubspec comments for the
   package too.
 - **Android: the newest combination Flutter's tool knows,** not the newest release. The ceilings
   are constants in `packages/flutter_tools/lib/src/android/gradle_utils.dart`:
   `maxKnownAndSupportedGradleVersion` is what Flutter's CI tests, and Gradle stops at that exact
-  version; the AGP and KGP ones are what its tool knows, and it accepts their whole line (KGP
-  2.4.0 to 2.4.29 under a 2.4.0 ceiling, the 2.4.20 tooling release included: read its notes).
-  AGP also needs its minimum
-  Gradle: AGP 9.2 wants Gradle 9.4.1, above Flutter 3.47's 9.3.1, so AGP stays on 9.1.x. Keep
-  `android.builtInKotlin=false` and `android.newDsl=false` while Flutter's app template has them.
+  version; the inventory prints the ceilings of the target Flutter, and `.claude/rules/platform.md`
+  holds the current versions. For KGP, take one whose Kotlin compatibility table (kotlinlang.org,
+  Gradle › configure project) covers the project's AGP and Gradle, else it was never tested with
+  them (cdda03c). AGP also needs its minimum Gradle: a line wanting a Gradle above Flutter's
+  ceiling stays out. `android.builtInKotlin=false` and `android.newDsl=false`:
+  `.claude/rules/platform.md`.
 - **Blocked packages** (`bloqué < x` in the inventory): `dart pub add --dry-run <pkg>:<version> …`
   names the constraint that fails. Use `dart`, not `flutter`: `flutter pub add --dry-run` still
   regenerates l10n and plugin files when the resolution succeeds. Report the blocker, leave the
@@ -74,7 +74,7 @@ French; commit messages stay in English (git-workflow skill).
 
 ```bash
 dart .claude/skills/deps-upgrade/scripts/inventory.dart            # target: latest stable
-dart .claude/skills/deps-upgrade/scripts/inventory.dart 3.47.7     # or a given Flutter
+dart .claude/skills/deps-upgrade/scripts/inventory.dart 3.48.0     # or a given Flutter, newer than the installed 3.47.9 (an older target isn't flagged)
 ```
 
 Read-only, 10 to 20 s, network needed (« ? » otherwise). It prints:
@@ -117,16 +117,17 @@ line.
 Claude desktop is an MSIX app: from the Bash and PowerShell tools, writes under `%LOCALAPPDATA%`
 land in a private overlay, so packages fetched there stay invisible to the IDE and to the Gradle
 daemon it started (« Plugin directory does not exist: …\Pub\Cache\… »). The Terminal panel runs
-outside that overlay (device skill).
+outside that overlay (device skill: fetching there, `gradlew --stop`).
 - **Fetch and build in the Terminal panel** (`run_in_terminal`, then `read_terminal`):
   `flutter upgrade`, `flutter pub get`, `flutter pub upgrade`, APK builds and `flutter run`.
   Without a Terminal panel, the maintainer runs them in their own terminal.
 - **Read and check from the Bash tool**: the inventory, `flutter pub outdated`,
-  `dart pub add --dry-run`, both analyzers and `flutter test` once the packages are fetched.
+  `dart pub add --dry-run`, and `bash .claude/hooks/verify-index.sh` once the packages are fetched.
 - A Gradle build started from Claude's shells anyway: `android\gradlew.bat --stop` afterwards, so
   the IDE never reuses that daemon.
 - Prompts: `allowed-tools` (frontmatter) pre-approves the reads of the turn that starts the skill
-  only (inventory, release notes, dry runs); the grant ends at the maintainer's next message. The
+  only (inventory, release notes, dry runs); the grant ends at the maintainer's next message.
+  `model` and `effort` apply to that turn only too. The
   checks are allowed for good in `.claude/settings.json` (`flutter test` runs Dart code: that
   allow is an allow to execute code). Still asking on purpose: `curl` (a prefix rule would let
   extra URLs, `-d @file` or `-o` through while reading third-party changelogs) and
@@ -134,15 +135,13 @@ outside that overlay (device skill).
 
 ## 4. Upgrade, one commit per intent
 
-Before each commit, all green: `dart format --output=none --set-exit-if-changed <touched files>`,
-`flutter analyze`, `dart analyze` (riverpod_lint), `flutter test`. Then `git status --short` and
-`git diff --cached --name-only`: when the index holds paths that aren't part of the upgrade,
-stage yours and commit them alone with `git commit -F - -- <paths>`. Messages follow the
-git-workflow skill and name what actually moved (the titles below are patterns). Docs quoting
-current versions change in the commit that changes the version: `AGENTS.md` (Stack),
-`README.md` (Stack), `.claude/rules/platform.md` (Android toolchain), `.claude/rules/navigation.md`
-and the architecture skill's `decisions.md` D9 (go_router), `.claude/rules/state.md` and
-`decisions.md` (Riverpod, riverpod_lint).
+Before each commit, all green: `bash .claude/hooks/verify-index.sh` (format, project norms,
+l10n, `dart analyze --fatal-infos`, tests). Commit through the git-workflow skill, step 4 (stage
+in one call, commit the index in the next, after the checks and the reviewer; the gate refuses
+paths after `git commit`). Messages name what actually moved (the titles below are patterns).
+Docs quoting current versions change in the commit that changes the version: grep the old
+version in `AGENTS.md`, `.claude/**/*.md` and `README.md` (019f3ef missed
+`device/references/recipes.md`).
 
 ### a. Flutter — `BUILD: upgrade Flutter to <x.y.z>`
 
@@ -161,28 +160,42 @@ and the architecture skill's `decisions.md` D9 (go_router), `.claude/rules/state
    reported in the SDK checkout: stop and ask.
 3. **Constraints.** Set `environment` to the new versions, `flutter pub get` (Terminal panel),
    `flutter gen-l10n`.
-4. **Migrators.** Build once in the Terminal panel (`scripts/build_and_deploy.ps1`, or a run on
-   the emulator with the device skill): Flutter's migrators may rewrite `android/` files, and those
-   edits belong to this commit. Compare `android/` with the app template
-   (`packages/flutter_tools/templates/app/android.tmpl/`) and report drift instead of adopting it.
+4. **Migrators.** Build once in the Terminal panel (`scripts/build_and_deploy.ps1`), and check
+   the app on the device through the `device-runner` agent (otherwise the report says
+   « appareil : non vérifié » and why): Flutter's migrators may rewrite `android/` files, and
+   those edits belong to this commit. Compare `android/` with the app template
+   (`packages/flutter_tools/templates/app/`: the two `build.gradle.kts` and `MainActivity.kt` in
+   `android-kotlin.tmpl/`, the rest in `android.tmpl/`) and report drift instead of adopting it.
+   `compileSdk`, `targetSdk`, `minSdk` and `ndkVersion` come from Flutter (`flutter.*` in
+   `android/app/build.gradle.kts`): a Flutter bump changes them without a diff in `android/`,
+   so it needs that device check.
 5. **Formatter.** A new Dart language version can reformat code and add lints:
-   `dart format lib test .claude/skills`. A diff goes in its own commit right after,
-   `STYLE: reformat with Dart <x.y> formatter`; new lint findings are fixed in the BUILD commit.
-   A Flutter patch release on the same Dart usually changes nothing here.
+   `dart format lib test .claude/skills`. Commit `BUILD` first, then format and commit
+   `STYLE: reformat with Dart <x.y> formatter` (`verify-index.sh` refuses an index while
+   unstaged `.dart` changes remain); lint findings are fixed in the BUILD commit. A Flutter
+   patch release on the same Dart usually changes nothing here.
+6. **Second pubspec.** Check `.claude/skills/dead-code/scripts/pubspec.yaml` (analyzer 14.5.0,
+   `sdk: ^3.13.5`): an analyzer that doesn't know the new language version gives wrong results
+   without warning. After the upgrade, rerun the Dart scripts of `.claude/skills` (the analyzer
+   skips `.claude/`; 6379a49).
 
 ### b. pub
 
 - **Patches and minors needing no code**: set the pins to the inventory's targets,
   `flutter pub upgrade` in the Terminal panel (it moves the transitive packages and rewrites the
   lock, never the pins), one commit `CHORE(deps): bump pub dependencies`, a body line per direct
-  package.
+  package. A transitive raise of a minimum (image_picker_ios needs iOS 15, f8c5000) goes in the
+  commit body and `.claude/rules/platform.md`.
 - **Each major, and any bump that needs code**: its own `CHORE(deps): upgrade <pkg> to <x.y.z>`
   with the adaptation and its tests, so that every commit builds.
 - **riverpod_lint** follows flutter_riverpod (pin in `analysis_options.yaml`), checked with
-  `dart analyze`.
-- **A plugin or a native implementation moved**: run on the emulator (device skill) and use the
-  feature it serves — reminders, contacts import, book scanner, biometric lock, Google sign-in,
-  sharing.
+  `verify-index.sh`. The test-only interface pins (`google_sign_in_platform_interface`,
+  `plugin_platform_interface`, used by `test/support/platform_mocks.dart`) move with their
+  plugin, like the FlutterFire mocks.
+- **A plugin or a native implementation moved**: run on the emulator through the `device-runner`
+  agent and use the feature it serves — reminders (workmanager's daily replan, decision D12),
+  contacts import, book scanner, biometric lock, Google sign-in, sharing, image_picker,
+  flutter_secure_storage.
 
 ### c. Android — `BUILD(android): upgrade <what moved>`
 
@@ -190,12 +203,14 @@ and the architecture skill's `decisions.md` D9 (go_router), `.claude/rules/state
   `android/settings.gradle.kts` (AGP, KGP, google-services), `coreLibraryDesugaring` in
   `android/app/build.gradle.kts`.
 - A clean build in the Terminal panel (`scripts/build_and_deploy.ps1 -Clean`): read every Gradle
-  warning (« Flutter support for … will soon be dropped », plugins still applying KGP), then run on
-  the emulator.
+  warning (« Flutter support for … will soon be dropped », plugins applying KGP), then run on
+  the emulator through the `device-runner` agent.
+- The icon and splash generators rewrite `android/` and `ios/`: rerun them only when their
+  config changes.
 
 ## 5. Report
 
 In French: what moved (`from → to`) and in which commit (`git log --oneline -<n>`), what stayed
-behind and why, what ran (format, both analyzers, tests, build, emulator) and what didn't (the
+behind and why, what ran (`verify-index.sh`, build, emulator) and what didn't (the
 phone; iOS, never built on this setup). Remind the maintainer to reopen their IDE, which restarts
 its analysis server on the new SDK.
