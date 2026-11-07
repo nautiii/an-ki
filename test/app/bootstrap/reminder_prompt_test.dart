@@ -234,7 +234,7 @@ void main() {
       birthdays.add(const [_lea, _hugo]);
       await settle(tester);
 
-      expect(find.text('2 anniversaires retrouvés'), findsOneWidget);
+      expect(find.text('2 anniversaires présents'), findsOneWidget);
       expect(notifications.requests, 0);
     });
 
@@ -351,7 +351,7 @@ void main() {
         await tester.tap(find.text('Se connecter').last);
         await tester.settleApp();
 
-        expect(find.text('1 anniversaire retrouvé'), findsOneWidget);
+        expect(find.text('1 anniversaire présent'), findsOneWidget);
       });
     });
   });

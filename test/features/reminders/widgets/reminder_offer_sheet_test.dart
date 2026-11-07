@@ -82,8 +82,12 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('À 10:00, même sans connexion.'), findsOneWidget);
-    // Le prochain vrai rappel, tel que la notification l'affichera.
-    expect(find.text('AnKi · mercredi 21 octobre à 10:00'), findsOneWidget);
+    // Le prochain vrai rappel : son jour en clair, puis la notification
+    // telle qu'elle s'affichera ce jour-là.
+    expect(
+      find.text('Le mercredi 21 octobre à 10:00, vous recevrez :'),
+      findsOneWidget,
+    );
     expect(find.text('🎂 Hugo Bernard'), findsOneWidget);
     expect(
       find.text('Hugo fête son anniversaire aujourd\'hui !'),
@@ -106,10 +110,13 @@ void main() {
 
     expect(find.text('Un rappel le jour J'), findsOneWidget);
     expect(find.text('À 09:00, même sans connexion.'), findsOneWidget);
-    expect(find.text('AnKi · mercredi 21 octobre à 09:00'), findsOneWidget);
+    expect(
+      find.text('Le mercredi 21 octobre à 09:00, vous recevrez :'),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('says the agenda was restored after a sign-in', (tester) async {
+  testWidgets('says the agenda is there after a sign-in', (tester) async {
     await openSheet(
       tester,
       offer: const ReminderOffer(
@@ -118,7 +125,7 @@ void main() {
       ),
     );
 
-    expect(find.text('2 anniversaires retrouvés'), findsOneWidget);
+    expect(find.text('2 anniversaires présents'), findsOneWidget);
   });
 
   testWidgets('reads the example as one block', (tester) async {
@@ -128,8 +135,7 @@ void main() {
     // « Souhaiter » n'y est pas : une image du bouton, pas une action ici.
     expect(
       tester.getSemantics(find.byType(Card)).getSemanticsData().label,
-      'Exemple de rappel\n'
-      'AnKi · mercredi 21 octobre à 10:00\n'
+      'Le mercredi 21 octobre à 10:00, vous recevrez :\n'
       '🎂 Hugo Bernard\n'
       'Hugo fête son anniversaire aujourd\'hui !',
     );

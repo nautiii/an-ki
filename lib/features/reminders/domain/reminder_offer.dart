@@ -10,7 +10,8 @@ enum ReminderOfferReason {
 }
 
 /// Proposition d'activer les rappels, au moment où l'agenda prend de la
-/// valeur : [count] anniversaires ajoutés ou retrouvés ([reason]).
+/// valeur : [count] anniversaires ajoutés, ou présents après une connexion
+/// ([reason]).
 class const ReminderOffer({
   required final ReminderOfferReason reason,
   required final int count,
