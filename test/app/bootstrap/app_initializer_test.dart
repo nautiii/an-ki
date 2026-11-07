@@ -27,12 +27,27 @@ import '../../support/fake_providers.dart';
 import '../../support/network_image_mock.dart';
 import '../../support/test_harness.dart';
 
-/// Dépôt dont le profil n'arrive que lorsque le test le décide.
+/// Dépôt dont le profil n'arrive que lorsque le test le décide ; il note les
+/// créations demandées, dont les [failures] premières échouent.
 class _PendingUserRepository extends FakeUserRepository {
+  _PendingUserRepository({this.failures = 0});
+
   final profile = StreamController<UserProfile?>();
+  final created = <UserProfile>[];
+  int failures;
 
   @override
   Stream<UserProfile?> watchUser(String uid) => profile.stream;
+
+  @override
+  Future<UserProfile> createUser(UserProfile user) async {
+    created.add(user);
+    if (failures > 0) {
+      failures--;
+      throw Exception('offline');
+    }
+    return user;
+  }
 
   Future<void> close() => profile.close();
 }
@@ -169,6 +184,41 @@ void main() {
     expect(find.text('Child ready'), findsOneWidget);
   });
 
+  testWidgets('never creates a profile that arrives just after an empty read', (
+    tester,
+  ) async {
+    final users = _PendingUserRepository();
+    addTearDown(users.close);
+    await pumpInitializer(tester, users: users);
+
+    // Le cache vide d'abord, puis le profil du serveur, avant la création.
+    users.profile
+      ..add(null)
+      ..add(_profile);
+    await tester.pumpAndSettle();
+
+    expect(users.created, isEmpty);
+  });
+
+  testWidgets('tries the creation again at the next empty profile', (
+    tester,
+  ) async {
+    final users = _PendingUserRepository(failures: 1);
+    addTearDown(users.close);
+    await pumpInitializer(tester, users: users);
+    users.profile.add(null);
+    await tester.pumpAndSettle();
+    expect(users.created, hasLength(1));
+
+    // Une lecture refusée, puis toujours pas de profil : un nouvel essai.
+    users.profile.addError(Exception('unavailable'));
+    await tester.pumpAndSettle();
+    users.profile.add(null);
+    await tester.pumpAndSettle();
+
+    expect(users.created, hasLength(2));
+  });
+
   group('a guest linked to Google', () {
     /// Profil d'invité : sans nom (ou « Invité », des anciennes versions),
     /// avec un pseudo choisi.
@@ -229,6 +279,19 @@ void main() {
       final users = RecordingUserRepository(stored: guestProfile());
 
       await link(tester, users, displayName: '');
+
+      expect(users.updated, isEmpty);
+      expect(users.stored, guestProfile());
+    });
+
+    testWidgets('keeps the profile as it was when its names cannot be '
+        'written', (tester) async {
+      final users = RecordingUserRepository(
+        stored: guestProfile(),
+        failure: Exception('offline'),
+      );
+
+      await link(tester, users, displayName: 'Camille Martin');
 
       expect(users.updated, isEmpty);
       expect(users.stored, guestProfile());
@@ -368,9 +431,8 @@ void main() {
       });
     });
 
-    testWidgets('ignores a birthday deleted since the reminder', (
-      tester,
-    ) async {
+    testWidgets('ignores a tap naming no birthday, or one deleted since the '
+        'reminder', (tester) async {
       final notifications = SilentNotificationService();
       final share = FakeShareService();
       await mockNetworkImages(() async {
@@ -380,15 +442,18 @@ void main() {
           share: share,
         );
 
-        notifications.tap(
-          const NotificationTap(
-            payload: 'gone',
-            actionId: NotificationActions.wish,
-          ),
-        );
+        notifications
+          ..tap(const NotificationTap(payload: null))
+          ..tap(
+            const NotificationTap(
+              payload: 'gone',
+              actionId: NotificationActions.wish,
+            ),
+          );
         await tester.pumpAndSettle();
 
         expect(share.shared, isEmpty);
+        expect(find.byType(PersonScreen), findsNothing);
       });
     });
   });

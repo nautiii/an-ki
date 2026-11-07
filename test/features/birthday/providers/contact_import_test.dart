@@ -170,18 +170,22 @@ void main() {
     );
   });
 
-  test('ignores a second load while one is in progress', () async {
-    final contacts = FakeContactsService()..pendingRead = Completer<void>();
-    final container = makeContainer(contacts);
-    final notifier = container.read(contactImportProvider.notifier);
+  test(
+    'ignores a second load, or a reload, while one is in progress',
+    () async {
+      final contacts = FakeContactsService()..pendingRead = Completer<void>();
+      final container = makeContainer(contacts);
+      final notifier = container.read(contactImportProvider.notifier);
 
-    final first = notifier.load();
-    await notifier.load();
-    contacts.pendingRead!.complete();
-    await first;
+      final first = notifier.load();
+      await notifier.load();
+      await notifier.reloadIfAllowed();
+      contacts.pendingRead!.complete();
+      await first;
 
-    expect(contacts.reads, 1);
-  });
+      expect(contacts.reads, 1);
+    },
+  );
 
   test('reloads after the settings only once access is granted', () async {
     final contacts = FakeContactsService(
@@ -195,7 +199,14 @@ void main() {
     await notifier.reloadIfAllowed();
     expect(contacts.reads, 0);
 
-    contacts.access = ContactsAccess.granted;
+    // Un accès illisible vaut un refus.
+    contacts
+      ..access = ContactsAccess.granted
+      ..accessFailure = PlatformException(code: 'unavailable');
+    await notifier.reloadIfAllowed();
+    expect(contacts.reads, 0);
+
+    contacts.accessFailure = null;
     await notifier.reloadIfAllowed();
 
     expect(contacts.reads, 1);
@@ -266,6 +277,20 @@ void main() {
 
       expect(added, 2);
       expect(names(repo.created), ['Hugo Bernard', 'Léa Martin']);
+    });
+
+    test('counts an import the server refuses, without failing', () async {
+      // Refus des règles : l'ajout compte quand même, sans erreur qui
+      // s'échappe (la zone du test la verrait).
+      repo = RecordingBirthdayRepository(failure: Exception('denied'));
+      final container = makeContainer(
+        FakeContactsService(contacts: const [_lea, _hugo]),
+      );
+      final notifier = container.read(contactImportProvider.notifier);
+      await notifier.load();
+
+      expect(notifier.add(container.read(contactImportTickedProvider)), 2);
+      await pumpEventQueue();
     });
 
     test('reports the import, first birthdays of an empty agenda', () async {

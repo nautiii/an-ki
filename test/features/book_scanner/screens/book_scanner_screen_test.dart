@@ -208,6 +208,8 @@ void main() {
       await pumpScreen(tester, repo);
       await tester.pump();
 
+      // La caméra relit le code tant qu'il est devant elle : une seule fiche.
+      detect(tester, _isbn);
       detect(tester, _isbn);
       await settleScan(tester);
 

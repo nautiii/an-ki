@@ -1,12 +1,13 @@
 import 'dart:async';
 
+import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:mock_exceptions/mock_exceptions.dart';
 
@@ -48,14 +49,17 @@ class _HangingAuth extends MockFirebaseAuth {
 }
 
 void main() {
+  /// Le dépôt tel que l'app le construit, sur Firebase simulé et le SDK
+  /// Google (sa plateforme simulée quand un test en installe une).
   AuthRepository build(
     MockFirebaseAuth auth,
     FakeFirebaseFirestore firestore,
-  ) => AuthRepository(
-    auth: auth,
-    googleSignIn: GoogleSignIn.instance,
-    firestore: firestore,
-  );
+  ) => ProviderContainer.test(
+    overrides: [
+      firebaseAuthProvider.overrideWithValue(auth),
+      firestoreProvider.overrideWithValue(firestore),
+    ],
+  ).read(authRepositoryProvider);
 
   group('session', () {
     test('currentUser and userChanges reflect the signed-in user', () async {
@@ -225,6 +229,18 @@ void main() {
       );
     }
 
+    test('signs in to Firebase once Google answers', () async {
+      final auth = MockFirebaseAuth(mockUser: MockUser(uid: 'firebase-lea'));
+
+      final user = await build(
+        auth,
+        FakeFirebaseFirestore(),
+      ).signInWithGoogle();
+
+      expect(user?.uid, 'firebase-lea');
+      expect(auth.currentUser?.uid, 'firebase-lea');
+    });
+
     test('a refused Google token is no wrong password', () async {
       await expectRefused('invalid-credential', AuthFailure.googleSignInFailed);
     });
@@ -334,6 +350,16 @@ void main() {
         throwsA(AuthFailure.invalidCredentials),
       );
     });
+
+    test('without a session, confirms nothing', () async {
+      await expectLater(
+        build(
+          MockFirebaseAuth(),
+          FakeFirebaseFirestore(),
+        ).reauthenticateWithPassword('pwd'),
+        completes,
+      );
+    });
   });
 
   group('linking a guest to Google', () {
@@ -383,14 +409,21 @@ void main() {
     });
 
     test('a name it cannot write never undoes the link', () async {
-      final (repo, guest) = guestSession(uid: 'guest-offline-name');
+      final (repo, _) = guestSession(uid: 'guest-offline-name');
+      // Les refus programmés suivent les comptes égaux : celui-ci vise le
+      // compte une fois renommé, le seul que la relecture voit.
       whenCalling(Invocation.method(#reload, null))
-          .on(guest)
+          .on(
+            MockUser(uid: 'guest-offline-name', displayName: 'Camille Martin'),
+          )
           .thenThrow(FirebaseAuthException(code: 'network-request-failed'));
 
       final linked = await repo.linkCurrentUserWithGoogle();
 
       expect(linked?.uid, 'guest-offline-name');
+      // Le refus vise bien le compte que la liaison relit (le double le lève
+      // sans attendre, d'où la fonction passée telle quelle).
+      expect(linked!.reload, throwsA(isA<FirebaseAuthException>()));
     });
 
     /// Liaison refusée par Firebase avec [code] : l'échec traduit, et le
@@ -484,20 +517,27 @@ void main() {
       expect(auth.currentUser, isNull);
     });
 
-    test('a refused Google token is a Google failure', () async {
+    test('a refused Google token is a Google failure, other refusals keep '
+        'their meaning', () async {
       GoogleSignInPlatform.instance = FakeGoogleSignInPlatform(account: lea);
-      final auth = MockFirebaseAuth();
-      whenCalling(Invocation.method(#signInWithCredential, null))
-          .on(auth)
-          .thenThrow(FirebaseAuthException(code: 'invalid-credential'));
+      for (final (code, failure) in [
+        ('invalid-credential', AuthFailure.googleSignInFailed),
+        ('network-request-failed', AuthFailure.network),
+      ]) {
+        final auth = MockFirebaseAuth();
+        whenCalling(Invocation.method(#signInWithCredential, null))
+            .on(auth)
+            .thenThrow(FirebaseAuthException(code: code));
 
-      await expectLater(
-        build(
-          auth,
-          FakeFirebaseFirestore(),
-        ).signInWithGoogleAccount((_) async => true),
-        throwsA(AuthFailure.googleSignInFailed),
-      );
+        await expectLater(
+          build(
+            auth,
+            FakeFirebaseFirestore(),
+          ).signInWithGoogleAccount((_) async => true),
+          throwsA(failure),
+          reason: code,
+        );
+      }
     });
   });
 

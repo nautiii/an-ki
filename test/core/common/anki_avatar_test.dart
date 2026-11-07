@@ -108,6 +108,34 @@ void main() {
       );
     });
 
+    testWidgets('repaints the ring when a group changes colour', (
+      tester,
+    ) async {
+      var colors = const [red];
+      late StateSetter recolour;
+      await tester.pumpHarness(
+        StatefulBuilder(
+          builder: (context, setState) {
+            recolour = setState;
+            return Center(
+              child: AnKiAvatar(name: 'Léa Martin', ringColors: colors),
+            );
+          },
+        ),
+      );
+
+      recolour(() => colors = const [blue]);
+      await tester.pump();
+
+      expect(
+        find.descendant(
+          of: find.byType(AnKiAvatar),
+          matching: find.byType(CustomPaint),
+        ),
+        paints..circle(color: blue),
+      );
+    });
+
     test('gives each color an equal share with soft joints', () {
       final segments = AnKiAvatar.ringSegments([red, blue]);
       final seam = Color.lerp(blue, red, 0.5);

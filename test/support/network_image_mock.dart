@@ -2,19 +2,32 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart' show debugNetworkImageHttpClientProvider;
 
 /// Runs [body] with an [HttpClient] that answers every request with a tiny
 /// transparent PNG, so widgets using `Image.network` / `NetworkImage` can be
-/// pumped without real network access.
-Future<T> mockNetworkImages<T>(Future<T> Function() body) {
-  return HttpOverrides.runZoned(
-    body,
-    createHttpClient: (_) => _FakeHttpClient(),
-  );
+/// pumped without real network access. Another [statusCode] makes every
+/// image fail to load.
+Future<T> mockNetworkImages<T>(
+  Future<T> Function() body, {
+  int statusCode = HttpStatus.ok,
+}) async {
+  final client = _FakeHttpClient(statusCode);
+  if (statusCode == HttpStatus.ok) {
+    return HttpOverrides.runZoned(body, createHttpClient: (_) => client);
+  }
+  // NetworkImage garde le client créé pour sa première image : la réponse
+  // en échec passe par son crochet de débogage, le temps de [body].
+  debugNetworkImageHttpClientProvider = () => client;
+  try {
+    return await HttpOverrides.runZoned(body, createHttpClient: (_) => client);
+  } finally {
+    debugNetworkImageHttpClientProvider = null;
+  }
 }
 
 // 1x1 transparent PNG.
-final Uint8List _transparentPng = Uint8List.fromList(<int>[
+final Uint8List transparentPng = Uint8List.fromList(<int>[
   0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, //
   0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, //
   0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00, //
@@ -24,6 +37,10 @@ final Uint8List _transparentPng = Uint8List.fromList(<int>[
 ]);
 
 class _FakeHttpClient implements HttpClient {
+  _FakeHttpClient(this._statusCode);
+
+  final int _statusCode;
+
   @override
   bool autoUncompress = true;
   @override
@@ -36,11 +53,12 @@ class _FakeHttpClient implements HttpClient {
   String? userAgent;
 
   @override
-  Future<HttpClientRequest> getUrl(Uri url) async => _FakeHttpClientRequest();
+  Future<HttpClientRequest> getUrl(Uri url) async =>
+      _FakeHttpClientRequest(_statusCode);
 
   @override
   Future<HttpClientRequest> openUrl(String method, Uri url) async =>
-      _FakeHttpClientRequest();
+      _FakeHttpClientRequest(_statusCode);
 
   @override
   void close({bool force = false}) {}
@@ -50,21 +68,28 @@ class _FakeHttpClient implements HttpClient {
 }
 
 class _FakeHttpClientRequest implements HttpClientRequest {
+  _FakeHttpClientRequest(this._statusCode);
+
+  final int _statusCode;
+
   @override
   final HttpHeaders headers = _FakeHttpHeaders();
 
   @override
-  Future<HttpClientResponse> close() async => _FakeHttpClientResponse();
+  Future<HttpClientResponse> close() async =>
+      _FakeHttpClientResponse(_statusCode);
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _FakeHttpClientResponse implements HttpClientResponse {
+  _FakeHttpClientResponse(this.statusCode);
+
   @override
-  int statusCode = 200;
+  final int statusCode;
   @override
-  int get contentLength => _transparentPng.length;
+  int get contentLength => transparentPng.length;
   @override
   HttpClientResponseCompressionState get compressionState =>
       HttpClientResponseCompressionState.notCompressed;
@@ -76,7 +101,7 @@ class _FakeHttpClientResponse implements HttpClientResponse {
     void Function()? onDone,
     bool? cancelOnError,
   }) {
-    return Stream<List<int>>.fromIterable(<List<int>>[_transparentPng]).listen(
+    return Stream<List<int>>.fromIterable(<List<int>>[transparentPng]).listen(
       onData,
       onError: onError,
       onDone: onDone,

@@ -20,11 +20,12 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../../support/fake_providers.dart';
 
 /// Service de notifications qui enregistre chaque replanification et ses
-/// textes.
+/// textes ; [failure] fait échouer la planification, une fois relevée.
 class _RecordingNotificationService extends Fake
     implements NotificationService {
   final scheduled = <List<ReminderNotification>>[];
   final strings = <NotificationStrings>[];
+  Exception? failure;
 
   @override
   Future<void> scheduleAll(
@@ -33,6 +34,7 @@ class _RecordingNotificationService extends Fake
   }) async {
     scheduled.add(reminders);
     this.strings.add(strings);
+    if (failure case final error?) throw error;
   }
 }
 
@@ -99,12 +101,16 @@ void main() {
     return container;
   }
 
-  test('schedules the planned reminders of every new list', () async {
+  test('schedules the planned reminders of every new list, past a plugin '
+      'failure', () async {
     makeContainer();
     await settle();
 
+    // Le plugin refuse cette fois : la liste suivante passe quand même.
+    notifications.failure = Exception('plugin unavailable');
     birthdays.add([lea]);
     await settle();
+    notifications.failure = null;
     // Déconnexion : la liste vide annule les rappels.
     birthdays.add(const []);
     await settle();

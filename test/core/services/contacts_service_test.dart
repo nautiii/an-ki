@@ -1,6 +1,7 @@
 import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -106,7 +107,10 @@ void main() {
         return null;
       });
 
-      await const ContactsService().openAppSettings();
+      // Le service tel que l'app le lit.
+      await ProviderContainer.test()
+          .read(contactsServiceProvider)
+          .openAppSettings();
 
       expect(calls, ['permissions.openSettings']);
     });

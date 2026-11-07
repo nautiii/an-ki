@@ -270,24 +270,49 @@ void main() {
       expect(book.pageCount, isNull);
     });
 
-    test('saveBook stores the book with its owner and date', () async {
-      const book = Book(
+    test('saveBook stores the book with its owner and date, leaving out '
+        'what Google Books lacks', () async {
+      const dune = Book(
         id: '',
         title: 'Dune',
         authors: ['Frank Herbert'],
         isbn: '123',
       );
+      const book1984 = Book(
+        id: '',
+        title: '1984',
+        authors: ['George Orwell'],
+        isbn: '456',
+        imageUrl: 'https://example.com/1984.jpg',
+        publishedDate: '1949',
+        description: 'Dystopie',
+        pageCount: 328,
+      );
 
-      await repository.saveBook('user-1', book, scannedAt: DateTime(2024));
+      await repository.saveBook('user-1', dune, scannedAt: DateTime(2024));
+      await repository.saveBook('user-1', book1984, scannedAt: DateTime(2025));
 
-      final docs = await firestore.collection('books').get();
-      expect(docs.docs.single.data(), {
-        'uid': 'user-1',
-        'title': 'Dune',
-        'authors': ['Frank Herbert'],
-        'isbn': '123',
-        'scannedAt': Timestamp.fromDate(DateTime(2024)),
-      });
+      final docs = await firestore.collection('books').orderBy('isbn').get();
+      expect(docs.docs.map((doc) => doc.data()), [
+        {
+          'uid': 'user-1',
+          'title': 'Dune',
+          'authors': ['Frank Herbert'],
+          'isbn': '123',
+          'scannedAt': Timestamp.fromDate(DateTime(2024)),
+        },
+        {
+          'uid': 'user-1',
+          'title': '1984',
+          'authors': ['George Orwell'],
+          'isbn': '456',
+          'imageUrl': 'https://example.com/1984.jpg',
+          'publishedDate': '1949',
+          'description': 'Dystopie',
+          'pageCount': 328,
+          'scannedAt': Timestamp.fromDate(DateTime(2025)),
+        },
+      ]);
     });
 
     test('deleteAllUserBooks removes the books of the uid only', () async {

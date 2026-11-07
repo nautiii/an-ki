@@ -178,6 +178,30 @@ void main() {
     expect((await birthday('b2'))?['uid'], _target);
   });
 
+  test('ignores a second tap while it runs', () async {
+    final container = makeContainer();
+    final guestMerge = container.read(guestMergeProvider.notifier);
+
+    final first = guestMerge.merge();
+    expect(await guestMerge.merge(), isNull);
+
+    expect(await first, isNotNull);
+    expect(
+      auth.calls.where((call) => call == 'signInWithGoogleAccount'),
+      hasLength(1),
+    );
+  });
+
+  test('does nothing without a session', () async {
+    auth = FakeAuthRepository();
+    final container = makeContainer();
+
+    expect(await container.read(guestMergeProvider.notifier).merge(), isNull);
+
+    expect(auth.calls, isEmpty);
+    expect((await birthday('b2'))?.containsKey('transferTo'), isFalse);
+  });
+
   test('a closed Google picker changes nothing', () async {
     auth.googleAccountFailure = const GoogleSignInException(
       code: GoogleSignInExceptionCode.canceled,

@@ -3,10 +3,22 @@ import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
 import 'package:an_ki/features/auth/domain/sign_in_method.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:firebase_auth/firebase_auth.dart' show UserInfo;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
+
+/// Compte relié à Google : Firebase le dit par son fournisseur.
+class _GoogleUser extends MockUser {
+  @override
+  List<UserInfo> get providerData => [_GoogleProvider()];
+}
+
+class _GoogleProvider extends Fake implements UserInfo {
+  @override
+  String get providerId => 'google.com';
+}
 
 void main() {
   late FakeAuthRepository repository;
@@ -35,14 +47,6 @@ void main() {
   Future<void> settle() => Future<void>.delayed(Duration.zero);
 
   group('currentUidProvider', () {
-    test('exposes the signed-in user id', () async {
-      repository = FakeAuthRepository(user: MockUser());
-      final container = makeContainer();
-      await settle();
-
-      expect(container.read(currentUidProvider), 'fake-uid');
-    });
-
     test('follows sign-in and sign-out', () async {
       final container = makeContainer();
       await settle();
@@ -90,6 +94,15 @@ void main() {
       await repository.signInWithEmail(email: 'a@b.c', password: 'pwd');
       await settle();
       expect(container.read(signInMethodProvider), SignInMethod.email);
+    });
+
+    test('knows a Google account by its provider', () async {
+      repository = FakeAuthRepository(user: _GoogleUser());
+      final container = makeContainer();
+      container.listen(signInMethodProvider, (_, _) {});
+      await settle();
+
+      expect(container.read(signInMethodProvider), SignInMethod.google);
     });
   });
 

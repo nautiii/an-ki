@@ -806,8 +806,9 @@ class FakeDeviceSettings extends Fake implements DeviceSettings {
 }
 
 /// Répertoire simulé : l'accès [access], les anniversaires [contacts], ou
-/// [failure] à la lecture. Relève les demandes d'accès, les lectures et les
-/// ouvertures des réglages ; [pendingRead] fait attendre la lecture.
+/// [failure] à la lecture ; [accessFailure] fait échouer la relecture de
+/// l'accès. Relève les demandes d'accès, les lectures et les ouvertures des
+/// réglages ; [pendingRead] fait attendre la lecture.
 class FakeContactsService extends Fake implements ContactsService {
   FakeContactsService({
     this.access = ContactsAccess.granted,
@@ -818,6 +819,7 @@ class FakeContactsService extends Fake implements ContactsService {
   ContactsAccess access;
   List<ImportedBirthday> contacts;
   final Exception? failure;
+  Exception? accessFailure;
   Completer<void>? pendingRead;
 
   int requests = 0;
@@ -831,7 +833,10 @@ class FakeContactsService extends Fake implements ContactsService {
   }
 
   @override
-  Future<ContactsAccess> readAccess() async => access;
+  Future<ContactsAccess> readAccess() async {
+    if (accessFailure case final error?) throw error;
+    return access;
+  }
 
   @override
   Future<void> openAppSettings() async => settingsOpened++;

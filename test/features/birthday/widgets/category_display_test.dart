@@ -1,4 +1,3 @@
-import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/theme/label_tones.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
@@ -87,7 +86,26 @@ void main() {
   ) async {
     final context = await tester.pumpLocalizedContext();
 
-    expect(_category('family').localizedName(context), context.l10n.family);
-    expect(_category('MyCustom').localizedName(context), 'MyCustom');
+    const labels = {
+      'Family': 'Famille',
+      'friend': 'Amis',
+      'colleague': 'Travail',
+      'sport': 'Sport',
+      'school': 'École',
+      'ogs': "OG's",
+      'gaming': 'Gaming',
+      'goat': 'GOAT',
+      'doggo': 'Doggo',
+      'internet': 'Internet',
+      'bff': 'BFF',
+      'celebrity': 'Célébrité',
+      'favorite': 'Favori',
+      'couple': 'Couple',
+      'other': 'Autres',
+      'MyCustom': 'MyCustom',
+    };
+    for (final MapEntry(key: name, value: label) in labels.entries) {
+      expect(_category(name).localizedName(context), label, reason: name);
+    }
   });
 }

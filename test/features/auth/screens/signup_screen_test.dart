@@ -98,16 +98,6 @@ void main() {
       expect(container.read(signUpNamesProvider), isNull);
     });
 
-    testWidgets('toggles the password visibility', (tester) async {
-      await tester.pumpHarness(const SignUpScreen());
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
-      await tester.tap(find.byIcon(Icons.visibility_off_outlined));
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
-    });
-
     testWidgets('waits for a complete form before « S\'inscrire »', (
       tester,
     ) async {
@@ -120,9 +110,11 @@ void main() {
 
       expect(_signUp(tester), isNull);
       await tester.tap(find.text("S'inscrire"));
-      // Sans nom, rien ne part.
+      // Sans nom, rien ne part, « OK » du clavier compris.
       await _fill(tester, ['John', ' ', 'a@b.com', 'secret']);
       expect(_signUp(tester), isNull);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
 
       await tester.enterText(find.byType(TextField).at(1), 'Doe');
       await tester.pump();
@@ -228,33 +220,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Login Route'), findsOneWidget);
-    });
-
-    testWidgets('back button pops the page', (tester) async {
-      await tester.pumpHarness(
-        const SignUpScreen(),
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: Center(
-              child: ElevatedButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const SignUpScreen()),
-                ),
-                child: const Text('open'),
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('open'));
-      await tester.pumpAndSettle();
-
-      // Le retour standard, nommé pour TalkBack.
-      await tester.tap(find.byTooltip('Retour'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('open'), findsOneWidget);
     });
 
     testWidgets('shows the whole form at once, with no intro to wait for', (

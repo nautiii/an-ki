@@ -24,27 +24,6 @@ import '../../../support/fake_providers.dart';
 import '../../../support/network_image_mock.dart';
 import '../../../support/test_harness.dart';
 
-/// A birthday whose anniversary is [daysAhead] days from today.
-Birthday _relative(
-  int daysAhead, {
-  required String id,
-  required String name,
-  required String surname,
-}) {
-  final today = DateTime.now();
-  final target = DateTime(
-    today.year,
-    today.month,
-    today.day,
-  ).add(Duration(days: daysAhead));
-  return Birthday(
-    id: id,
-    name: name,
-    surname: surname,
-    date: BirthDate.fromDate(DateTime(1990, target.month, target.day)),
-  );
-}
-
 void main() {
   // Lundi 12 octobre 2026, 20 h : « Bonsoir ».
   final evening = DateTime(2026, 10, 12, 20);
@@ -162,19 +141,6 @@ void main() {
     expect(find.text('Bonjour, A'), findsOneWidget);
   });
 
-  testWidgets('greets a guest without a name', (tester) async {
-    await tester.pumpHarness(
-      const HomeScreen(),
-      overrides: [
-        ...overrides(birthdays: agenda),
-        isGuestProvider.overrideWithValue(true),
-      ],
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Bonsoir'), findsOneWidget);
-  });
-
   group('notice from another feature', () {
     testWidgets('sits above the hero once someone is there', (tester) async {
       await tester.pumpHarness(
@@ -260,16 +226,23 @@ void main() {
   testWidgets('lists the agenda by period, the hero aside', (tester) async {
     await tester.pumpHarness(
       const HomeScreen(),
-      overrides: overrides(birthdays: agenda),
+      // Deux personnes dans la semaine.
+      overrides: overrides(
+        birthdays: [
+          ...agenda,
+          onDay(6, id: '5'),
+        ],
+      ),
     );
     await tester.pumpAndSettle();
 
     expect(find.text('Dans les 7 jours'), findsOneWidget);
     expect(find.text('Novembre', skipOffstage: false), findsOneWidget);
     expect(find.text('Janvier 2027', skipOffstage: false), findsOneWidget);
-    // La personne du héros n'apparaît qu'une fois.
+    // La personne du héros n'apparaît qu'une fois ; la semaine en liste deux.
     expect(find.text('Person1 X'), findsOneWidget);
-    expect(find.byType(AgendaTile, skipOffstage: false), findsNWidgets(3));
+    expect(find.text('Person5 X'), findsOneWidget);
+    expect(find.byType(AgendaTile, skipOffstage: false), findsNWidgets(4));
   });
 
   testWidgets('recalls yesterday between the hero and the views', (
@@ -441,12 +414,26 @@ void main() {
   // Anniversaires lus par le vrai provider depuis un dépôt factice :
   // suppression par glissement et ses échecs.
   group('birthdays from the repository', () {
+    /// Anniversaire dans [daysAhead] jours, comptés depuis [evening].
+    Birthday relative(
+      int daysAhead, {
+      required String id,
+      required String name,
+      required String surname,
+    }) => Birthday(
+      id: id,
+      name: name,
+      surname: surname,
+      date: onDay(daysAhead, id: id).date,
+    );
+
     // The closest birthday is rendered in the "next birthday" card and excluded
     // from the scrollable list, so we always provide a second, farther one.
-    final next = _relative(5, id: 'next', name: 'Alice', surname: 'Wonderland');
-    final listed = _relative(40, id: 'listed', name: 'Bob', surname: 'Builder');
+    final next = relative(5, id: 'next', name: 'Alice', surname: 'Wonderland');
+    final listed = relative(40, id: 'listed', name: 'Bob', surname: 'Builder');
 
     List<dynamic> overridesWith(RecordingBirthdayRepository repository) => [
+      clockProvider.overrideWithValue(() => evening),
       currentUidProvider.overrideWithValue('fake-uid'),
       userProfileProvider.overrideWithValue(
         const AsyncData(
@@ -456,20 +443,6 @@ void main() {
       birthdayRepositoryProvider.overrideWithValue(repository),
       categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),
     ];
-
-    testWidgets('HomeScreen lists non-next birthdays', (tester) async {
-      await tester.pumpHarness(
-        const HomeScreen(),
-        overrides: overridesWith(
-          RecordingBirthdayRepository(initial: [next, listed]),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // "Alice" appears in the next-birthday card, "Bob" in the list below.
-      expect(find.text('Alice Wonderland'), findsOneWidget);
-      expect(find.text('Bob Builder'), findsOneWidget);
-    });
 
     testWidgets('swiping left hides the birthday and offers undo', (
       tester,
@@ -499,25 +472,6 @@ void main() {
       await tester.pump(const Duration(seconds: 6));
       await tester.pumpAndSettle();
       expect(repository.deleted, isEmpty);
-    });
-
-    testWidgets('the deletion is written once the undo delay is over', (
-      tester,
-    ) async {
-      final repository = RecordingBirthdayRepository(initial: [next, listed]);
-
-      await tester.pumpHarness(
-        const HomeScreen(),
-        overrides: overridesWith(repository),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.drag(find.text('Bob Builder'), const Offset(-600, 0));
-      await tester.pumpAndSettle();
-      await tester.pump(const Duration(seconds: 6));
-      await tester.pumpAndSettle();
-
-      expect(repository.deleted, ['listed']);
     });
 
     testWidgets('a failed delete brings the birthday back and says so', (

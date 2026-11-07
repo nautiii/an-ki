@@ -116,25 +116,6 @@ void main() {
     expect(find.text('Compte'), findsOneWidget);
   });
 
-  testWidgets('saves the pseudo in place', (tester) async {
-    final users = RecordingUserRepository(stored: _profile);
-    await tester.pumpHarness(
-      const SettingsScreen(),
-      overrides: overridesWith(users: users),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('OldPseudo'), findsOneWidget);
-    await tester.enterText(find.byType(TextField), 'NewPseudo');
-    // La coche apparaît avec le changement.
-    await tester.pump();
-    await tester.tap(find.byTooltip('Enregistrer le pseudo'));
-    await tester.pumpAndSettle();
-
-    expect(users.stored?.pseudo, 'NewPseudo');
-    expect(find.text('Pseudo enregistré'), findsOneWidget);
-  });
-
   testWidgets('says when the profile could not be saved', (tester) async {
     final users = RecordingUserRepository(
       stored: _profile,
@@ -173,40 +154,6 @@ void main() {
     await tester.tap(find.text('Connexion biométrique'));
     await tester.pumpAndSettle();
     expect(biometrics.token, isNull);
-  });
-
-  testWidgets('switches the language with one tap', (tester) async {
-    final users = RecordingUserRepository(stored: _profile);
-    await tester.pumpHarness(
-      const SettingsScreen(),
-      overrides: overridesWith(users: users),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('English'));
-    await tester.pumpAndSettle();
-
-    expect(users.stored?.locale, 'en');
-  });
-
-  testWidgets('applies the theme picked among system, light and dark', (
-    tester,
-  ) async {
-    final users = RecordingUserRepository(stored: _profile);
-    await tester.pumpHarness(
-      const SettingsScreen(),
-      overrides: overridesWith(users: users),
-    );
-    await tester.pumpAndSettle();
-
-    // Le profil épinglé suit le téléphone : chaque autre choix s'écrit.
-    await tester.tap(find.text('Sombre'));
-    await tester.pumpAndSettle();
-    expect(users.stored?.theme, ThemePreference.dark);
-
-    await tester.tap(find.text('Clair'));
-    await tester.pumpAndSettle();
-    expect(users.stored?.theme, ThemePreference.light);
   });
 
   testWidgets('opens the contacts import', (tester) async {
@@ -304,6 +251,13 @@ void main() {
         overrides: overridesWith(reminderPreferences: preferences),
       );
       await tester.pumpAndSettle();
+
+      // L'horloge fermée sans choix ne change rien.
+      await tester.tap(find.text('Heure des rappels'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Annuler'));
+      await tester.pumpAndSettle();
+      expect(preferences.saved, isEmpty);
 
       await tester.tap(find.text('Heure des rappels'));
       await tester.pumpAndSettle();

@@ -1,3 +1,6 @@
+import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:an_ki/features/birthday/providers/group_entries.dart';
@@ -6,7 +9,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../support/fake_providers.dart';
 import '../../../support/test_harness.dart';
+
+/// Groupes illisibles à la première lecture (réseau coupé), lus ensuite.
+class _FlakyCategories extends RecordingCategoryRepository {
+  _FlakyCategories() : super(const [_family]);
+
+  var _reads = 0;
+
+  @override
+  Stream<List<BirthdayCategory>> watchCategories() => _reads++ == 0
+      ? Stream.error(Exception('unavailable'))
+      : super.watchCategories();
+}
 
 const _family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe148);
 const _book = BirthdayCategory(
@@ -60,11 +76,27 @@ void main() {
     expect(find.byType(ListTile), findsNothing);
   });
 
-  testWidgets('says the groups are unavailable, with a retry', (tester) async {
-    await pumpGroups(tester, AsyncError(Exception('down'), StackTrace.empty));
-
+  testWidgets('says the groups are unavailable, then reads them again', (
+    tester,
+  ) async {
+    await tester.pumpHarness(
+      const GroupsScreen(),
+      overrides: [
+        categoryRepositoryProvider.overrideWithValue(_FlakyCategories()),
+        birthdayRepositoryProvider.overrideWithValue(
+          RecordingBirthdayRepository(),
+        ),
+        currentUidProvider.overrideWithValue('fake-uid'),
+      ],
+    );
+    await tester.pumpAndSettle();
     expect(find.text('Groupes indisponibles'), findsOneWidget);
-    expect(find.text('Réessayer'), findsOneWidget);
+
+    await tester.tap(find.text('Réessayer'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Groupes indisponibles'), findsNothing);
+    expect(find.text('Famille'), findsOneWidget);
   });
 
   testWidgets('opens the edit sheet of an own group only', (tester) async {

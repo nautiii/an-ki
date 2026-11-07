@@ -5,6 +5,8 @@ import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
@@ -45,6 +47,7 @@ class FakeAndroidNotifications extends Fake
   @override
   Future<bool?> openAppNotificationSettings() async {
     settingsOpened++;
+    if (failure case final error?) throw error;
     return true;
   }
 }
@@ -118,6 +121,8 @@ class MockNotificationsPlugin extends Fake
   /// Ce que le plugin dit du lancement de l'app.
   NotificationAppLaunchDetails? launchDetails;
 
+  int initializations = 0;
+
   @override
   Future<bool?> initialize({
     required InitializationSettings settings,
@@ -125,6 +130,7 @@ class MockNotificationsPlugin extends Fake
     DidReceiveBackgroundNotificationResponseCallback?
     onDidReceiveBackgroundNotificationResponse,
   }) async {
+    initializations++;
     onResponse = onDidReceiveNotificationResponse;
     return true;
   }
@@ -448,6 +454,22 @@ void main() {
 
       expect(mockPlugin.zonedScheduleCalls, isEmpty);
     });
+
+    test('compares reminders and taps by value', () {
+      // Construits à l'exécution : égaux sans être le même objet.
+      NotificationTap tap(String? actionId) =>
+          NotificationTap(payload: 'john', actionId: actionId);
+
+      expect(reminder(0), reminder(0));
+      expect(reminder(0).hashCode, reminder(0).hashCode);
+      expect(reminder(0), isNot(reminder(7)));
+      expect(tap(NotificationActions.wish), tap(NotificationActions.wish));
+      expect(
+        tap(NotificationActions.wish).hashCode,
+        tap(NotificationActions.wish).hashCode,
+      );
+      expect(tap(null), isNot(tap(NotificationActions.wish)));
+    });
   });
 
   group('permission', () {
@@ -515,11 +537,27 @@ void main() {
       expect(await service.requestAccess(), NotificationAccess.blocked);
     });
 
-    test('a failing plugin reads and asks as denied', () async {
-      mockPlugin.android.failure = PlatformException(code: 'busy');
+    test(
+      'a failing plugin reads and asks as denied, without throwing',
+      () async {
+        mockPlugin.android.failure = PlatformException(code: 'busy');
+
+        expect(await service.access(), NotificationAccess.denied);
+        expect(await service.requestAccess(), NotificationAccess.denied);
+        await expectLater(service.openSettings(), completes);
+      },
+    );
+
+    test('reads, asks and opens nothing on another platform', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      mockPlugin.android.enabled = true;
 
       expect(await service.access(), NotificationAccess.denied);
       expect(await service.requestAccess(), NotificationAccess.denied);
+      await service.openSettings();
+      expect(mockPlugin.android.requests, 0);
+      expect(mockPlugin.android.settingsOpened, 0);
     });
 
     test('opens the notification settings of the app', () async {
@@ -542,15 +580,27 @@ void main() {
       expect(mockPlugin.ios.settingsOpened, 1);
     });
 
-    test('neither reads nor asks before initialization', () async {
+    test('does nothing before initialization', () async {
       final plugin = MockNotificationsPlugin()..android.enabled = true;
       final fresh = NotificationService(plugin);
 
       expect(await fresh.access(), NotificationAccess.denied);
       expect(await fresh.requestAccess(), NotificationAccess.denied);
       await fresh.openSettings();
+      await fresh.scheduleAll([
+        ReminderNotification(
+          id: 1,
+          daysBefore: 0,
+          name: 'John',
+          fullName: 'John Doe',
+          age: 36,
+          at: DateTime(2026, 6, 30, 10),
+        ),
+      ], strings: fr);
       expect(plugin.android.requests, 0);
       expect(plugin.android.settingsOpened, 0);
+      expect(plugin.zonedScheduleCalls, isEmpty);
+      expect(plugin.allCancelled, isFalse);
     });
   });
 
@@ -594,10 +644,19 @@ void main() {
       expect(await service.launchTap(), isNull);
     });
 
-    test('gives no launch tap when the app started otherwise', () async {
-      mockPlugin.launchDetails = const NotificationAppLaunchDetails(false);
+    test('gives no launch tap when no notification launched the app', () async {
+      for (final details in const [
+        NotificationAppLaunchDetails(false),
+        // Lancée par une notification dont le plugin ne rend pas la réponse.
+        NotificationAppLaunchDetails(true),
+      ]) {
+        final fresh = NotificationService(
+          MockNotificationsPlugin()..launchDetails = details,
+        );
+        await fresh.initialize();
 
-      expect(await service.launchTap(), isNull);
+        expect(await fresh.launchTap(), isNull);
+      }
     });
 
     test('gives no launch tap before initialization', () async {
@@ -605,6 +664,28 @@ void main() {
 
       expect(await fresh.launchTap(), isNull);
     });
+  });
+
+  test('a second initialization leaves the plugin as it is', () async {
+    // La première a eu lieu dans le setUp.
+    await service.initialize();
+
+    expect(mockPlugin.initializations, 1);
+  });
+
+  test('leaves the reminder texts to app/, which knows the language', () {
+    final container = ProviderContainer.test();
+
+    expect(
+      () => container.read(notificationStringsProvider),
+      throwsA(
+        isA<ProviderException>().having(
+          (error) => error.exception,
+          'exception',
+          isA<UnimplementedError>(),
+        ),
+      ),
+    );
   });
 
   test('initialize falls back to UTC when the timezone lookup fails', () async {

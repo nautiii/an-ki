@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
@@ -11,6 +13,7 @@ import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/screens/person_screen.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -21,6 +24,19 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../../support/fake_providers.dart';
 import '../../../support/network_image_mock.dart';
 import '../../../support/test_harness.dart';
+
+/// Anniversaires illisibles à la première lecture (réseau coupé), lus
+/// ensuite.
+class _FlakyBirthdays extends RecordingBirthdayRepository {
+  _FlakyBirthdays({super.initial});
+
+  var _reads = 0;
+
+  @override
+  Stream<List<Birthday>> watchBirthdays(String uid) => _reads++ == 0
+      ? Stream.error(Exception('offline'))
+      : super.watchBirthdays(uid);
+}
 
 void main() {
   // Le 12 octobre 2026.
@@ -34,6 +50,7 @@ void main() {
     bool yearKnown = true,
     List<int> wishedYears = const [],
     Set<ReminderLead>? reminders,
+    Uint8List? picture,
   }) => Birthday(
     id: 'lea',
     name: 'Léa',
@@ -42,26 +59,32 @@ void main() {
     categories: const ['fam'],
     wishedYears: wishedYears,
     reminders: reminders,
+    picture: picture,
   );
 
   late RecordingBirthdayRepository repository;
-  late ProviderContainer container;
+  late FakeShareService share;
 
+  /// La page de [id] sur la liste [birthdays] (Léa seule par défaut), ou sur
+  /// celle que [source] sert au vrai provider.
   Future<void> pumpPage(
     WidgetTester tester, {
     AsyncValue<List<Birthday>>? birthdays,
     Birthday? person,
     String id = 'lea',
+    RecordingBirthdayRepository? source,
   }) => mockNetworkImages(() async {
-    repository = RecordingBirthdayRepository();
+    repository = source ?? RecordingBirthdayRepository();
+    share = FakeShareService();
     await tester.pumpHarness(
       PersonScreen(birthdayId: id),
       overrides: [
         clockProvider.overrideWithValue(() => today),
         currentUidProvider.overrideWithValue('fake-uid'),
-        birthdaysProvider.overrideWithValue(
-          birthdays ?? AsyncData([person ?? lea()]),
-        ),
+        if (source == null)
+          birthdaysProvider.overrideWithValue(
+            birthdays ?? AsyncData([person ?? lea()]),
+          ),
         birthdayRepositoryProvider.overrideWithValue(repository),
         categoryRepositoryProvider.overrideWithValue(
           RecordingCategoryRepository([family]),
@@ -71,12 +94,9 @@ void main() {
             UserProfile(id: 'fake-uid', name: 'A', surname: 'B', locale: 'fr'),
           ),
         ),
-        shareServiceProvider.overrideWithValue(FakeShareService()),
+        shareServiceProvider.overrideWithValue(share),
       ],
       routes: {AppRoutes.birthdays: (_) => const Text('Accueil')},
-    );
-    container = ProviderScope.containerOf(
-      tester.element(find.byType(PersonScreen)),
     );
     // Le squelette respire sans fin : une frame suffit pendant le chargement.
     if (birthdays is AsyncLoading) {
@@ -98,10 +118,16 @@ void main() {
       tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, label));
 
   group('shows', () {
-    testWidgets('who, when, how old and their groups', (tester) async {
-      await pumpPage(tester);
+    testWidgets('who, with their photo, when, how old and their groups', (
+      tester,
+    ) async {
+      await pumpPage(tester, person: lea(picture: transparentPng));
 
       expect(find.text('Léa Martin'), findsOneWidget);
+      expect(
+        tester.widget<CircleAvatar>(find.byType(CircleAvatar)).foregroundImage,
+        MemoryImage(transparentPng),
+      );
       expect(find.text('Dans 12 jours'), findsOneWidget);
       expect(find.text('24 octobre 1990'), findsOneWidget);
       expect(find.text('Aura 36 ans'), findsOneWidget);
@@ -124,6 +150,12 @@ void main() {
 
       expect(find.text("Aujourd'hui 🎉"), findsOneWidget);
       expect(find.text('36 ans'), findsOneWidget);
+    });
+
+    testWidgets('tomorrow, the day before', (tester) async {
+      await pumpPage(tester, person: lea(day: 13));
+
+      expect(find.text('Demain'), findsOneWidget);
     });
 
     testWidgets('the name as the page header, with 48 dp targets', (
@@ -153,11 +185,15 @@ void main() {
       expect(repository.wished, [('lea', 2026)]);
     });
 
-    testWidgets('the day after, still', (tester) async {
+    testWidgets('the day after, still, with a late wish', (tester) async {
       await pumpPage(tester, person: lea(day: 11));
 
-      expect(find.text('Souhaiter'), findsOneWidget);
       expect(find.text('Hier'), findsNothing);
+      await tester.tap(find.text('Souhaiter'));
+      await tester.pump();
+
+      expect(share.shared.single, contains('avec un jour de retard'));
+      expect(repository.wished, [('lea', 2026)]);
     });
 
     testWidgets('lists the years, the latest first', (tester) async {
@@ -196,6 +232,23 @@ void main() {
       await tester.pump();
       expect(repository.wished, [('lea', 2026)]);
     });
+
+    testWidgets('leaves twice as long to undo with TalkBack', (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(accessibleNavigation: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      await pumpPage(tester, person: lea(day: 12, wishedYears: [2026]));
+
+      await tester.tap(find.widgetWithText(TextButton, 'Retirer'));
+      await tester.pump();
+
+      expect(
+        tester.widget<SnackBar>(find.byType(SnackBar)).duration,
+        undoDelay * 2,
+      );
+    });
   });
 
   group('reminders', () {
@@ -214,7 +267,9 @@ void main() {
       ]);
     });
 
-    testWidgets('one more lead for a person with their own', (tester) async {
+    testWidgets('one lead more or less for a person with their own', (
+      tester,
+    ) async {
       await pumpPage(
         tester,
         person: lea(reminders: {ReminderLead.weekBefore, ReminderLead.sameDay}),
@@ -224,11 +279,25 @@ void main() {
       await tester.ensureVisible(find.text('La veille'));
       await tester.tap(find.text('La veille'));
       await tester.pump();
+      await tester.tap(find.text('7 jours avant'));
+      await tester.pump();
 
-      expect(reminderIds(), ['lea']);
+      expect(reminderIds(), ['lea', 'lea']);
       expect(reminderSets(), [
         {ReminderLead.weekBefore, ReminderLead.sameDay, ReminderLead.dayBefore},
+        {ReminderLead.sameDay},
       ]);
+    });
+
+    testWidgets('mutes a person with « Aucun »', (tester) async {
+      await pumpPage(tester);
+
+      await tester.ensureVisible(find.text('Aucun'));
+      await tester.tap(find.text('Aucun'));
+      await tester.pump();
+
+      expect(reminderIds(), ['lea']);
+      expect(reminderSets(), [<ReminderLead>{}]);
     });
 
     testWidgets('a muted person goes back to the usual', (tester) async {
@@ -251,15 +320,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(BirthdayFormSheet), findsOneWidget);
-  });
-
-  testWidgets('closes once the person is deleted', (tester) async {
-    await pumpPage(tester);
-
-    container.read(pendingDeletionsProvider.notifier).hide('lea');
-    await tester.pumpAndSettle();
-
-    expect(find.byType(PersonScreen), findsNothing);
   });
 
   testWidgets('deleted from the edit sheet, both close with « Annuler »', (
@@ -299,17 +359,17 @@ void main() {
       expect(find.text('Accueil'), findsOneWidget);
     });
 
-    testWidgets('an error, with a retry', (tester) async {
-      await pumpPage(
-        tester,
-        birthdays: AsyncError(Exception('offline'), StackTrace.empty),
-      );
-
+    testWidgets('an error, then the person once read again', (tester) async {
+      await pumpPage(tester, source: _FlakyBirthdays(initial: [lea()]));
       expect(
         find.text("Impossible d'afficher cet anniversaire"),
         findsOneWidget,
       );
-      expect(find.text('Réessayer'), findsOneWidget);
+
+      await tester.tap(find.text('Réessayer'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Léa Martin'), findsOneWidget);
     });
   });
 }

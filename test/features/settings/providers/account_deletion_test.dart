@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
@@ -11,6 +13,7 @@ import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../support/fake_providers.dart';
 
@@ -86,6 +89,37 @@ void main() {
       'signOutFirebase',
       'signOutGoogle',
     ]);
+    expect(container.read(accountDeletionProvider), isA<AsyncData<void>>());
+  });
+
+  test('ignores a second tap while the deletion runs', () async {
+    final gate = Completer<void>();
+    auth = FakeAuthRepository(
+      user: MockUser(uid: 'user-1'),
+      reauthGate: gate,
+    );
+    final container = makeContainer();
+
+    final first = delete(container, password: 'pw');
+    expect(await delete(container, password: 'pw'), isFalse);
+    gate.complete();
+
+    expect(await first, isTrue);
+    expect(auth.reauthPasswords, ['pw']);
+  });
+
+  test('a closed Google picker erases nothing, and is no failure', () async {
+    auth = FakeAuthRepository(
+      user: MockUser(uid: 'user-1'),
+      reauthFailure: const GoogleSignInException(
+        code: GoogleSignInExceptionCode.canceled,
+      ),
+    );
+    final container = makeContainer(method: SignInMethod.google);
+
+    expect(await delete(container), isFalse);
+
+    expectNothingErased();
     expect(container.read(accountDeletionProvider), isA<AsyncData<void>>());
   });
 
