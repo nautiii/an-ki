@@ -13,4 +13,4 @@ agents only prepare.
 | F7 | Check the plan and set a budget alert if on Blaze | nothing tells us today when quotas or costs move | mainteneur | `console.md` §8 |
 | F8 | Decide on App Check (Play Integrity) | only the rules stop a modified client today | agent brief, mainteneur decides | system change: new plugin `firebase_app_check` |
 | F9 | `scripts/*.ps1` show garbled accents in Windows PowerShell 5.1 | the scripts are UTF-8 without BOM, which 5.1 reads as ANSI (seen with `test_firestore_rules.ps1`'s messages); PowerShell 7 is fine | agent, on approval | a BOM for `*.ps1` (`.editorconfig` `charset = utf-8-bom`), or messages without accents |
-| F10 | Decide whether to track `.firebaserc` | an untracked alias file (`anki` → `an-ki-9b02b`); every command in the skill passes `--project` anyway | mainteneur | commit it, or add it to `.gitignore` |
+| F11 | Delete the older non-predefined `category/{id}` documents (last step of `console.md` §10, optional, not done) | until then they survive account deletion | maintainer | `console.md` §10 |

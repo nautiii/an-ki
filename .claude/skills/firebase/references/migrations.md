@@ -11,7 +11,7 @@ it is tested like any app code and needs no key. Either way, moving data is a **
 2. Additive changes — the default
 3. Lazy migration in the app
 4. Migration run by the maintainer
-5. Plan A16 — older groups out of the shared collection
+5. Older groups out of the shared collection (done 2026-11-04)
 6. Plan M10 — per-user collections
 7. Brief
 
@@ -26,6 +26,7 @@ it is tested like any app code and needs no key. Either way, moving data is a **
 | Replace a field | not always | write the new one and delete the old on the next write (`themeMode` replacing `isDark`); read both until no old document can remain |
 | Rename or retype a field everywhere | yes | dual read, write the new shape, clean up later |
 | Move documents to another path | yes | lazy copy with the same ids, dual read, rules for both paths during the overlap |
+| Changing the owner of existing documents (a guest → a Google account) | no | no console step: marks + takeover allowed by the rules (`schema.md` §10, c626403) |
 | Tighten a rule on existing data | maybe | check that no existing document (old shapes included) breaks the new rule before deploying it |
 
 ## 2. Additive changes — the default
@@ -43,8 +44,8 @@ For data the user owns and the rules let them read in the old place and write in
 - **The copy** is a repository method: same document ids, `set` (never `add`, so a retry can't
   duplicate), batches of ≤ 500 (`writeInBatches`), idempotent — run twice, nothing changes.
 - **When**: in `app/bootstrap`, once the session exists (`currentUidProvider` non-null), at most
-  once per session. A marker on the profile (`migrations: ['a16']`) saves the check when it
-  would cost many reads; skip it when the check is cheap.
+  once per session. A marker on the profile (a `migrations` list; no such field exists in
+  `lib/`) would save the check when it costs many reads; skip it when the check is cheap.
 - **Offline**: the writes wait in Firestore's cache; idempotency lets the next session finish
   the job if the app stops first.
 - **Overlap**: the UI reads both places and merges by id, so a half-migrated account looks
@@ -69,7 +70,7 @@ that must change everywhere before a rule tightens.
   dump; Firestore's managed export needs the Blaze plan and a bucket), and prints the counts to
   compare after the run.
 
-## 5. Plan A16 — older groups out of the shared collection
+## 5. Older groups out of the shared collection (done 2026-11-04)
 
 Facts (`schema.md` §1, §5): shared `category` documents carry no owner. A user's own old groups
 are the ids in `user/{uid}.categories` whose `name` isn't a predefined key (`family`, `friend`,
@@ -82,7 +83,7 @@ Decision 2026-11-04: no users besides the maintainer's devices, so the lazy in-a
   (mandatory: rules are not filters); the rules are
   `allow read: if request.auth != null && resource.data.predefined == true;`, no `create`; rules
   tests cover them.
-- **Console, done on 2026-11-04**: `console.md` §10, steps 1-5 (copy old groups, flag the four
+- **Console, done on 2026-11-04**: `console.md` §10, steps 2-5 (step 1 was skipped; copy old groups, flag the four
   predefined, install the app everywhere, deploy the rules); step 6, the cleanup, is optional.
 - **Follow-up, done on 2026-11-04**: the unreachable shared path is gone (`GroupKind.shared`,
   « Retirer de mes groupes », `UserRepository.removeCategory`, `UserProfile.categories`,
@@ -99,6 +100,8 @@ Only on a concrete need (sharing, rules complexity, cost): `architecture/referen
   `date` (`SKILL.md`, gotchas).
 - Lazy copy at session start (§3), a profile marker (`migrations: ['m10']`) switching writes to
   the new path, dual read merging by id meanwhile, account deletion erasing both paths.
+- With ownership by path, the guest takeover can no longer change `uid`: copy to
+  `user/{target}/…`, delete the guest's, and rewrite `isMarkedFor` / `isTakenOver`.
 - Rules: the new paths before release N; `birthday` and `books` closed after N+1; then the
   composite index on `books` can go (a subcollection ordered by `scannedAt` needs only the
   automatic single-field index).

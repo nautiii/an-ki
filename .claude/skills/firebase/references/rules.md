@@ -5,7 +5,7 @@ and nothing else stops a modified app from reading another account's birthdays. 
 change like a schema change: test first, prove it in the emulator, deploy deliberately.
 
 ## Contents
-1. What the rules allow today
+1. What the rules allow
 2. Principles
 3. Testing in the emulator
 4. Proving a test bites
@@ -14,7 +14,7 @@ change like a schema change: test first, prove it in the emulator, deploy delibe
 
 ---
 
-## 1. What the rules allow today
+## 1. What the rules allow
 
 | Path | Read | Create | Update | Delete |
 |------|------|--------|--------|--------|
@@ -26,6 +26,9 @@ change like a schema change: test first, prove it in the emulator, deploy delibe
 
 « Its marked address »: a caller whose token carries `email_verified` and the `email` the
 document's `transferTo` names — a guest moving to an existing Google account (`schema.md` §10).
+
+Deploys: the rules of the older shared groups on 2026-11-04; the ux B5.5 rules (c626403) on
+2026-11-05.
 
 `test/firestore/firestore_rules_test.dart` is the executable version of this table: when they
 disagree, the tests win and this table gets fixed.
@@ -47,7 +50,7 @@ disagree, the tests win and this table gets fixed.
    round.
 6. **Shared data is read-only for clients.** Documents everyone reads (predefined groups) are
    written in the console; a client-writable shared collection is an abuse and privacy vector
-   (A16, closed; rules deployed on 2026-11-04).
+   (rules deployed on 2026-11-04).
 7. **Validate what protects others, not what protects the app from itself.** Each user only
    reaches their own documents, so field validation (`keys().hasOnly`, types, sizes) buys little
    and couples every schema change to a rules deploy synchronised with old app versions. Add it
@@ -55,8 +58,8 @@ disagree, the tests win and this table gets fixed.
    abuse ever shows up).
 8. **No `get()`/`exists()` in hot paths.** Each costs a document read per request, and on a
    query per evaluation; prefer ownership in the path or in the document itself.
-9. **Functions for repeated conditions** (`isSignedIn()`, `isOwner(uid)`) once a condition
-   appears three times; keep the file readable top to bottom, comments in French.
+9. **Functions when a condition carries a concept** (`isMarkedFor`, `isTakenOver`); the owner
+   checks stay inline (`request.auth != null && request.auth.uid == userId`). Comments in French.
 
 ## 3. Testing in the emulator
 
@@ -70,8 +73,10 @@ the rules) and throws on anything else (a malformed request is a test bug, not a
 | `doc.get()`, a document stream | `canGet(uid, path)` (an absent document that may be read counts as allowed) |
 | `collection.add(data)`, `doc().set(data)` on a new id | `canCreate(uid, path, data)` |
 | `doc.update(fields)`, `arrayUnion` / `arrayRemove` included | `canUpdate(uid, path, fields)` with the resulting value |
+| `doc.update({field: FieldValue.delete()})` | `canUpdate(uid, path, fields, removing: [...])` |
 | `doc.set(data, SetOptions(merge: true))` | `canMerge(uid, path, data)` |
 | `doc.delete()`, a batch delete | `canDelete(uid, path)` |
+| the token that makes `isMarkedFor` play (verified address) | `db.identities[uid] = (email:, verified:)` before the call |
 | a query or collection stream | `canQuery(uid, collectionPath, whereField:, isEqualTo:, orderByDescending:)` |
 
 Writing tests:
@@ -106,7 +111,7 @@ in place: the maintainer works in the same tree):
 ```powershell
 $work = "<scratchpad>\rules-mutation"   # a folder outside the repo
 New-Item -ItemType Directory -Force $work | Out-Null
-$rules = (Get-Content firestore.rules -Raw) -replace '&& request\.resource\.data\.uid == resource\.data\.uid', ''
+$rules = [IO.File]::ReadAllText("$PWD\firestore.rules") -replace '&& request\.resource\.data\.uid == resource\.data\.uid', ''
 # WriteAllText : UTF-8 sans BOM. Set-Content -Encoding utf8 (PowerShell 5.1) en
 # ajoute un, et l'émulateur refuse alors les règles.
 [IO.File]::WriteAllText("$work\firestore.rules", $rules)
@@ -115,7 +120,7 @@ $rules = (Get-Content firestore.rules -Raw) -replace '&& request\.resource\.data
 & .\scripts\test_firestore_rules.ps1 -Config "$work\firebase.json"   # must fail
 ```
 
-Check the copy really differs (`(Get-Content firestore.rules -Raw) -ne $rules`) before trusting
+Check the copy really differs (`[IO.File]::ReadAllText("$PWD\firestore.rules") -ne $rules`) before trusting
 a green result: a pattern that matches nothing tests the unchanged rules. On
 2026-10-25 four mutations — owner not pinned, birthdays readable by anyone signed in, shared
 groups editable, private groups open to others — each failed at least one test.
@@ -155,9 +160,10 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
 
-    // Données partagées : lues par tous les connectés, écrites dans la console.
+    // Données partagées : seuls les documents `predefined` sont lus par les
+    // connectés ; ils s'écrivent dans la console.
     match /category/{categoryId} {
-      allow read: if isSignedIn();
+      allow read: if request.auth != null && resource.data.predefined == true;
     }
   }
 }
