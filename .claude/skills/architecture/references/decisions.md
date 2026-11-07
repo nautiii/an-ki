@@ -7,7 +7,7 @@ when"; changing one is a **system** change (brief + approval) and updates this f
 ## Contents
 - D1 Feature-first, layered MVVM on Riverpod
 - D2 No use-case layer; a pure domain layer
-- D3 Riverpod 3 without code generation; controllers, not Mutations (yet)
+- D3 Riverpod 3 without code generation; controllers, not Mutations
 - D4 Hand-written immutable models with primary constructors
 - D5 Concrete repositories, no abstract interfaces
 - D6 Typed failures + AsyncValue, no Result type
@@ -63,14 +63,14 @@ fixes that without adding indirection — a function is the smallest possible "u
 named application function/class in the owning feature's `providers/`), or when the domain
 grows complex enough to deserve its own package.
 
-## D3 — Riverpod 3 without code generation; controllers, not Mutations (yet)
+## D3 — Riverpod 3 without code generation; controllers, not Mutations
 
 **Decision.** Hand-written providers (`Provider`, `StreamProvider`, `NotifierProvider`,
 `AsyncNotifierProvider`, `.family`, `.autoDispose`). Data through session-scoped
 `StreamProvider`s; writes through per-concern `AsyncNotifier` controllers. No `StateNotifier`,
 no `legacy.dart`.
 
-**Why.** Riverpod's docs now say codegen is optional, "only if you already use code generation
+**Why.** Riverpod's docs say (2026-10-07) codegen is optional, "only if you already use code generation
 for other things"; AnKi doesn't. Without it we lose generic providers, multi-argument families
 (use records) and some lints — none needed here. Mutations are the documented answer to "form
 submission state" but are still `experimental/` and "may change in a breaking way without a
@@ -86,7 +86,7 @@ build_runner for another reason (then riverpod_generator becomes cheap).
 (`class const X({required final …})`) and hand-written `==`/`hashCode`, plus a `copyWith`
 (`clearX` flags) only where code copies the object; Firestore mapping in `data/`.
 
-**Why.** Dart 3.13 removed the field/constructor duplication (Effective Dart now prefers the
+**Why.** Dart 3.13 removed the field/constructor duplication (Effective Dart prefers the
 concise syntax); what remains (`==`, mapping, the odd `copyWith`) is small for ~10 models,
 explicit, and free of build steps. A hand-written `copyWith` that nobody calls is upkeep without
 payoff: every new field must be copied too, and `null` can't clear a field without a flag. Models
@@ -96,7 +96,7 @@ strongly recommends, and we have it.
 
 **Revisit when** models pass ~20 or carry deep nesting, `copyWith`/`==` bugs appear in review,
 or the project adopts build_runner anyway. Then freezed 4 "mixed mode" (plain classes +
-generated `==`/`copyWith`) is the lightest step. Dart's "value semantics" work (no spec yet) would
+generated `==`/`copyWith`) is the lightest step. Dart's "value semantics" work (no spec on 2026-10-07) would
 remove most of the boilerplate — watch the Dart blog.
 
 ## D5 — Concrete repositories, no abstract interfaces
@@ -196,7 +196,7 @@ ratchet as simply; one may be added later for in-IDE feedback.
 
 ## D11 — Scale-out path: packages only on real signals
 
-**Decision.** One package today. Extract feature or layer packages (pub workspace) only when two
+**Decision.** One package (2026-10-07). Extract feature or layer packages (pub workspace) only when two
 apps share code, a team owns a feature, or analysis/build time hurts.
 
 **Why.** Packages add pubspecs, versioning and cross-package refactoring friction. The D1 rules
