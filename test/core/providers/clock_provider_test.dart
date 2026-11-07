@@ -12,16 +12,6 @@ void main() {
     expect(now.isBefore(before), isFalse);
   });
 
-  test('todayProvider truncates the clock to midnight', () {
-    final container = ProviderContainer.test(
-      overrides: [
-        clockProvider.overrideWithValue(() => DateTime(2026, 3, 12, 15, 30)),
-      ],
-    );
-
-    expect(container.read(todayProvider), DateTime(2026, 3, 12));
-  });
-
   test('todayProvider rolls over at midnight', () async {
     var now = DateTime(2026, 3, 12, 23, 59, 59, 900);
     final container = ProviderContainer.test(

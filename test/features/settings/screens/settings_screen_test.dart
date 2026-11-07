@@ -6,9 +6,8 @@ import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/book_scanner/data/book_repository.dart';
-import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/reminders/data/reminder_preferences_repository.dart';
-import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
+import 'package:an_ki/features/reminders/widgets/reminder_preferences_tiles.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
@@ -41,7 +40,6 @@ void main() {
     FakeAuthRepository? auth,
     RecordingUserRepository? users,
     FakeBiometricService? biometrics,
-    SilentNotificationService? notifications,
     RecordingReminderPreferencesRepository? reminderPreferences,
   }) => [
     authRepositoryProvider.overrideWithValue(
@@ -50,9 +48,7 @@ void main() {
     biometricServiceProvider.overrideWithValue(
       biometrics ?? FakeBiometricService(available: true),
     ),
-    notificationServiceProvider.overrideWithValue(
-      notifications ?? SilentNotificationService(),
-    ),
+    notificationServiceProvider.overrideWithValue(SilentNotificationService()),
     // Comme dans l'app : le démarrage attend le premier profil, il est donc
     // déjà là quand les réglages s'ouvrent.
     userProfileProvider.overrideWithValue(const AsyncData(_profile)),
@@ -189,86 +185,20 @@ void main() {
     expect(find.text('Groups route'), findsOneWidget);
   });
 
-  testWidgets('says whether reminders are on, and turns them on', (
-    tester,
-  ) async {
-    final notifications = SilentNotificationService(
-      access: NotificationAccess.denied,
-    );
+  testWidgets('lists the reminder settings', (tester) async {
     await tester.pumpHarness(
       const SettingsScreen(),
-      overrides: overridesWith(notifications: notifications),
+      overrides: overridesWith(),
     );
     await tester.pumpAndSettle();
 
+    // Leur comportement est testé avec chaque tuile ; ici, leur présence.
     expect(find.byType(RemindersTile), findsOneWidget);
-    await tester.tap(find.text('Activer les rappels'));
-    await tester.pumpAndSettle();
-
-    expect(notifications.requests, 1);
-    expect(find.text('7 jours avant · Le jour J · 10:00'), findsOneWidget);
+    expect(find.byType(ReminderLeadsTile), findsOneWidget);
+    expect(find.byType(ReminderTimeTile), findsOneWidget);
   });
 
   group('reminder preferences', () {
-    testWidgets('toggles a lead before the day, the day itself staying', (
-      tester,
-    ) async {
-      final preferences = RecordingReminderPreferencesRepository();
-      await tester.pumpHarness(
-        const SettingsScreen(),
-        overrides: overridesWith(reminderPreferences: preferences),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Le jour J est toujours prévenu.'), findsOneWidget);
-      await tester.tap(find.widgetWithText(FilterChip, 'La veille'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilterChip, '7 jours avant'));
-      await tester.pumpAndSettle();
-
-      expect(preferences.saved, [
-        const ReminderPreferences(
-          leads: {
-            ReminderLead.weekBefore,
-            ReminderLead.dayBefore,
-            ReminderLead.sameDay,
-          },
-        ),
-        const ReminderPreferences(
-          leads: {ReminderLead.dayBefore, ReminderLead.sameDay},
-        ),
-      ]);
-      final dayBefore = tester.widget<FilterChip>(
-        find.widgetWithText(FilterChip, 'La veille'),
-      );
-      expect(dayBefore.selected, isTrue);
-    });
-
-    testWidgets('changes the time of the reminders', (tester) async {
-      final preferences = RecordingReminderPreferencesRepository();
-      await tester.pumpHarness(
-        const SettingsScreen(),
-        overrides: overridesWith(reminderPreferences: preferences),
-      );
-      await tester.pumpAndSettle();
-
-      // L'horloge fermée sans choix ne change rien.
-      await tester.tap(find.text('Heure des rappels'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Annuler'));
-      await tester.pumpAndSettle();
-      expect(preferences.saved, isEmpty);
-
-      await tester.tap(find.text('Heure des rappels'));
-      await tester.pumpAndSettle();
-      expect(find.byType(TimePickerDialog), findsOneWidget);
-      await tester.tap(find.text('OK'));
-      await tester.pumpAndSettle();
-
-      expect(preferences.saved, [const ReminderPreferences()]);
-      expect(find.text('10:00'), findsOneWidget);
-    });
-
     testWidgets('says when a preference could not be saved', (tester) async {
       await tester.pumpHarness(
         const SettingsScreen(),

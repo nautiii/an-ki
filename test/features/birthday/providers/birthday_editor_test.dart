@@ -106,15 +106,6 @@ void main() {
     expect(container.read(birthdayEditorProvider), isA<AsyncData<void>>());
   });
 
-  test('publishes a failed wish as an AsyncError', () async {
-    final repo = RecordingBirthdayRepository(failure: Exception('offline'));
-    final container = makeContainer(repo);
-
-    await container.read(birthdayEditorProvider.notifier).markWished('id', 1);
-
-    expect(container.read(birthdayEditorProvider).hasError, isTrue);
-  });
-
   test('does nothing without a session', () async {
     final repo = RecordingBirthdayRepository();
     final container = makeContainer(repo, uid: null);

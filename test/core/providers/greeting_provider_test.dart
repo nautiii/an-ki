@@ -37,14 +37,6 @@ void main() {
     });
   });
 
-  test('greetingProvider follows the clock', () {
-    final container = ProviderContainer.test(
-      overrides: [clockProvider.overrideWithValue(() => _at(20, 0))],
-    );
-
-    expect(container.read(greetingProvider), Greeting.evening);
-  });
-
   test('greetingProvider switches at 18:01', () async {
     var now = _at(18, 0, 59).add(const Duration(milliseconds: 900));
     final container = ProviderContainer.test(

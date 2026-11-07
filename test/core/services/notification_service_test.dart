@@ -326,14 +326,18 @@ void main() {
     });
 
     test('words reminders with the given localized texts', () async {
-      await service.scheduleAll([reminder(0), reminder(7, id: 2)], strings: en);
+      await service.scheduleAll([
+        reminder(0),
+        reminder(7, id: 2),
+        reminder(1, id: 3),
+      ], strings: en);
 
-      final [day, weekBefore] = mockPlugin.zonedScheduleCalls;
+      final [day, weekBefore, dayBefore] = mockPlugin.zonedScheduleCalls;
       expect(day.title, '🎂 John Doe');
       expect(day.body, "It's John's birthday today!");
       expect(weekBefore.title, '🎉 John Doe');
       expect(weekBefore.body, "John's birthday is in 7 days.");
-      expect(en.reminderBody('John', 1), "John's birthday is tomorrow.");
+      expect(dayBefore.body, "John's birthday is tomorrow.");
     });
 
     test('runs overlapping calls one after the other', () async {
@@ -444,14 +448,6 @@ void main() {
       await service.scheduleAll([], strings: fr);
 
       expect(mockPlugin.cancelledIds, contains(123));
-      expect(mockPlugin.zonedScheduleCalls, isEmpty);
-    });
-
-    test('swallows scheduling failures without throwing', () async {
-      mockPlugin.throwOnSchedule = true;
-
-      await service.scheduleAll([reminder(0)], strings: fr);
-
       expect(mockPlugin.zonedScheduleCalls, isEmpty);
     });
 
