@@ -1,5 +1,5 @@
 import 'package:an_ki/core/common/anki_avatar.dart';
-import 'package:an_ki/core/common/moon_phase.dart';
+import 'package:an_ki/core/common/orbit_countdown.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
@@ -12,7 +12,6 @@ import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
@@ -105,8 +104,8 @@ class _TileContent extends ConsumerWidget {
     final locale = Localizations.localeOf(context).languageCode;
     final today = ref.watch(todayProvider);
     final days = birthday.daysUntilNext(today);
-    final date = DateFormat.MMMMd(locale)
-        .format(birthday.nextOccurrence(today));
+    // Mois abrégé : la date et l'âge tiennent sur une ligne.
+    final date = DateFormat.MMMd(locale).format(birthday.nextOccurrence(today));
     final fullName = birthday.fullName;
     final picture = birthday.picture;
 
@@ -131,46 +130,42 @@ class _TileContent extends ConsumerWidget {
     final whenStyle = textTheme.bodyMedium?.copyWith(
       color: colorScheme.onSurfaceVariant,
     );
-    final identity = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text.rich(
-          _highlighted(context, fullName, highlight),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: textTheme.titleMedium?.copyWith(color: colorScheme.onSurface),
-        ),
-        Text(when, style: whenStyle),
-      ],
+    final countdown = _Countdown(
+      days: days,
+      wished: days == 0 && birthday.isWished(today),
     );
-    final countdown = _Countdown(days: days);
-    // Le jour J, le vœu fait se voit comme sur le héros, sous « Aujourd'hui » :
-    // moins large que lui, il ne prend rien à la place du nom.
-    final status = days == 0 && birthday.isWished(today)
-        ? Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisSize: MainAxisSize.min,
-            spacing: AppSpacing.xxs,
-            children: [countdown, const WishedPill(dense: true)],
-          )
-        : countdown;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Grand texte, ou trop peu de place entre l'avatar et le compte à
-        // rebours pour la date sur deux lignes (écran étroit, « Aujourd'hui ») :
-        // ils passent au-dessus et le texte prend toute la largeur, au lieu de
-        // s'émietter sur six lignes.
+        // Une ligne de deux lignes de texte, toujours la même hauteur ; au
+        // grand texte, ou quand la date ne tient plus sur une ligne (écran
+        // étroit), avatar et orbite passent au-dessus et le texte prend
+        // toute la largeur.
         final textWidth =
             constraints.maxWidth -
             AnKiAvatar.ringedExtent() -
-            AppSpacing.sm -
-            AppSpacing.xs -
-            _Countdown.widthOf(context, days);
+            2 * AppSpacing.sm -
+            OrbitCountdown.extentOf(context);
         final largeText = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
-        if (largeText ||
-            !_fitsOnTwoLines(context, when, whenStyle, textWidth)) {
+        final stacked =
+            largeText || !_fitsOnOneLine(context, when, whenStyle, textWidth);
+        final identity = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text.rich(
+              _highlighted(context, fullName, highlight),
+              // Le nom complet reste lu par TalkBack et sur la page.
+              maxLines: stacked ? 2 : 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.titleMedium?.copyWith(
+                color: colorScheme.onSurface,
+              ),
+            ),
+            Text(when, style: whenStyle),
+          ],
+        );
+        if (stacked) {
           // Bâtie de bas en haut, la colonne se lit dans l'ordre de la
           // ligne : catégories, nom, date, puis le compte à rebours, bien
           // qu'il soit placé au-dessus. `min` la garde en haut de la carte :
@@ -183,7 +178,7 @@ class _TileContent extends ConsumerWidget {
             children: [
               Semantics(label: categoryLabel, child: identity),
               const SizedBox(height: AppSpacing.xs),
-              Row(children: [ring, const Spacer(), status]),
+              Row(children: [ring, const Spacer(), countdown]),
             ],
           );
         }
@@ -192,8 +187,8 @@ class _TileContent extends ConsumerWidget {
             Semantics(label: categoryLabel, child: ring),
             const SizedBox(width: AppSpacing.sm),
             Expanded(child: identity),
-            const SizedBox(width: AppSpacing.xs),
-            status,
+            const SizedBox(width: AppSpacing.sm),
+            countdown,
           ],
         );
       },
@@ -201,9 +196,9 @@ class _TileContent extends ConsumerWidget {
   }
 }
 
-/// [text] tient sur deux lignes de [width] au plus, à la taille de texte de
+/// [text] tient sur une ligne de [width] au plus, à la taille de texte de
 /// l'écran.
-bool _fitsOnTwoLines(
+bool _fitsOnOneLine(
   BuildContext context,
   String text,
   TextStyle? style,
@@ -214,7 +209,7 @@ bool _fitsOnTwoLines(
     text: TextSpan(text: text, style: style),
     textDirection: Directionality.of(context),
     textScaler: MediaQuery.textScalerOf(context),
-    maxLines: 2,
+    maxLines: 1,
   )..layout(maxWidth: width);
   final fits = !painter.didExceedMaxLines;
   painter.dispose();
@@ -242,61 +237,62 @@ TextSpan _highlighted(BuildContext context, String name, MatchRange? range) {
   );
 }
 
-/// Lune et pastille « J-12 » : la proximité d'un coup d'œil.
+/// Jours restants dans leur orbite (S3) : la proximité d'un coup d'œil. Le
+/// jour J, l'orbite bouclée porte un gâteau en lotus, puis la coche menthe
+/// une fois le vœu fait. TalkBack lit « Dans 12 jours », « Demain »…
 class _Countdown extends StatelessWidget {
-  const _Countdown({required this.days});
+  const _Countdown({required this.days, required this.wished});
 
   final int days;
 
-  static const double _moonSize = 18;
-
-  /// Largeur qu'occupe le compte à rebours de [days] : lune, écart, pastille.
-  static double widthOf(BuildContext context, int days) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: context.l10n.countdownDays(days),
-        style: _labelStyle(context),
-      ),
-      textDirection: Directionality.of(context),
-      textScaler: MediaQuery.textScalerOf(context),
-      maxLines: 1,
-    )..layout();
-    final width = _moonSize + 3 * AppSpacing.xs + painter.width;
-    painter.dispose();
-    return width;
-  }
-
-  static TextStyle? _labelStyle(BuildContext context) =>
-      Theme.of(context).textTheme.labelLarge
-          ?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]);
+  /// L'anniversaire du jour est souhaité.
+  final bool wished;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.ankiColors;
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final dayColor = wished ? colors.success.color : colors.blossom.color;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        MoonPhase(daysLeft: days, size: _moonSize),
-        const SizedBox(width: AppSpacing.xs),
-        DecoratedBox(
-          decoration: ShapeDecoration(
-            color: colorScheme.secondaryContainer,
-            shape: const StadiumBorder(),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.xs,
-              vertical: AppSpacing.xxs,
-            ),
-            child: Text(
-              context.l10n.countdownDays(days),
-              style: _labelStyle(context)
-                  ?.copyWith(color: colorScheme.onSecondaryContainer),
-            ),
-          ),
-        ),
-      ],
+    final orbit = ExcludeSemantics(
+      child: OrbitCountdown(
+        daysLeft: days,
+        arcColor: days == 0 ? dayColor : null,
+        child: days == 0
+            ? Icon(
+                wished ? Icons.check_rounded : Icons.cake_rounded,
+                color: dayColor,
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$days',
+                    style: textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w800,
+                      height: 1,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  Text(
+                    context.l10n.orbitDaysUnit(days),
+                    style: textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      height: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+
+    return Semantics(
+      label: context.l10n.countdownDays(days),
+      child: wished
+          ? Semantics(label: context.l10n.wished, child: orbit)
+          : orbit,
     );
   }
 }

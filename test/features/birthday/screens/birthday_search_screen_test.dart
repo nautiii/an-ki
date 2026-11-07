@@ -112,11 +112,12 @@ void main() {
     await pumpSearch(tester, birthdays: [hugo, lea, rose]);
 
     expect(listedNames(tester), ['Rose', 'Léa', 'Hugo']);
-    expect(find.text('Souhaité'), findsOneWidget);
+    // La coche menthe ferme l'orbite de Rose, et d'elle seule.
+    expect(find.byIcon(Icons.check_rounded), findsOneWidget);
     expect(
       find.descendant(
         of: find.widgetWithText(AgendaTile, 'Rose Martin'),
-        matching: find.text('Souhaité'),
+        matching: find.byIcon(Icons.check_rounded),
       ),
       findsOneWidget,
     );

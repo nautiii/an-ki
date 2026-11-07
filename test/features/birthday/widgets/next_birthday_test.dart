@@ -1,3 +1,4 @@
+import 'package:an_ki/core/common/orbit_countdown.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
@@ -79,7 +80,7 @@ void main() {
     await pumpCard(tester, birthdays: const []);
     await tester.pumpAndSettle();
 
-    expect(find.text('Prochain anniversaire'), findsNothing);
+    expect(find.byType(InkWell), findsNothing);
     expect(find.byType(SkeletonBox), findsNothing);
   });
 
@@ -96,14 +97,18 @@ void main() {
       await pumpCard(tester, birthdays: [relative(3)]);
       await tester.pumpAndSettle();
 
-      expect(find.text('Prochain anniversaire'), findsOneWidget);
+      expect(find.text('Dans 3 jours'), findsOneWidget);
       expect(find.text('Alice Wonderland'), findsOneWidget);
       expect(find.text('AW'), findsOneWidget);
-      expect(find.text('Dans 3 jours'), findsOneWidget);
       expect(find.text('15 mars'), findsOneWidget);
-      // L'âge atteint au prochain anniversaire, annoncé par « aura ».
-      expect(find.text('aura'), findsOneWidget);
-      expect(find.text('36'), findsOneWidget);
+      // L'âge atteint au prochain anniversaire, dans son orbite.
+      expect(
+        find.descendant(
+          of: find.byType(OrbitCountdown),
+          matching: find.text('36'),
+        ),
+        findsOneWidget,
+      );
       expect(find.text('ans'), findsOneWidget);
     });
   });
@@ -116,7 +121,9 @@ void main() {
       expect(find.text('Alice Wonderland'), findsOneWidget);
       expect(find.text('Dans 3 jours'), findsOneWidget);
       expect(find.text('15 mars'), findsOneWidget);
-      expect(find.text('aura'), findsNothing);
+      // Sans âge, l'orbite porte les jours restants.
+      expect(find.text('3'), findsOneWidget);
+      expect(find.text('jours'), findsOneWidget);
       expect(find.text('ans'), findsNothing);
     });
   });
@@ -141,11 +148,12 @@ void main() {
 
       expect(find.text("Aujourd'hui 🎉"), findsOneWidget);
       expect(find.text('Alice Wonderland'), findsOneWidget);
+      expect(find.text("fête ses 36 ans aujourd'hui"), findsOneWidget);
       expect(find.text('36'), findsOneWidget);
       expect(find.text('ans'), findsOneWidget);
-      // Le jour même : ni « aura », ni surtitre, ni la date du jour.
-      expect(find.text('aura'), findsNothing);
-      expect(find.text('Prochain anniversaire'), findsNothing);
+      // Le jour même : ni orbite, ni compte à rebours, ni la date du jour.
+      expect(find.byType(OrbitCountdown), findsNothing);
+      expect(find.textContaining('Dans'), findsNothing);
       expect(find.text('12 mars'), findsNothing);
       final (gradient, colors) = heroGradient(tester);
       expect(gradient, colors.celebration);
@@ -163,7 +171,42 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Souhaité'), findsOneWidget);
+      // Le vœu fait, les actions s'effacent.
+      expect(find.text('Souhaiter'), findsNothing);
       expect(find.text('Déjà souhaité'), findsNothing);
+    });
+  });
+
+  testWidgets('reads the wish with the person once made', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await mockNetworkImages(() async {
+      await pumpCard(
+        tester,
+        birthdays: [
+          relative(0, wishedYears: [2026]),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getSemantics(find.text('Alice Wonderland')).label,
+        "Aujourd'hui 🎉\nAlice Wonderland\n"
+        "fête ses 36 ans aujourd'hui\nSouhaité",
+      );
+    });
+    semantics.dispose();
+  });
+
+  testWidgets('celebrates a birthday of the day without a birth year', (
+    tester,
+  ) async {
+    await mockNetworkImages(() async {
+      await pumpCard(tester, birthdays: [relative(0, yearKnown: false)]);
+      await tester.pumpAndSettle();
+
+      expect(find.text("fête son anniversaire aujourd'hui"), findsOneWidget);
+      expect(find.text('ans'), findsNothing);
+      expect(find.text('Souhaiter'), findsOneWidget);
     });
   });
 
@@ -188,7 +231,9 @@ void main() {
       expect(
         tester.getSemantics(find.text('Alice Wonderland')),
         isSemantics(
-          label: "Aujourd'hui 🎉\nAlice Wonderland\n36\nans",
+          label:
+              "Aujourd'hui 🎉\nAlice Wonderland\n"
+              "fête ses 36 ans aujourd'hui",
           isButton: true,
           hasTapAction: true,
         ),
@@ -333,9 +378,7 @@ void main() {
       expect(
         tester.getSemantics(find.text('Alice Wonderland')),
         isSemantics(
-          label:
-              'Prochain anniversaire\nAlice Wonderland\nDans 3 jours\n'
-              '15 mars\naura\n36\nans',
+          label: 'Dans 3 jours\nAlice Wonderland\n15 mars\nAura 36 ans',
           isButton: true,
           hasTapAction: true,
         ),
@@ -374,6 +417,68 @@ void main() {
       expect(find.text('Alice Wonderland'), findsOneWidget);
       expect(find.text('ans'), findsNothing);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  testWidgets('reads a stacked card in the order of a single row', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await mockNetworkImages(() async {
+      await pumpCard(tester, birthdays: [relative(12)]);
+      await tester.pumpAndSettle();
+
+      // L'orbite est au-dessus du nom, mais l'âge se lit en dernier.
+      expect(
+        tester.getSemantics(find.text('Alice Wonderland')).label,
+        'Dans 12 jours\nAlice Wonderland\n24 mars\nAura 36 ans',
+      );
+    });
+    semantics.dispose();
+  });
+
+  testWidgets('keeps many days without age inside the orbit at 150 % text', (
+    tester,
+  ) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await mockNetworkImages(() async {
+      await pumpCard(tester, birthdays: [relative(120, yearKnown: false)]);
+      await tester.pumpAndSettle();
+
+      expect(find.text('120'), findsOneWidget);
+      expect(find.text('jours'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  testWidgets('celebrates a birth of the day without a zero age', (
+    tester,
+  ) async {
+    await mockNetworkImages(() async {
+      await pumpCard(
+        tester,
+        birthdays: [
+          Birthday(
+            id: 'born',
+            name: 'Nina',
+            surname: '',
+            date: BirthDate(
+              year: today.year,
+              month: today.month,
+              day: today.day,
+            ),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text("fête son anniversaire aujourd'hui"), findsOneWidget);
+      expect(find.text('0'), findsNothing);
     });
   });
 }
