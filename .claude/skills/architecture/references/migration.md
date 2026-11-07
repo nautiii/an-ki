@@ -23,7 +23,7 @@ Delete each line once done:
   `user/{guestUid}` nor its `categories`. Offline before the tap: « Pas de connexion… », still a
   guest. A Google address whose `email_verified` is false (non-Gmail Workspace?) would be refused
   by the rules: check one if you can.
-- Rules deployed on 2026-11-04 (private groups, pinned owner, older shared groups no longer readable), on a device: the four
+- Private groups and the rules deployed on 2026-11-04 (pinned owner, older shared groups no longer readable), on a device: the four
   predefined groups and the copied private groups shown and ticked on their birthdays, a group
   created in the birthday form lands in `user/{uid}/categories`; account deletion checks (identity confirmed first, a66f754).
 - M2–M6 and M9 on the emulator (`device-runner`), all behind the maintainer: sign-in (email and
@@ -37,10 +37,7 @@ Delete each line once done:
   off (identity confirmed first: password in the dialog, the Google picker, nothing for a guest;
   birthdays, books and profile gone, no `user/{uid}` left behind, no error) on a test account, birthdays tab shown again
   after signing back in.
-- Private groups (2026-10-24), with the rules deployed on 2026-11-04: a group created in the
-  birthday form lands in `user/{uid}/categories` and arrives ticked, offline too; account
-  deletion erases those groups.
-- Settings in sections and the Système / Clair / Sombre theme (2026-10-24): an older
+- Settings in sections and the Système / Clair / Sombre theme (UX piste B, 2026-10-24): an older
   profile keeps its light or dark choice, Système follows the phone's dark mode live, the
   security section shows only with an enrolled finger.
 - The reminders-off card (2026-10-24): above the hero once notifications are refused
@@ -58,7 +55,7 @@ Delete each line once done:
 
 ## 2. Open debt
 
-None open (A15–A20 cleared on 2026-11-03/04). Record new debt as a row:
+None open. Record new debt as a row:
 
 | # | Debt | Evidence | Consequence | Step |
 |---|------|----------|-------------|------|
