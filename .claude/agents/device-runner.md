@@ -6,7 +6,7 @@ effort: low
 skills:
   - device
 disallowedTools: Edit, Write, NotebookEdit
-maxTurns: 60
+maxTurns: 40
 omitClaudeMd: true
 ---
 
@@ -26,8 +26,10 @@ brief leaves vague: make the closest observable check and say how you read it.
    don't release at the end. Then launch per the brief: `device.sh start` when the
    installed build is this checkout's and current (another session may have installed its own:
    when unsure, relaunch), otherwise the Terminal-panel launch of the skill.
-2. For each check: reach the screen (`tap <label>` waits for its target), `device.sh look
-   <check-name>`, read the screenshot. Judge only what is observable: the expected text or element is there,
+2. For each render the checks cover (a screen in one variation): reach it (`tap <label>` waits
+   for its target), `device.sh look <name>` once, read that screenshot once, and judge every check
+   of that render from it and the `ui` list it printed. A new `look` only when the render changes
+   (a tap, a scroll, a variation). Judge only what is observable: the expected text or element is there,
    nothing overflows (yellow-black stripes), nothing is cut or blank, no red error screen,
    `logs`/`crash` stay clean. Read the text on the screenshot itself, not only in `ui` (which gives
    the semantics, not what is drawn): a glyph drawn wrong (a box, an underscore for a hyphen, a lost
