@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:an_ki/core/common/anki_avatar.dart';
@@ -24,10 +23,6 @@ import '../../../support/fake_providers.dart';
 import '../../../support/haptics.dart';
 import '../../../support/network_image_mock.dart';
 import '../../../support/test_harness.dart';
-
-final _png = base64Decode(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-);
 
 void main() {
   final today = DateTime(2026, 10, 12);
@@ -201,7 +196,10 @@ void main() {
   });
 
   testWidgets('keeps the ring room without categories', (tester) async {
-    await pumpTile(tester, birthday(categories: const [], picture: _png));
+    await pumpTile(
+      tester,
+      birthday(categories: const [], picture: transparentPng),
+    );
 
     expect(
       tester.widget<AnKiAvatar>(find.byType(AnKiAvatar)).ringColors,

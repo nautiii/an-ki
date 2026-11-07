@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:an_ki/core/providers/clock_provider.dart';
@@ -17,11 +16,6 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../../support/fake_providers.dart';
 import '../../../support/network_image_mock.dart';
 import '../../../support/test_harness.dart';
-
-// 1x1 transparent PNG.
-final _png = base64Decode(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-);
 
 void main() {
   // Octobre 2026 commence un jeudi.
@@ -151,7 +145,7 @@ void main() {
     await mockNetworkImages(() async {
       await pumpCalendar(
         tester,
-        birthdays: [born(DateTime(1990, 10, 15), picture: _png)],
+        birthdays: [born(DateTime(1990, 10, 15), picture: transparentPng)],
       );
 
       await tester.tap(find.text('15'));
