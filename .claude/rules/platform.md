@@ -38,9 +38,12 @@ paths:
 
 ## iOS (`ios/`)
 
-Never built on the current setup: deployment target 12.0 and no Podfile, while Firebase needs
-iOS 15 and flutter_secure_storage iOS 13. Keep the Dart code platform-correct; don't touch `ios/`
-without a plan to build it.
+Never built on the current setup: deployment target 12.0 and no Podfile, while Firebase and
+image_picker_ios need iOS 15 and flutter_secure_storage iOS 13. The first `flutter build ios`
+fixes the target itself: Flutter's migration (`flutter_tools`
+`ios_deployment_target_migration.dart`) raises 12.0 to 15.0 and drops `MinimumOSVersion` from
+`AppFrameworkInfo.plist`; commit that diff with the build. Keep the Dart code platform-correct;
+don't touch `ios/` without a plan to build it.
 
 ## Web
 
@@ -60,7 +63,7 @@ No web target (`web/` removed). `lib/core/firebase_options.dart` and
   a plugin wrapper (`share_service.dart`); everything else reads the provider, so tests can
   override it. Keep the `@visibleForTesting` constructors.
 - Unit tests can't prove platform behaviour (permissions, scheduled notifications, biometrics,
-  camera): check it on a device (device skill) and say on which one, or that it wasn't.
+  camera): check it on a device (`device-runner`) and say on which one, or that it wasn't.
 
 ## Dependencies (`pubspec.yaml`)
 
@@ -68,7 +71,7 @@ No web target (`web/` removed). `lib/core/firebase_options.dart` and
   `decisions.md` when it's structural.
 - A plugin may need a manifest permission, a higher `minSdk` or iOS version: apply its setup
   steps in the same change.
-- After a dependency change: `flutter pub get`, `flutter analyze`, `dart analyze`, the full test
-  suite, and a run on a device when a plugin changed.
+- After a dependency change: `flutter pub get`, `bash .claude/hooks/verify-index.sh` (format,
+  analysis, the full test suite), and a run on a device (`device-runner`) when a plugin changed.
 - Upgrades (Flutter, packages, Gradle/AGP/KGP) follow `/deps-upgrade`, which only the maintainer
   starts: asked to upgrade otherwise, suggest the command rather than improvising the procedure.
