@@ -49,14 +49,17 @@ Avoid: forms in dialogs, sheets stacked on sheets, full-screen spinners, new rou
 The home answers one question in < 2 s: *who, when, how old*. Pattern = **hero + time-bucketed
 agenda** (Netflix billboard + Todoist Upcoming / Google Calendar schedule).
 - **Hero** (S1): next birthday(s); several on the same day → stacked cards, each with its own
-  state (§L, `next_birthday.dart`); content: avatar, name, « aujourd'hui / demain / dans N jours »,
-  « aura N ans », moon phase (S3); on the day « Souhaiter » + « Déjà souhaité » (§L, shipped in
-  step 4), « Idée cadeau » in the week before with B4.
+  state (§L, `next_birthday.dart`); before the day: avatar, « Demain / Dans N jours », name, date,
+  the coming age in its orbit (S3); on the day: small avatar and « Aujourd'hui », name, « fête ses
+  N ans aujourd'hui », the age in big numerals, « Souhaiter » + « Déjà souhaité » (§L), which
+  give way to « ✓ Souhaité » in the sentence once wished (the card tightens, no lone pill band);
+  « Idée cadeau » in the week before with B4.
 - **Agenda list** grouped by time: « Dans les 7 jours », then one section per month
   (« Novembre », « Janvier 2027 ») — chunking (Miller) that holds for a whole year, where
   « Plus tard » would become a flat list again. Sticky section headers. Each row: avatar ringed
-  with the person's category tones, name, « 9 octobre · aura 34 ans », moon + « J-12 » badge.
-  The birth year is noise here.
+  with the person's category tones, name on one line, « 9 oct. · 34 ans » on one line, the days
+  left in their orbit (S3): every row the same height, whatever the name. The birth year is
+  noise here.
 - Greeting personalised by time of day (Spotify « Bonsoir ») is a cheap warm touch; keep it short.
 - Refs: Todoist *Upcoming*, Apple Reminders *Today/Scheduled*, Google Calendar *Schedule*,
   Facebook birthdays (today first + quick wish).
