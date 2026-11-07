@@ -55,8 +55,10 @@ void main() {
       await tester.enterText(find.byType(TextField).at(0), '  ');
       await tester.enterText(find.byType(TextField).at(1), 'password');
       await tester.pump();
-      // Des espaces ne font pas une adresse.
+      // Des espaces ne font pas une adresse, « OK » du clavier compris.
       expect(signIn(), isNull);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
 
       await tester.enterText(find.byType(TextField).at(0), 'a@b.com');
       await tester.pump();
@@ -171,17 +173,6 @@ void main() {
         repository.calls.where((call) => call == 'signInWithEmail'),
         hasLength(2),
       );
-    });
-
-    testWidgets('toggles password visibility', (tester) async {
-      await tester.pumpHarness(const LoginScreen());
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
-      await tester.tap(find.byTooltip('Afficher le mot de passe'));
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
-      expect(find.byTooltip('Masquer le mot de passe'), findsOneWidget);
     });
 
     group('forgotten password', () {

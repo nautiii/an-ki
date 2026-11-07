@@ -53,13 +53,20 @@ void main() {
     );
   });
 
-  testWidgets('stays still when animations are turned off', (tester) async {
+  testWidgets('stays still when animations are turned off, even once they '
+      'are back', (tester) async {
     await pumpRain(tester, reduceMotion: true);
     await tester.pump(const Duration(milliseconds: 900));
 
     expect(plays, 0);
     expect(rain(tester), paintsNothing);
     expect(tester.hasRunningAnimations, isFalse);
+
+    // Décidée au premier affichage : la pluie ne se rattrape pas.
+    await pumpRain(tester);
+    await tester.pump(const Duration(milliseconds: 900));
+    expect(plays, 0);
+    expect(rain(tester), paintsNothing);
   });
 
   testWidgets('stays still when told not to play', (tester) async {

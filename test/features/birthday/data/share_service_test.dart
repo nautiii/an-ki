@@ -1,5 +1,6 @@
 import 'package:an_ki/features/birthday/data/share_service.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -27,7 +28,10 @@ void main() {
   test('shares the text and reports the app chosen', () async {
     reply('com.whatsapp/com.whatsapp.ContactPicker');
 
-    final outcome = await const ShareService().shareText('Joyeux anniversaire');
+    // Le partage tel que l'app le lit.
+    final outcome = await ProviderContainer.test()
+        .read(shareServiceProvider)
+        .shareText('Joyeux anniversaire');
 
     expect(outcome, ShareOutcome.shared);
     expect(calls.single.method, 'share');

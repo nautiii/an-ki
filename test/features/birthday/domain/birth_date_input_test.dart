@@ -211,4 +211,14 @@ void main() {
       expect(DayMonthOrder.fromPattern(''), DayMonthOrder.dayFirst);
     });
   });
+
+  test('readings compare by value', () {
+    // Lues deux fois : égales, à hachage égal.
+    for (final text in ['', '12', '12/03/1990', '31/04']) {
+      expect(parse(text), parse(text), reason: text);
+      expect(parse(text).hashCode, parse(text).hashCode, reason: text);
+    }
+    expect(parse('12/03'), isNot(parse('13/03')));
+    expect(parse('31/04'), isNot(parse('12/03/20')));
+  });
 }

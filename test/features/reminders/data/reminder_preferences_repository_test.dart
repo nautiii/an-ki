@@ -71,6 +71,15 @@ void main() {
         await repository.watchPreferences('u1').first,
         const ReminderPreferences(),
       );
+
+      // Des moments illisibles prennent ceux par défaut, l'heure lisible reste.
+      await seed('u2', {
+        'reminders': {'leads': 'dayBefore', 'hour': 8, 'minute': 30},
+      });
+      expect(
+        await repository.watchPreferences('u2').first,
+        const ReminderPreferences(hour: 8, minute: 30),
+      );
     });
 
     test('reads only the profile of the given uid', () async {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/services/notification_service.dart';
+import 'package:an_ki/features/reminders/providers/reminder_preferences_provider.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -126,6 +127,24 @@ void main() {
     slow.read.complete(NotificationAccess.granted);
     await tester.pumpAndSettle();
     expect(find.byType(SkeletonBox), findsNothing);
+  });
+
+  testWidgets('allowed, waits on a skeleton while the setting loads', (
+    tester,
+  ) async {
+    await tester.pumpHarness(
+      const RemindersTile(),
+      overrides: [
+        notificationServiceProvider.overrideWithValue(
+          SilentNotificationService(),
+        ),
+        effectiveReminderPreferencesProvider.overrideWithValue(null),
+      ],
+    );
+    await tester.pump();
+
+    expect(find.byIcon(Icons.notifications_active_rounded), findsOneWidget);
+    expect(find.byType(SkeletonBox), findsOneWidget);
   });
 
   testWidgets('meets tap target and label guidelines', (tester) async {

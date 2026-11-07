@@ -1,3 +1,4 @@
+import 'package:an_ki/core/theme/label_tones.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
@@ -26,9 +27,12 @@ void main() {
     () => categories = RecordingCategoryRepository([_family], own: [_book]),
   );
 
-  Future<void> pumpSheet(WidgetTester tester) async {
+  Future<void> pumpSheet(
+    WidgetTester tester, {
+    BirthdayCategory group = _book,
+  }) async {
     await tester.pumpHarness(
-      const Scaffold(body: GroupEditSheet(group: _book)),
+      Scaffold(body: GroupEditSheet(group: group)),
       overrides: [
         currentUidProvider.overrideWithValue('fake-uid'),
         categoryRepositoryProvider.overrideWithValue(categories),
@@ -89,9 +93,31 @@ void main() {
 
     expect(find.text('Ce groupe existe déjà'), findsOneWidget);
     expect(saveEnabled(tester), isFalse);
+    // « OK » du clavier ne l'enregistre pas davantage.
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(categories.edited, isEmpty);
+    expect(find.text('Modifier le groupe'), findsOneWidget);
 
     await tester.enterText(nameField, '  ');
     await tester.pump();
     expect(saveEnabled(tester), isFalse);
+  });
+
+  testWidgets('gives an older group in a retired colour a pickable tone', (
+    tester,
+  ) async {
+    // Ancien groupe partagé, copié tel quel : le rouge du « sport » n'est
+    // plus proposé.
+    const sport = BirthdayCategory(id: 'spo', name: 'sport', icon: 42);
+    categories = RecordingCategoryRepository([_family], own: [sport]);
+    await pumpSheet(tester, group: sport);
+
+    await tester.enterText(nameField, 'Escalade');
+    await tester.pump();
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pumpAndSettle();
+
+    expect(categories.edited.single.tone, LabelTones.pickable.first);
   });
 }

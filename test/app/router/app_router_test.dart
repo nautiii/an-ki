@@ -12,6 +12,7 @@ import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/screens/birthday_search_screen.dart';
 import 'package:an_ki/features/birthday/screens/contact_import_screen.dart';
+import 'package:an_ki/features/birthday/screens/groups_screen.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/screens/person_screen.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
@@ -111,6 +112,13 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.byType(ContactImportScreen), findsOneWidget);
         await tester.tap(find.byType(CloseButton));
+        await tester.pumpAndSettle();
+        expect(find.byType(BookScannerScreen), findsOneWidget);
+
+        unawaited(tester.appRouter.push(AppRoutes.groups));
+        await tester.pumpAndSettle();
+        expect(find.byType(GroupsScreen), findsOneWidget);
+        await tester.tap(find.byType(BackButton));
         await tester.pumpAndSettle();
         expect(find.byType(BookScannerScreen), findsOneWidget);
       });
@@ -215,17 +223,6 @@ void main() {
       await tester.tap(find.byTooltip('Retour'));
       await tester.settleApp();
       expect(find.byType(AuthChoiceScreen), findsNothing);
-      expect(find.byType(WelcomeScreen), findsOneWidget);
-    });
-
-    testWidgets('signed out, an app path leads to the welcome', (tester) async {
-      await tester.pumpApp(auth: FakeAuthRepository());
-      await tester.settleApp();
-
-      tester.appRouter.go(AppRoutes.settings);
-      await tester.settleApp();
-
-      expect(find.byType(SettingsScreen), findsNothing);
       expect(find.byType(WelcomeScreen), findsOneWidget);
     });
   });

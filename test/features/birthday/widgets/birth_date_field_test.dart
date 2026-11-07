@@ -35,6 +35,14 @@ void main() {
     expect(value.selection.baseOffset, 1);
   });
 
+  test('puts the caret at the end when the digits before it are dropped', () {
+    // Collés au milieu, des chiffres de trop ne trouvent plus leur place.
+    final value = typed('12/03/199012/', caret: 12);
+
+    expect(value.text, '12/03/1990');
+    expect(value.selection.baseOffset, 10);
+  });
+
   test('puts the caret first when no digit precedes it', () {
     final value = typed('/12', caret: 1);
 

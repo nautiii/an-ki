@@ -110,11 +110,13 @@ void main() {
     );
     await openDialog(tester);
 
+    // Envoyé par « OK » du clavier, comme par le bouton.
     await tester.enterText(find.byType(TextField), 'no');
     await tester.pump();
-    await tester.tap(deleteButton());
+    await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
 
+    expect(auth.reauthPasswords, ['no']);
     expect(find.text('Mot de passe incorrect.'), findsOne);
     expect(find.text('Suppression du compte'), findsOne);
     expect(users.deleted, isEmpty);

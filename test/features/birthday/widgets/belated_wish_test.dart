@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
@@ -32,12 +33,14 @@ void main() {
     String name = 'Nina',
     String surname = 'Rossi',
     List<int> wishedYears = const [],
+    Uint8List? picture,
   }) => Birthday(
     id: id,
     name: name,
     surname: surname,
     date: BirthDate(year: 1995, month: month, day: day),
     wishedYears: wishedYears,
+    picture: picture,
   );
 
   late RecordingBirthdayRepository repository;
@@ -101,15 +104,23 @@ void main() {
     expect(find.text('Hier'), findsNothing);
   });
 
-  testWidgets('recalls yesterday, a card per person', (tester) async {
+  testWidgets('recalls yesterday, a card per person, with their photo', (
+    tester,
+  ) async {
     await pumpBelated(tester, [
       bornOn(12, 31),
-      bornOn(12, 31, id: 'ada', name: 'Ada'),
+      bornOn(12, 31, id: 'ada', name: 'Ada', picture: transparentPng),
     ]);
 
     expect(find.text('Hier'), findsNWidgets(2));
     expect(find.text('Ada Rossi'), findsOneWidget);
     expect(find.text('Nina Rossi'), findsOneWidget);
+    expect(
+      tester
+          .widgetList<CircleAvatar>(find.byType(CircleAvatar))
+          .map((avatar) => avatar.foregroundImage),
+      [MemoryImage(transparentPng), null],
+    );
     // Par nom.
     expect(
       tester.getTopLeft(find.text('Ada Rossi')).dy,

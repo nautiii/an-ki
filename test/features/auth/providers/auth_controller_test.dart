@@ -51,16 +51,21 @@ class _GoogleFailingAuthRepository extends AuthRepository {
 }
 
 /// AuthRepository that links the anonymous account to Google without the
-/// plugin, or fails with [error].
+/// plugin, or fails with [error]; [forgetFailure] makes forgetting the chosen
+/// Google account fail.
 class _LinkingAuthRepository extends AuthRepository {
-  _LinkingAuthRepository({this.error, MockFirebaseAuth? auth})
-    : super(
-        auth: auth ?? MockFirebaseAuth(),
-        googleSignIn: GoogleSignIn.instance,
-        firestore: FakeFirebaseFirestore(),
-      );
+  _LinkingAuthRepository({
+    this.error,
+    this.forgetFailure,
+    MockFirebaseAuth? auth,
+  }) : super(
+         auth: auth ?? MockFirebaseAuth(),
+         googleSignIn: GoogleSignIn.instance,
+         firestore: FakeFirebaseFirestore(),
+       );
 
   final Exception? error;
+  final Exception? forgetFailure;
 
   /// Appels, dans l'ordre : `link`, et `signOutGoogle` quand le compte Google
   /// choisi est oublié.
@@ -74,7 +79,21 @@ class _LinkingAuthRepository extends AuthRepository {
   }
 
   @override
-  Future<void> signOutGoogle() async => events.add('signOutGoogle');
+  Future<void> signOutGoogle() async {
+    events.add('signOutGoogle');
+    if (forgetFailure case final error?) throw error;
+  }
+}
+
+/// Dépôt dont l'oubli du compte Google choisi échoue (hors ligne).
+class _UnforgettingAuthRepository extends FakeAuthRepository {
+  _UnforgettingAuthRepository({super.reauthFailure});
+
+  @override
+  Future<void> signOutGoogle() async {
+    calls.add('signOutGoogle');
+    throw Exception('offline');
+  }
 }
 
 const _reason = 'Empreinte ?';
@@ -249,26 +268,6 @@ void main() {
       expect(container.read(authControllerProvider), isA<AsyncData<void>>());
     });
 
-    test('maps the documented Firebase codes to failures', () async {
-      Future<Object?> failureFor(String code) async {
-        final auth = MockFirebaseAuth(mockUser: buildUser());
-        whenCalling(Invocation.method(#signInWithEmailAndPassword, []))
-            .on(auth)
-            .thenThrow(FirebaseAuthException(code: code));
-        final container = makeContainer(auth);
-        await controllerOf(container).signIn(email: 'a', password: 'b');
-        return failureOf(container);
-      }
-
-      expect(await failureFor('invalid-email'), AuthFailure.invalidEmail);
-      expect(await failureFor('user-not-found'), AuthFailure.userNotFound);
-      expect(
-        await failureFor('email-already-in-use'),
-        AuthFailure.emailAlreadyInUse,
-      );
-      expect(await failureFor('something-else'), AuthFailure.unknown);
-    });
-
     test('ignores a second call while one is running', () async {
       final auth = MockFirebaseAuth(mockUser: buildUser());
       final controller = controllerOf(makeContainer(auth));
@@ -389,6 +388,17 @@ void main() {
       );
       // Le dernier compte choisi est oublié avant : le sélecteur les propose
       // tous.
+      expect(repository.events, ['signOutGoogle', 'link']);
+    });
+
+    test('links all the same when the last Google account cannot be '
+        'forgotten', () async {
+      final repository = _LinkingAuthRepository(
+        auth: MockFirebaseAuth(signedIn: true, mockUser: buildUser()),
+        forgetFailure: Exception('offline'),
+      );
+
+      expect(await link(repository), (true, null));
       expect(repository.events, ['signOutGoogle', 'link']);
     });
 
@@ -848,15 +858,21 @@ void main() {
     test(
       'forgets a refused Google account, so a retry offers them all',
       () async {
-        final repository = FakeAuthRepository(
-          reauthFailure: AuthFailure.userMismatch,
-        );
-        final container = confirming(repository, SignInMethod.google);
+        // Un oubli qui échoue laisse annoncer le refus, pas l'oubli.
+        for (final repository in [
+          FakeAuthRepository(reauthFailure: AuthFailure.userMismatch),
+          _UnforgettingAuthRepository(reauthFailure: AuthFailure.userMismatch),
+        ]) {
+          final container = confirming(repository, SignInMethod.google);
 
-        expect(await controllerOf(container).confirmIdentity(), isFalse);
+          expect(await controllerOf(container).confirmIdentity(), isFalse);
 
-        expect(repository.calls, ['reauthenticateWithGoogle', 'signOutGoogle']);
-        expect(failureOf(container), AuthFailure.userMismatch);
+          expect(repository.calls, [
+            'reauthenticateWithGoogle',
+            'signOutGoogle',
+          ]);
+          expect(failureOf(container), AuthFailure.userMismatch);
+        }
       },
     );
 

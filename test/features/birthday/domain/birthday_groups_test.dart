@@ -192,5 +192,15 @@ void main() {
 
       expect(entry.kind, GroupKind.own);
     });
+
+    test('entries compare by value', () {
+      // Calculées deux fois : égales, à hachage égal.
+      List<GroupEntry> entries() =>
+          groupEntries([family, book], ownIds: ['book'], birthdays: const []);
+
+      expect(entries(), entries());
+      expect(entries().last.hashCode, entries().last.hashCode);
+      expect(entries().first, isNot(entries().last));
+    });
   });
 }

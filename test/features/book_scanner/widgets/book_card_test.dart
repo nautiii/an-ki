@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:an_ki/features/book_scanner/domain/book.dart';
 import 'package:an_ki/features/book_scanner/widgets/book_card.dart';
 import 'package:flutter/material.dart';
@@ -38,12 +40,28 @@ void main() {
       });
     });
 
-    testWidgets('falls back to a placeholder cover', (tester) async {
-      await mockNetworkImages(() async {
-        await tester.pumpHarness(BookCard(book: book(authors: const [])));
+    testWidgets('falls back to a placeholder cover, without one or when it '
+        'cannot load', (tester) async {
+      await mockNetworkImages(statusCode: HttpStatus.notFound, () async {
+        await tester.pumpHarness(
+          Column(
+            children: [
+              SizedBox(
+                height: 180,
+                child: BookCard(book: book(authors: const [])),
+              ),
+              SizedBox(
+                height: 180,
+                child: BookCard(
+                  book: book(imageUrl: 'https://example.com/lost.jpg'),
+                ),
+              ),
+            ],
+          ),
+        );
         await tester.pumpAndSettle();
 
-        expect(find.byIcon(Icons.book_rounded), findsOneWidget);
+        expect(find.byIcon(Icons.book_rounded), findsNWidgets(2));
       });
     });
 

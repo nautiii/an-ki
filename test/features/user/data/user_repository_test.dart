@@ -49,11 +49,13 @@ void main() {
       expect(watched, user);
     });
 
-    test('maps every field of a complete document', () async {
+    test('maps every field of a complete document, old categories '
+        'aside', () async {
       await firestore.collection('user').doc('user-2').set({
         'name': 'Quentin',
         'surname': 'Maillard',
         'pseudo': 'Q',
+        // Champ d'avant les groupes privés, que la lecture ignore.
         'categories': ['family', 'friend'],
         'themeMode': 'dark',
         'locale': 'en',
@@ -64,31 +66,6 @@ void main() {
 
       expect(
         watched,
-        const UserProfile(
-          id: 'user-2',
-          name: 'Quentin',
-          surname: 'Maillard',
-          pseudo: 'Q',
-          theme: ThemePreference.dark,
-          locale: 'en',
-          biometricToken: 'token-123',
-        ),
-      );
-    });
-
-    test('reads an old document that still carries categories', () async {
-      await firestore.collection('user').doc('user-2').set({
-        'name': 'Quentin',
-        'surname': 'Maillard',
-        'pseudo': 'Q',
-        'categories': ['family', 'friend'],
-        'themeMode': 'dark',
-        'locale': 'en',
-        'biometricToken': 'token-123',
-      });
-
-      expect(
-        await repository.watchUser('user-2').first,
         const UserProfile(
           id: 'user-2',
           name: 'Quentin',

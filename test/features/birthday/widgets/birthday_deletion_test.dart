@@ -61,6 +61,18 @@ void main() {
     expect(birthdays.deleted, ['lea']);
   });
 
+  testWidgets('leaves twice as long to undo with TalkBack', (tester) async {
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(accessibleNavigation: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    await pumpDeletion(tester);
+
+    expect(
+      tester.widget<SnackBar>(find.byType(SnackBar)).duration,
+      undoDelay * 2,
+    );
+  });
+
   ProviderContainer containerOf(WidgetTester tester) =>
       ProviderScope.containerOf(tester.element(find.text('Supprimer Léa')));
 

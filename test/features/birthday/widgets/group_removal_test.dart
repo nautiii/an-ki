@@ -8,6 +8,7 @@ import 'package:an_ki/features/birthday/screens/groups_screen.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -100,6 +101,20 @@ void main() {
     expect(categories.deletedCarriers, {
       'book': ['lea'],
     });
+  });
+
+  testWidgets('leaves twice as long to undo with TalkBack', (tester) async {
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(accessibleNavigation: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    await pumpGroups(tester);
+
+    await openAndTap(tester, 'Club de lecture', 'Supprimer le groupe');
+
+    expect(
+      tester.widget<SnackBar>(find.byType(SnackBar)).duration,
+      undoDelay * 2,
+    );
   });
 
   testWidgets('« Annuler » brings the group back, untouched', (tester) async {

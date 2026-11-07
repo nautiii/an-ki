@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/settings/widgets/guest_backup_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
@@ -15,20 +18,39 @@ import '../../../support/auth_overrides.dart';
 import '../../../support/fake_providers.dart';
 import '../../../support/test_harness.dart';
 
-/// Anniversaires dont la reprise échoue, une fois le compte ouvert.
+/// Anniversaires dont la reprise échoue, une fois le compte ouvert, à la fin
+/// de [gate] quand il est donné.
 class _FailingTakeOver extends BirthdayRepository {
-  _FailingTakeOver(FakeFirebaseFirestore firestore)
+  _FailingTakeOver(FakeFirebaseFirestore firestore, {this.gate})
     : super(firestore: firestore);
+
+  final Future<void>? gate;
 
   @override
   Future<void> takeOver(
     String uid, {
     required Map<String, List<String>> moves,
     required Iterable<String> duplicates,
-  }) async => throw FirebaseException(
-    plugin: 'cloud_firestore',
-    code: 'permission-denied',
-  );
+  }) async {
+    await gate;
+    throw FirebaseException(
+      plugin: 'cloud_firestore',
+      code: 'permission-denied',
+    );
+  }
+}
+
+/// Anniversaires que la reprise ne peut pas marquer, avant la connexion :
+/// [error] à leur lecture.
+class _UnmarkableBirthdays extends BirthdayRepository {
+  _UnmarkableBirthdays(FakeFirebaseFirestore firestore, this.error)
+    : super(firestore: firestore);
+
+  final Exception error;
+
+  @override
+  Future<List<Birthday>> markForTransfer(String uid, String email) async =>
+      throw error;
 }
 
 void main() {
@@ -48,11 +70,13 @@ void main() {
   const otherAccount = 'Choisir un autre compte';
 
   /// La carte d'un invité aux 12 anniversaires ; [failure] fait échouer la
-  /// liaison. [firestore] porte les données de l'invité et du compte Google.
+  /// liaison. [firestore] porte les données de l'invité et du compte Google,
+  /// que [birthdays] remplace pour les anniversaires.
   Future<FakeAuthRepository> pumpCard(
     WidgetTester tester, {
     Exception? failure,
     FakeFirebaseFirestore? firestore,
+    BirthdayRepository? birthdays,
   }) async {
     final auth = FakeAuthRepository(
       user: MockUser(uid: 'guest', isAnonymous: true),
@@ -65,6 +89,8 @@ void main() {
         firestoreProvider.overrideWithValue(
           firestore ?? FakeFirebaseFirestore(),
         ),
+        if (birthdays != null)
+          birthdayRepositoryProvider.overrideWithValue(birthdays),
       ],
     );
     await tester.pumpAndSettle();
@@ -243,6 +269,8 @@ void main() {
         user: MockUser(uid: 'guest', isAnonymous: true),
         failure: AuthFailure.credentialAlreadyInUse,
       );
+      // Partie avec l'invité, la carte disparaît avant la fin de la reprise.
+      final takeOver = Completer<void>();
       await tester.pumpHarness(
         Consumer(
           builder: (_, ref, _) =>
@@ -254,7 +282,10 @@ void main() {
           ...authOverrides(auth),
           firestoreProvider.overrideWithValue(firestore),
           birthdayRepositoryProvider.overrideWithValue(
-            _FailingTakeOver(firestore),
+            _FailingTakeOver(
+              firestore,
+              gate: removedWithTheGuest ? takeOver.future : null,
+            ),
           ),
         ],
       );
@@ -264,6 +295,11 @@ void main() {
 
       await tester.tap(find.text(open));
       await tester.pumpAndSettle();
+      if (removedWithTheGuest) {
+        expect(find.byType(GuestBackupCard), findsNothing);
+        takeOver.complete();
+        await tester.pumpAndSettle();
+      }
     }
 
     const incomplete =
@@ -304,6 +340,64 @@ void main() {
       findsOneWidget,
     );
     expect(find.text(open), findsOneWidget);
+    expect(auth.currentUser?.uid, 'guest');
+  });
+
+  for (final (code, why) in [
+    (
+      'unavailable',
+      'Pas de connexion : vos anniversaires restent sur ce téléphone. '
+          'Réessayez une fois en ligne.',
+    ),
+    (
+      'permission-denied',
+      "L'ouverture du compte n'a pas abouti : vos anniversaires restent "
+          'sur ce téléphone. Réessayez.',
+    ),
+  ]) {
+    testWidgets('says why the birthdays could not come along ($code), and '
+        'keeps the offer', (tester) async {
+      final firestore = FakeFirebaseFirestore();
+      final auth = await pumpCard(
+        tester,
+        failure: AuthFailure.credentialAlreadyInUse,
+        firestore: firestore,
+        birthdays: _UnmarkableBirthdays(
+          firestore,
+          FirebaseException(plugin: 'cloud_firestore', code: code),
+        ),
+      );
+      await tester.tap(find.text(save));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(open));
+      await tester.pumpAndSettle();
+
+      expect(find.text(why), findsOneWidget);
+      expect(find.text(open), findsOneWidget);
+      expect(auth.currentUser?.uid, 'guest');
+    });
+  }
+
+  testWidgets('a picker closed while opening the account changes nothing', (
+    tester,
+  ) async {
+    final auth = await pumpCard(
+      tester,
+      failure: AuthFailure.credentialAlreadyInUse,
+    );
+    auth.googleAccountFailure = const GoogleSignInException(
+      code: GoogleSignInExceptionCode.canceled,
+    );
+    await tester.tap(find.text(save));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(open));
+    await tester.pumpAndSettle();
+
+    expect(find.text(open), findsOneWidget);
+    expect(find.byIcon(Icons.error_outline_rounded), findsNothing);
+    expect(find.byType(SnackBar), findsNothing);
     expect(auth.currentUser?.uid, 'guest');
   });
 

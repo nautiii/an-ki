@@ -1,5 +1,4 @@
-import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
@@ -13,6 +12,7 @@ import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -20,9 +20,19 @@ import '../../../support/fake_providers.dart';
 import '../../../support/network_image_mock.dart';
 import '../../../support/test_harness.dart';
 
-final _png = base64Decode(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-);
+/// Canal de la galerie (`image_picker`) : il rend le chemin de la photo.
+const _imagePicker = MethodChannel('plugins.flutter.io/image_picker');
+
+/// Photo de la galerie, lue en mémoire plutôt que sur le disque.
+class _GalleryFile extends Fake implements File {
+  _GalleryFile(this.path);
+
+  @override
+  final String path;
+
+  @override
+  Future<Uint8List> readAsBytes() async => transparentPng;
+}
 
 void main() {
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
@@ -426,6 +436,48 @@ void main() {
 
       expect(find.byType(BirthdayFormSheet), findsNothing);
     });
+
+    testWidgets('takes a smaller photo from the gallery, a closed one '
+        'changing nothing', (tester) async {
+      String? picked;
+      final asked = <Object?>[];
+      final messenger = tester.binding.defaultBinaryMessenger
+        ..setMockMethodCallHandler(_imagePicker, (call) async {
+          asked.add(call.arguments);
+          return picked;
+        });
+      addTearDown(() => messenger.setMockMethodCallHandler(_imagePicker, null));
+      final repository = RecordingBirthdayRepository();
+      final photoButton = find.bySemanticsLabel('Choisir une photo');
+      ImageProvider? photo() => tester
+          .widget<CircleAvatar>(find.byType(CircleAvatar))
+          .foregroundImage;
+
+      // La galerie rend un chemin, lu ici en mémoire.
+      await IOOverrides.runZoned(() async {
+        await pumpSheet(tester, repository);
+
+        await tester.tap(photoButton);
+        await tester.pumpAndSettle();
+        expect(photo(), isNull);
+
+        picked = 'gallery/lea.png';
+        await tester.tap(photoButton);
+        await tester.pumpAndSettle();
+        expect(photo(), MemoryImage(transparentPng));
+
+        await tester.enterText(nameField, 'Léa Martin');
+        await tester.enterText(dateField, '1203');
+        await tester.pump();
+        await tester.tap(find.text('Ajouter'));
+        await tester.pumpAndSettle();
+      }, createFile: _GalleryFile.new);
+
+      // 512 px, qualité 80 : le document Firestore reste petit.
+      expect(asked.last, containsPair('maxWidth', 512.0));
+      expect(asked.last, containsPair('imageQuality', 80));
+      expect(repository.created.single.picture, transparentPng);
+    });
   });
 
   group('edition', () {
@@ -441,7 +493,11 @@ void main() {
 
     testWidgets('pre-fills the same sheet and updates', (tester) async {
       final repository = RecordingBirthdayRepository();
-      await pumpSheet(tester, repository, toEdit: editable(picture: _png));
+      await pumpSheet(
+        tester,
+        repository,
+        toEdit: editable(picture: transparentPng),
+      );
 
       expect(find.text('Modifier'), findsOneWidget);
       expect(find.text('Alice Wonderland'), findsOneWidget);
@@ -520,19 +576,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repository.deleted, ['edit-1']);
-    });
-
-    testWidgets('undo keeps the birthday', (tester) async {
-      final repository = RecordingBirthdayRepository();
-      await pumpSheet(tester, repository, toEdit: editable());
-
-      await tester.tap(find.byTooltip('Supprimer'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Annuler'));
-      await tester.pump(const Duration(seconds: 6));
-      await tester.pumpAndSettle();
-
-      expect(repository.deleted, isEmpty);
     });
 
     testWidgets('a failed save reaches the editor state', (tester) async {

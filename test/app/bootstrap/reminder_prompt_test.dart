@@ -11,6 +11,7 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthdays_added.dart';
 import 'package:an_ki/features/birthday/providers/birthday_additions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/reminders/widgets/reminder_offer_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -165,6 +166,25 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Page lea'), findsOneWidget);
+    });
+
+    testWidgets('leaves twice as long to reach « Voir » with TalkBack', (
+      tester,
+    ) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(accessibleNavigation: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      await pumpPrompt(tester, access: NotificationAccess.granted);
+
+      add(_byHand());
+      await settle(tester);
+
+      expect(
+        tester.widget<SnackBar>(find.byType(SnackBar)).duration,
+        undoDelay * 2,
+      );
     });
 
     testWidgets('an import offers no « Voir »', (tester) async {

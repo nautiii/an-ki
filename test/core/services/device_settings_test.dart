@@ -1,4 +1,5 @@
 import 'package:an_ki/core/services/device_settings.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/platform_mocks.dart';
@@ -15,7 +16,8 @@ void main() {
   tearDown(() => channels.uninstall());
 
   test('the reminders-off card is shown until dismissed', () async {
-    const settings = DeviceSettings();
+    // Les réglages tels que l'app les lit.
+    final settings = ProviderContainer.test().read(deviceSettingsProvider);
 
     expect(await settings.remindersOffDismissed(), isFalse);
 

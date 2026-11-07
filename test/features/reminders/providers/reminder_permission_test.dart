@@ -132,6 +132,25 @@ void main() {
     notifications.answered.complete(NotificationAccess.granted);
   });
 
+  test('a request started during a refresh decides', () async {
+    final notifications = _PendingRequestService();
+    final container = makeContainer(notifications);
+    await container.read(reminderPermissionProvider.future);
+    final permission = container.read(reminderPermissionProvider.notifier);
+
+    final refreshing = permission.refresh();
+    final request = permission.request();
+    expect(await refreshing, NotificationAccess.denied);
+    expect(container.read(reminderPermissionProvider).isLoading, isTrue);
+
+    notifications.answered.complete(NotificationAccess.granted);
+    await request;
+    expect(
+      container.read(reminderPermissionProvider),
+      const AsyncData(NotificationAccess.granted),
+    );
+  });
+
   test('opens the notification settings', () async {
     final notifications = SilentNotificationService();
     final container = makeContainer(notifications);

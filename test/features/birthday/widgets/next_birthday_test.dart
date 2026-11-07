@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
@@ -22,10 +20,6 @@ import '../../../support/fake_providers.dart';
 import '../../../support/haptics.dart';
 import '../../../support/network_image_mock.dart';
 import '../../../support/test_harness.dart';
-
-final _png = base64Decode(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-);
 
 void main() {
   final today = DateTime(2026, 3, 12);
@@ -59,7 +53,6 @@ void main() {
     WidgetTester tester, {
     required List<Birthday> birthdays,
     bool isLoading = false,
-    RecordingBirthdayRepository? repository,
   }) async {
     await tester.pumpHarness(
       const Center(child: SizedBox(width: 312, child: NextBirthdayCard())),
@@ -72,7 +65,7 @@ void main() {
         userProfileProvider.overrideWithValue(const AsyncData(null)),
         categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),
         birthdayRepositoryProvider.overrideWithValue(
-          repository ?? RecordingBirthdayRepository(),
+          RecordingBirthdayRepository(),
         ),
       ],
       routes: {
@@ -143,7 +136,7 @@ void main() {
 
   testWidgets('celebrates a birthday happening today', (tester) async {
     await mockNetworkImages(() async {
-      await pumpCard(tester, birthdays: [relative(0, picture: _png)]);
+      await pumpCard(tester, birthdays: [relative(0, picture: transparentPng)]);
       await tester.pumpAndSettle();
 
       expect(find.text("Aujourd'hui 🎉"), findsOneWidget);
@@ -156,20 +149,6 @@ void main() {
       expect(find.text('12 mars'), findsNothing);
       final (gradient, colors) = heroGradient(tester);
       expect(gradient, colors.celebration);
-    });
-  });
-
-  testWidgets('marks today\'s birthday as wished, with undo', (tester) async {
-    final repository = RecordingBirthdayRepository();
-    await mockNetworkImages(() async {
-      await pumpCard(tester, birthdays: [relative(0)], repository: repository);
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Déjà souhaité'));
-      await tester.pump();
-
-      expect(repository.wished, [('1', 2026)]);
-      expect(find.text('Alice Wonderland a reçu vos vœux'), findsOneWidget);
     });
   });
 

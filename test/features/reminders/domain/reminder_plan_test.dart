@@ -190,6 +190,25 @@ void main() {
     expect(planReminders([birthday], now: now).map((r) => r.id), ids);
   });
 
+  test('plans compare by value', () {
+    final birthday = _born(DateTime(1990, 6, 30));
+    List<PlannedReminder> plan() => planReminders([birthday], now: now);
+
+    // Calculés deux fois : égaux, à hachage égal.
+    expect(plan(), plan());
+    expect(plan().first.hashCode, plan().first.hashCode);
+    expect(plan().first, isNot(plan().last));
+  });
+
+  test('refuses more birthdays than notification slots, rather than '
+      'looping', () {
+    final crowd = [
+      for (var i = 0; i <= 100000; i++) _born(DateTime(1990, 6, 30), id: 'b$i'),
+    ];
+
+    expect(() => planReminders(crowd, now: now), throwsStateError);
+  });
+
   group('notification ids', () {
     test('give colliding birthdays both reminders under distinct ids', () {
       final (first, second) = _collidingIds();
