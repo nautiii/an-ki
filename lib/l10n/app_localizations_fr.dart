@@ -1023,8 +1023,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count anniversaires retrouvés',
-      one: '1 anniversaire retrouvé',
+      other: '$count anniversaires présents',
+      one: '1 anniversaire présent',
     );
     return '$_temp0';
   }
@@ -1047,11 +1047,8 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get remindersExample => 'Exemple de rappel';
-
-  @override
-  String remindersExampleWhen(String date, String time) {
-    return 'AnKi · $date à $time';
+  String remindersExampleIntro(String date, String time) {
+    return 'Le $date à $time, vous recevrez :';
   }
 
   @override

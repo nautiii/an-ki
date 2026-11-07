@@ -763,9 +763,9 @@
   "enableReminders": "Activer les rappels",
   "remindersEnabled": "Rappels activés",
   "later": "Plus tard",
-  "remindersOfferRestored": "{count, plural, =1{1 anniversaire retrouvé} other{{count} anniversaires retrouvés}}",
+  "remindersOfferRestored": "{count, plural, =1{1 anniversaire présent} other{{count} anniversaires présents}}",
   "@remindersOfferRestored": {
-    "description": "En tête de la proposition des rappels, quand une connexion retrouve l'agenda sur un appareil.",
+    "description": "En tête de la proposition des rappels, quand une connexion retrouve l'agenda sur un appareil : les anniversaires du compte sont là.",
     "placeholders": {
       "count": { "type": "int" }
     }
@@ -783,10 +783,9 @@
       "time": { "type": "String" }
     }
   },
-  "remindersExample": "Exemple de rappel",
-  "remindersExampleWhen": "AnKi · {date} à {time}",
-  "@remindersExampleWhen": {
-    "description": "En-tête de l'exemple de notification : jour et heure du prochain vrai rappel.",
+  "remindersExampleIntro": "Le {date} à {time}, vous recevrez :",
+  "@remindersExampleIntro": {
+    "description": "Au-dessus de l'exemple de notification : jour et heure du prochain vrai rappel du jour J (date « samedi 7 novembre »).",
     "placeholders": {
       "date": { "type": "String" },
       "time": { "type": "String" }

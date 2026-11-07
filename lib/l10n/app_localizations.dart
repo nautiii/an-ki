@@ -1580,10 +1580,10 @@ abstract class AppLocalizations {
   /// **'Plus tard'**
   String get later;
 
-  /// En tête de la proposition des rappels, quand une connexion retrouve l'agenda sur un appareil.
+  /// En tête de la proposition des rappels, quand une connexion retrouve l'agenda sur un appareil : les anniversaires du compte sont là.
   ///
   /// In fr, this message translates to:
-  /// **'{count, plural, =1{1 anniversaire retrouvé} other{{count} anniversaires retrouvés}}'**
+  /// **'{count, plural, =1{1 anniversaire présent} other{{count} anniversaires présents}}'**
   String remindersOfferRestored(int count);
 
   /// No description provided for @remindersOfferTitle.
@@ -1598,17 +1598,11 @@ abstract class AppLocalizations {
   /// **'À {time}, même sans connexion.'**
   String remindersOfferMessage(String time);
 
-  /// No description provided for @remindersExample.
+  /// Au-dessus de l'exemple de notification : jour et heure du prochain vrai rappel du jour J (date « samedi 7 novembre »).
   ///
   /// In fr, this message translates to:
-  /// **'Exemple de rappel'**
-  String get remindersExample;
-
-  /// En-tête de l'exemple de notification : jour et heure du prochain vrai rappel.
-  ///
-  /// In fr, this message translates to:
-  /// **'AnKi · {date} à {time}'**
-  String remindersExampleWhen(String date, String time);
+  /// **'Le {date} à {time}, vous recevrez :'**
+  String remindersExampleIntro(String date, String time);
 
   /// No description provided for @remindersBlockedTitle.
   ///

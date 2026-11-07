@@ -85,7 +85,7 @@ class _ReminderOfferSheetState extends ConsumerState<ReminderOfferSheet>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _Outcome(offer: widget.offer),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           Semantics(
             header: true,
             child: Text(
@@ -110,7 +110,7 @@ class _ReminderOfferSheetState extends ConsumerState<ReminderOfferSheet>
             const SizedBox(height: AppSpacing.md),
             _ReminderPreview(reminder: reminder),
           ],
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           FilledButton(
             onPressed: permission.isLoading
                 ? null
@@ -130,7 +130,7 @@ class _ReminderOfferSheetState extends ConsumerState<ReminderOfferSheet>
   }
 }
 
-/// Ce qui vient d'arriver : « 12 anniversaires ajoutés », ou retrouvés.
+/// Ce qui vient d'arriver : « 12 anniversaires ajoutés », ou présents.
 class _Outcome extends StatelessWidget {
   const _Outcome({required this.offer});
 
@@ -167,8 +167,10 @@ class _Outcome extends StatelessWidget {
   }
 }
 
-/// Le prochain vrai rappel du jour J, tel que la notification l'affichera :
-/// son jour, son titre et son texte, et « Souhaiter » sur Android.
+/// Le prochain vrai rappel du jour J : son jour et son heure en clair,
+/// au-dessus de la notification telle qu'elle s'affichera ce jour-là (son
+/// titre, son texte, et « Souhaiter » sur Android). Sans l'en-tête, son
+/// « aujourd'hui » se lirait comme celui du jour où la feuille s'ouvre.
 class _ReminderPreview extends StatelessWidget {
   const _ReminderPreview({required this.reminder});
 
@@ -179,72 +181,76 @@ class _ReminderPreview extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    // Lu d'un bloc : « Exemple de rappel », le jour, le titre, le texte.
+    // Lu d'un bloc : le jour et l'heure, puis le titre et le texte.
     return MergeSemantics(
-      child: Semantics(
-        label: l10n.remindersExample,
-        child: Card(
-          color: scheme.surfaceContainerHigh,
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    ExcludeSemantics(
-                      child: CircleAvatar(
-                        radius: 12,
-                        backgroundColor: scheme.primary,
-                        child: Icon(
-                          Icons.cake_rounded,
-                          size: 16,
-                          color: scheme.onPrimary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Expanded(
-                      child: Text(
-                        l10n.remindersExampleWhen(
-                          context.reminderDay(reminder),
-                          context.reminderClock(reminder),
-                        ),
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  l10n.notificationBirthdayTitle(reminder.fullName),
-                  style: theme.textTheme.titleSmall,
-                ),
-                Text(
-                  l10n.notificationBirthdayBody(reminder.name),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-                // Le bouton de la notification, Android seulement : ici une
-                // image, pas une action.
-                if (theme.platform == TargetPlatform.android) ...[
-                  const SizedBox(height: AppSpacing.xs),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.remindersExampleIntro(
+              context.reminderDay(reminder),
+              context.reminderClock(reminder),
+            ),
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Card(
+            margin: EdgeInsets.zero,
+            color: scheme.surfaceContainerHigh,
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   ExcludeSemantics(
-                    child: Text(
-                      l10n.wish,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: scheme.primary,
+                    child: CircleAvatar(
+                      radius: 12,
+                      backgroundColor: scheme.primary,
+                      child: Icon(
+                        Icons.cake_rounded,
+                        size: 16,
+                        color: scheme.onPrimary,
                       ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.notificationBirthdayTitle(reminder.fullName),
+                          style: theme.textTheme.titleSmall,
+                        ),
+                        Text(
+                          l10n.notificationBirthdayBody(reminder.name),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                        // Le bouton de la notification, Android seulement :
+                        // ici une image, pas une action.
+                        if (theme.platform == TargetPlatform.android) ...[
+                          const SizedBox(height: AppSpacing.xxs),
+                          ExcludeSemantics(
+                            child: Text(
+                              l10n.wish,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: scheme.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ],
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
