@@ -2,8 +2,9 @@
 # Hook PreToolUse (Bash|PowerShell) : garde-fou des commandes git et Firebase.
 # Bloque (code 2, motif renvoyé à l'agent) ce que le skill git-workflow interdit ;
 # demande confirmation au mainteneur pour ce qui publie, réécrit l'historique ou
-# efface du travail non commité. Les messages entre guillemets et les heredocs
-# sont ignorés : un message de commit qui cite « git push » ne déclenche rien.
+# efface du travail non commité. Les messages entre guillemets et les corps de
+# heredoc sont ignorés : un message de commit qui cite « git push » ne déclenche
+# rien. Auto-test : bash .claude/hooks/test-guard-git.sh
 #
 # Limite : le garde-fou de commit protège contre l'oubli, pas contre un
 # contournement délibéré (git revert, cherry-pick, commit-tree, `bash -c`, un
@@ -34,7 +35,57 @@ ask() {
 # chaîne qui cite anki-checks devient le mot anki-checks : un chemin cité vers
 # les marqueurs reste visible.
 cmd=${cmd//\\\"/\"}
-cmd=${cmd%%<<*}
+# Heredoc : seul son corps est retiré ; le reste de la ligne de l'opérateur et
+# ce qui suit la ligne du délimiteur restent examinés (un `git merge` après un
+# commit en heredoc n'échappe pas à la garde). `<<<` est une here-string. Un
+# `<<` sans ligne de fin (dans une chaîne citée, un décalage `$((1 << 2))`)
+# n'ouvre rien : tout ce qui suit reste examiné.
+strip_heredocs() {
+  # Un \\ du JSON est une barre littérale, pas le début d'un \n : mis de côté.
+  local s=${1//\\\\/$'\001'} out='' rest delim line lines found ctl=$'\001'
+  while :; do
+    case $s in *'<<'*) ;; *) break ;; esac
+    out+=${s%%<<*}
+    rest=${s#*<<}
+    # Here-string : son mot (cité ou non) part avec l'opérateur.
+    case $rest in
+      '<'*)
+        rest=${rest#<}
+        rest=${rest#"${rest%%[![:space:]]*}"}
+        case $rest in
+          \'*) rest=${rest#\'}; rest=${rest#*\'} ;;
+          \"*) rest=${rest#\"}; rest=${rest#*\"} ;;
+          *) rest=${rest#"${rest%%[[:space:];&|)\\]*}"} ;;
+        esac
+        s=$rest
+        continue
+        ;;
+    esac
+    rest=${rest#-}
+    rest=${rest#"${rest%%[![:space:]]*}"}
+    # Délimiteur cité ('EOF', "EOF") ou protégé par une barre (\EOF).
+    delim=${rest#[\'\"$ctl]}
+    delim=${delim%%[!A-Za-z0-9_]*}
+    if [ -z "$delim" ]; then s=$rest; continue; fi
+    rest=${rest#*"$delim"}
+    rest=${rest#[\'\"]}
+    case $rest in *'\n'*) ;; *) out+=$rest; s=''; break ;; esac
+    out+=${rest%%\\n*}
+    lines=${rest#*\\n}
+    lines=${lines//\\n/$'\n'}
+    # Fin du corps : une ligne faite du seul délimiteur (tabulations de <<- comprises).
+    s='' found=''
+    while IFS= read -r line; do
+      if [ -n "$found" ]; then s+="\\n$line"; continue; fi
+      while [ "${line#\\t}" != "$line" ]; do line=${line#\\t}; done
+      [ "$line" = "$delim" ] && found=1
+    done <<<"$lines"
+    [ -n "$found" ] || s="\\n${lines//$'\n'/\\n}"
+  done
+  out+=$s
+  printf '%s' "${out//$'\001'/\\\\}"
+}
+cmd=$(strip_heredocs "$cmd")
 # Les here-strings PowerShell (@' … '@, @" … "@, sur plusieurs lignes échappées en
 # \n) deviennent _ d'abord : une apostrophe dans le message ne casse pas la suite.
 hs_single="s/@'([^']|'[^@])*'@/_/g"
@@ -114,10 +165,13 @@ fi
 if has "${git}commit[^;&|]*[[:space:]](-[b-zA-Z]*a[a-zA-Z]*|--all)${end}"; then
   deny "git commit -a embarque tout le travail en cours : indexer des chemins explicites."
 fi
-if has '^[^[:space:]]*git.*(--no-verify|--no-gpg-sign|gpgsign=false)'; then
+if has '^[^[:space:]]*git.*(--no-verify|--no-gpg-sign|gpgsign=false)' ||
+  has "${git}commit[^;&|]*[[:space:]]-[aeiopqsvz]*n[a-zA-Z]*${end}"; then
   deny "ne jamais contourner les hooks git ni la signature : corriger la cause."
 fi
-if has "${git}push[^;&|]*[[:space:]](-f|--force)${end}"; then
+# Forcé aussi par une refspec en +, qui force la seule branche visée.
+if has "${git}push[^;&|]*[[:space:]](-f|--force)${end}" ||
+  has "${git}push[^;&|]*[[:space:]]\\+[^[:space:]]+"; then
   deny "push forcé sans bail : --force-with-lease, et seulement après le oui du mainteneur."
 fi
 # Firebase : seules les commandes locales ou en lecture seule passent, plus le
