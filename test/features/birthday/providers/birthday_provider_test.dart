@@ -20,12 +20,15 @@ class _Session extends Notifier<String?> {
   void signIn(String? uid) => state = uid;
 }
 
+/// Jour des tests : le 16 octobre 2026, jamais celui de l'exécution.
+final _today = DateTime(2026, 10, 16);
+
 /// Jour courant pilotable par le test, sans minuterie de minuit.
 final _day = NotifierProvider<_Day, DateTime>(_Day.new);
 
 class _Day extends Notifier<DateTime> {
   @override
-  DateTime build() => DateTime(2026, 10, 16);
+  DateTime build() => _today;
 
   void next() => state = DateTime(state.year, state.month, state.day + 1);
 }
@@ -36,8 +39,8 @@ class _ErroringBirthdayRepository extends FakeBirthdayRepository {
       Stream.error(Exception('stream failed'));
 }
 
-/// Anniversaire dont la date tombe dans [daysAhead] jours, quel que soit le
-/// jour d'exécution du test.
+/// Anniversaire dont la date tombe [daysAhead] jours de calendrier après
+/// [_today].
 Birthday _relative(
   int daysAhead, {
   required String id,
@@ -45,12 +48,7 @@ Birthday _relative(
   required String surname,
   List<String> categories = const [],
 }) {
-  final today = DateTime.now();
-  final target = DateTime(
-    today.year,
-    today.month,
-    today.day,
-  ).add(Duration(days: daysAhead));
+  final target = DateTime(_today.year, _today.month, _today.day + daysAhead);
   return Birthday(
     id: id,
     name: name,
@@ -133,6 +131,7 @@ void main() {
           overrides: [
             birthdaysProvider.overrideWithValue(AsyncData(birthdays)),
             currentUidProvider.overrideWithValue('u1'),
+            todayProvider.overrideWithValue(_today),
           ],
         );
 
