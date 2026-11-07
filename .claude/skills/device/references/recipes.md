@@ -5,7 +5,8 @@ such as `/sdcard/x` get rewritten); from then on give Windows programs relative 
 for host files (`$(cygpath -w …)`), a `/c/…` path no longer reaches them. Use the SDK's adb
 (`"$LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe"`, called `adb` below), add `-s <serial>`
 when several devices are attached, and strip `\r` from adb output (`| tr -d '\r'`).
-Everything here was run on the emulator, except what §15 lists.
+Everything here was run on the emulator; the checks owed on a device are listed in
+`.claude/skills/architecture/references/migration.md` §1 (§15).
 
 1. [The AVD](#1-the-avd) · 2. [The phone](#2-the-phone) · 3. [Logs](#3-logs) ·
 4. [Screens and recordings](#4-screens-and-recordings) · 5. [Accessibility pass](#5-accessibility-pass) ·
@@ -13,7 +14,7 @@ Everything here was run on the emulator, except what §15 lists.
 8. [Contacts for the import](#8-contacts-for-the-import) · 9. [Fingerprint](#9-fingerprint) ·
 10. [Camera](#10-camera) · 11. [App data](#11-app-data) · 12. [Release startup](#12-release-startup) ·
 13. [Fallback build](#13-fallback-build-without-the-terminal-panel) · 14. [Dart MCP server](#14-dart-mcp-server) ·
-15. [Not verified yet](#15-not-verified-yet) · 16. [One device, many sessions](#16-one-device-many-sessions) ·
+15. [Device checks owed](#15-device-checks-owed) · 16. [One device, many sessions](#16-one-device-many-sessions) ·
 17. [Rarer gotchas](#17-rarer-gotchas)
 
 ## 1. The AVD
@@ -42,7 +43,7 @@ Everything here was run on the emulator, except what §15 lists.
     boot with `-no-snapshot-load` (240 s). Worst case ≈ 510 s, under the Bash's 10 min.
 - Stop it only when asked: `adb -s emulator-5554 emu kill` saves the quick-boot snapshot.
   Started from the Bash tool, it lives in Claude's process tree; whether it survives a restart
-  of the Claude app wasn't checked (§15).
+  of the Claude app wasn't checked.
 - System language, once per factory reset (needs root, then a reboot):
   ```bash
   adb root && adb wait-for-device shell 'setprop persist.sys.locale fr-FR; settings put system system_locales fr-FR' && adb reboot
@@ -51,8 +52,10 @@ Everything here was run on the emulator, except what §15 lists.
   `system_locales` wins over the property: setting only `persist.sys.locale` leaves English.
 - To mirror the phone exactly, read `adb shell wm size` and `adb shell wm density` on the phone,
   stop the emulator, set `hw.lcd.width`, `hw.lcd.height` and `hw.lcd.density` in `config.ini`,
-  then cold boot. A quick tweak without editing: `adb shell wm density <dpi>` (undo with
-  `device.sh size reset`).
+  then cold boot. A quick tweak without editing: `adb shell wm density <dpi>`, undone by
+  `device.sh size reset`. Without an earlier `device.sh` variation, `size reset` first records the
+  changed density as the baseline (`save_baseline`) and `release` reapplies it: take one
+  (`theme`, `text`, `size`) before the raw `wm density`.
 
 ## 2. The phone
 
@@ -62,6 +65,13 @@ Everything here was run on the emulator, except what §15 lists.
   for frame timings in DevTools, works on the phone only: add `--profile`.
 - Allowed: observe, drive the app, vary display settings (`reset` puts the maintainer's own
   values back). Not allowed: the clock, contacts, data wipes, uninstalling (see SKILL.md, Never).
+- The ux B8 measurement on the Honor (`.claude/skills/ux-ui/references/ux-backlog.md`): a debug
+  APK through `scripts/build_and_deploy.ps1`, not `flutter run` (its tab force-stops the app),
+  default battery settings, a daily reading for at least 10 days, with 3 days without opening
+  AnKi, a reboot and a time offline. Read `period_count`, `last_enqueue_time` and
+  `run_attempt_count` in `no_backup/androidx.work.workdb` (`run-as` + sqlite3), the standby
+  bucket, the alarm count and `adb shell dumpsys activity exit-info`. Good: +1 per ~24 h
+  (≤ 36 h apart), reboot and offline included.
 - MagicOS may delay or drop exact alarms of apps it puts to sleep: when a reminder doesn't fire
   on the phone while `alarms` showed it, check the phone's battery and app-launch settings for
   AnKi before suspecting the code.
@@ -78,13 +88,17 @@ Everything here was run on the emulator, except what §15 lists.
   ```bash
   MSYS_NO_PATHCONV=1 adb logcat -v time -T 1 '*:E' flutter:I | grep --line-buffered -E 'E/|Exception|Error'
   ```
-- The app logs `[NotificationService] N reminder(s) scheduled.` at every start: the quickest
-  proof that reminders were (re)planned.
+- The app logs `[NotificationService] N reminder(s) scheduled.` at start: the quickest proof
+  that reminders were planned. Since 9c48dd1 an identical plan is neither rescheduled nor
+  logged (no line after a « Souhaiter »). « 0 reminder(s) » at start with a signed-in account
+  is a regression of f94cbaa. After a language change, `alarms` shows titles in the new language.
 
 ## 4. Screens and recordings
 
 - Screenshot: `device.sh shot <name>`. Big PNGs are downscaled by Read: to judge a detail (the
   status bar, an icon), crop the PNG before reading it.
+- Keys: `device.sh key KEYCODE_…|<code>` sends any Android keycode (`help` lists only the named
+  ones).
 - Notification shade: `adb shell cmd statusbar expand-notifications`, `device.sh shot`, then
   `adb shell cmd statusbar collapse`.
 - A video for the maintainer (Claude can't watch one): `adb shell screenrecord --time-limit 15 /sdcard/anki.mp4`,
@@ -107,36 +121,50 @@ The manual pass of `ux-ui/references/accessibility.md`, with commands:
 3. Dark theme and reduced motion: `device.sh theme dark` (then cold-start the app, see SKILL.md
    gotchas) and `device.sh motion off`.
 4. One-handed reach: judge it on the screenshot, primary action in the bottom half.
-Finish with `device.sh reset`.
+Finish with the TalkBack-off command of step 1, then `device.sh reset`: it doesn't turn
+TalkBack off (`enabled_accessibility_services` isn't saved).
 
 ## 6. A reminder end to end
 
 Needs a signed-in session. `reminder_plan.dart` plans J-0 and J-7 at 10:00 by default
-(Settings › Anniversaires changes the leads and the time, the birthday sheet a person's own);
-a reminder whose 10:00 is already past moves to the next year.
-1. In the app, add a birthday for tomorrow and one 8 days from now: both remind tomorrow at
-   10:00 (J-0 and J-7).
-2. `device.sh alarms`: one `RTC_WAKEUP` entry per reminder at 10:00; on a debug build the
-   plugin's schedule follows (titles and dates).
-3. `device.sh time 'YYYY-MM-DD 09:59'` with tomorrow's date, wait a minute or two, then
-   `device.sh notifs` and a shot of the shade (§4).
-4. `device.sh reset`: the clock goes back to network time.
+(Settings › Anniversaires changes the leads and the time; a person's own are set on the person
+page and saved at once, 2d89e66); a reminder whose 10:00 is already past moves to the next year.
+Test birthdays and imported contacts go to the signed-in account's Firestore, synced with the
+maintainer's phone: delete them at the end.
+1. Read Réglages › Anniversaires first. With the default setting, add a birthday for tomorrow
+   and one 8 days from now: both remind tomorrow at 10:00 (J-0 and J-7).
+2. `device.sh alarms`: one `RTC_WAKEUP` entry per reminder at 10:00, at most 450 reminders
+   (`ReminderPolicy.maxScheduled`), no duplicate id (6edee91); on a debug build the plugin's
+   schedule follows (titles and dates).
+3. `device.sh time 'YYYY-MM-DD 09:59'` with tomorrow's date (emulator only, a note `help`
+   lacks), wait a minute or two, then `device.sh notifs` and a shot of the shade (§4).
+4. `device.sh reset`: the clock goes back to network time. The plugin rescheduled the fired
+   reminders to next year from the advanced clock, and the same process doesn't reapply an
+   identical plan (9c48dd1): `device.sh stop` then `start`. `time` also leaves a future-dated
+   FORCE STOP (`dumpsys activity exit-info`) that makes WorkManager stop each forced run;
+   `reset` doesn't clear it (`.claude/rules/reminders.md`).
 Jumping the clock forward fires every alarm in between at once. Each notification repeats on
 the same date every year (`DateTimeComponents.dateAndTime`), so a fired one stays planned.
+Background replan checks (`dumpsys jobscheduler`, `cmd jobscheduler run -f …`, `period_count`):
+`.claude/rules/reminders.md`, Platform; decision D12 explains workmanager.
 
 ## 7. Permissions and app settings
 
 - `device.sh perm` shows the runtime permissions (notifications, contacts, camera); `grant`,
   `revoke`, and `reset` (revoke and clear « user-set / user-fixed », so the app asks again
   as on a fresh install). Revoking kills the app.
-- Exact alarms: AnKi declares `USE_EXACT_ALARM` (granted at install, not revocable), so the
-  `SCHEDULE_EXACT_ALARM` app-op doesn't change anything while it stays in the manifest.
+- Exact alarms: `USE_EXACT_ALARM` is granted at install, so the `SCHEDULE_EXACT_ALARM` app-op
+  changes nothing (rule: `.claude/rules/reminders.md`).
+- Blocked state: `pm revoke` then `pm set-permission-flags <pkg> android.permission.POST_NOTIFICATIONS user-set user-fixed`
+  (`.claude/rules/reminders.md`).
+- The reminders offer appears only after an import, the first additions or a sign-in, never at
+  launch (f2e546d); the cross of the reminders-off card is stored in secure storage.
 - Notifications shown or not for the app: the settings screen of §4.
 
 ## 8. Contacts for the import
 
 - `device.sh contact "Camille Martin" 1990-03-15`, `device.sh contact "Mamie" --07-02` (no
-  year: Android stores `--MM-DD`), names with accents and apostrophes work. They are local
+  year: Android stores `--MM-DD`; expected result: imported without year nor age, 99771e2), names with accents and apostrophes work. They are local
   contacts of the emulator; `device.sh contact clear` removes them all.
 - Check them in the Contacts app:
   `adb shell am start -n com.google.android.contacts/com.android.contacts.activities.PeopleActivity`.
@@ -149,6 +177,9 @@ The biometric lock needs a screen lock and an enrolled finger on the device: the
 them once (Settings › Sécurité): agents don't change the lock screen. On the emulator, each
 « touch the sensor » step and AnKi's own prompt accept `adb -s emulator-5554 emu finger touch 1`
 (the enrolled finger); `emu finger touch 2` is an unknown finger, for the failure path.
+The auth checks owed (fingerprint prompt language 785b2b1, never the app without a Firebase
+session c6bbf9e, account deletion with the fingerprint on a660627, a cancelled Google sign-in
+staying silent 14988fb) are listed in `.claude/skills/architecture/references/migration.md` §1.
 
 ## 10. Camera
 
@@ -163,7 +194,9 @@ Debug builds only (`run-as` refuses release builds):
 `adb shell run-as com.github.nautiii.an_ki ls -la files shared_prefs`.
 - `shared_prefs/notification_plugin_cache.xml`: the notification plugin's own schedule
   (`device.sh alarms` prints it).
-- Never print `FlutterSecureKeyStorage.xml` or the secure-storage files: they hold keys.
+- Never print the secure-storage files: the values (biometric token, `reminders_off_dismissed`)
+  are in `shared_prefs/FlutterSecureStorage.xml`, `FlutterSecureKeyStorage.xml` holds only the
+  keys.
 
 ## 12. Release startup
 
@@ -192,7 +225,7 @@ JAVA_TOOL_OPTIONS="-Djdk.net.unixdomain.tmpdir=$(cygpath -w ~/.gradle/tmp-af)" \
 
 ## 14. Dart MCP server
 
-`dart mcp-server` ships with the Dart SDK (server 1.2.0 with Dart 3.13.5). It is declared in
+`dart mcp-server` ships with the Dart SDK (server 1.2.0 with Dart 3.13.7). It is declared in
 `.mcp.json` at the repo root; Claude Code asks to approve it once, and only a session started
 after that sees the `mcp__dart__*` tools:
 ```json
@@ -211,18 +244,9 @@ after that sees the `mcp__dart__*` tools:
   Android Studio's daemon (its root is the Dart SDK), connect to the one whose root is the repo.
   `flutter_driver_command` needs the driver extension, which AnKi doesn't enable.
 
-## 15. Not verified yet
+## 15. Device checks owed
 
-- The J-0 hero and its petals, the « Souhaiter » share sheet and the J-0 notification's
-  « Souhaiter » button (UX step 4): they need the maintainer's sign-in on the emulator.
-- §9 enrolment and AnKi's biometric prompt: the console accepted `finger touch`, nothing was
-  enrolled.
-- §12 release build and timings, §2 on the phone (none was plugged in), §10 poster.
-- `motion off` sets Android's animation scales to 0; whether AnKi's animations honour it
-  (`MediaQuery.disableAnimations`) wasn't checked.
-- Whether an emulator started by `claim` from the Bash tool survives a restart of the Claude app.
-- §16 on the phone, and two real sessions queuing (the self-test and two sub-agents with
-  different `DEVICE_OWNER` were run).
+The single list is `.claude/skills/architecture/references/migration.md` §1.
 
 ## 16. One device, many sessions
 
@@ -245,12 +269,14 @@ after that sees the `mcp__dart__*` tools:
   the device even when that fails, and the next taker retries the reset.
 - Stuck by hand (a session you know is gone): `device.sh status`, then remove
   `~/.android/anki-device/<key>/held`; the next `claim` restores its settings.
-- Self-test, no device needed (fake adb, temporary state, 19 cases):
-  `bash .claude/skills/device/scripts/test_queue.sh`. Run it after any change to the queue.
+- Self-test, no device needed (fake adb, temporary state, 18 cases):
+  `bash .claude/skills/device/scripts/test_queue.sh`. It takes over 120 s: run it in the
+  background (`run_in_background`) after any change to the queue.
 
 ## 17. Rarer gotchas
 
-- Google Sign-In needs the debug key's SHA-1 in Firebase (platform rule): e-mail works meanwhile.
+- Google Sign-In needs the debug key's SHA-1 in Firebase (`.claude/rules/platform.md`): e-mail
+  works meanwhile.
 - Git Bash turns `/sdcard/x` into `C:/Program Files/Git/sdcard/x` for `adb.exe`: export
   `MSYS_NO_PATHCONV=1` before raw adb commands (`device.sh` does). In PowerShell never redirect
   binary output (`exec-out screencap > x.png` corrupts it): `adb shell screencap -p /sdcard/x.png`
@@ -262,4 +288,5 @@ after that sees the `mcp__dart__*` tools:
 - `flutter gen-l10n` (run by every build) writes `lib/l10n/app_localizations*.dart` with
   `pubspec.yaml`'s line endings: keep `pubspec.yaml` in LF (`.gitattributes`), or every build
   shows the l10n files as changed.
-- The system language only changes Android's dialogs and pickers (§1 sets it).
+- The system language changes Android's dialogs and pickers, and the order of typed dates, their
+  hint and prefill, which follow the phone's region (fdf9c11, `birth_date_field.dart`); §1 sets it.

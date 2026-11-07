@@ -1,6 +1,6 @@
 ---
 name: device
-description: "Run, see and debug AnKi on the shared Honor_Magic7_Pro emulator (claim/release queue) or the phone: launch, screenshots, taps, logs, crashes, dark mode, 200 % text, offline, permissions, reminders. The project skill the built-in run skill looks for; use when a change must be checked in the running app (« lance l'app », « ça plante »). Not for widget tests or PNG snapshots (ux-ui)."
+description: "Run, see and debug AnKi on the shared Honor_Magic7_Pro emulator (claim/release queue) or the phone: launch, hot reload, screenshots, taps, logs, crashes, dark mode, 200 % text, offline, permissions, reminders. The project skill the built-in run skill looks for; from the main session, delegate the checks to the `device-runner` agent. Use when a change must be checked in the running app (« lance l'app », « vérifie sur l'appareil », « ça plante », « libère l'émulateur »). Not for widget tests or PNG snapshots rendered on the host (ux-ui), nor the Firestore emulator (firebase)."
 effort: low
 ---
 
@@ -11,7 +11,8 @@ get: colour emoji, Android's nonlinear 200 % text, the system bars, permission d
 and notifications, contacts, Firestore offline, real startup. This skill puts the app on a device
 and brings back evidence: screenshots you open with Read, the UI tree, logs, the system's dumps.
 
-Talk to the maintainer in French; commands, file names and commit messages stay in English.
+From the main session, every device check goes through the `device-runner` agent (it loads this
+skill and follows it); without it, the report says « appareil : non vérifié » and why.
 
 ## Devices
 
@@ -32,14 +33,18 @@ hold it, so nobody's APK, theme or clock lands in another's screenshots.
 
 - **`claim` first**, with the Bash `timeout: 600000`: it waits its turn (first come, first
   served), boots or repairs the emulator, undoes what a vanished session left varied, and prints
-  the serial. Exit 75 means run it again, the place is kept: still queued after 5 min
-  (« position N, tenu par … »), or the device came to you after a wait with the emulator off
-  (the next call boots it, so a boot never runs past the Bash's 10 min).
+  the serial. Exit 75 means run it again: queued after 5 min (« en attente : position N
+  sur M — <détenteur> tient Honor_Magic7_Pro. Relance … »), or the device came to you after a
+  wait with the emulator off (the next call boots it, so a boot never runs past the Bash's
+  10 min). A waiting ticket is kept only if `claim` is rerun within 120 s (`TICKET_TTL`).
 - **`release` last**, after closing your run tab: it restores your settings and hands over.
-  Forgotten, it blocks the others until the 15-min lease (renewed by each command) runs out.
+  Forgotten, it blocks the others until the 15-min lease runs out. Only `device.sh` commands
+  renew it (not `status`, not a Dart MCP hot reload): a build or hot-reload session longer than
+  15 min without a `device.sh` command lets the next in line take the device.
 - The hold belongs to the whole session: its sub-agents share it (same
   `CLAUDE_CODE_SESSION_ID`). A `claim` that answers « déjà à toi » means your session already
-  held it: don't `release` then, the session that claimed does. Run one `device-runner` at a
+  held it: don't `release` then, the session that claimed does; use `reset` instead, which also
+  undoes the parent session's changes (one `baseline.env` per device). Run one `device-runner` at a
   time per session. `status`: who holds, who waits. Internals: recipes §16.
 
 ## Where each command runs
@@ -56,15 +61,20 @@ Bash tool. No Terminal panel: recipes §13.
 2. **Launch** in the Terminal panel: `run_in_terminal` with
    `& '.\scripts\run.ps1' -Example -d <serial> --print-dtd` (secrets.example.json, dummy Google
    Books key: never the real secrets.json; Books lookups fail there, check them on the phone),
-   titled « AnKi · <device> ». Poll `read_terminal` (`wait_for_output_ms: 60000`) until
+   titled « AnKi - <device> » (`run_in_terminal` accepts only letters, digits, spaces and
+   `. _ , & + : # / ' -` in a title). Poll `read_terminal` (`wait_for_output_ms: 60000`) until
    « Flutter run key commands », or until a Gradle or Dart error, which you fix first. The first
    build takes ≈ 5 min; your install replaces the previous session's build, as it should.
    - Your build is already installed, nothing to rebuild: `device.sh start`.
+   - `-Clean` runs `flutter clean` and deletes `build/`, the screenshots in `build/device/`
+     included.
    - Release, for startup time and smoothness: `run_in_terminal` with
      `$env:ANDROID_SERIAL = '<serial>'; & '.\scripts\build_and_deploy.ps1' -Release -ConfigPath secrets.example.json`.
 3. **Observe.** `look <name>` takes the screenshot (prints a Windows path, open it with Read) and
    lists each labelled element as `label | class | x,y`, in one call. `shot` and `ui` do each
-   half; `logs`, `crash`, `alarms` and `notifs` give the system's side.
+   half; `logs`, `crash`, `alarms` and `notifs` give the system's side. `ui` and `tap` see only
+   semantics: read the text on the screenshot too, since Outfit has neither U+2011 nor U+202F
+   (`.claude/rules/l10n.md`; d162d6b, 75f4995, 535685e).
 4. **Drive.** `tap <label>` waits up to 6 s for the label (exact first, else the first one
    containing it, case ignored), so taps during a transition aren't lost; when it fails it lists
    what is visible. `wait <label> [s]` waits for a screen. Also `tap <x> <y>`, `type`,
@@ -76,9 +86,16 @@ Bash tool. No Terminal panel: recipes §13.
 6. **Vary.** `theme dark`, `text 2.0`, `size compact` (360 × 640 dp), `motion off`, `net off`,
    `tz`, `time`, `perm`, `contact`. The first display, motion, network, clock or time-zone
    variation records the device's settings; `release` (or `reset`) puts them back. Permissions
-   and contacts aren't recorded: undo them with `perm reset <permission>` and `contact clear`.
+   and contacts aren't recorded. `perm reset <permission>` revokes and clears the flags, so a
+   permission granted before stays revoked: read `perm` first, then restore with `grant` or
+   `reset`. `contact clear` deletes every local contact (`account_type IS NULL`), the AVD's test
+   contacts included (recipes §8 lists them).
 7. **Release.** Close the run tab (`stop_terminal_tab`, `close: true`), then `device.sh release`.
-   Leave the emulator running: the next session uses it.
+   Leave the emulator running: the next session uses it. Closing the tab (or Ctrl-C) force-stops
+   the app: its alarms and the WorkManager task are cancelled until the next launch
+   (`.claude/rules/reminders.md`); `device.sh stop` does the same. Run `device.sh start` before
+   leaving when the reminders must stay planned. If the maintainer typed in the tab,
+   `stop_terminal_tab` can't stop it: ask them to press `q`.
 8. **Report** in French: device and build mode, what you checked with the screenshot paths, what
    you couldn't check (camera, phone-only behaviour, a flow behind sign-in), time spent queued.
 
@@ -118,9 +135,12 @@ gotchas (§17).
 ## Gotchas
 
 - Revoking a permission makes Android kill the app (« Lost connection to device »): relaunch.
-- Reminders fire at 10:00 *device* time. The app's language comes from the profile, not Android.
+- Reminders fire at 10:00 *device* time by default; the time and the leads (J-30, J-7, J-1) are
+  set in Réglages › Anniversaires (0746d3b). The app's language comes from the profile, not Android.
 - A theme switch while the app runs can leave dark status-bar icons on a dark screen: cold-start
-  in dark mode before judging the bars. Measure startup in release only (debug is JIT).
+  in dark mode before judging the bars. `theme dark` changes the app only when its theme is
+  « Système » (Réglages › Préférences); a dark profile with a light system flashes light at cold
+  start: known as ux D28, not a regression. Measure startup in release only (debug is JIT).
 - `type` is ASCII only. `ui` and `tap` see only what Flutter exposes to accessibility: an
   unlabelled element is invisible to them, an accessibility finding in itself. A tile's
   semantics merge into one label (« Camille Martin / 15 mars »): tap any part of it.
@@ -132,4 +152,5 @@ gotchas (§17).
 - Change the clock, write contacts, `pm clear`, uninstall or wipe anything on the phone: it is
   the maintainer's own. On the emulator, `pm clear com.github.nautiii.an_ki` and `-wipe-data`
   erase the session and local data: ask first.
-- Read or print `secrets.json` or the app's secure storage (`FlutterSecureKeyStorage.xml`).
+- Read or print the app's secure storage: the values (biometric token, `reminders_off_dismissed`)
+  are in `shared_prefs/FlutterSecureStorage.xml`, `FlutterSecureKeyStorage.xml` holds only the keys.
