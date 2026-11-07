@@ -176,14 +176,10 @@ void main() {
         await tester.settleApp();
       });
 
+      // La carte elle-même est testée à part ; ici, sa place sur l'accueil.
       expect(find.byType(RemindersOffCard), findsOneWidget);
+      // Rendue pour de vrai : sans avis, la carte n'est qu'un `SizedBox`.
       expect(find.text('Rappels désactivés'), findsOneWidget);
-
-      await tester.tap(find.text('Activer'));
-      await tester.pumpAndSettle();
-
-      expect(notifications.requests, 1);
-      expect(find.text('Rappels désactivés'), findsNothing);
     });
 
     testWidgets('each sign-in path opens its screen', (tester) async {

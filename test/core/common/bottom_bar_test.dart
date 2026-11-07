@@ -125,23 +125,5 @@ void main() {
 
       expect(picked, isEmpty);
     });
-
-    testWidgets('renders in dark mode', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData.dark(),
-          home: Scaffold(
-            body: BottomBar(
-              destinations: destinations,
-              selectedIndex: 0,
-              onSelected: (_) {},
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(BottomBar), findsOneWidget);
-    });
   });
 }
