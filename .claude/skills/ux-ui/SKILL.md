@@ -1,6 +1,6 @@
 ---
 name: ux-ui
-description: "Senior UX/UI for AnKi: any visual or interaction work — screen, widget, flow, form, states, motion, theme, dark mode, typography, icons, microcopy, accessibility (« c'est moche », « améliore l'écran X »). Applies the moonlit-garden identity and WCAG 2.2 AA, verified with PNG snapshots. Not for data, Firebase or scheduling logic without UI impact."
+description: "Senior UX/UI for AnKi: any visual or interaction work — screen, widget, flow, form, states, motion, theme, dark mode, typography, icons, microcopy, accessibility (« c'est moche », « améliore l'écran X »). Applies the moonlit-garden identity and WCAG 2.2 AA, verified with PNG snapshots rendered on the host by `flutter test`. Not for data, Firebase or scheduling logic without UI impact, nor checking the running app on a device (device)."
 effort: high
 ---
 
@@ -17,11 +17,8 @@ problem, say so and propose the better structure — with a brief — instead of
 
 ## The product
 
-AnKi (暗記, *learn by heart*; Kairos, *the right moment*) makes sure you never miss the moment
-that matters to someone you care about. Three core jobs, by frequency:
-1. **See who's next** — open the app, know who, when and how old in under 2 s. (daily)
-2. **Act on it** — wish, find a gift — one tap from the reminder or the home. (on the day)
-3. **Capture** — add or import a birthday in under 10 s, never lose one. (bursty at onboarding)
+AnKi's three jobs, by frequency (`AGENTS.md`): **see who's next** (daily, in under 2 s), **act on
+it** (wish, find a gift), **capture** (add or import in under 10 s).
 
 Everything else (groups, calendar, settings, scanner) serves these. Judge every decision by them.
 
@@ -55,18 +52,15 @@ type, shape, spacing, depth, motion, haptics, voice). Then, as needed:
 | Implementing tokens, theme, states, undo, agenda, dates, motion | `references/flutter-recipes.md` |
 | Before touching a screen, or for a vague « improve the app » | `references/ux-backlog.md` (audit, big bets, roadmap) |
 
-Project rules still apply (`AGENTS.md`, `.claude/rules/ui.md`): dumb widgets, logic in Notifiers,
-`context.l10n` with the FR template + EN, colors from the theme only, absolute imports, French
-comments, tests with every change.
+Project rules apply: `AGENTS.md` › House rules, `.claude/rules/ui.md` and `l10n.md`.
 
 ## Workflow
 
 ### 1. Frame
-Who, which job, which flow. Size the change — it sets the ceremony:
-- **Polish** — local (spacing, color role, copy, a missing state, semantics): just do it.
-- **Redesign** — a new pattern, flow or component: brief first, build after a go.
-- **System** — tokens/theme, navigation, identity, data model, auth, a new dependency: brief and
-  explicit approval.
+Who, which job, which flow. The ceremony follows `AGENTS.md` (local, structural, system). In UX
+terms: local = polish (spacing, color role, copy, a missing state, semantics); structural = a new
+pattern, flow or component, or a screen redesign (brief first); system = tokens/theme, navigation,
+identity, data model, auth, a new dependency (brief and explicit approval).
 
 Vague request (« améliore l'app », « c'est moche »)? Offer 3–5 options from the backlog ranked by
 impact on the core jobs, with effort, and ask where to start — or start with the P0 items if told
@@ -107,9 +101,11 @@ haptics → semantics → l10n FR + EN (`flutter gen-l10n`) → tests.
 ### 5. Verify — show, don't claim
 - Snapshot **after** with the same scenes and compare the sheets side by side: every issue you
   fixed is gone from the audit, and nothing new appeared.
-- When the screen can be reached in the running app, capture it on the emulator too (device
-  skill): the real font, emoji, system bars and Android's text scaling, light · dark · 200 %.
-- `flutter analyze` clean on touched files; `flutter test` for touched features, new tests included.
+- When the screen can be reached in the running app, have the `device-runner` agent capture it on
+  the emulator (the real font, emoji, system bars and Android's text scaling, light · dark ·
+  200 %), or the report says « appareil : non vérifié » and why.
+- `bash .claude/hooks/verify-index.sh` (format, project norms, l10n, `dart analyze --fatal-infos`,
+  tests).
 - Go through the review checklist below.
 
 ### 6. Report (in French)
@@ -181,7 +177,7 @@ flutter test build/ui_snapshots/_src/palette_audit_test.dart
 - [ ] Motion uses `AppMotion` / M3 tokens and honours reduce motion; haptics follow identity §9.
 - [ ] Copy in both ARB files, « vous », French typography (lowercase months, « », no-break spaces).
 - [ ] Spacing and radii from tokens; layout on the 8 dp grid.
-- [ ] Widgets dumb, logic in Notifiers; tests added or updated; `flutter analyze` clean.
+- [ ] Widgets dumb, logic in Notifiers; tests added or updated; `verify-index.sh` green.
 - [ ] Before/after snapshots compared; backlog updated (fixed items removed, new findings added).
 
 ## Codebase gotchas
@@ -191,29 +187,28 @@ flutter test build/ui_snapshots/_src/palette_audit_test.dart
 - `TestHarness` doesn't apply `AppTheme`: widget tests check behaviour, while look and contrast are
   checked with the snapshot tool and the palette audit. `context.ankiColors` falls back safely.
 - `core/` never imports a feature; `core/common` widgets stay dumb (params + callbacks).
-- The ARB template is `intl_fr.arb`; add EN too, then run `flutter gen-l10n`.
 - Flutter 3.44+ (the repo is on 3.47): a `SnackBar` with an action persists unless `persist: false`; theme data classes
   are `AppBarThemeData`, `InputDecorationThemeData`, `CardThemeData`, `DialogThemeData`;
   `SemanticsService.announce` is deprecated in favour of `sendAnnouncement`.
 - Material 3 Expressive isn't implemented in core Flutter: borrow its principles (springs, shape
   contrast, emphasized type) and never add an M3E package without approval. Moving from Material
   to the `material_ui` package is a separate migration, never part of a UI change.
-- Dependencies are pinned to exact versions (no `^`, the maintainer's choice): keep that convention
-  when a new package is approved.
-- Android first: the maintainer tests on an Android phone, agents on the `Honor_Magic7_Pro`
-  emulator (device skill). Material conventions win when the
-  platforms differ, but iOS must stay correct.
-- If unrelated tests fail, run the touched feature's tests and report the unrelated failures
-  instead of silently fixing them.
 - Nested `Scaffold`s show snackbars only in the outermost one: the shell's. That is why the nav
   bar is its `bottomNavigationBar` (`extendBody`): floating snackbars land above it, and tab
   content gets the bar's height in `MediaQuery.paddingOf(context).bottom` — pad scrollables
   with it, never a hard-coded height.
 - Under a pinned `SliverAppBar`, pin section headers with `SliverPersistentHeader(pinned: true)`:
   `PinnedHeaderSliver` ignores the app bar and slides under it.
-- Signed-in screens live in a go_router shell branch: `showModalBottomSheet` needs
-  `useRootNavigator: true`, or the sheet opens inside the tab, under the floating bar (its CTA
-  hidden, the bar still tappable). Dialogs already default to the root navigator.
+- Strings, plurals and the glyphs Outfit lacks (U+2011, U+202F): `.claude/rules/l10n.md`; sheets from
+  a shell tab: `.claude/rules/navigation.md` (`useRootNavigator: true`).
+- An agenda row stacks (date under the name) once the date no longer fits on two lines, and its
+  stacked column is built so TalkBack still reads groups, name, date, countdown in row order: keep
+  both when touching agenda rows, or 200 % text cuts the date or TalkBack reads the countdown
+  first — 258c03e, a8952fa.
+- A long name goes under « Bonjour, … » rather than being cut: the bar grows with the text up to
+  the title cap — 4e00030.
+- Typed dates follow the phone region's order (month first on a US phone), hint and prefill
+  included — fdf9c11.
 - `SkeletonBox` pulses forever: a widget test that `pumpAndSettle`s a screen showing one never
   settles; pin its data loaded first.
 - `containsSemantics` is deprecated since Flutter 3.40: assert with `isSemantics`; custom
