@@ -14,7 +14,7 @@ handing over, quote the runbook's commands with the project id and say what to c
 7. API keys and App Check
 8. Usage, quotas, budget
 9. Production data and test accounts
-10. A16 — older groups out of `category`
+10. Older groups out of `category` (applied 2026-11-04)
 
 ---
 
@@ -88,9 +88,13 @@ dart pub global activate flutterfire_cli
 flutterfire configure --project=an-ki-9b02b --platforms=android,ios --out=lib/core/firebase_options.dart
 ```
 
+`firebase.json` points flutterfire at `lib/core/firebase_options.dart` (fixed on 2026-11-07; it
+named `lib/firebase_options.dart`). `--platforms=android,ios` also rewrites
+`ios/Runner/GoogleService-Info.plist` (tracked): review its diff.
+
 (`flutterfire configure --help` if a flag moved.) Then review the diff: `firebase.json` keeps its
 `firestore` and `emulators` sections, `lib/core/firebase_options.dart` loses `web`,
-`google-services.json` stays as it was unless the console changed. `flutter analyze`, a run on a
+`google-services.json` stays as it was unless the console changed. `bash .claude/hooks/verify-index.sh`, a run on a
 device, then one commit (`CHORE(firebase): drop the web app config`).
 
 ## 6. Sign-in providers and e-mails
@@ -128,9 +132,9 @@ Console → Firestore → Data is for looking. Editing a user's document by hand
 (`migrations.md` §4): written list first, then the change, then a check. Experiments happen on
 the emulator (`demo-anki`) or on a test account, never on the maintainer's own data.
 
-## 10. A16 — older groups out of `category` (applied)
+## 10. Older groups out of `category` (applied 2026-11-04)
 
-Applied on 2026-11-04, steps 1 to 5 (step 1, a separate deploy of the rules of `90a83db`, was
+Applied on 2026-11-04, steps 1 to 5 (step 1, a separate deploy of the rules of `a66f754`, was
 skipped: the current file contains everything it brought): older shared groups copied to
 `user/{uid}/categories` under the same id, `predefined: true` on `family`, `friend`, `colleague`
 and `other`, the app with the filtered query installed, `firestore.rules.hold` deleted, rules

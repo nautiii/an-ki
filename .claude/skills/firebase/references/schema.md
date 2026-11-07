@@ -20,7 +20,7 @@ Firestore types; « absent » means older documents may lack the field and the r
 
 ## 1. `user/{uid}` — profile
 
-Owner: the path (`{uid}` = `request.auth.uid`). Rules: owner reads and writes, nobody else.
+Owner: the path (`{uid}` = `request.auth.uid`). Rules: owner reads and writes, nobody else; the marked address deletes a marked profile (§10).
 
 | Field | Type | Meaning, default when absent |
 |-------|------|------------------------------|
@@ -34,11 +34,12 @@ Owner: the path (`{uid}` = `request.auth.uid`). Rules: owner reads and writes, n
 | `reminders` | map `{leads: [string], hour: int, minute: int}`, optional | default reminder setting (B6); absent → J-7 + J-0 at 10:00; unknown leads skipped, `sameDay` always added; written only by `ReminderPreferencesRepository.savePreferences` (`update`) |
 | `transferTo` | string, optional | a guest moving to a Google account (§10): that account's address; the marked document is deleted by it |
 
-- Written by `UserRepository.createUser` (transaction: creates only if absent, never overwrites),
+- Written by `UserRepository.markForTransfer` (§10), `UserRepository.createUser` (transaction: creates only if absent, never overwrites),
   `updatePreferences` (`update`: `pseudo`, `themeMode` + delete `isDark`, `locale`), `updateNames`
   (`update`), `deleteUser`; `AuthRepository.setBiometricToken` (`set` with `merge`).
 - Read by `UserRepository.watchUser` (stream; null while the document doesn't exist) and
-  `AuthRepository.isBiometricTokenValid` (`get`).
+  `AuthRepository.isBiometricTokenValid` (`get`), `ReminderPreferencesRepository.watchPreferences`
+  (the `reminders` field of the profile document).
 
 ## 2. `user/{uid}/categories/{id}` — private groups
 
@@ -55,13 +56,16 @@ Groups a user creates since 2026-10-24, plus the older ones copied from `categor
 - Ids come from `CategoryRepository.newCategoryId()`, generated on the shared `category`
   collection reference, so a private id never collides with a shared one and birthdays can
   point at either.
-- Written by `createCategory` (`set` on that id); erased by `deleteAllUserCategories`. No
-  update path yet. Read by `watchOwnCategories` (the whole subcollection, stream).
+- Written by `createCategory` (`set` on that id), `updateCategory` (name, icon, tone; 43aa09e),
+  `deleteCategory` (deletes the group and removes it from its birthdays' `categories` in the same
+  `writeInBatches`, 3a6c87d; beyond one batch it is no longer atomic), `markForTransfer` and
+  `takeOver` (§10); erased by `deleteAllUserCategories`. Read by `watchOwnCategories` (the whole
+  subcollection, stream) and `fetchOwnCategories` (server read).
 
 ## 3. `birthday/{id}`
 
 Owner: the `uid` field. Rules: read and delete by the owner; create only with one's own `uid`;
-update by the owner without changing `uid`.
+update by the owner without changing `uid`; the marked address deletes or takes over a marked document (§10).
 
 | Field | Type | Meaning, default when absent |
 |-------|------|------------------------------|
@@ -80,12 +84,13 @@ update by the owner without changing `uid`.
   (contacts import, batches of ≤ 500), `updateBirthday` (`update` of every draft field plus
   `uid`; `picture` only when a new one is given; never `reminders`), `updateReminders`
   (`update` of `reminders` only), `markWished` / `unmarkWished` (`update` with `arrayUnion` /
-  `arrayRemove`), `deleteBirthday`, `deleteAllUserBirthdays`.
-- Read by `watchBirthdays`: `where('uid', isEqualTo: uid)`, stream.
+  `arrayRemove`), `deleteBirthday`, `deleteAllUserBirthdays`, `markForTransfer` and `takeOver`
+  (§10).
+- Read by `watchBirthdays`: `where('uid', isEqualTo: uid)`, stream; `fetchBirthdays` (same filter).
 
 ## 4. `books/{id}`
 
-Owner: the `uid` field. Rules: same as `birthday`.
+Owner: the `uid` field. Rules: same as `birthday`; the marked address deletes or takes over a marked document (§10).
 
 | Field | Type | Meaning |
 |-------|------|---------|
@@ -98,7 +103,8 @@ Owner: the `uid` field. Rules: same as `birthday`.
 | `scannedAt` | timestamp | the app's clock at saving; the list's order |
 | `transferTo` | string, optional | guest move (§10), as on `birthday` |
 
-- Written by `BookRepository.saveBook` (`add`); erased by `deleteAllUserBooks`.
+- Written by `BookRepository.saveBook` (`add`), `markForTransfer` and `takeOver` (§10); erased by
+  `deleteAllUserBooks`.
 - Read by `watchBooks`: `where('uid', isEqualTo: uid).orderBy('scannedAt', descending: true)` —
   composite index (§7).
 
@@ -112,7 +118,7 @@ Older users' groups (app versions before 2026-10-24) were copied by the maintain
 | Field | Type | Meaning |
 |-------|------|---------|
 | `name` | string | a key the UI translates (`family`, `friend`, `colleague`, `other`) |
-| `predefined` | bool | `true`; required by the rules and the query (added in the console, §10 step 3) |
+| `predefined` | bool | `true`; required by the rules and the query (added in the console, `console.md` §10) |
 | `icon` | int | Material code point |
 | `tone` | int, optional | absent on these documents |
 
@@ -124,7 +130,8 @@ Older users' groups (app versions before 2026-10-24) were copied by the maintain
 - Providers: Google (needs each signing key's SHA-1, console runbook §4), e-mail/password (reset
   link in the app's language: `setLanguageCode` before `sendPasswordResetEmail`, templates in the
   console), anonymous (« invité »).
-- Linking a guest to Google keeps the uid, so every document stays its own.
+- Linking a guest to Google keeps the uid, so every document stays its own. A Google account
+  that already has data takes the guest's documents over instead (§10).
 - E-mail enumeration protection is on: a wrong e-mail or password answers
   `invalid-credential` (`AuthFailure.invalidCredentials`); a reset to an unknown address
   « succeeds » silently.
@@ -160,6 +167,16 @@ then `AuthController.deleteAccount()`; nothing is erased unless the identity is 
 | 4 | `user/{uid}` | delete |
 | 5 | the Auth account | after the data, identity confirmed first (a guest that gets `requires-recent-login` is signed out) |
 
+Rules of the run:
+- The deletion queries read the server (`Source.server`): offline nothing starts, else a partial
+  cache would leave documents (a66f754).
+- `AppInitializer` doesn't recreate the profile during `AccountDeletion`, and recreates it if the
+  Auth deletion fails (`app/bootstrap/app_initializer.dart`; a66f754).
+- After `deleteCurrentUser` nothing is written to the profile (the session is gone, the rules
+  refuse); only the device's biometric token is cleared (a660627).
+- What survives: the older non-predefined `category/{id}` documents (`console.md` §10, last
+  step, not done) and, after a takeover, the guest's empty anonymous Auth user.
+
 Invariant: every per-user path in this file appears in this table. A new collection adds its
 `deleteAllUser…` method, a line in `_eraseData()` and a test.
 
@@ -174,14 +191,17 @@ everywhere):
   older profiles keep it, ignored, until the account is deleted.
 - `category` without `tone`; any group without `icon`.
 - `birthday` without `date`: skipped, not shown.
+- A contact imported before 2026-10-12 without a year: `date` in 2000 without `yearKnown`, so read
+  as born in 2000; only the birthday form fixes it (99771e2).
 
 ## 10. Guest move to an existing Google account (B5.5)
 
 A guest whose Google account already has AnKi data opens that account with its birthdays
-(`GuestMerge`, settings feature; app code lands after these rules). Signing in replaces the anonymous session, so a plain copy
+(`GuestMerge`, `lib/features/settings/providers/guest_merge.dart`, d99cce9). Signing in replaces the anonymous session, so a plain copy
 would leave the guest's documents orphaned under a uid nobody opens again. They move instead:
 
-1. As the guest, online (server reads, marks awaited until the server acknowledges them):
+1. As the guest, online (server reads, marks awaited until the server acknowledges them, within
+   20 s: `markTimeout`, else `GuestMergeFailure.offline`):
    `markForTransfer` on `birthday`, `books`, `user/{uid}/categories` and `user/{uid}` writes
    `transferTo` = the chosen Google address (an owner's ordinary update).
 2. Sign-in with that Google account (`AuthController.openGoogleAccount`).
@@ -195,4 +215,6 @@ would leave the guest's documents orphaned under a uid nobody opens again. They 
 Rules (`rules.md` §1): the marked address may delete a marked document, and update a marked
 `birthday` or `books` document only to make it its own without the mark; it never reads them.
 What stays: the empty anonymous Auth user; a move cut between steps 2 and 3 (app killed) leaves
-marked documents nobody claims.
+marked documents nobody claims; an unverified address (marks set, takeover refused:
+`GuestMergeFailure.incomplete`) leaves the documents marked; on a duplicate, the guest's photo,
+`wishedYears` and own reminders are lost (ux D29, open).
