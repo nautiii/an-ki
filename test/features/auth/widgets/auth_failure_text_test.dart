@@ -23,6 +23,11 @@ void main() {
       'Pas de connexion. Vérifiez votre réseau et réessayez.',
     );
     expect(
+      AuthFailure.signInTimeout.message(context),
+      'La connexion prend trop de temps. Vérifiez votre réseau, puis '
+      'réessayez.',
+    );
+    expect(
       AuthFailure.unknown.message(context),
       "Quelque chose s'est mal passé. Réessayez dans un instant.",
     );

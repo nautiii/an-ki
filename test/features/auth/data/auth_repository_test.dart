@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
@@ -30,6 +32,19 @@ class _ResetRecordingAuth extends MockFirebaseAuth {
       actionCodeSettings: actionCodeSettings,
     );
   }
+}
+
+/// Firebase Auth qui ne répond jamais à une connexion : réseau qui pend.
+class _HangingAuth extends MockFirebaseAuth {
+  @override
+  Future<UserCredential> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) => Completer<UserCredential>().future;
+
+  @override
+  Future<UserCredential> signInWithCredential(AuthCredential? credential) =>
+      Completer<UserCredential>().future;
 }
 
 void main() {
@@ -162,6 +177,24 @@ void main() {
     test('maps any other code to unknown', () async {
       await expectFailure('operation-not-allowed', AuthFailure.unknown);
     });
+
+    test('gives up on an e-mail sign-in Firebase never answers', () async {
+      final repo = AuthRepository(
+        auth: _HangingAuth(),
+        googleSignIn: GoogleSignIn.instance,
+        firestore: FakeFirebaseFirestore(),
+        signInTimeout: const Duration(milliseconds: 10),
+      );
+
+      await expectLater(
+        repo.signInWithEmail(email: 'a@b.c', password: 'pwd'),
+        throwsA(AuthFailure.signInTimeout),
+      );
+    });
+
+    test('waits 30 seconds by default', () {
+      expect(AuthRepository.defaultSignInTimeout, const Duration(seconds: 30));
+    });
   });
 
   group('signing in with Google', () {
@@ -199,6 +232,20 @@ void main() {
     test('other refusals keep their meaning', () async {
       await expectRefused('network-request-failed', AuthFailure.network);
       await expectRefused('user-disabled', AuthFailure.userDisabled);
+    });
+
+    test('gives up when Firebase never answers', () async {
+      final repo = AuthRepository(
+        auth: _HangingAuth(),
+        googleSignIn: GoogleSignIn.instance,
+        firestore: FakeFirebaseFirestore(),
+        signInTimeout: const Duration(milliseconds: 10),
+      );
+
+      await expectLater(
+        repo.signInWithGoogle(),
+        throwsA(AuthFailure.signInTimeout),
+      );
     });
 
     test('confirms the identity of the signed-in account', () async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,11 +19,19 @@ class AuthRepository {
     required this._auth,
     required this._googleSignIn,
     required this._firestore,
+    this._signInTimeout = defaultSignInTimeout,
   });
+
+  /// Attente maximale de Firebase à la connexion (e-mail, ou échange du
+  /// jeton Google) : au-delà, [AuthFailure.signInTimeout] rend la main à
+  /// l'écran, qui sinon tournerait sans fin. Le sélecteur de compte Google,
+  /// qui attend l'utilisateur, n'est pas compté.
+  static const defaultSignInTimeout = Duration(seconds: 30);
 
   final FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;
   final FirebaseFirestore _firestore;
+  final Duration _signInTimeout;
 
   CollectionReference<Map<String, dynamic>> get _users =>
       _firestore.collection('user');
@@ -53,9 +63,8 @@ class AuthRepository {
     required String email,
     required String password,
   }) => _guard(() async {
-    final credential = await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
+    final credential = await _timed(
+      _auth.signInWithEmailAndPassword(email: email, password: password),
     );
     return credential.user;
   });
@@ -78,7 +87,7 @@ class AuthRepository {
     try {
       return await _guard(() async {
         final credential = await _googleCredential();
-        final result = await _auth.signInWithCredential(credential);
+        final result = await _timed(_auth.signInWithCredential(credential));
         return result.user;
       });
     } on AuthFailure catch (failure, stackTrace) {
@@ -206,6 +215,19 @@ class AuthRepository {
     final doc = await _users.doc(uid).get();
     if (!doc.exists) return false;
     return (doc.data()?['biometricToken'] as String?) == token;
+  }
+
+  /// [call] de connexion borné par `_signInTimeout`. Firebase peut encore
+  /// aboutir après coup : la session s'ouvre alors d'elle-même
+  /// ([userChanges]), sans passer le verrou biométrique ni noter de connexion
+  /// explicite ; un nouvel essai le fait. Si une autre connexion a réussi
+  /// entre-temps, celle-ci la remplace.
+  Future<T> _timed<T>(Future<T> call) async {
+    try {
+      return await call.timeout(_signInTimeout);
+    } on TimeoutException catch (_, stackTrace) {
+      Error.throwWithStackTrace(AuthFailure.signInTimeout, stackTrace);
+    }
   }
 
   /// Exécute un appel Firebase Auth en traduisant ses refus en [AuthFailure],

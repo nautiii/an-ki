@@ -937,6 +937,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'You\'re offline. Check your connection and try again.';
 
   @override
+  String get errorSignInTimeout =>
+      'Signing in is taking too long. Check your connection, then try again.';
+
+  @override
   String get errorUnknown => 'Something went wrong. Try again in a moment.';
 
   @override
