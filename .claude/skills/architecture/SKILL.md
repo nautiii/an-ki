@@ -1,6 +1,6 @@
 ---
 name: architecture
-description: "AnKi architecture (feature-first layered MVVM, Riverpod 3 without codegen, Firebase): where code goes and which layers or features may depend on which. Use for any change that adds or reshapes behaviour: feature, model, repository, provider, service, navigation, package, refactor, debt (« refacto », « où mettre ce code ? »). Not for visual polish (ux-ui) or git (git-workflow)."
+description: "AnKi architecture (feature-first layered MVVM, Riverpod 3 without codegen, Firebase): where code goes and which layers or features may depend on which. Use for any change that adds or reshapes behaviour: feature, model, repository, provider, service, navigation, package, refactor, debt (« refacto », « où mettre ce code ? »). Not for visual polish (ux-ui), git (git-workflow), the Firestore data map, rules, indexes or migrations (firebase); dead code and upgrades go to the maintainer's /dead-code and /deps-upgrade."
 effort: high
 ---
 
@@ -12,9 +12,6 @@ structure that will still be clean in a year at AnKi's real size — one app, on
 with an agent, about ten features — not for an imaginary team of fifty. You back choices with
 evidence (official guidance, the architecture test, measurements), state trade-offs plainly, and
 push back on needless ceremony as firmly as on shortcuts.
-
-Talk to the maintainer in French. Code, file names and commits stay in English; explanatory code
-comments are in French.
 
 ## The architecture on one page
 
@@ -87,16 +84,12 @@ Full placement table, rules and naming: `references/structure.md`.
 | Writing a model, repository, provider, controller, screen or test | `references/patterns.md`, then `assets/example/` (a complete, tested feature to copy and adapt) |
 | Before proposing a different approach, a package, or bending a rule | `references/decisions.md` — each decision says when to revisit it |
 | « refacto », « nettoie », debt, a planned structural step | `references/migration.md` — behaviour still to verify on a device, open debt, remaining steps |
+| Dead code, « nettoie le code mort », « supprime ce qui ne sert plus » | suggest `/dead-code` to the maintainer (only they start it); don't sweep by hand |
 
 ## Size the change — it sets the ceremony
 
-- **Local** — within existing layers of one feature, following an existing pattern (a field, a
-  provider, a widget, a repository method): just do it, tests included.
-- **Structural** — a new feature, a new edge between features, a new shared provider or service,
-  a model or Firestore shape change, code moving between zones: brief first, build after a go.
-- **System** — a new package or plugin, the navigation library, state management or codegen,
-  a data migration, anything contradicting `decisions.md`: brief and explicit approval, then
-  update `decisions.md`.
+The ceremony follows `AGENTS.md` › Working agreement (local, structural, system). For architecture, a
+system change also updates `references/decisions.md` once approved.
 
 The current structure is not sacred: when the right answer is structural, say so and propose it
 (with its path from today's code) instead of patching around the problem.
@@ -147,13 +140,11 @@ Propose the fixes; apply them only when asked or when they are in scope.
 
 ## Verify — show, don't claim
 
-- `dart format` on touched files; `dart analyze --fatal-infos` clean (what `flutter analyze`
-  reports, plus the `riverpod_lint` plugin).
-- `flutter test` for the touched features and `flutter test test/architecture`, then the whole
-  suite. In Claude Code, `bash .claude/hooks/verify-index.sh` runs all of it, project norms
-  included.
+- `bash .claude/hooks/verify-index.sh` (format, project norms, l10n, `dart analyze --fatal-infos`,
+  tests), plus `flutter test test/architecture` for the graph.
 - Tests exist at each layer touched; screen tests cover loading, empty, data and error.
-- Visible behaviour changed → run it on the emulator or the phone (device skill), or say it wasn't run.
+- Visible behaviour changed → through the `device-runner` agent (it loads the device skill), or the
+  report says « appareil : non vérifié » and why.
 - If unrelated tests fail, report them rather than fixing them silently.
 
 ## Report (French)
@@ -192,16 +183,10 @@ Propose the fixes; apply them only when asked or when they are in scope.
 
 ## House rules
 
-- English identifiers and file names; French explanatory comments (`//`, `///`).
-- Absolute imports (`package:an_ki/...`) only.
-- No hardcoded user-facing string (ARB: FR template + EN) or color (`colorScheme`,
-  `context.ankiColors`, `LabelTones`).
-- No code generation (decision D4); hand-written, immutable models.
-- Dependencies pinned to exact versions (no `^`); a new package needs approval.
-- Every change ships with tests; aim for meaningful coverage close to 100 %.
-- Every read and write scoped to the current user; multi-document writes in a `WriteBatch`.
-- Commits, branches and PRs: git-workflow skill. Screens' look, states and accessibility: ux-ui
-  skill.
+- `AGENTS.md` › House rules apply in full (imports, strings and colors, no codegen, exact versions,
+  tests, user scoping, `writeInBatches`); colors come from `colorScheme`, `context.ankiColors` or
+  `LabelTones`. Commits, branches and PRs: git-workflow skill. Screens' look, states and
+  accessibility: ux-ui skill.
 
 ## Gotchas that bite first
 
@@ -220,6 +205,7 @@ Propose the fixes; apply them only when asked or when they are in scope.
   block the UI on them; read results from the stream.
 - New models use `class const X({required final …})` (Dart 3.13); `final` on a parameter that
   doesn't declare a field is an error.
-- Mutations are still experimental in Riverpod 3.4: use controllers (decision D3).
+- Riverpod 3.4.3 exposes Mutations only from `package:flutter_riverpod/experimental/mutation.dart`: use
+  controllers (decision D3).
 
 More in `references/patterns.md` §15.

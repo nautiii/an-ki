@@ -100,7 +100,7 @@ Both live in `lib/core/providers/clock_provider.dart` (with tests).
 `clockProvider` is `Provider<DateTime Function()>`; tests pin it with
 `clockProvider.overrideWithValue(() => DateTime(2026, 3, 12))`, widget tests pin `todayProvider`
 directly. One implementation per rule: the notification scheduler and the home screen call the
-same domain function. A widget may *apply* a rule (`isWishedThisYear(b.wishedYears, today)` with
+same domain function. A widget may *apply* a rule (`b.isWished(today)` (`birthday/domain/birthday_wishes.dart`) with
 `today` watched from `todayProvider`); it never re-implements one inline.
 
 ## 3. Failures
@@ -111,7 +111,7 @@ enum IdeaFailure implements Exception { invalidDraft, signedOut, storage }
 ```
 
 - An `enum` when cases carry no data; a `sealed class … implements Exception` with `final class`
-  cases when they do (`QuotaExceeded(retryAfter)`).
+  cases when they carry data (none on 2026-11-07: every failure is an enum, e.g. `BookFailure`).
 - Repositories translate SDK errors at the boundary and keep the stack trace:
 
 ```dart
@@ -162,10 +162,12 @@ final ideaRepositoryProvider = Provider<IdeaRepository>(
 - **Paths**: new per-user data lives under `user/{uid}/<collection>` — isolation comes from the
   path, rules stay one line, no `uid` field or `where` needed:
   ```
-  match /user/{userId}/{collection}/{docId} {
+  match /user/{userId}/ideas/{ideaId} {
     allow read, write: if request.auth != null && request.auth.uid == userId;
   }
   ```
+  One explicit `match` per collection: the rules are closed by default (firebase skill,
+  `references/rules.md`).
   Existing top-level collections (`birthday`, `books`) keep `where('uid', isEqualTo: uid)` on
   every query (rules are not filters: a query without it is rejected) and set `uid` on create.
   Ownership on update and delete is the rules' job — `resource.data.uid == request.auth.uid`,
@@ -319,27 +321,42 @@ pending. No re-entrancy guard: the sheet is already closed.
 UI):
 
 ```dart
-/// Recherche d'un livre par ISBN : réseau requis, le résultat pilote l'UI.
+/// Recherche d'un livre par ISBN (Google Books) : réseau requis, le résultat
+/// pilote l'écran du scanner.
+///
+/// État : `AsyncLoading` pendant la recherche, puis le livre trouvé (null
+/// s'il est inconnu) ou l'erreur. L'écran filtre lui-même les scans qui
+/// arrivent pendant une recherche.
 class IsbnLookup extends AsyncNotifier<Book?> {
   @override
   FutureOr<Book?> build() => null;
 
-  Future<void> lookUp(String isbn) async {
-    if (state.isLoading) return; // anti double scan
+  /// Renvoie le livre trouvé, null s'il est inconnu ; relance l'erreur (quota
+  /// dépassé, réseau) pour que l'écran choisisse son message.
+  Future<Book?> lookUp(String isbn) async {
+    final repository = ref.read(bookRepositoryProvider);
     state = const AsyncLoading();
-    final result = await AsyncValue.guard(
-      () => ref.read(bookRepositoryProvider).fetchBookByIsbn(isbn),
-    );
-    if (ref.mounted) state = result;
+    try {
+      final book = await repository.fetchBookByIsbn(isbn);
+      if (ref.mounted) state = AsyncData(book);
+      return book;
+    } catch (error, stackTrace) {
+      if (ref.mounted) state = AsyncError(error, stackTrace);
+      rethrow;
+    }
   }
 }
 
-final isbnLookupProvider =
-    AsyncNotifierProvider.autoDispose<IsbnLookup, Book?>(IsbnLookup.new);
+final isbnLookupProvider = AsyncNotifierProvider.autoDispose<IsbnLookup, Book?>(
+  IsbnLookup.new,
+);
 ```
 
-The button is disabled while `isLoading`; `ref.listen` reports success or failure. A method may
-return a `bool` when the caller must navigate on success.
+`lookUp` returns the book (null when unknown) and rethrows, so the screen picks its message; the
+screen filters the scans that arrive during a lookup, so the notifier has no `isLoading` guard. A
+lookup tells offline (`BookFailure.network`), failed (`unavailable`, `quotaExceeded`) and unknown
+(null) apart: a silent null would read « livre inconnu » offline — 72cd626. A method may return a
+`bool` when the caller must navigate on success.
 
 **Mixed operations** (contacts import): await the local part (permission, reading the contacts),
 write everything in one `WriteBatch` whose commit is not awaited (`unawaited(batch.commit())`,
@@ -578,5 +595,8 @@ test('streams the ideas of the signed-in user', () async {
 - Test doubles: `fake_cloud_firestore` applies a transaction one tick late to snapshot listeners
   and enforces the 500-operation batch limit (a 501-document test proves batching);
   `firebase_auth_mocks` asserts that `signInAnonymously` gets an anonymous mock user.
+- A delayed write (deleting a birthday or removing a group behind the « Annuler » snackbar) reads
+  the uid when it starts and is dropped if the account changes inside the undo window; read later,
+  it writes into the other account — efa0dd6, bcaa4f6.
 - Dart 3.13: `final` on a constructor parameter that doesn't declare a field is an error;
   `require_trailing_commas` has been a no-op since the 3.7 formatter.

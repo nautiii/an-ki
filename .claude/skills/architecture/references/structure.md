@@ -108,7 +108,7 @@ Why each boundary:
 | A failure the user can hit | `domain/<f>_failure.dart` | `enum XFailure implements Exception`, or `sealed class` when cases carry data |
 | Firestore or HTTP access | `data/<x>_repository.dart` | `XRepository` + `xRepositoryProvider` in the same file |
 | Firestore ↔ model mapping | private functions in the repository file; `data/<x>_mapper.dart` once it passes ~60 lines or handles schema versions | `_xFromDoc`, `_xToMap` |
-| A plugin or API used by one feature | that feature's `data/` | `GoogleBooksApi` |
+| A plugin or API used by one feature | that feature's `data/` | `BookRepository` (`book_scanner/data/book_repository.dart`, Google Books over `http`) |
 | A plugin used by ≥ 2 features or by `app/` | `core/services/` + provider | `NotificationService`, `notificationServiceProvider` |
 | Firebase instances, clock, today's date, HTTP client, config | `core/providers/` | `firestoreProvider`, `clockProvider`, `todayProvider` |
 | The current user id | `features/auth/providers/session_providers.dart` | `currentUidProvider` |
@@ -122,7 +122,7 @@ Why each boundary:
 | Failure → message, enum → label/icon/color | `widgets/` | `idea_failure_text.dart`, `category_display.dart` |
 | A widget used by ≥ 2 features | `core/common/`, dumb (params + callbacks) | `AnKiEmptyState` |
 | Orchestration across features triggered by a user action | the lowest feature that already depends on every participant (often `settings`), else a new feature (`account`) | `AccountDeletion` |
-| Orchestration triggered by the app lifecycle (sign-in, start) | `app/bootstrap/` | `SessionBootstrap` |
+| Orchestration triggered by the app lifecycle (sign-in, start) | `app/bootstrap/` | `AppInitializer`, `ReminderPrompt` (`app/bootstrap/`) |
 | Tab selection, shell layout | `app/shell/` (tabs are branches of the router) | `MainShell`, `ShellBranches` |
 | Asset paths, fixed keys | `core/constants/` | `AppAssets` |
 | A fake shared by several test files | `test/support/` | `FakeIdeaRepository` |
@@ -167,6 +167,8 @@ feature and is not part of it.
 | `ideas` | | auth, birthday |
 | `settings` | auth, user, birthday, book_scanner, reminders | auth, user, birthday, reminders, ideas |
 
+Planned bricks: ux B4 gift ideas, deferred by the maintainer on 2026-11-03.
+
 Reading the target: `auth` and `user` are foundations, `birthday` (people and their dates) is the
 core domain, everything else builds on it, and nothing builds on `settings`. Onboarding (B5) is
 no feature of its own: the welcome lives in `auth`, the contacts import in `birthday`, the
@@ -184,18 +186,18 @@ When an import would create a cycle, in this order:
    `app/bootstrap` when the app lifecycle triggers it). Example: account deletion touches auth,
    user and birthday → it lives in `settings`, which depends on all three.
 2. **React instead of calling.** The lower feature exposes state; the higher one watches or
-   listens to it. Example: `user` creates the profile when `currentUidProvider` turns non-null,
-   instead of the sign-up screen calling `user`.
+   listens to it. Example: `AppInitializer` (`app/bootstrap/app_initializer.dart`) creates the profile when the
+   session appears, instead of the sign-up screen calling `user`.
 3. **Compose with a slot.** The lower feature's widget takes a `Widget` or builder parameter;
-   `app/router` passes the other feature's widget. Example: the person page (birthday) shows a
-   gift-ideas section built by `ideas`, wired in the route builder.
+   `app/router` passes the other feature's widget. Example: the home (`birthday`) shows the guest
+   backup card built by `settings` through its `guestBackup` slot, wired in `app/router/app_router.dart`.
 4. **Move the shared concept down.** A type both need goes to the lower feature's `domain/`, or
    to `core/` if it is truly feature-agnostic (like `ReminderNotification` in `core/services`).
 
 ## 7. Naming
 
 - Files `snake_case.dart`, one public concept per file (a model and its draft may share one).
-- Domain types are named after the concept (`Birthday`, `UserProfile`, `ReminderPlan`), never
+- Domain types are named after the concept (`Birthday`, `UserProfile`, `PlannedReminder`, in `reminders/domain/reminder_plan.dart`), never
   with a `Model` suffix. Avoid names that clash with SDK types (`User`, `Category`).
 - Repository `XRepository` / `xRepositoryProvider`; service `XService` / `xServiceProvider`.
 - Data providers are nouns: `birthdaysProvider`, `personIdeasProvider(personId)`.

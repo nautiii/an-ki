@@ -2,11 +2,10 @@
 
 A complete, minimal feature written to the target architecture: 9 source files, 5 test files,
 19 tests. It is **not part of the app** — it is the model to copy and adapt when building a
-brick. It was compiled, analyzed (`flutter analyze`: no issues) and tested against the repo on
-2026-10-07, and again on 2026-10-11 after M7–M9, installed as below with the architecture test
-passing.
+brick. Installed as below on a copy of the repo on 2026-11-07: `dart analyze --fatal-infos` reports no
+issue and `flutter test test/features/ideas test/architecture` passes (21 tests).
 
-It also happens to be a first slice of backlog B4 (gift ideas per person): when that work starts,
+It also happens to be a first slice of backlog B4 (gift ideas per person, deferred by the maintainer on 2026-11-03): when that work starts,
 it can be the starting point after a design pass with the ux-ui skill.
 
 ## What each file shows
@@ -43,12 +42,13 @@ cp -r $S/example/test/features/ideas test/features/
    | `ideasTitle` | Idées cadeaux | Gift ideas |
    | `ideasEmpty` | Aucune idée pour l'instant. | No ideas yet. |
    | `ideasLoadError` | Impossible de charger les idées. | Couldn't load ideas. |
-   | `retry` | Réessayer | Retry |
    | `ideaAdd` | Ajouter une idée | Add an idea |
    | `ideaTitleLabel` | Idée | Idea |
    | `ideaFailureInvalid` | Saisissez une idée de 120 caractères au plus. | Enter an idea of 120 characters at most. |
    | `ideaFailureSignedOut` | Session expirée : reconnectez-vous. | Session expired: sign in again. |
    | `ideaFailureStorage` | Enregistrement impossible. Réessayez. | Couldn't save. Try again. |
+
+   `retry` already exists in both ARB files (« Réessayer » / « Try again »).
 
 2. Declare the feature in `test/architecture/architecture_test.dart`:
    `'ideas': {'auth'},`.
