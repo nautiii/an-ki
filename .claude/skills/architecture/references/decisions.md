@@ -17,6 +17,8 @@ when"; changing one is a **system** change (brief + approval) and updates this f
 - D10 Executable architecture
 - D11 Scale-out path: packages only on real signals
 - D12 Background replan with workmanager
+- D13 Modules: a static registry in `app/`, activation in the profile
+- D14 Book metadata and release dates
 - Sources
 
 ---
@@ -143,8 +145,11 @@ or uid", still one provider at the root.
 
 **Decision.** Repositories expose `snapshots()` streams; no second cache (no Riverpod offline
 persistence). UI flows don't await Firestore writes. New collections live under
-`user/{uid}/<collection>`; the top-level `birthday` and `books` collections keep `uid`
-filtering until step M10 (only on a concrete need). Client timestamps from `clockProvider`.
+`user/{uid}/<collection>`; the top-level `birthday` collection keeps `uid` filtering until step
+M10 (only on a concrete need). Client timestamps from `clockProvider`. Amended 2026-11-08: the
+Books module stores its data under `user/{uid}/bookSeries` and `user/{uid}/bookVolumes` (D13);
+the top-level `books` collection is legacy, imported lazily and kept until its cleanup
+(`migration.md`).
 
 **Why.** Persistence is on by default on Android/iOS; listeners emit local writes immediately
 while write futures resolve only on server acknowledgement — awaiting them freezes the UI
@@ -220,6 +225,100 @@ writing the text at fire time (replaces the plugin's Android code, nothing on iO
 **Revisit when** the measure on the maintainer's Honor shows the job doesn't run about daily
 under the OEM's battery management (then widen the window or reconsider the native receiver),
 or when iOS builds.
+
+## D13 — Modules: a static registry in `app/`, activation in the profile
+
+**Decision.** AnKi is a set of modules the user turns on or off (approved 2026-11-08). A module
+is a bundle of features assembled by `app/`: Anniversaires = `birthday` + `reminders` (always
+on), Livres = `books` (off by default). Features never know they belong to a module, and the
+architecture test forbids any edge between the features of two modules.
+
+**Why.** A second product area (series of manga and BD) must not turn the app into one tangle,
+and a user who doesn't want it must pay nothing for it. `app/` is already the only code that
+knows every feature (D1); a registry there adds a file per module and nothing to the features.
+
+**Rejected.**
+- *A descriptor exported by each feature, its type in `core/`*: `core/` would carry routes and
+  widgets, and a module made of several features (`birthday` + `reminders`) would have no host
+  feature without a forbidden edge.
+- *A package per module* (D11): no signal yet (one app, one maintainer, fast builds).
+- *Rebuilding the `GoRouter` when activation changes*: it drops every navigation stack, while
+  the user is on Settings › Modules when they flip the switch.
+- *Remote Config*: a new plugin for a need that isn't there, the choice is the user's.
+
+**How.**
+- `AppModule` (`app/modules/app_module.dart`): `id`, `alwaysOn`, `enabledByDefault`, icons,
+  `name`/`description` from `AppLocalizations`, `rootPath`, a `StatefulShellBranch`, an optional
+  settings section, `effects` and optional `ModuleData` (erase, guest transfer). The registry
+  `appModules` (`module_registry.dart`) fixes the tab order; a registry test fails past 4 tabs.
+- Activation: `user/{uid}.modules`, the map of explicit choices (`{'books': true}`), written
+  field by field. A missing module follows `enabledByDefault`, `alwaysOn` wins, a non-boolean
+  value is ignored: no migration. The pure `activeModuleIds(registry, choices)` and
+  `activeModulesProvider` (null while the profile loads) live in `app/modules/`; the feature
+  `user` stores a map of ids and knows nothing of modules. A guest taken over by an existing
+  account adds the modules they had on (union, never a deactivation).
+- Navigation: a branch is declared for every module and built lazily by go_router (first
+  visit); the shell shows the active modules only (no bar with one, the glass pill for 2 to 4,
+  « Plus » from the 5th, designed but not built); `moduleRedirect(active, path)`, pure like
+  `accessRedirect`, sends a deep link to an inactive module to the first active root; the
+  `refreshListenable` combines access and modules; a deactivated branch is unmounted.
+- Effects (`reminderSyncProvider` for Anniversaires) are watched by `app/` only while their
+  module is active. A disabled module builds nothing and runs nothing.
+- Settings: `SettingsScreen` receives `moduleSections`, a slot `app/` fills with the active
+  modules' sections, so `settings` no longer depends on them.
+- Data hooks: erase and guest transfer go through two `core` providers
+  (`userDataErasersProvider`, `guestDataTransfersProvider`) that `app/` overrides from the
+  registry, like `notificationStringsProvider`. Without an override they throw: an account can't
+  be deleted by forgetting a module's data. Deactivating hides and stops; the data stays,
+  synced, and is still erased with the account.
+- Remaining debt: `settings -> birthday`, for the guest takeover (`migration.md`).
+
+**Revisit when** Birthdays must become optional (a per-module guest transfer and a home outside
+Anniversaires), a 5th module arrives (« Plus »), or a module needs background work or
+notifications. The combined plan then: one workmanager dispatcher reading the activation from
+the cached profile and running each active module's task; `app/` assembles one notification
+plan with an id range per module and prefixed payloads (`books:<id>`; a raw payload stays a
+birthday), because `NotificationService.scheduleAll` cancels every id absent from the plan it
+receives.
+
+## D14 — Book metadata and release dates
+
+**Decision.** The Books module (D13) fills a volume from its ISBN with the BnF SRU first
+(series and volume number in the structured fields 225 and 461, no key, open licence, servers in
+France) and Google Books as the fallback (recent books, covers). `xml` 7.1.0 becomes a direct
+dependency, pinned (pure Dart, MIT, already resolved in `pubspec.lock` through
+`flutter_local_notifications` and `flutter_native_splash`). Approved 2026-11-08.
+
+Release dates, by order of reliability: the user's own entry (shown « date saisie par vous »);
+the BnF for « paru » (the volume N+1 has a record, so it is out); Google Books for « à paraître »
+only if a measurement on the maintainer's phone justifies it (a title and number search validated
+by the series rule, day or month precision, shown with its source and check date); otherwise
+« date inconnue ». Never an estimate from the series' pace, never scraping.
+
+**Why.** No free API gives the French release date of an upcoming manga or BD reliably. The BnF
+record is created at the legal deposit: nothing before the release (tested 2026-11-08 on a
+volume out four days earlier; the volumes of One Piece dated 2026 carry the year only). Google
+Books may hold pre-order dates but wasn't measurable (the shared quota was exhausted without a
+key).
+
+**Rejected.**
+- *Open Library*: 404 on the four manga ISBNs tested.
+- *AniList, MangaUpdates, MangaDex, Jikan*: no French edition.
+- *Mangacollec, Manga-news, Nautiljon*: a planning but no public API (Manga-news refuses
+  scripts); scraping is out, a partnership is a commercial talk.
+- *Electre, Dilicom (FEL)*: the reference, but B2B on quote.
+- *Publisher pages* (Glénat's upcoming page has dates and ISBNs): scraping, one publisher,
+  fragile.
+- *Google Books alone*: no new package, but less reliable series data.
+
+**How.** Google APIs Terms of Service §5(e)(1) forbid permanent copies beyond cache headers:
+store the minimum (title, cover URL, publisher, date, never the summary) and let the BnF go first.
+Searches leave from the phone (its IP reaches the BnF in France and Google in the United States,
+no account data); a privacy policy is needed before any publication. Sources checked 2026-11-08.
+
+**Revisit when** a source offers French upcoming dates openly (a publisher or a bookseller API),
+the Google Books measurement shows usable pre-order dates, or the app is published (privacy
+policy, terms).
 
 ---
 

@@ -12,10 +12,10 @@ Rules: verify an item still exists before acting (code moves); delete items you 
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
 auth or dependencies → design brief + maintainer approval first.
 
-Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The architecture decisions D1–D12 live in `architecture/references/decisions.md` and are cited « decision D9 ».
+Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The architecture decisions D1–D14 live in `architecture/references/decisions.md` and are cited « decision D9 ».
 
 ## Contents
-- Big bets (B4's gift ideas, deferred; B8) — structural redesigns with the highest impact
+- Big bets (B4's gift ideas, deferred; B8; B9 Livres, approved, and B9-ext) — structural redesigns with the highest impact
 - P2 — polish (D17, D28, D29)
 - Suggested roadmap
 
@@ -24,27 +24,122 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
 ## Big bets
 
 ### B4 — Gift ideas per person (deferred)
-- Notes on the person page stay out (a new field).
-- **Deferred** (maintainer, 2026-11-03: a good idea, for later, not now): tab 2
-  « Scanner » → « Idées », ideas per person + an unassigned inbox, added by text, link or ISBN
-  scan (the scanner becomes one input); then the ideas on the person page (B4c: a slot built by
-  `ideas`, passed by `app/router`, no edge from `birthday`), « Idée cadeau » on the J-0 hero and
-  « 2 idées pour Léa » in the J-7 notification (B4d, needs B8 step 2). Settled in the brief of
-  2026-11-01, to reuse when it starts:
-  - a new `ideas` feature absorbs `book_scanner` (`git mv` alone first); graph `ideas: {auth,
-    birthday}`, `settings` → `ideas`;
+- **Deferred** (maintainer, 2026-11-03: a good idea, for later, not now). Reframed 2026-11-08
+  (decision D13): Livres is its own module (B9), B4 becomes an **extension of the Anniversaires
+  module**: a feature `ideas` depending on `birthday` (graph `ideas: {auth, birthday}`), no tab.
+  Ideas live on the person page (B4c: a slot built by `ideas`, passed by `app/router`, no edge
+  from `birthday`), in an inbox « à trier », and on the J-0 hero (« Idée cadeau »); « 2 idées pour
+  Léa » in the J-7 notification (B4d, needs B8 step 2). Settled in the briefs of 2026-11-01 and
+  2026-11-08, to reuse when it starts:
   - `Idea` in `user/{uid}/ideas/{id}`: `title`, optional `personId` (absent = the inbox; an id no
     longer in the agenda falls back to it, no cascade write), `url`, `isbn`, `authors`,
-    `imageUrl`, `createdAt`; owner-only rules tested in the emulator first; erased by
-    `AccountDeletion`; ordered by `createdAt`, no composite index;
-  - routes `/ideas` (tab) and `/scan` (pushed: the camera no longer runs in a mounted tab); pure
-    `parseIdeaText` (the first http(s) word is the link) and `groupIdeas` (inbox, then people by
-    next birthday);
-  - `url_launcher` approved (2026-11-03) to open a link; the existing `books` documents: migrate
-    them or let them go, to decide then;
-  - the scanner's book carousel goes.
+    `imageUrl`, `createdAt`; owner-only rules tested in the emulator first; erased by the
+    Anniversaires module's eraser; ordered by `createdAt`, no composite index;
+  - pure `parseIdeaText` (the first http(s) word is the link) and `groupIdeas` (inbox, then
+    people by next birthday);
+  - its ISBN input reuses the ISBN reader and lookup, **promoted to `core/` the day B4 starts**
+    (rule of two), never an edge `ideas -> books`;
+  - the legacy `books` documents now belong to Livres (B9), not to B4;
+  - `url_launcher` approved (2026-11-03) to open a link.
 - **Refs**: Apple/Google Contacts cards, wishlist apps, Pinterest boards (lightweight).
-- **Cost**: medium (ideas model and rules, the tab, scanner integration).
+- **Cost**: medium (ideas model and rules, the person-page slot, the inbox, the ISBN input).
+
+### B9 — Livres module (approved 2026-11-08)
+- **Approved** as a system change (brief of 2026-11-08, every default accepted): an independent,
+  user-toggleable module, off by default (decision D13), tracking manga and BD series; metadata
+  and dates per decision D14. Data under `user/{uid}/bookSeries` and `user/{uid}/bookVolumes`
+  (decision D8, amended). The settled design, condensed:
+- **Jobs and screens**:
+  - Browse (frequent, at the shelf): `/books`, the shelf: search, an « À classer (n) » card when
+    needed, series A to Z, each row with the cover, the name, the **last volume in big digits**
+    (S6) and a « prochain » line with the gaps. `/books/series/:id`: last volume, a « Prochain :
+    tome 109 » card (date, source, check date), « Il vous manque 13, 14 », the number grid (owned
+    filled, missing outlined). TalkBack reads one sentence per row.
+  - Add (under 10 s after the purchase): `/books/scan`, a pushed page (the camera runs only
+    while scanning, no mounted tab): burst mode, each volume stacks at the bottom
+    (« ✓ One Piece · tome 108 »), `lightImpact` per added volume, « Déjà dans votre collection »
+    without vibration, « Saisir un ISBN », « Terminé ». Sheet « Ajouter une série »: a name (with
+    suggestions), « J'ai les tomes 1-12, 15 », « Série terminée ».
+  - Correct: a volume's sheet (change series or number, remove with Undo), a series menu (rename,
+    merge with Undo, mark complete, delete with Undo).
+  - `/books/series/:id`, `/books/scan` and `/books/inbox` are sub-routes on the root navigator,
+    above the bar.
+- **States**: first launch = the moon (S2), « Scanner un livre », « Ajouter une série à la main »;
+  loading = skeleton; error = message and « Réessayer »; offline = a discreet « Hors ligne ·
+  dates non actualisées » banner, never blocking reading; dark, 200 % (rows stack, the grid
+  drops columns), 360×640. Before coding the shelf, compare at least two layouts in snapshots (A
+  to Z with search, Contacts-like, against sections by status, Things-like); the default is A to Z.
+- **Domain (pure Dart, tested)**:
+  - `Series`, `Volume` (series and number optional, ISBN, title, cover, publisher, lookup
+    `pending`/`found`/`notFound`, `addedAt`); whole numbers only: a « tome 10.5 », a special or a
+    box set stays « à classer » with its title;
+  - `shelfOf(series, volumes)`: owned, last, **gaps**, next to buy (the first gap, else last + 1),
+    cover of the last owned;
+  - `nextVolumeStatus(series, today)`: `released`, `announced` (day or month), `unknown`,
+    `complete`;
+  - `guessVolume(record)`: the BnF structured fields first (225 `$a`/`$v`, 461 `$t`/`$v`, high
+    confidence), else the title (« Tome 108 », « T15 », « Vol. 3 », « #12 », « n° 4 », number first,
+    roman numerals); « Édition originale » dropped, « Perfect Edition », « Deluxe » and
+    « Colossale » kept (other series); nothing sure = « À classer »;
+  - `seriesKey(name)` folds a name to match a scan to a series, old names after a rename or merge
+    included (`foldForMatching`, promoted from `birthday` to `core/`, no copy and no edge);
+    `parseVolumeRanges('1-12, 15')`; `normalizeIsbn` (dashes out, ISBN-10 to 13, check digit).
+- **Data**: `bookSeries/{id}`: `name`, `keys`, optional `complete`, optional `next` (`number`,
+  `status`, `date` as the string `2026-12-03` or `2026-12`, `source` in `bnf`/`googleBooks`/`user`,
+  `checkedAt`), `createdAt`. `bookVolumes/{id}`: optional `seriesId`, `number`, `isbn`; `title`,
+  `authors`, `imageUrl`, `publisher`, optional `publishedDate`, `lookup`, `addedAt`; **id = ISBN**
+  for a scanned volume, so a rescan, offline or from two devices, rewrites the same document. No
+  stored summary (size, Google ToS). Owner-only rules plus `delete` by the marked address (guest
+  takeover, like `categories`), proved in the emulator first; two full streams, no index, joined
+  by `shelfOf`. Eraser: both collections and the legacy `books`. Guest takeover: server read and
+  marks before sign-in, copy under the target account, same-key series merged, owned ISBN
+  skipped. Legacy `books`: lazy import at the first opening of the Livres tab (server read, pure
+  plan with duplicates merged and `guessVolume`, batch write with `importedAt` on each old
+  document; idempotent, offline = retry; cleanup in `migration.md`).
+- **Offline**: reading from the Firestore cache; missing covers replaced by initials on a tonal
+  container and a big number (no new package, measured in store). A scan offline writes the
+  volume at once (`lookup: pending`, id = ISBN) and counts in the burst (« ISBN 978… · infos à
+  compléter »); Firestore is the queue; at the next online opening of Livres a completer looks up
+  BnF then Google, attaches a series or leaves « à classer », a network error stops the pass
+  without marking anything « introuvable ». No connectivity package.
+- **Release dates** (decision D14): the user's entry (« Ajouter la date »); the BnF for « paru »
+  (« Tome 109 paru · vous ne l'avez pas »); Google Books for « à paraître » only if a measurement
+  on the phone justifies it (title and number search validated by `guessVolume`, day or month,
+  « selon Google Books · vérifié le … »); else « Tome 109 · date inconnue ». Never estimated,
+  never scraped. Refresh on opening the shelf, online, series checked over 7 days ago (20 at
+  most), plus pull to refresh on a series; cached in the series' `next`; no background task.
+- **Navigation and start**: nothing runs at startup, even when active; the completer, the legacy
+  import and the refresh start when its screens open; data providers are `autoDispose`. A single
+  discovery card after the agenda (« Essayer » turns the module on and opens `/books`, « Plus
+  tard » stores `books: false`), never above the hero nor at first launch.
+- **Commit steps** (each green: format, analysis, tests, review; steps 1 to 5 are the modules
+  lot: docs, registry, data hooks, activation, rename):
+  6. `FEAT(books): series and volumes`: domain, repositories (Firestore, BnF, Google), rules,
+     emulator tests and deployment, eraser and guest transfer, legacy import;
+  7. `FEAT(books): shelf and series pages`: shelf, series page, volume sheet, « À classer », the
+     scanner as the pushed `/books/scan`, states, accessibility, snapshots;
+  8. `FEAT(books): burst scanning and corrections`: burst, duplicate guard, ISBN entry, offline
+     queue and completion, manual add by ranges, move/renumber/remove/rename/merge/complete;
+  9. `FEAT(books): next volume release`: the Google Books measurement first, then BnF « paru »,
+     Google « à paraître » if kept, manual entry, cache and refresh;
+  10. `FEAT(app): discover the books module`: the discovery card.
+- **Verification**: tests at every layer, rules in the emulator (step 6), snapshots (steps 7 to 10),
+  `device-runner` (dark, 200 %, airplane mode). A real scan needs the phone's camera: the emulator
+  can't present a barcode.
+- **Out of the lot**: Birthdays that can be turned off, the « Plus » tab, a disk cache for covers,
+  summaries, a wishlist, prices, loans, sharing a collection, an Android shortcut, scraping and
+  partnerships, export.
+- **Risks**: the series heuristic will sometimes be wrong (one-gesture correction, a renamed
+  series keeps its old name as a key); dates will be rare (hence manual entry and the measure);
+  Google ToS on permanent copies (store the minimum, BnF first); a privacy policy before any
+  publication.
+- **Cost**: large (five commits of size M to L after the modules lot).
+
+### B9-ext — Release reminders (outside this lot)
+- A local notification on the day of an announced release (or the eve), through the combined
+  plan of decision D13 (revisit): an id range of its own, payload `books:<seriesId>` opening the
+  series. To propose after the Livres lot, once the reliability of the dates is measured.
+- **Cost**: medium (the combined notification plan in `app/`, the Books planning rule, tests).
 
 ### B8 — The age in reminders (brief 2026-10-25; workmanager approved 2026-11-01)
 - Step 1 is in (workmanager, daily background replan on Android, `reminders.md`); step 2 waits
@@ -131,4 +226,6 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
 
 1. **B8, D17, D28** — depth and polish (D29 if it matters);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
-2. **B4's gift ideas** — when the maintainer picks them up.
+2. **B9 Livres** — approved 2026-11-08, in progress: modules, then series, shelf, burst scan,
+   release dates, discovery card; **B9-ext** (release reminders) proposed after it.
+3. **B4's gift ideas** — an Anniversaires extension, when the maintainer picks them up.

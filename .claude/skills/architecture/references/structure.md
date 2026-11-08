@@ -125,6 +125,7 @@ Why each boundary:
 | Orchestration triggered by the app lifecycle (sign-in, start) | `app/bootstrap/` | `AppInitializer`, `ReminderPrompt` (`app/bootstrap/`) |
 | Tab selection, shell layout | `app/shell/` (tabs are branches of the router) | `MainShell`, `ShellBranches` |
 | Asset paths, fixed keys | `core/constants/` | `AppAssets` |
+| A new module (a bundle of features the user can turn on) | `app/modules/<module>_module.dart` + a line in `module_registry.dart`; its features stay unaware | `booksModule` |
 | A fake shared by several test files | `test/support/` | `FakeIdeaRepository` |
 
 When two rows seem to fit, choose the one lower in the dependency order (domain < data <
@@ -157,17 +158,28 @@ strings built in a provider.
 The graph is declared in `featureDependencies` (architecture test). `app/` may import every
 feature and is not part of it.
 
-| Feature | May import — today | May import — with the planned bricks (ux-ui backlog) |
-|---------|--------------------|------------------------------------------------------|
-| `auth` | — | — |
-| `user` | auth | auth |
-| `birthday` | auth, user | auth, user |
-| `book_scanner` | auth, user | absorbed by `ideas` |
-| `reminders` | auth, birthday | auth, birthday |
-| `ideas` | | auth, birthday |
-| `settings` | auth, user, birthday, book_scanner, reminders | auth, user, birthday, reminders, ideas |
+| Feature | May import — target after the modules lot (decision D13) |
+|---------|-------------------------------------------------------------|
+| `auth` | — |
+| `user` | auth |
+| `birthday` | auth, user |
+| `reminders` | auth, birthday |
+| `books` | auth, user |
+| `settings` | auth, user, birthday |
 
-Planned bricks: ux B4 gift ideas, deferred by the maintainer on 2026-11-03.
+Today (before the lot) `settings` also imports `book_scanner` (renamed `books` on 2026-11-08) and
+`reminders`; those edges disappear with the module registry and the data hooks.
+`settings -> birthday` stays, declared as debt for the guest takeover (`migration.md`). Planned
+brick: `ideas {auth, birthday}`, an extension of Anniversaires (ux B4, deferred).
+
+### Modules
+
+A **module** is a bundle of features that the user turns on or off, assembled in `app/modules/`
+(decision D13): Anniversaires = `birthday` + `reminders` (always on), Livres = `books`. Roles:
+the **foundations** `auth` and `user` serve every module and import none; the **host** `settings`
+lists the modules and hosts their sections, and imports a module only along a declared edge
+(`settings -> birthday`); a **module's features** never import another module's. The registry is
+the only place that knows the modules; the test checks the three rules through `moduleFeatures`.
 
 Reading the target: `auth` and `user` are foundations, `birthday` (people and their dates) is the
 core domain, everything else builds on it, and nothing builds on `settings`. Onboarding (B5) is

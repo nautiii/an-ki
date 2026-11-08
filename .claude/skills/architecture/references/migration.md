@@ -55,20 +55,31 @@ Delete each line once done:
 
 ## 2. Open debt
 
-None open. Record new debt as a row:
+Record new debt as a row:
 
 | # | Debt | Evidence | Consequence | Step |
 |---|------|----------|-------------|------|
+| 1 | `settings -> birthday`, kept and declared (2026-11-08, decision D13) | the guest takeover B5.5 (`guest_merge.dart`) is birthday-centric: duplicate plan, shared groups, `transferTo` marks | `settings` knows one module; the other modules' data go through the `core` hooks | Resolve with a generic per-module transfer if Birthdays becomes optional |
 
 UX debt (contrast, 200 % text, labels, raw colors, dates without `DateFormat`) is tracked in the
 ux-ui backlog (`ux-backlog.md`), not here.
 
 ## 3. Remaining steps
 
-Recommended order: M10 only on a concrete need. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent + review).
+Recommended order: M10 only on a concrete need; the legacy `books` cleanup once the Books module
+runs on the maintainer's devices. Sizes: S < 1 h, M ≈ half a day, L ≈ a day (agent + review).
+
+### Legacy `books` cleanup · S · after the Books module (decision D13, D8 amended 2026-11-08)
+- The Books module (ux B9) imports the top-level `books` lazily at the first opening of its tab
+  (marker `importedAt` on each old document) and keeps them as the way back.
+- Once the maintainer's devices run it: delete the `books` rules, the composite index in
+  `firestore.indexes.json`, the legacy code (repository, import, the old-collection part of the
+  erasers) and, in the console, the leftover documents. Rules and index go through the firebase
+  skill (emulator first, maintainer's deploy).
 
 ### M10 — Per-user collections · L · system change, only on a concrete need
-- Left out of M8: move `birthday`/`books` to `user/{uid}/…` — data migration with dual read,
+- Left out of M8: move `birthday` to `user/{uid}/…` (`books` moved with the Books module, D8
+  amended 2026-11-08) — data migration with dual read,
   rules update deployed by the maintainer, one release of overlap.
 - Worth it only for a concrete need: sharing, rules complexity, cost. Brief and approval first;
   the plan is in the firebase skill, `references/migrations.md` §6.
