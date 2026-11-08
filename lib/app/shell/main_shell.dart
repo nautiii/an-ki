@@ -1,20 +1,45 @@
+import 'package:an_ki/app/modules/app_module.dart';
+import 'package:an_ki/app/modules/module_registry.dart';
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// Coquille de l'app connectée : l'onglet courant et la barre du bas.
+/// Onglet de la barre : un module, et l'index de sa branche dans le routeur.
+typedef ShellTab = ({AppModule module, int branch});
+
+/// Onglets de la barre, dans l'ordre du [registry] : les modules [active],
+/// chacun avec l'index de sa branche, sa place dans le registre. L'index d'un
+/// onglet dans la barre peut donc différer de celui de sa branche.
+List<ShellTab> shellTabs(List<AppModule> registry, List<AppModule> active) {
+  final activeIds = {for (final module in active) module.id};
+  return [
+    for (final (branch, module) in registry.indexed)
+      if (activeIds.contains(module.id)) (module: module, branch: branch),
+  ];
+}
+
+/// Coquille de l'app connectée : l'onglet courant et la barre du bas, un
+/// onglet par module actif ([shellTabs]).
 ///
 /// Vit dans `app/` : elle assemble les écrans de plusieurs features, ce
 /// qu'aucune feature n'a le droit de faire. Les onglets sont les branches du
 /// routeur ([navigationShell]) : chacun garde sa pile et son état.
-class MainShell extends StatelessWidget {
+class MainShell extends ConsumerWidget {
   const MainShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tabs = shellTabs(
+      ref.watch(appModulesProvider),
+      ref.watch(activeModulesProvider),
+    );
+    final current = navigationShell.currentIndex;
+    final l10n = context.l10n;
+
     // La barre est celle du Scaffold racine : les snackbars (toujours
     // affichées par ce Scaffold, même lancées depuis un onglet) se posent
     // au-dessus d'elle. Avec extendBody, le contenu passe sous le verre et
@@ -24,23 +49,20 @@ class MainShell extends StatelessWidget {
       body: navigationShell,
       bottomNavigationBar: BottomBar(
         destinations: [
-          BottomBarDestination(
-            icon: Icons.cake_outlined,
-            selectedIcon: Icons.cake_rounded,
-            label: context.l10n.tabBirthdays,
-          ),
-          BottomBarDestination(
-            icon: Icons.qr_code_scanner_rounded,
-            selectedIcon: Icons.qr_code_scanner_rounded,
-            label: context.l10n.tabScanner,
-          ),
+          for (final tab in tabs)
+            BottomBarDestination(
+              icon: tab.module.icon,
+              selectedIcon: tab.module.selectedIcon,
+              label: tab.module.name(l10n),
+            ),
         ],
-        selectedIndex: navigationShell.currentIndex,
+        // -1 : la branche courante n'a pas d'onglet, aucun n'est surligné.
+        selectedIndex: tabs.indexWhere((tab) => tab.branch == current),
         // L'onglet déjà ouvert revient à son écran de départ.
-        onSelected: (index) => navigationShell.goBranch(
-          index,
-          initialLocation: index == navigationShell.currentIndex,
-        ),
+        onSelected: (index) {
+          final branch = tabs[index].branch;
+          navigationShell.goBranch(branch, initialLocation: branch == current);
+        },
       ),
     );
   }

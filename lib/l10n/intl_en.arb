@@ -134,6 +134,8 @@
   "toneTeal": "Teal",
   "tabBirthdays": "Birthdays",
   "tabScanner": "Scanner",
+  "moduleBirthdaysDescription": "Who celebrates what, and when to wish them",
+  "moduleBooksDescription": "Your series: the latest volume, the next one and its release date",
   "clearSearch": "Clear search",
   "addBirthday": "Add a birthday",
   "agendaSoon": "Next 7 days",

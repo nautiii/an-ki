@@ -1,4 +1,3 @@
-import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
@@ -6,10 +5,8 @@ import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/books/data/book_repository.dart';
-import 'package:an_ki/features/reminders/data/reminder_preferences_repository.dart';
-import 'package:an_ki/features/reminders/widgets/reminder_preferences_tiles.dart';
-import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
+import 'package:an_ki/features/settings/widgets/settings_section.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -34,13 +31,33 @@ const _profile = UserProfile(
   locale: 'fr',
 );
 
+/// Section de module qui signale son démontage.
+class _DisposalProbe extends StatefulWidget {
+  const _DisposalProbe({required this.onDispose});
+
+  final VoidCallback onDispose;
+
+  @override
+  State<_DisposalProbe> createState() => _DisposalProbeState();
+}
+
+class _DisposalProbeState extends State<_DisposalProbe> {
+  @override
+  void dispose() {
+    widget.onDispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox(height: 100);
+}
+
 void main() {
   /// Réglages d'une session ouverte (`uid-1`) sur un appareil à empreinte.
   List<dynamic> overridesWith({
     FakeAuthRepository? auth,
     RecordingUserRepository? users,
     FakeBiometricService? biometrics,
-    RecordingReminderPreferencesRepository? reminderPreferences,
   }) => [
     authRepositoryProvider.overrideWithValue(
       auth ?? FakeAuthRepository(user: _user()),
@@ -57,9 +74,6 @@ void main() {
     ),
     birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
     bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
-    reminderPreferencesRepositoryProvider.overrideWithValue(
-      reminderPreferences ?? RecordingReminderPreferencesRepository(),
-    ),
     categoryRepositoryProvider.overrideWithValue(
       RecordingCategoryRepository(const []),
     ),
@@ -70,7 +84,18 @@ void main() {
   ) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpHarness(
-      const SettingsScreen(),
+      const SettingsScreen(
+        moduleSections: [
+          SettingsSection(
+            title: 'Module A',
+            children: [ListTile(title: Text('a'))],
+          ),
+          SettingsSection(
+            title: 'Module B',
+            children: [ListTile(title: Text('b'))],
+          ),
+        ],
+      ),
       overrides: overridesWith(),
     );
     await tester.pumpAndSettle();
@@ -78,7 +103,8 @@ void main() {
     const titles = [
       'Profil',
       'Préférences',
-      'Anniversaires',
+      'Module A',
+      'Module B',
       'Sécurité',
       'Compte',
     ];
@@ -95,6 +121,42 @@ void main() {
     ];
     expect(tops, [...tops]..sort());
     semantics.dispose();
+  });
+
+  testWidgets('shows no module section when given none', (tester) async {
+    await tester.pumpHarness(
+      const SettingsScreen(),
+      overrides: overridesWith(),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Préférences'), findsOneWidget);
+    expect(find.text('Sécurité'), findsOneWidget);
+    expect(find.text('Anniversaires'), findsNothing);
+  });
+
+  testWidgets('keeps a module section mounted once scrolled away', (
+    tester,
+  ) async {
+    var disposals = 0;
+    await tester.pumpHarness(
+      SettingsScreen(
+        moduleSections: [
+          _DisposalProbe(onDispose: () => disposals++),
+          // Une section haute : la sonde sort loin de l'écran.
+          const SizedBox(height: 3000),
+        ],
+      ),
+      overrides: overridesWith(),
+    );
+    await tester.pumpAndSettle();
+
+    // Bien au-delà de la zone qu'une liste paresseuse garde construite.
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -5000));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Supprimer mon compte'), findsOneWidget);
+    expect(disposals, 0);
   });
 
   testWidgets('hides the security section without a fingerprint', (
@@ -150,71 +212,6 @@ void main() {
     await tester.tap(find.text('Connexion biométrique'));
     await tester.pumpAndSettle();
     expect(biometrics.token, isNull);
-  });
-
-  testWidgets('opens the contacts import', (tester) async {
-    await tester.pumpHarness(
-      const SettingsScreen(),
-      overrides: overridesWith(),
-      routes: {
-        AppRoutes.contactImport: (_) =>
-            const Scaffold(body: Text('Import route')),
-      },
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Importer les contacts'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Import route'), findsOneWidget);
-  });
-
-  testWidgets('opens the groups', (tester) async {
-    await tester.pumpHarness(
-      const SettingsScreen(),
-      overrides: overridesWith(),
-      routes: {
-        AppRoutes.groups: (_) => const Scaffold(body: Text('Groups route')),
-      },
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Groupes'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Groups route'), findsOneWidget);
-  });
-
-  testWidgets('lists the reminder settings', (tester) async {
-    await tester.pumpHarness(
-      const SettingsScreen(),
-      overrides: overridesWith(),
-    );
-    await tester.pumpAndSettle();
-
-    // Leur comportement est testé avec chaque tuile ; ici, leur présence.
-    expect(find.byType(RemindersTile), findsOneWidget);
-    expect(find.byType(ReminderLeadsTile), findsOneWidget);
-    expect(find.byType(ReminderTimeTile), findsOneWidget);
-  });
-
-  group('reminder preferences', () {
-    testWidgets('says when a preference could not be saved', (tester) async {
-      await tester.pumpHarness(
-        const SettingsScreen(),
-        overrides: overridesWith(
-          reminderPreferences: RecordingReminderPreferencesRepository(
-            failure: Exception('offline'),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.widgetWithText(FilterChip, '30 jours avant'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(SnackBar), findsOneWidget);
-    });
   });
 
   group('sign out', () {

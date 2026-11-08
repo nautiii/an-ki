@@ -1,8 +1,8 @@
 import 'package:an_ki/app/bootstrap/app_locale.dart';
+import 'package:an_ki/app/modules/module_registry.dart';
 import 'package:an_ki/app/router/app_router.dart';
 import 'package:an_ki/core/providers/device_locales_provider.dart';
 import 'package:an_ki/core/theme/themes.dart';
-import 'package:an_ki/features/reminders/providers/reminder_sync_provider.dart';
 import 'package:an_ki/features/user/providers/theme_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -38,9 +38,13 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // Active la synchro des rappels pour toute la vie de l'app : un provider
-    // que personne n'écoute est mis en pause.
-    ref.watch(reminderSyncProvider);
+    // Garde en vie les effets des modules actifs (la synchro des rappels pour
+    // Anniversaires) : un provider que personne n'écoute est mis en pause.
+    for (final module in ref.watch(activeModulesProvider)) {
+      for (final effect in module.effects) {
+        ref.watch(effect);
+      }
+    }
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeProvider);
     final locale = ref.watch(appLocaleProvider);

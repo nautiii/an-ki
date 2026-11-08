@@ -19,6 +19,7 @@ import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -96,6 +97,8 @@ extension AppTesterExt on WidgetTester {
   /// données factices (le carnet [birthdays], vide par défaut), des
   /// notifications, un partage, un répertoire et des réglages d'appareil
   /// simulés ([notifications], [share], [contacts], [deviceSettings]).
+  /// [overrides] s'ajoutent à ceux du harnais, pour des providers qu'il ne
+  /// remplace pas déjà (le registre des modules, par exemple).
   Future<void> pumpApp({
     required FakeAuthRepository auth,
     FakeBiometricService? biometrics,
@@ -105,6 +108,7 @@ extension AppTesterExt on WidgetTester {
     FakeContactsService? contacts,
     FakeDeviceSettings? deviceSettings,
     Locale deviceLocale = const Locale('fr', 'FR'),
+    List<Override> overrides = const [],
   }) {
     view.physicalSize = const Size(800, 1200);
     view.devicePixelRatio = 1.0;
@@ -154,6 +158,7 @@ extension AppTesterExt on WidgetTester {
           reminderPreferencesRepositoryProvider.overrideWithValue(
             RecordingReminderPreferencesRepository(),
           ),
+          ...overrides,
         ],
         child: const App(),
       ),
