@@ -53,6 +53,7 @@ void main() {
     List<int> wishedYears = const [],
     Set<ReminderLead>? reminders,
     Uint8List? picture,
+    String? wishMessage,
   }) => Birthday(
     id: 'lea',
     name: 'Léa',
@@ -62,6 +63,7 @@ void main() {
     wishedYears: wishedYears,
     reminders: reminders,
     picture: picture,
+    wishMessage: wishMessage,
   );
 
   late RecordingBirthdayRepository repository;
@@ -278,7 +280,7 @@ void main() {
       await tester.tap(find.text('Souhaiter'));
       await tester.pump();
 
-      expect(share.shared.single, contains('avec un jour de retard'));
+      expect(share.shared.single, contains('Désolé pour le retard'));
       expect(repository.wished, [('lea', 2026)]);
     });
 
@@ -396,6 +398,42 @@ void main() {
 
       expect(reminderIds(), ['lea']);
       expect(reminderSets(), [isNull]);
+    });
+  });
+
+  group('wish message', () {
+    testWidgets('the default one, said so', (tester) async {
+      await pumpPage(tester);
+
+      await tester.ensureVisible(find.text('Message par défaut'));
+      expect(find.text('Bon anniversaire Léa ! 🎂'), findsOneWidget);
+    });
+
+    testWidgets('their own, customised from its sheet', (tester) async {
+      await pumpPage(tester, person: lea(wishMessage: 'Coucou Léa'));
+
+      expect(find.text('Message par défaut'), findsNothing);
+      await tester.ensureVisible(find.text('Coucou Léa'));
+      await tester.tap(find.text('Coucou Léa'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Message'),
+        'Bonne fête Léa',
+      );
+      await tester.pump();
+      await tester.tap(find.text('Enregistrer'));
+      await tester.pumpAndSettle();
+
+      expect(repository.wishMessageUpdates, [('lea', 'Bonne fête Léa')]);
+    });
+
+    testWidgets('their own, sent by « Souhaiter » on the day', (tester) async {
+      await pumpPage(tester, person: lea(day: 12, wishMessage: 'Coucou Léa'));
+
+      await tester.tap(find.text('Souhaiter'));
+      await tester.pump();
+
+      expect(share.shared, ['Coucou Léa']);
     });
   });
 

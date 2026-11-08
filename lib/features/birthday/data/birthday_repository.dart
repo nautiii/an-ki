@@ -53,7 +53,8 @@ class BirthdayRepository {
       );
 
   /// Remplace les champs saisis ; la photo n'est réécrite que si le brouillon
-  /// en apporte une nouvelle. Les rappels propres restent tels quels.
+  /// en apporte une nouvelle. Les rappels et le message de vœu propres restent
+  /// tels quels.
   Future<void> updateBirthday(
     String uid,
     String birthdayId,
@@ -74,6 +75,13 @@ class BirthdayRepository {
       null => FieldValue.delete(),
     },
   });
+
+  /// Message de vœu propre à la personne : null revient au message par
+  /// défaut (champ effacé).
+  Future<void> updateWishMessage(String birthdayId, String? message) =>
+      _birthdays.doc(birthdayId).update({
+        'wishMessage': message ?? FieldValue.delete(),
+      });
 
   /// Marque l'anniversaire de [year] souhaité. `arrayUnion` n'ajoute l'année
   /// qu'une fois et ne touche à aucun autre champ ; la propriété du document
@@ -178,6 +186,11 @@ Birthday? _birthdayFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
         if (year is int) year,
     ],
     reminders: _remindersFrom(data['reminders']),
+    // Absent, ou vide : le message par défaut.
+    wishMessage: switch (data['wishMessage']) {
+      final String message when message.trim().isNotEmpty => message,
+      _ => null,
+    },
   );
 }
 

@@ -58,13 +58,31 @@ void main() {
       await tester.tap(find.text('Souhaiter'));
       await tester.pump();
 
-      expect(share.shared, [
-        'Joyeux anniversaire Léa ! 🎂 Je te souhaite une très belle '
-            'journée.',
-      ]);
+      expect(share.shared, ['Bon anniversaire Léa ! 🎂']);
       expect(repository.wished, [('lea', 2026)]);
       expect(haptics, ['HapticFeedbackType.lightImpact']);
       expect(find.text('Léa Martin a reçu vos vœux'), findsOneWidget);
+    });
+
+    testWidgets("shares the person's own message when they have one", (
+      tester,
+    ) async {
+      await pumpActions(
+        tester,
+        today: DateTime(2026, 12, 31),
+        birthday: const Birthday(
+          id: 'lea',
+          name: 'Léa',
+          surname: 'Martin',
+          date: BirthDate(month: 12, day: 31),
+          wishMessage: 'Joyeux anniversaire ma sœur !',
+        ),
+      );
+
+      await tester.tap(find.text('Souhaiter'));
+      await tester.pump();
+
+      expect(share.shared, ['Joyeux anniversaire ma sœur !']);
     });
 
     testWidgets('changes nothing when the sheet is closed', (tester) async {

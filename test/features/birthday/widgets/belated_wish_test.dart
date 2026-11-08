@@ -34,6 +34,7 @@ void main() {
     String surname = 'Rossi',
     List<int> wishedYears = const [],
     Uint8List? picture,
+    String? wishMessage,
   }) => Birthday(
     id: id,
     name: name,
@@ -41,6 +42,7 @@ void main() {
     date: BirthDate(year: 1995, month: month, day: day),
     wishedYears: wishedYears,
     picture: picture,
+    wishMessage: wishMessage,
   );
 
   late RecordingBirthdayRepository repository;
@@ -135,11 +137,19 @@ void main() {
     await tester.pump();
 
     expect(share.shared, [
-      'Joyeux anniversaire avec un jour de retard, Nina ! 🎂 '
-          "J'espère que tu as passé une très belle journée.",
+      'Désolé pour le retard, bon anniversaire Nina !😅🎂',
     ]);
     expect(repository.wished, [('nina', 2026)]);
     expect(find.text('Nina Rossi a reçu vos vœux'), findsOneWidget);
+  });
+
+  testWidgets("wishes late with the person's own message", (tester) async {
+    await pumpBelated(tester, [bornOn(12, 31, wishMessage: 'Coucou Nina')]);
+
+    await tester.tap(find.text('Souhaiter'));
+    await tester.pump();
+
+    expect(share.shared, ['Coucou Nina']);
   });
 
   testWidgets('marks yesterday wished, and undoes it', (tester) async {

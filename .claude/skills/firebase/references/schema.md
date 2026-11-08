@@ -77,13 +77,14 @@ update by the owner without changing `uid`; the marked address deletes or takes 
 | `picture` | string, optional | base64 JPEG (picked at 512 px, quality 80); undecodable → no photo |
 | `wishedYears` | array of int | years the birthday was wished; `[]`; non-int values ignored |
 | `reminders` | array of string, optional | the person's own leads (`monthBefore`, `weekBefore`, `dayBefore`, `sameDay`): absent → the default setting, `[]` → no reminder; written alone by `updateReminders` (person page), erased with `FieldValue.delete()` when back to the default |
+| `wishMessage` | string, optional | the person's own wish message (≤ 500 characters, trimmed), shared by « Souhaiter » on the day and the day after: absent or blank → the default message; written alone by `updateWishMessage` (person page), erased with `FieldValue.delete()` when back to the default |
 | `transferTo` | string, optional | guest move (§10): the marked address takes the document (`uid` its own, mark removed) or deletes it |
 
 - Written by `BirthdayRepository.createBirthday` (`set` on an id drawn client-side by
   `newBirthdayId`, so the app can open the new person's page offline), `createBirthdays`
   (contacts import, batches of ≤ 500), `updateBirthday` (`update` of every draft field plus
-  `uid`; `picture` only when a new one is given; never `reminders`), `updateReminders`
-  (`update` of `reminders` only), `markWished` / `unmarkWished` (`update` with `arrayUnion` /
+  `uid`; `picture` only when a new one is given; never `reminders` nor `wishMessage`), `updateReminders`
+  (`update` of `reminders` only), `updateWishMessage` (`update` of `wishMessage` only), `markWished` / `unmarkWished` (`update` with `arrayUnion` /
   `arrayRemove`), `deleteBirthday`, `deleteAllUserBirthdays`, `markForTransfer` and `takeOver`
   (§10).
 - Read by `watchBirthdays`: `where('uid', isEqualTo: uid)`, stream; `fetchBirthdays` (same filter).
@@ -184,7 +185,7 @@ Invariant: every per-user path in this file appears in this table. A new collect
 
 Delete a line only when no such document can remain (migrated, or the field rewritten
 everywhere):
-- `birthday` without `yearKnown` (year known), `wishedYears` (never wished) or `reminders` (default setting).
+- `birthday` without `yearKnown` (year known), `wishedYears` (never wished), `reminders` (default setting) or `wishMessage` (default message).
 - `user` without `reminders` (default setting).
 - `user` with `isDark` instead of `themeMode`.
 - `user.categories` (shared groups picked before): no longer read nor written since 2026-11-04;
@@ -217,4 +218,4 @@ Rules (`rules.md` §1): the marked address may delete a marked document, and upd
 What stays: the empty anonymous Auth user; a move cut between steps 2 and 3 (app killed) leaves
 marked documents nobody claims; an unverified address (marks set, takeover refused:
 `GuestMergeFailure.incomplete`) leaves the documents marked; on a duplicate, the guest's photo,
-`wishedYears` and own reminders are lost (ux D29, open).
+`wishedYears`, own reminders and own wish message are lost (ux D29, open).

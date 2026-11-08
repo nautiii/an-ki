@@ -283,7 +283,7 @@
   "@wish": {
     "description": "Bouton du héros le jour J et de la notification : ouvre la feuille de partage avec un message prêt"
   },
-  "wishMessage": "Joyeux anniversaire {name} ! 🎂 Je te souhaite une très belle journée.",
+  "wishMessage": "Bon anniversaire {name} ! 🎂",
   "@wishMessage": {
     "description": "Message prêt à envoyer, modifiable dans l'app choisie. La voix de l'utilisateur à un proche : tutoiement",
     "placeholders": {
@@ -292,7 +292,7 @@
       }
     }
   },
-  "wishMessageBelated": "Joyeux anniversaire avec un jour de retard, {name} ! 🎂 J'espère que tu as passé une très belle journée.",
+  "wishMessageBelated": "Désolé pour le retard, bon anniversaire {name} !😅🎂",
   "@wishMessageBelated": {
     "description": "Message prêt à envoyer le lendemain d'un anniversaire oublié, modifiable dans l'app choisie. Chaleureux, sans reproche ; tutoiement",
     "placeholders": {
@@ -300,6 +300,34 @@
         "type": "String"
       }
     }
+  },
+  "wishMessageTitle": "Message de vœux",
+  "@wishMessageTitle": {
+    "description": "Titre de la section de la page d'une personne et de la feuille qui personnalise le message envoyé par « Souhaiter »"
+  },
+  "wishMessageDefaultCaption": "Message par défaut",
+  "@wishMessageDefaultCaption": {
+    "description": "Sous le message de la page d'une personne, quand aucun message personnalisé n'est enregistré"
+  },
+  "wishMessageEdit": "Modifier le message de vœux",
+  "@wishMessageEdit": {
+    "description": "Libellé d'accessibilité de la ligne qui ouvre la feuille du message de vœu"
+  },
+  "wishMessageField": "Message",
+  "@wishMessageField": {
+    "description": "Libellé du champ de la feuille du message de vœu"
+  },
+  "wishMessageHelper": "Envoyé le jour J et le lendemain. Vous pourrez encore le modifier avant l'envoi.",
+  "@wishMessageHelper": {
+    "description": "Aide sous le champ du message de vœu"
+  },
+  "wishMessageRestored": "Message par défaut rétabli",
+  "@wishMessageRestored": {
+    "description": "Snackbar après « Rétablir le message par défaut », avec « Annuler »"
+  },
+  "wishMessageReset": "Rétablir le message par défaut",
+  "@wishMessageReset": {
+    "description": "Bouton de la feuille du message de vœu : efface le message personnalisé"
   },
   "errorSharing": "Impossible d'ouvrir le partage. Réessayez.",
   "@errorSharing": {

@@ -3,7 +3,8 @@ import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:flutter/foundation.dart';
 
 /// Anniversaire d'une personne : identité, date de naissance (année
-/// facultative), catégories, photo éventuelle et années où il a été souhaité.
+/// facultative), catégories, photo éventuelle, années où il a été souhaité,
+/// rappels et message de vœu propres.
 ///
 /// Modèle de domaine : Dart pur, immuable, sans Firebase ni Flutter UI. La
 /// conversion Firestore (photo en base64 comprise) vit dans
@@ -25,6 +26,10 @@ class const Birthday({
   /// Rappels propres à cette personne : null suit le réglage par défaut,
   /// vide n'en envoie aucun.
   final Set<ReminderLead>? reminders,
+
+  /// Message de vœu propre à cette personne, envoyé le jour J et le
+  /// lendemain ; null prend le message par défaut.
+  final String? wishMessage,
 }) {
   /// Prénom et nom réunis, sans espace de trop quand l'un manque
   /// (« Mamie »).
@@ -41,7 +46,8 @@ class const Birthday({
       listEquals(other.categories, categories) &&
       listEquals(other.picture, picture) &&
       listEquals(other.wishedYears, wishedYears) &&
-      setEquals(other.reminders, reminders);
+      setEquals(other.reminders, reminders) &&
+      other.wishMessage == wishMessage;
 
   // La photo ne contribue que par sa taille : hacher ses octets serait coûteux
   // et la taille suffit à rester cohérent avec ==.
@@ -58,5 +64,6 @@ class const Birthday({
       final leads? => Object.hashAllUnordered(leads),
       null => null,
     },
+    wishMessage,
   );
 }

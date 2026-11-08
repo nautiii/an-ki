@@ -13,6 +13,7 @@ void main() {
     DateTime? date,
     List<int> wishedYears = const [2025],
     Set<ReminderLead>? reminders = const {ReminderLead.sameDay},
+    String? wishMessage = 'Coucou',
   }) => Birthday(
     id: '1',
     name: 'Alice',
@@ -22,6 +23,7 @@ void main() {
     picture: Uint8List.fromList(picture),
     wishedYears: wishedYears,
     reminders: reminders,
+    wishMessage: wishMessage,
   );
 
   group('equality', () {
@@ -48,6 +50,8 @@ void main() {
       expect(birthday(wishedYears: [2025, 2026]), isNot(base));
       expect(birthday(reminders: null), isNot(base));
       expect(birthday(reminders: const {}), isNot(base));
+      expect(birthday(wishMessage: null), isNot(base));
+      expect(birthday(wishMessage: 'Salut'), isNot(base));
     });
   });
 

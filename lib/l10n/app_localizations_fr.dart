@@ -354,13 +354,35 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String wishMessage(String name) {
-    return 'Joyeux anniversaire $name ! 🎂 Je te souhaite une très belle journée.';
+    return 'Bon anniversaire $name ! 🎂';
   }
 
   @override
   String wishMessageBelated(String name) {
-    return 'Joyeux anniversaire avec un jour de retard, $name ! 🎂 J\'espère que tu as passé une très belle journée.';
+    return 'Désolé pour le retard, bon anniversaire $name !😅🎂';
   }
+
+  @override
+  String get wishMessageTitle => 'Message de vœux';
+
+  @override
+  String get wishMessageDefaultCaption => 'Message par défaut';
+
+  @override
+  String get wishMessageEdit => 'Modifier le message de vœux';
+
+  @override
+  String get wishMessageField => 'Message';
+
+  @override
+  String get wishMessageHelper =>
+      'Envoyé le jour J et le lendemain. Vous pourrez encore le modifier avant l\'envoi.';
+
+  @override
+  String get wishMessageRestored => 'Message par défaut rétabli';
+
+  @override
+  String get wishMessageReset => 'Rétablir le message par défaut';
 
   @override
   String get errorSharing => 'Impossible d\'ouvrir le partage. Réessayez.';
