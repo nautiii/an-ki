@@ -87,11 +87,25 @@ class _LinkingAuthRepository extends AuthRepository {
 
 /// Dépôt dont l'oubli du compte Google choisi échoue (hors ligne).
 class _UnforgettingAuthRepository extends FakeAuthRepository {
-  _UnforgettingAuthRepository({super.reauthFailure});
+  _UnforgettingAuthRepository({super.reauthFailure, MockUser? user})
+    : super(user: user);
 
   @override
   Future<void> signOutGoogle() async {
     calls.add('signOutGoogle');
+    throw Exception('offline');
+  }
+}
+
+/// Invité dont Firebase refuse la suppression et dont la déconnexion échoue :
+/// la session reste ouverte.
+class _StuckSessionRepository extends FakeAuthRepository {
+  _StuckSessionRepository({MockUser? user})
+    : super(user: user, deleteFailure: AuthFailure.requiresRecentLogin);
+
+  @override
+  Future<void> signOutFirebase() async {
+    calls.add('signOutFirebase');
     throw Exception('offline');
   }
 }
@@ -937,6 +951,40 @@ void main() {
       );
     });
 
+    test('a failing cleanup after the deletion still succeeds', () async {
+      // Compte supprimé, puis la déconnexion Google échoue (hors ligne) :
+      // rien n'annonce un échec, l'empreinte est oubliée quand même.
+      final repository = _UnforgettingAuthRepository(user: buildUser())
+        ..biometricTokens['uid-1'] = 'tok';
+      final biometrics = FakeBiometricService(
+        available: true,
+        token: 'tok',
+        userId: 'uid-1',
+      );
+      final container = ProviderContainer.test(
+        retry: (_, _) => null,
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          biometricServiceProvider.overrideWithValue(biometrics),
+        ],
+      );
+      container.listen(authAccessProvider, (_, _) {});
+      await settle();
+
+      final ok = await controllerOf(container).deleteAccount();
+      await settle();
+
+      expect(ok, isTrue);
+      expect(repository.calls, [
+        'deleteCurrentUser',
+        'signOutFirebase',
+        'signOutGoogle',
+      ]);
+      expect(container.read(authControllerProvider), isA<AsyncData<void>>());
+      expect(biometrics.token, isNull);
+      expect(container.read(authAccessProvider), AuthAccess.signedOut);
+    });
+
     test('reports a Firebase refusal', () async {
       final user = buildUser(uid: 'del-fb');
       final auth = MockFirebaseAuth(signedIn: true, mockUser: user);
@@ -968,6 +1016,30 @@ void main() {
       expect(ok, isTrue);
       expect(auth.currentUser, isNull);
       expect(container.read(authAccessProvider), AuthAccess.signedOut);
+    });
+
+    test('a guest whose session stays open is not deleted', () async {
+      // Suppression refusée (connexion ancienne), puis la déconnexion
+      // échoue : le compte reste joignable, la suppression a échoué.
+      final repository = _StuckSessionRepository(
+        user: buildUser(anonymous: true),
+      );
+      final container = ProviderContainer.test(
+        retry: (_, _) => null,
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          biometricServiceProvider.overrideWithValue(FakeBiometricService()),
+        ],
+      );
+      container.listen(authAccessProvider, (_, _) {});
+      await settle();
+
+      final ok = await controllerOf(container).deleteAccount();
+      await settle();
+
+      expect(ok, isFalse);
+      expect(failureOf(container), AuthFailure.deleteAccountFailed);
+      expect(container.read(authAccessProvider), AuthAccess.granted);
     });
 
     test('maps unexpected errors to the deletion failure', () async {

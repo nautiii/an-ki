@@ -97,8 +97,13 @@ void main() {
 
     expect(auth.reauthPasswords, ['pw']);
     expect(users.deleted, ['uid-1']);
-    expect(find.text('Suppression du compte'), findsNothing);
     expect(find.text(_deleteError), findsNothing);
+    // La session fermée, le routeur emporte le dialogue (test de l'app) ; le
+    // dialogue ne dépile rien lui-même, l'écran d'en dessous reste, et rien
+    // n'y est plus à confirmer.
+    expect(find.text('Suppression du compte'), findsOne);
+    expect(find.text('Supprimer mon compte'), findsOne);
+    expect(enabled(tester, deleteButton()), isFalse);
   });
 
   testWidgets('a wrong password stays in the dialog, under the field', (
@@ -155,8 +160,9 @@ void main() {
     gate.complete();
     await tester.pumpAndSettle();
 
-    expect(find.text('Suppression du compte'), findsNothing);
     expect(users.deleted, ['uid-1']);
+    expect(find.text('Suppression du compte'), findsOne);
+    expect(find.text('Supprimer mon compte'), findsOne);
   });
 
   testWidgets('a Google account is told its picker comes next', (tester) async {

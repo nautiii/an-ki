@@ -33,8 +33,10 @@ class DeleteAccountTile extends StatelessWidget {
 
 /// Confirmation de la suppression : un compte e-mail saisit son mot de passe,
 /// un compte Google est prévenu que son sélecteur va s'ouvrir. Le dialogue
-/// reste ouvert pendant l'opération (rien ne le ferme alors) ; un mot de
-/// passe refusé s'affiche sous le champ, tout autre échec dans une snackbar.
+/// reste ouvert pendant l'opération (rien ne le ferme alors) ; réussie, le
+/// routeur l'emporte avec la page vers la bienvenue ; il ne se ferme lui-même
+/// que sur un échec ou une annulation. Un mot de passe refusé s'affiche sous
+/// le champ, tout autre échec dans une snackbar.
 class _DeleteAccountDialog extends ConsumerStatefulWidget {
   const _DeleteAccountDialog();
 
@@ -46,6 +48,10 @@ class _DeleteAccountDialog extends ConsumerStatefulWidget {
 class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
   final _password = TextEditingController();
   String? _passwordError;
+
+  /// Compte supprimé : plus rien à confirmer, en attendant que le routeur
+  /// emporte le dialogue.
+  bool _deleted = false;
 
   @override
   void dispose() {
@@ -60,7 +66,14 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
         .deleteAccount(
           password: method == SignInMethod.email ? _password.text : null,
         );
+    // Compte supprimé : la session fermée, le routeur part vers la bienvenue
+    // et emporte ce dialogue. Le fermer ici dépilerait la bienvenue, déjà
+    // en place, et laisserait un écran vide.
     if (!mounted) return;
+    if (deleted) {
+      setState(() => _deleted = true);
+      return;
+    }
     final error = ref.read(accountDeletionProvider).error;
     if (error == AuthFailure.wrongPassword ||
         error == AuthFailure.invalidCredentials) {
@@ -73,8 +86,10 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
         authErrorMessage(context, error),
       _ => context.l10n.deleteAccountError,
     };
-    Navigator.of(context).pop();
-    if (!deleted && message != null) {
+    // Seulement s'il est encore au-dessus : sinon `pop` fermerait l'écran
+    // d'en dessous.
+    if (ModalRoute.of(context)?.isCurrent ?? false) Navigator.of(context).pop();
+    if (message != null) {
       messenger.showSnackBar(SnackBar(content: Text(message)));
     }
   }
@@ -86,11 +101,14 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
     final method = ref.watch(signInMethodProvider);
     // Regardé aussi pour garder le contrôleur en vie pendant l'opération.
     final loading = ref.watch(accountDeletionProvider).isLoading;
+    // Pendant l'opération, puis une fois le compte supprimé : plus rien à
+    // toucher.
+    final busy = loading || _deleted;
     final needsPassword = method == SignInMethod.email;
-    final canDelete = !loading && (!needsPassword || _password.text.isNotEmpty);
+    final canDelete = !busy && (!needsPassword || _password.text.isNotEmpty);
 
     return PopScope(
-      canPop: !loading,
+      canPop: !busy,
       child: AlertDialog(
         title: Text(l10n.deleteAccountTitle),
         content: SingleChildScrollView(
@@ -112,7 +130,7 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
                   label: l10n.password,
                   autofillHints: const [AutofillHints.password],
                   textInputAction: TextInputAction.done,
-                  enabled: !loading,
+                  enabled: !busy,
                   errorText: _passwordError,
                   onChanged: (_) => setState(() => _passwordError = null),
                   onSubmitted: canDelete ? (_) => _delete(method) : null,
@@ -129,7 +147,7 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
         ),
         actions: [
           TextButton(
-            onPressed: loading ? null : () => Navigator.of(context).pop(),
+            onPressed: busy ? null : () => Navigator.of(context).pop(),
             child: Text(l10n.cancel),
           ),
           TextButton(

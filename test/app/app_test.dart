@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
@@ -16,6 +18,17 @@ import '../support/network_image_mock.dart';
 class _PendingAuthRepository extends FakeAuthRepository {
   @override
   Stream<User?> userChanges() => const Stream.empty();
+}
+
+/// Déconnexion Google en attente tant que [googleSignOut] n'est pas complété.
+class _SlowGoogleSignOutRepository extends FakeAuthRepository {
+  final googleSignOut = Completer<void>();
+
+  @override
+  Future<void> signOutGoogle() async {
+    await super.signOutGoogle();
+    await googleSignOut.future;
+  }
 }
 
 void main() {
@@ -203,6 +216,43 @@ void main() {
 
       expect(find.byType(SettingsScreen), findsNothing);
       expect(find.byType(WelcomeScreen), findsOneWidget);
+    });
+  });
+
+  // Sur un téléphone, Firebase ferme la session dès la suppression, et le
+  // routeur part vers la bienvenue avant que la suppression ne finisse côté
+  // app (déconnexion Google lente) : rien ne doit alors dépiler la bienvenue.
+  testWidgets('a guest deleting their account goes back to the welcome', (
+    tester,
+  ) async {
+    await mockNetworkImages(() async {
+      final auth = _SlowGoogleSignOutRepository();
+      await tester.pumpApp(auth: auth);
+      await tester.settleApp();
+      await tester.tap(find.text('Commencer'));
+      await tester.settleApp();
+
+      await tester.tap(find.byTooltip('Paramètres'));
+      await tester.settleApp();
+      await tester.scrollUntilVisible(
+        find.text('Supprimer mon compte'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.text('Supprimer mon compte'));
+      await tester.settleApp();
+      await tester.tap(find.widgetWithText(TextButton, 'Supprimer'));
+      // La session fermée, le routeur redirige pendant que la suppression
+      // attend encore la déconnexion Google.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      auth.googleSignOut.complete();
+      await tester.settleApp();
+
+      expect(auth.calls, contains('deleteCurrentUser'));
+      expect(find.byType(SettingsScreen), findsNothing);
+      expect(find.byType(WelcomeScreen), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   });
 }
