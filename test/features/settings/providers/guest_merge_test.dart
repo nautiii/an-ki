@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:an_ki/app/modules/module_data_hooks.dart';
 import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
@@ -7,6 +8,7 @@ import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/books/data/book_repository.dart';
 import 'package:an_ki/features/settings/domain/guest_merge_failure.dart';
 import 'package:an_ki/features/settings/providers/guest_merge.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,6 +17,8 @@ import 'package:firebase_auth/firebase_auth.dart' show User;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 import '../../../support/fake_providers.dart';
 
@@ -49,6 +53,38 @@ class _FailingTakeOver extends BirthdayRepository {
   );
 }
 
+/// Livres dont les marques échouent avec [error], ou n'arrivent jamais sans
+/// erreur : avant la connexion. [takeOverError] : leur reprise échoue, après.
+class _FragileBooks extends BookRepository {
+  _FragileBooks(
+    FakeFirebaseFirestore firestore, {
+    this.error,
+    this.neverMarks = false,
+    this.takeOverError,
+  }) : super(
+         firestore: firestore,
+         httpClient: MockClient((_) async => http.Response('', 500)),
+         apiKey: '',
+       );
+
+  final Exception? error;
+  final bool neverMarks;
+  final Exception? takeOverError;
+
+  @override
+  Future<List<String>> markForTransfer(String uid, String email) {
+    if (error case final error?) throw error;
+    if (neverMarks) return Completer<List<String>>().future;
+    return super.markForTransfer(uid, email);
+  }
+
+  @override
+  Future<void> takeOver(String uid, Iterable<String> bookIds) {
+    if (takeOverError case final error?) throw error;
+    return super.takeOver(uid, bookIds);
+  }
+}
+
 void main() {
   late FakeFirebaseFirestore db;
   late FakeAuthRepository auth;
@@ -75,15 +111,25 @@ void main() {
   Future<Map<String, dynamic>?> birthday(String id) async =>
       (await db.collection('birthday').doc(id).get()).data();
 
-  ProviderContainer makeContainer({BirthdayRepository? birthdays}) {
+  Future<Map<String, dynamic>?> book(String id) async =>
+      (await db.collection('books').doc(id).get()).data();
+
+  /// [wired] : `app/` fournit les reprises des modules, comme dans `main()`.
+  ProviderContainer makeContainer({
+    BirthdayRepository? birthdays,
+    BookRepository? books,
+    bool wired = true,
+  }) {
     final container = ProviderContainer.test(
       retry: (_, _) => null,
       overrides: [
+        if (wired) ...moduleDataHooks,
         firestoreProvider.overrideWithValue(db),
         authRepositoryProvider.overrideWithValue(auth),
         biometricServiceProvider.overrideWithValue(FakeBiometricService()),
         if (birthdays != null)
           birthdayRepositoryProvider.overrideWithValue(birthdays),
+        if (books != null) bookRepositoryProvider.overrideWithValue(books),
       ],
     );
     container.listen(guestMergeProvider, (_, _) {});
@@ -275,6 +321,99 @@ void main() {
       expect(auth.currentUser?.uid, _target);
     },
   );
+
+  test(
+    'without the module transfers, marks nothing and keeps the guest',
+    () async {
+      final container = makeContainer(wired: false);
+
+      expect(await container.read(guestMergeProvider.notifier).merge(), isNull);
+
+      expect(
+        container.read(guestMergeProvider).error,
+        GuestMergeFailure.failed,
+      );
+      expect(auth.calls, isEmpty);
+      expect((await birthday('b2'))?.containsKey('transferTo'), isFalse);
+    },
+  );
+
+  group('books', () {
+    test('are marked before signing in', () async {
+      final marks = <String?>[];
+      auth = _MarkWatchingAuth(
+        onPrepared: () async =>
+            marks.add((await book('k1'))?['transferTo'] as String?),
+      );
+
+      await makeContainer().read(guestMergeProvider.notifier).merge();
+
+      expect(marks, [FakeAuthRepository.googleEmail]);
+    });
+
+    test('offline, the guest stays a guest', () async {
+      final container = makeContainer(
+        books: _FragileBooks(
+          db,
+          error: FirebaseException(
+            plugin: 'cloud_firestore',
+            code: 'unavailable',
+          ),
+        ),
+      );
+
+      expect(await container.read(guestMergeProvider.notifier).merge(), isNull);
+
+      expect(
+        container.read(guestMergeProvider).error,
+        GuestMergeFailure.offline,
+      );
+      expect(auth.currentUser?.uid, _guest);
+      expect((await book('k1'))?['uid'], _guest);
+    });
+
+    testWidgets('marks that never arrive: the guest stays a guest', (
+      tester,
+    ) async {
+      final container = makeContainer(
+        books: _FragileBooks(db, neverMarks: true),
+      );
+
+      final merged = container.read(guestMergeProvider.notifier).merge();
+      // Les marques des livres comptent dans le délai de toutes les marques.
+      await tester.pump(GuestMerge.markTimeout + const Duration(seconds: 1));
+
+      expect(await merged, isNull);
+      expect(
+        container.read(guestMergeProvider).error,
+        GuestMergeFailure.offline,
+      );
+      expect(auth.currentUser?.uid, _guest);
+    });
+
+    test('that do not follow make the move incomplete', () async {
+      final container = makeContainer(
+        books: _FragileBooks(
+          db,
+          takeOverError: FirebaseException(
+            plugin: 'cloud_firestore',
+            code: 'permission-denied',
+          ),
+        ),
+      );
+
+      expect(await container.read(guestMergeProvider.notifier).merge(), isNull);
+
+      expect(
+        container.read(guestMergeProvider).error,
+        GuestMergeFailure.incomplete,
+      );
+      expect(auth.currentUser?.uid, _target);
+      // Les anniversaires sont passés avant, le profil d'invité reste.
+      expect((await birthday('b2'))?['uid'], _target);
+      expect((await db.collection('user').doc(_guest).get()).exists, isTrue);
+    });
+  });
 }
 
 /// Compte Google ouvert après un regard sur les données, une fois l'invité

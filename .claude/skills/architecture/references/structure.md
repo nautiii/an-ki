@@ -125,7 +125,9 @@ Why each boundary:
 | Orchestration triggered by the app lifecycle (sign-in, start) | `app/bootstrap/` | `AppInitializer`, `ReminderPrompt` (`app/bootstrap/`) |
 | Tab selection, shell layout | `app/shell/` (tabs are branches of the router) | `MainShell`, `ShellBranches` |
 | Asset paths, fixed keys | `core/constants/` | `AppAssets` |
-| A new module (a bundle of features the user can turn on) | `app/modules/<module>_module.dart` + a line in `module_registry.dart`; its features stay unaware | `booksModule` |
+| A new module (a bundle of features the user can turn on) | `app/modules/<module>_module.dart` + a line in `module_registry.dart` + its features in `moduleFeatures` (architecture test); its features stay unaware | `booksModule` |
+| A settings section that assembles features of one module | `app/modules/`, handed to `SettingsScreen.moduleSections` through `AppModule.settingsSection` | `BirthdaysSettingsSection` |
+| A module's user data for account deletion and guest takeover | `ModuleData` of its `AppModule` (eraser, guest transfer), wired by `app/modules/module_data_hooks.dart` into the `core` hooks | `userDataErasersProvider`, `guestDataTransfersProvider` |
 | A fake shared by several test files | `test/support/` | `FakeIdeaRepository` |
 
 When two rows seem to fit, choose the one lower in the dependency order (domain < data <
@@ -167,10 +169,13 @@ feature and is not part of it.
 | `books` | auth, user |
 | `settings` | auth, user, birthday |
 
-Today (before the lot) `settings` also imports `book_scanner` (renamed `books` on 2026-11-08) and
-`reminders`; those edges disappear with the module registry and the data hooks.
-`settings -> birthday` stays, declared as debt for the guest takeover (`migration.md`). Planned
-brick: `ideas {auth, birthday}`, an extension of Anniversaires (ux B4, deferred).
+Today (2026-11-08) the graph is the target: the edges `settings -> reminders` (the Birthdays
+settings section, now composed by `app/modules` through `SettingsScreen.moduleSections`) and
+`settings -> books` (account deletion and guest takeover, now through the `core` data hooks
+`userDataErasersProvider` and `guestDataTransfersProvider`, which `app/` overrides from the
+registry) are gone. `settings -> birthday` stays, declared as debt for the guest takeover
+(`migration.md`). Planned brick: `ideas {auth, birthday}`, an extension of Anniversaires (ux B4,
+deferred).
 
 ### Modules
 
@@ -179,7 +184,8 @@ A **module** is a bundle of features that the user turns on or off, assembled in
 the **foundations** `auth` and `user` serve every module and import none; the **host** `settings`
 lists the modules and hosts their sections, and imports a module only along a declared edge
 (`settings -> birthday`); a **module's features** never import another module's. The registry is
-the only place that knows the modules; the test checks the three rules through `moduleFeatures`.
+the only place that knows the modules; the test checks the three rules through `moduleFeatures`,
+`foundationFeatures` and `hostModuleEdges` (each host edge with its reason).
 
 Reading the target: `auth` and `user` are foundations, `birthday` (people and their dates) is the
 core domain, everything else builds on it, and nothing builds on `settings`. Onboarding (B5) is

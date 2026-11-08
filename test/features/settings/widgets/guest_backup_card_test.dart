@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:an_ki/app/modules/module_data_hooks.dart';
 import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
@@ -85,6 +86,7 @@ void main() {
     await tester.pumpHarness(
       const GuestBackupCard(count: 12),
       overrides: [
+        ...moduleDataHooks,
         ...authOverrides(auth),
         firestoreProvider.overrideWithValue(
           firestore ?? FakeFirebaseFirestore(),
@@ -279,6 +281,7 @@ void main() {
               : const SizedBox.shrink(),
         ),
         overrides: [
+          ...moduleDataHooks,
           ...authOverrides(auth),
           firestoreProvider.overrideWithValue(firestore),
           birthdayRepositoryProvider.overrideWithValue(
@@ -441,7 +444,7 @@ void main() {
   testWidgets('waits while saving', (tester) async {
     await tester.pumpHarness(
       const GuestBackupCard(count: 12),
-      overrides: loadingAuthOverrides(),
+      overrides: [...loadingAuthOverrides(), ...moduleDataHooks],
     );
     await tester.pump();
 

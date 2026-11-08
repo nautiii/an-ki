@@ -1,5 +1,6 @@
 import 'package:an_ki/app/modules/app_module.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/features/books/data/book_repository.dart';
 import 'package:an_ki/features/books/screens/book_scanner_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -21,5 +22,16 @@ final booksModule = AppModule(
         builder: (_, _) => const BookScannerScreen(),
       ),
     ],
+  ),
+  data: ModuleData(
+    eraser: (ref) => ref.watch(bookRepositoryProvider).deleteAllUserBooks,
+    // Marqués comme invité avant la connexion, repris par leurs ids après.
+    guestTransfer: (ref) {
+      final books = ref.watch(bookRepositoryProvider);
+      return (guestUid, email) async {
+        final bookIds = await books.markForTransfer(guestUid, email);
+        return (String targetUid) => books.takeOver(targetUid, bookIds);
+      };
+    },
   ),
 );
