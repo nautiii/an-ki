@@ -1,5 +1,7 @@
+import 'package:an_ki/core/providers/user_data_hooks.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -44,4 +46,22 @@ class const AppModule({
   /// Providers que l'app garde en vie tant que le module est actif : un
   /// provider que personne n'écoute est mis en pause.
   final List<ProviderListenable<Object?>> effects = const [],
+
+  /// Ses données utilisateur : effacées avec le compte et reprises avec un
+  /// invité, que le module soit actif ou non ; null s'il n'en a pas.
+  final ModuleData? data,
+});
+
+/// Données utilisateur d'un module, pour la suppression du compte et la
+/// reprise d'un invité (`moduleDataHooks`). Chaque crochet lit ses dépôts
+/// dans le `ref` qu'il reçoit (`ref.watch`, à l'appel) et renvoie la fonction
+/// qui agit. Cette fonction ne se sert jamais de `ref` : elle s'exécute plus
+/// tard, après des `await`, quand ce `ref` peut ne plus être valable.
+class const ModuleData({
+  /// Effaceur de toutes les données du module pour un compte.
+  required final UserDataEraser Function(Ref ref) eraser,
+
+  /// Reprise d'invité du module ; null quand une feature la fait elle-même
+  /// (les anniversaires et les groupes, avec leur plan de doublons).
+  final GuestDataTransfer Function(Ref ref)? guestTransfer,
 });

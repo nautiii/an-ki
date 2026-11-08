@@ -1,6 +1,8 @@
 import 'package:an_ki/app/modules/app_module.dart';
 import 'package:an_ki/app/modules/birthdays_settings_section.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/reminders/providers/reminder_sync_provider.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_off_card.dart';
@@ -35,4 +37,16 @@ final birthdaysModule = AppModule(
   ),
   settingsSection: const BirthdaysSettingsSection(),
   effects: [reminderSyncProvider],
+  // Les anniversaires, puis les groupes privés. La reprise d'un invité se fait
+  // dans `GuestMerge`, qui écarte les doublons.
+  data: ModuleData(
+    eraser: (ref) {
+      final birthdays = ref.watch(birthdayRepositoryProvider);
+      final categories = ref.watch(categoryRepositoryProvider);
+      return (uid) async {
+        await birthdays.deleteAllUserBirthdays(uid);
+        await categories.deleteAllUserCategories(uid);
+      };
+    },
+  ),
 );

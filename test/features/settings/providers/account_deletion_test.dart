@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:an_ki/app/modules/module_data_hooks.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
@@ -38,6 +39,7 @@ void main() {
     final container = ProviderContainer.test(
       retry: (_, _) => null,
       overrides: [
+        ...moduleDataHooks,
         authRepositoryProvider.overrideWithValue(auth),
         biometricServiceProvider.overrideWithValue(FakeBiometricService()),
         birthdayRepositoryProvider.overrideWithValue(birthdays),
@@ -90,6 +92,34 @@ void main() {
       'signOutGoogle',
     ]);
     expect(container.read(accountDeletionProvider), isA<AsyncData<void>>());
+  });
+
+  test('erases the profile after every data', () async {
+    final erasedFirst = <String>[];
+    users = _WatchingUsers(
+      onDelete: () => erasedFirst
+        ..addAll(birthdays.erasedUids.map((_) => 'birthdays'))
+        ..addAll(categories.erasedUids.map((_) => 'groups'))
+        ..addAll(books.erasedUids.map((_) => 'books')),
+    );
+    final container = makeContainer();
+
+    expect(await delete(container, password: 'pw'), isTrue);
+
+    expect(erasedFirst, unorderedEquals(['birthdays', 'groups', 'books']));
+  });
+
+  test('keeps the profile when the birthdays cannot be erased', () async {
+    birthdays = RecordingBirthdayRepository(failure: Exception('offline'));
+    final container = makeContainer();
+
+    expect(await delete(container, password: 'pw'), isFalse);
+
+    // Le premier effaceur en échec arrête tout.
+    expect(categories.erasedUids, isEmpty);
+    expect(books.erasedUids, isEmpty);
+    expect(users.deleted, isEmpty);
+    expect(auth.calls, isNot(contains('deleteCurrentUser')));
   });
 
   test('ignores a second tap while the deletion runs', () async {
@@ -192,4 +222,17 @@ void main() {
 
     expect(container.read(accountDeletionProvider).error, AuthFailure.network);
   });
+}
+
+/// Profil qui regarde, au moment d'être effacé, ce qui l'a été avant lui.
+class _WatchingUsers extends RecordingUserRepository {
+  _WatchingUsers({required this.onDelete}) : super(stored: _user);
+
+  final void Function() onDelete;
+
+  @override
+  Future<void> deleteUser(String uid) async {
+    onDelete();
+    await super.deleteUser(uid);
+  }
 }

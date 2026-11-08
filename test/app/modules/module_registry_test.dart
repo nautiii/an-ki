@@ -97,6 +97,15 @@ void main() {
     );
   });
 
+  test('every module says how its data leaves with the account', () {
+    for (final module in appModules) {
+      expect(module.data, isNotNull, reason: module.id);
+    }
+    // Les anniversaires suivent un invité par GuestMerge, et leurs doublons.
+    expect(birthdaysModule.data?.guestTransfer, isNull);
+    expect(booksModule.data?.guestTransfer, isNotNull);
+  });
+
   test('every registered module is active', () {
     final container = ProviderContainer.test();
 

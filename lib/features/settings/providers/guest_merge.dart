@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:an_ki/core/providers/user_data_hooks.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
@@ -7,7 +8,6 @@ import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/guest_merge_plan.dart';
-import 'package:an_ki/features/books/data/book_repository.dart';
 import 'package:an_ki/features/settings/domain/guest_merge_failure.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -18,11 +18,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// `AsyncLoading` pendant l'opération, `AsyncError` portant un `AuthFailure`
 /// (connexion) ou un [GuestMergeFailure], sinon `AsyncData`.
 ///
-/// Orchestration entre features (auth, birthday, books, user) : elle
-/// vit dans `settings`, qui dépend de chacune, comme la suppression du
-/// compte. Se connecter remplace la session d'invité : ses documents sont
-/// donc marqués pour le compte choisi avant, puis repris par lui après
-/// (`firestore.rules`, skill firebase `schema.md` §10).
+/// Orchestration entre features (auth, birthday, user) : elle vit dans
+/// `settings`, qui dépend de chacune. Les anniversaires et les groupes y
+/// sont repris en propre, avec leur plan de doublons ; les données des
+/// autres modules passent par leurs reprises ([guestDataTransfersProvider],
+/// fournies par `app/`). Se connecter remplace la session d'invité : ses
+/// documents sont donc marqués pour le compte choisi avant, puis repris par
+/// lui après (`firestore.rules`, skill firebase `schema.md` §10).
 class GuestMerge extends AsyncNotifier<void> {
   /// Limite des marques, qui doivent atteindre le serveur avant la
   /// connexion : au-delà, la connexion est trop lente pour s'y risquer.
@@ -44,8 +46,16 @@ class GuestMerge extends AsyncNotifier<void> {
     final auth = ref.read(authControllerProvider.notifier);
     final birthdays = ref.read(birthdayRepositoryProvider);
     final categories = ref.read(categoryRepositoryProvider);
-    final books = ref.read(bookRepositoryProvider);
     final users = ref.read(userRepositoryProvider);
+    final List<GuestDataTransfer> transfers;
+    try {
+      transfers = ref.read(guestDataTransfersProvider);
+    } catch (_, stackTrace) {
+      // Reprises que `app/` n'a pas fournies : rien n'est marqué, l'invité
+      // reste un invité.
+      state = AsyncError(GuestMergeFailure.failed, stackTrace);
+      return null;
+    }
     // En vie jusqu'au bout : la carte disparaît avec l'invité, dès la
     // connexion, avant la reprise.
     final keepAlive = ref.keepAlive();
@@ -60,7 +70,7 @@ class GuestMerge extends AsyncNotifier<void> {
             email,
             birthdays: birthdays,
             categories: categories,
-            books: books,
+            transfers: transfers,
             users: users,
           ).timeout(markTimeout);
           return true;
@@ -101,7 +111,9 @@ class GuestMerge extends AsyncNotifier<void> {
           moves: plan.moves,
           duplicates: plan.duplicates,
         );
-        await books.takeOver(targetUid, marked.bookIds);
+        for (final takeOver in marked.takeOvers) {
+          await takeOver(targetUid);
+        }
         if (marked.hasProfile) await users.deleteUser(guestUid);
         if (ref.mounted) state = const AsyncData(null);
         return plan;
@@ -139,29 +151,41 @@ class _GuestData {
   _GuestData({
     required this.birthdays,
     required this.groups,
-    required this.bookIds,
+    required this.takeOvers,
     required this.hasProfile,
   });
 
-  /// Marque, comme invité [uid], tout ce qu'il possède pour [email] : lu sur
-  /// le serveur d'abord, hors ligne rien n'est écrit.
+  /// Marque, comme invité [uid], tout ce qu'il possède pour [email] : ses
+  /// anniversaires, ses groupes, les données des autres modules
+  /// ([transfers]), puis son profil. Lu sur le serveur d'abord, hors ligne
+  /// rien n'est écrit.
   static Future<_GuestData> mark(
     String uid,
     String email, {
     required BirthdayRepository birthdays,
     required CategoryRepository categories,
-    required BookRepository books,
+    required List<GuestDataTransfer> transfers,
     required UserRepository users,
-  }) async => _GuestData(
-    birthdays: await birthdays.markForTransfer(uid, email),
-    groups: await categories.markForTransfer(uid, email),
-    bookIds: await books.markForTransfer(uid, email),
-    hasProfile: await users.markForTransfer(uid, email),
-  );
+  }) async {
+    final guestBirthdays = await birthdays.markForTransfer(uid, email);
+    final groups = await categories.markForTransfer(uid, email);
+    final takeOvers = [
+      for (final transfer in transfers) await transfer(uid, email),
+    ];
+    return _GuestData(
+      birthdays: guestBirthdays,
+      groups: groups,
+      takeOvers: takeOvers,
+      hasProfile: await users.markForTransfer(uid, email),
+    );
+  }
 
   final List<Birthday> birthdays;
   final List<BirthdayCategory> groups;
-  final List<String> bookIds;
+
+  /// Reprise des données marquées de chaque autre module, une fois le compte
+  /// ouvert.
+  final List<GuestDataTakeOver> takeOvers;
   final bool hasProfile;
 }
 

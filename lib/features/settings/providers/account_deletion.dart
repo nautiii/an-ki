@@ -1,10 +1,8 @@
 import 'dart:async';
 
+import 'package:an_ki/core/providers/user_data_hooks.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/birthday/data/birthday_repository.dart';
-import 'package:an_ki/features/birthday/data/category_repository.dart';
-import 'package:an_ki/features/books/data/book_repository.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,16 +11,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// (`AuthFailure` de la confirmation ou de la suppression, erreur de
 /// l'effacement), sinon `AsyncData`.
 ///
-/// Orchestration entre features : elle vit dans `settings`, qui dépend de
-/// chacune d'elles. Tant qu'elle tourne, l'app ne recrée pas le profil
-/// effacé (`AppInitializer`).
+/// Orchestration entre features : elle vit dans `settings`, qui dépend
+/// d'`auth` et d'`user` ; les données des modules passent par leurs
+/// effaceurs ([userDataErasersProvider], fournis par `app/`). Tant qu'elle
+/// tourne, l'app ne recrée pas le profil effacé (`AppInitializer`).
 class AccountDeletion extends AsyncNotifier<void> {
   @override
   FutureOr<void> build() {}
 
   /// Confirme l'identité ([password] pour un compte e-mail), efface les
-  /// données Firestore (anniversaires, livres, groupes privés, puis profil),
-  /// puis supprime le compte d'authentification. L'identité vient d'abord :
+  /// données Firestore (celles de chaque module, actif ou non, puis le
+  /// profil), puis supprime le compte d'authentification. L'identité vient d'abord :
   /// Firebase refuse de supprimer un compte connecté depuis longtemps, et
   /// rien ne doit être effacé d'un compte qui resterait. Renvoie `true` une
   /// fois le compte supprimé ; une annulation (sélecteur Google fermé) laisse
@@ -58,14 +57,14 @@ class AccountDeletion extends AsyncNotifier<void> {
     }
   }
 
+  /// Les données de chaque module, puis le profil. Un effaceur qui échoue
+  /// arrête tout : le profil reste, et le compte avec lui.
   Future<void> _eraseData(String uid) async {
-    final birthdays = ref.read(birthdayRepositoryProvider);
-    final books = ref.read(bookRepositoryProvider);
-    final categories = ref.read(categoryRepositoryProvider);
+    final erasers = ref.read(userDataErasersProvider);
     final users = ref.read(userRepositoryProvider);
-    await birthdays.deleteAllUserBirthdays(uid);
-    await books.deleteAllUserBooks(uid);
-    await categories.deleteAllUserCategories(uid);
+    for (final erase in erasers) {
+      await erase(uid);
+    }
     await users.deleteUser(uid);
   }
 

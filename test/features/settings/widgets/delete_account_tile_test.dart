@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:an_ki/app/modules/module_data_hooks.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
@@ -45,6 +46,7 @@ void main() {
     await tester.pumpHarness(
       const DeleteAccountTile(),
       overrides: [
+        ...moduleDataHooks,
         authRepositoryProvider.overrideWithValue(auth),
         biometricServiceProvider.overrideWithValue(FakeBiometricService()),
         currentUidProvider.overrideWithValue('uid-1'),

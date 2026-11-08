@@ -455,7 +455,11 @@ class PersonScreen extends ConsumerWidget {
 ## 13. Cross-feature orchestration
 
 A flow touching several features lives in the lowest feature that already depends on all of them
-(`structure.md` §6). Shape of account deletion in `settings` (depends on auth, user, birthday):
+(`structure.md` §6). When the flow must reach every module (decision D13), the module features
+stay out of its graph: `core` declares a hook provider that throws unless overridden, and `app/`
+overrides it from the registry (`app/modules/module_data_hooks.dart`), the way it provides
+`notificationStringsProvider`. Shape of account deletion in `settings` (depends on auth and
+user; the modules' data through `userDataErasersProvider`):
 
 ```dart
 class AccountDeletion extends AsyncNotifier<void> {
@@ -476,7 +480,7 @@ class AccountDeletion extends AsyncNotifier<void> {
         return false;
       }
       try {
-        await _eraseData(uid); // anniversaires, livres, groupes, puis profil
+        await _eraseData(uid); // chaque module, actif ou non, puis le profil
       } catch (error, stackTrace) {
         if (ref.mounted) state = AsyncError(error, stackTrace);
         return false;
@@ -493,6 +497,31 @@ class AccountDeletion extends AsyncNotifier<void> {
   }
 }
 ```
+
+```dart
+// core/providers/user_data_hooks.dart — un effaceur par module, fourni par app/.
+typedef UserDataEraser = Future<void> Function(String uid);
+final userDataErasersProvider = Provider<List<UserDataEraser>>(
+  (ref) => throw UnimplementedError('userDataErasersProvider is overridden by app/.'),
+);
+
+// app/modules/books_module.dart — le module dit comment ses données partent.
+data: ModuleData(
+  eraser: (ref) => ref.watch(bookRepositoryProvider).deleteAllUserBooks,
+  guestTransfer: (ref) { ... }, // marquer, puis renvoyer la reprise par ids
+),
+
+// settings — AccountDeletion._eraseData
+for (final erase in ref.read(userDataErasersProvider)) {
+  await erase(uid);
+}
+await ref.read(userRepositoryProvider).deleteUser(uid);
+```
+
+The guest takeover (`GuestMerge`) has the same shape through `guestDataTransfersProvider`: each
+transfer marks the guest's data before the sign-in and returns the takeover run after it. It
+keeps birthdays and groups explicit (their duplicate plan), the one declared host edge
+`settings -> birthday`. The hooks cover every registered module, active or not.
 
 Nothing to "clear" afterwards: every session-scoped provider resets when `currentUidProvider`
 turns null. Flows triggered by the app lifecycle (create the profile on first sign-in, offer the

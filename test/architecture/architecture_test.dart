@@ -6,7 +6,8 @@
 // Règles et raisons : `.claude/skills/architecture/references/structure.md`.
 //
 // Quand modifier ce fichier :
-// - nouvelle feature → la déclarer dans [featureDependencies] ;
+// - nouvelle feature → la déclarer dans [featureDependencies], avec son rôle
+//   (fondation, hôte, ou feature d'un module dans [moduleFeatures]) ;
 // - dette résorbée → retirer sa ligne de [knownViolations] (le test l'exige) ;
 // - jamais pour faire passer une nouvelle violation : corriger le code.
 import 'dart:io';
@@ -23,7 +24,28 @@ const featureDependencies = <String, Set<String>>{
   'birthday': {'auth', 'user'},
   'books': {'auth', 'user'},
   'reminders': {'auth', 'birthday'},
-  'settings': {'auth', 'user', 'birthday', 'books'},
+  'settings': {'auth', 'user', 'birthday'},
+};
+
+/// Features de chaque module (décision D13), tel que `app/modules/` les
+/// assemble. Une feature appartient à un module au plus.
+const moduleFeatures = <String, Set<String>>{
+  'birthdays': {'birthday', 'reminders'},
+  'books': {'books'},
+};
+
+/// Fondations : elles servent tous les modules et n'en importent aucun.
+const foundationFeatures = {'auth', 'user'};
+
+/// Hôtes : features hors modules qui les accueillent (réglages, compte). Un
+/// hôte n'importe une feature de module que par une arête déclarée ici, avec
+/// sa raison ; le reste passe par `app/` (slots, crochets de `core`).
+const hostModuleEdges = <String, Map<String, String>>{
+  'settings': {
+    'birthday':
+        'reprise d\'invité (B5.5) : le plan de doublons des anniversaires et '
+        'des groupes ; dette consignée dans migration.md',
+  },
 };
 
 /// Dossiers autorisés directement sous `lib/features/<feature>/`.
@@ -117,6 +139,88 @@ void main() {
       reason: 'featureDependencies cite des features inexistantes.',
     );
     expect(_findCycle(featureDependencies), isNull);
+  });
+
+  group('modules', () {
+    final moduleOf = {
+      for (final MapEntry(key: module, value: features)
+          in moduleFeatures.entries)
+        for (final feature in features) feature: module,
+    };
+
+    test('every feature is a foundation, a host or part of one module', () {
+      final inModules = moduleFeatures.values.expand((f) => f).toList();
+      expect(
+        inModules.toSet(),
+        hasLength(inModules.length),
+        reason: 'Une feature appartient à un seul module.',
+      );
+      final roles = {
+        ...foundationFeatures,
+        ...hostModuleEdges.keys,
+        ...inModules,
+      };
+      expect(
+        featureDependencies.keys.toSet().difference(roles),
+        isEmpty,
+        reason:
+            'Donner un rôle à ces features : fondation, hôte ou module '
+            '(moduleFeatures).',
+      );
+      expect(
+        roles.difference(featureDependencies.keys.toSet()),
+        isEmpty,
+        reason: 'Ces rôles citent des features inexistantes.',
+      );
+      // Un rôle par feature.
+      final hosts = hostModuleEdges.keys.toSet();
+      expect(foundationFeatures.intersection(moduleOf.keys.toSet()), isEmpty);
+      expect(hosts.intersection(moduleOf.keys.toSet()), isEmpty);
+      expect(hosts.intersection(foundationFeatures), isEmpty);
+    });
+
+    test('no edge between the features of two modules', () {
+      final edges = [
+        for (final MapEntry(key: feature, value: deps)
+            in featureDependencies.entries)
+          if (moduleOf[feature] case final module?)
+            for (final dep in deps)
+              if (moduleOf[dep] case final other? when other != module)
+                '$feature ($module) -> $dep ($other)',
+      ];
+      expect(
+        edges,
+        isEmpty,
+        reason:
+            'Un module ignore les autres : composer dans app/modules, ou '
+            'descendre le concept partagé dans core/.',
+      );
+    });
+
+    test('foundations import no module feature', () {
+      final edges = [
+        for (final feature in foundationFeatures)
+          for (final dep in featureDependencies[feature] ?? const <String>{})
+            if (moduleOf.containsKey(dep)) '$feature -> $dep',
+      ];
+      expect(edges, isEmpty);
+    });
+
+    test('a host imports a module only through a declared edge', () {
+      for (final MapEntry(key: host, value: declared)
+          in hostModuleEdges.entries) {
+        final toModules = (featureDependencies[host] ?? const <String>{})
+            .where(moduleOf.containsKey)
+            .toSet();
+        expect(
+          toModules,
+          declared.keys.toSet(),
+          reason:
+              '$host : une arête vers un module se déclare dans '
+              'hostModuleEdges avec sa raison (et l\'arête retirée en sort).',
+        );
+      }
+    });
   });
 
   test('imports respect layer and feature boundaries', () {

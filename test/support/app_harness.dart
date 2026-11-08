@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:an_ki/app/modules/module_data_hooks.dart';
 import 'package:an_ki/app/app.dart';
 import 'package:an_ki/app/bootstrap/notification_strings.dart';
 import 'package:an_ki/app/router/app_router.dart';
@@ -138,6 +139,7 @@ extension AppTesterExt on WidgetTester {
             notifications ?? SilentNotificationService(),
           ),
           localizedNotificationStrings,
+          ...moduleDataHooks,
           shareServiceProvider.overrideWithValue(share ?? FakeShareService()),
           contactsServiceProvider.overrideWithValue(
             contacts ?? FakeContactsService(),

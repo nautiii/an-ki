@@ -158,15 +158,20 @@ emulator serves every query without indexes: a missing one surfaces only against
 
 `AccountDeletion.deleteAccount()` (settings feature) runs `AuthController.confirmIdentity()`
 (Google picker, the password typed in the dialog, nothing for a guest), then `_eraseData(uid)`,
-then `AuthController.deleteAccount()`; nothing is erased unless the identity is confirmed:
+then `AuthController.deleteAccount()`; nothing is erased unless the identity is confirmed.
+`_eraseData` runs every module's eraser (`userDataErasersProvider`, a `core` provider that `app/`
+overrides from the module registry, `app/modules/module_data_hooks.dart`; it throws without the
+override), in registry order, then deletes the profile. Every registered module counts, active or
+not: a disabled module keeps its data, which still leaves with the account (decision D13). The
+first eraser that fails stops the run, and the profile and the account stay.
 
-| Order | Erases | How |
-|-------|--------|-----|
-| 1 | `birthday` where `uid ==` | query, then batches of deletes |
-| 2 | `books` where `uid ==` | query, then batches of deletes |
-| 3 | `user/{uid}/categories` | query, then batches (a subcollection survives its parent) |
-| 4 | `user/{uid}` | delete |
-| 5 | the Auth account | after the data, identity confirmed first (a guest that gets `requires-recent-login` is signed out) |
+| Order | Module | Erases | How |
+|-------|--------|--------|-----|
+| 1 | Anniversaires (`birthdaysModule.data`) | `birthday` where `uid ==` | query, then batches of deletes |
+| 2 | Anniversaires | `user/{uid}/categories` | query, then batches (a subcollection survives its parent) |
+| 3 | Livres (`booksModule.data`) | `books` where `uid ==` | query, then batches of deletes |
+| 4 | — | `user/{uid}` | delete |
+| 5 | — | the Auth account | after the data, identity confirmed first (a guest that gets `requires-recent-login` is signed out) |
 
 Rules of the run:
 - The deletion queries read the server (`Source.server`): offline nothing starts, else a partial
@@ -179,7 +184,8 @@ Rules of the run:
   step, not done) and, after a takeover, the guest's empty anonymous Auth user.
 
 Invariant: every per-user path in this file appears in this table. A new collection adds its
-`deleteAllUser…` method, a line in `_eraseData()` and a test.
+`deleteAllUser…` method, a call in its module's eraser (`ModuleData.eraser`, in
+`app/modules/<module>_module.dart`) and a test (`test/app/modules/module_data_hooks_test.dart`).
 
 ## 9. Shapes still read for old documents
 
@@ -202,16 +208,22 @@ A guest whose Google account already has AnKi data opens that account with its b
 would leave the guest's documents orphaned under a uid nobody opens again. They move instead:
 
 1. As the guest, online (server reads, marks awaited until the server acknowledges them, within
-   20 s: `markTimeout`, else `GuestMergeFailure.offline`):
-   `markForTransfer` on `birthday`, `books`, `user/{uid}/categories` and `user/{uid}` writes
-   `transferTo` = the chosen Google address (an owner's ordinary update).
+   20 s for all of them: `markTimeout`, else `GuestMergeFailure.offline`):
+   `markForTransfer` writes `transferTo` = the chosen Google address (an owner's ordinary
+   update), in this order: `birthday`, `user/{uid}/categories`, then each other module's
+   transfer, then `user/{uid}`. `GuestMerge` marks the birthdays and groups itself (their
+   duplicate plan); the other modules go through `guestDataTransfersProvider`, a `core` provider
+   that `app/` overrides from the module registry (`app/modules/module_data_hooks.dart`), every
+   registered module, active or not: Livres marks `books` and returns its takeover by ids.
 2. Sign-in with that Google account (`AuthController.openGoogleAccount`).
 3. As the target, by the ids kept in memory (no query on someone else's data): `takeOver`
-   gives each guest birthday and book to the target (`uid`, remapped `categories`, `transferTo`
+   gives each guest birthday to the target (`uid`, remapped `categories`, `transferTo`
    removed), or deletes a birthday the target already has (the import's matching rule: folded
    name, day and month); guest groups are recreated under `user/{target}/categories` with their
-   ids, or mapped to a target group of the same folded name, then deleted with the guest
-   profile.
+   ids, or mapped to a target group of the same folded name, and deleted under
+   `user/{guest}/categories` (before the birthdays move); then each module's takeover runs
+   (Livres: `books` get the target `uid`, without the mark), and the guest profile is deleted.
+   A takeover that fails leaves `GuestMergeFailure.incomplete` and the guest profile in place.
 
 Rules (`rules.md` §1): the marked address may delete a marked document, and update a marked
 `birthday` or `books` document only to make it its own without the mark; it never reads them.
