@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
@@ -39,9 +41,10 @@ void main() {
   Future<void> pumpSearch(
     WidgetTester tester, {
     List<Birthday>? birthdays,
+    String? initialCategoryId,
   }) async {
     await tester.pumpHarness(
-      const BirthdaySearchScreen(),
+      BirthdaySearchScreen(initialCategoryId: initialCategoryId),
       overrides: [
         clockProvider.overrideWithValue(() => today),
         currentUidProvider.overrideWithValue('fake-uid'),
@@ -157,6 +160,51 @@ void main() {
         matching: find.widgetWithText(TextField, 'Rose Dupont'),
       ),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('opened on a group, starts filtered on it', (tester) async {
+    await pumpSearch(tester, initialCategoryId: 'fri');
+
+    expect(listedNames(tester), ['Hugo']);
+    expect(
+      tester
+          .widget<FilterChip>(find.widgetWithText(FilterChip, 'Amis'))
+          .selected,
+      isTrue,
+    );
+    expect(tester.widget<TextField>(find.byType(TextField)).autofocus, isFalse);
+  });
+
+  testWidgets('two stacked searches keep their own text and filters', (
+    tester,
+  ) async {
+    await pumpSearch(tester);
+    await tester.enterText(find.byType(TextField), 'hug');
+    await tester.pumpAndSettle();
+
+    // Une seconde recherche, ouverte sur « Famille », par-dessus.
+    final navigator = tester.state<NavigatorState>(
+      find.byType(Navigator).first,
+    );
+    unawaited(
+      navigator.push(
+        MaterialPageRoute<void>(
+          builder: (_) => const BirthdaySearchScreen(initialCategoryId: 'fam'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(listedNames(tester), ['Léa']);
+
+    navigator.pop();
+    await tester.pumpAndSettle();
+    expect(listedNames(tester), ['Hugo']);
+    expect(
+      tester
+          .widget<FilterChip>(find.widgetWithText(FilterChip, 'Famille'))
+          .selected,
+      isFalse,
     );
   });
 

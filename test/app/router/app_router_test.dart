@@ -94,7 +94,24 @@ void main() {
 
         unawaited(tester.appRouter.push(AppRoutes.search));
         await tester.pumpAndSettle();
-        expect(find.byType(BirthdaySearchScreen), findsOneWidget);
+        expect(
+          tester
+              .widget<BirthdaySearchScreen>(find.byType(BirthdaySearchScreen))
+              .initialCategoryId,
+          isNull,
+        );
+        await tester.tap(find.byTooltip('Retour'));
+        await tester.pumpAndSettle();
+
+        // Ouverte depuis un groupe, la recherche le reçoit.
+        unawaited(tester.appRouter.push(AppRoutes.searchInCategory('fam')));
+        await tester.pumpAndSettle();
+        expect(
+          tester
+              .widget<BirthdaySearchScreen>(find.byType(BirthdaySearchScreen))
+              .initialCategoryId,
+          'fam',
+        );
         await tester.tap(find.byTooltip('Retour'));
         await tester.pumpAndSettle();
         expect(find.byType(BookScannerScreen), findsOneWidget);

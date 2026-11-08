@@ -127,12 +127,16 @@ class _PersonDetails extends ConsumerWidget {
             runSpacing: AppSpacing.xs,
             children: [
               for (final category in categories)
-                Chip(
+                // Ouvre la recherche filtrée sur ce groupe.
+                ActionChip(
                   avatar: Icon(
                     category.iconData,
                     color: category.tones(context).color,
                   ),
                   label: Text(category.localizedName(context)),
+                  onPressed: () => unawaited(
+                    context.push(AppRoutes.searchInCategory(category.id)),
+                  ),
                 ),
             ],
           ),

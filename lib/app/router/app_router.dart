@@ -92,7 +92,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.search,
-        builder: (_, _) => const BirthdaySearchScreen(),
+        builder: (_, state) => BirthdaySearchScreen(
+          initialCategoryId:
+              state.uri.queryParameters[AppRoutes.searchCategoryParam],
+        ),
       ),
       GoRoute(
         path: AppRoutes.contactImport,

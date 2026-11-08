@@ -27,6 +27,15 @@ abstract final class AppRoutes {
   /// Recherche d'anniversaires, ouverte par-dessus un onglet (`context.push`).
   static const String search = '/search';
 
+  /// Recherche préfiltrée sur le groupe [categoryId], passé en paramètre
+  /// [searchCategoryParam].
+  static String searchInCategory(String categoryId) => Uri(
+    path: search,
+    queryParameters: {searchCategoryParam: categoryId},
+  ).toString();
+
+  static const String searchCategoryParam = 'category';
+
   /// Import des anniversaires du répertoire, ouvert par-dessus l'accueil vide
   /// ou les réglages (`context.push`).
   static const String contactImport = '/import';
