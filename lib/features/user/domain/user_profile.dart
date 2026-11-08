@@ -13,7 +13,9 @@ class const UserProfile({
   required final String surname,
   final String? pseudo,
   final ThemePreference theme = ThemePreference.system,
-  required final String locale,
+
+  /// Langue choisie (`fr`, `en`) ; null : celle du téléphone.
+  final String? locale,
   final String? biometricToken,
 }) {
   /// Nom pour saluer : le pseudo s'il est défini, sinon le prénom ; null s'il

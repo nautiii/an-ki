@@ -102,7 +102,8 @@ UserProfile _userFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     surname: data['surname'] as String? ?? '',
     pseudo: data['pseudo'] as String?,
     theme: _themeFrom(data),
-    locale: data['locale'] as String? ?? 'fr',
+    // Absente (profils créés depuis 2026-11-08) : la langue du téléphone.
+    locale: data['locale'] as String?,
     biometricToken: data['biometricToken'] as String?,
   );
 }
@@ -127,6 +128,6 @@ Map<String, Object> _userToMap(UserProfile user) => {
   'surname': user.surname,
   'pseudo': ?user.pseudo,
   'themeMode': user.theme.name,
-  'locale': user.locale,
+  'locale': ?user.locale,
   'biometricToken': ?user.biometricToken,
 };

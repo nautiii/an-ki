@@ -150,13 +150,9 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
           user.displayName ?? '',
           fallback: user.isAnonymous ? '' : '-',
         );
-    // Thème par défaut : celui du téléphone, qui suit ses changements.
-    final profile = UserProfile(
-      id: uid,
-      name: name,
-      surname: surname,
-      locale: 'fr',
-    );
+    // Thème et langue par défaut : ceux du téléphone, qui suivent ses
+    // changements.
+    final profile = UserProfile(id: uid, name: name, surname: surname);
     final users = ref.read(userRepositoryProvider);
     final signUpNames = ref.read(signUpNamesProvider.notifier);
     try {

@@ -64,7 +64,7 @@ A missed reminder breaks the one promise AnKi makes: treat every change here as 
 - A daily background task replans too (B8 step 1, `app/bootstrap/background_replan.dart`):
   `main.dart` registers it with workmanager (Android only for now; periodic 24 h, no network
   constraint, `ExistingPeriodicWorkPolicy.keep`). Its isolate initializes Firebase and
-  `NotificationService`, reads the signed-in user's birthdays, setting and profile language
+  `NotificationService`, reads the signed-in user's birthdays, setting and the app language
   from the Firestore offline cache and calls the same `scheduleReminders` as
   `reminderSyncProvider`. Signed out or an empty list → it touches nothing (an empty list may
   be an emptied cache; the app cancels on sign-out itself). The app may run at the same time
@@ -73,7 +73,7 @@ A missed reminder breaks the one promise AnKi makes: treat every change here as 
   Why workmanager: architecture `decisions.md` D12.
 - Texts come from the ARB through `NotificationStrings.fromL10n`: `notificationStringsProvider`
   (core, throws unless overridden) is overridden by `app/bootstrap/notification_strings.dart`
-  (`localizedNotificationStrings`, from the profile locale) in `main()`, in the background
+  (`localizedNotificationStrings`, in the app language: `appLocaleProvider`, the profile choice, else the phone's preferred languages from `deviceLocalesProvider`, else English) in `main()`, in the background
   task's container and in `pumpApp`; each `scheduleAll` receives them. `ReminderNotification`
   carries `name` and `fullName` (`Birthday.fullName`).
 - The J-0 notification carries « Souhaiter » (`NotificationActions.wish`, Android only); its

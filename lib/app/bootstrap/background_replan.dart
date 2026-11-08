@@ -96,9 +96,9 @@ Future<void> replanInBackground(ProviderContainer container) async {
   final preferences = await container
       .read(reminderPreferencesProvider.future)
       .onError((_, _) => const ReminderPreferences());
-  // Profil illisible : la langue par défaut de `localeProvider`.
+  // Profil illisible : la langue du téléphone, comme sans choix enregistré.
   await container.read(userProfileProvider.future).onError((_, _) => null);
-  // Textes dans la langue du profil ([localizedNotificationStrings]).
+  // Textes dans la langue de l'app ([localizedNotificationStrings]).
   final strings = container.read(notificationStringsProvider);
 
   final notifications = container.read(notificationServiceProvider);

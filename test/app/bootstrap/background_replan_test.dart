@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:an_ki/app/bootstrap/background_replan.dart';
 import 'package:an_ki/app/bootstrap/notification_strings.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/providers/device_locales_provider.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
@@ -15,6 +16,7 @@ import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart' show User;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:workmanager/workmanager.dart';
@@ -193,6 +195,7 @@ void main() {
       BirthdayRepository? birthdays,
       ReminderPreferencesRepository? preferences,
       UserRepository? users,
+      List<Locale> device = const [Locale('fr', 'FR')],
     }) => ProviderContainer.test(
       retry: (_, _) => null,
       overrides: [
@@ -209,6 +212,7 @@ void main() {
           users ?? RecordingUserRepository(),
         ),
         clockProvider.overrideWithValue(() => DateTime(2026, 3, 1, 9)),
+        deviceLocalesProvider.overrideWithValue(device),
       ],
     );
 
@@ -296,25 +300,47 @@ void main() {
     });
 
     test('picks the language the app would show', () async {
-      // Langue sans traduction : la première prise en charge, comme
-      // `MaterialApp`.
       await replanInBackground(
         makeContainer(
           user: MockUser(uid: 'u1'),
-          users: profileIn('de'),
+          users: profileIn('en'),
         ),
       );
       expect(notifications.strings?.channelName, 'Birthdays');
 
-      // Profil illisible : le français par défaut.
+      // Profil illisible : la langue du téléphone.
       await replanInBackground(
         makeContainer(
           user: MockUser(uid: 'u1'),
           users: _FailingUserRepository(),
+          device: const [Locale('en', 'US')],
+        ),
+      );
+      expect(notifications.strings?.channelName, 'Birthdays');
+      expect(notifications.scheduled, hasLength(2));
+    });
+
+    test('follows the phone without a language in the profile', () async {
+      await replanInBackground(
+        makeContainer(
+          user: MockUser(uid: 'u1'),
+          users: RecordingUserRepository(
+            stored: const UserProfile(id: 'u1', name: 'Quentin', surname: ''),
+          ),
+          device: const [Locale('en', 'US')],
+        ),
+      );
+      expect(notifications.strings?.channelName, 'Birthdays');
+
+      // Le choix du profil passe avant le téléphone.
+      await replanInBackground(
+        makeContainer(
+          user: MockUser(uid: 'u1'),
+          users: profileIn('fr'),
+          device: const [Locale('en', 'US')],
         ),
       );
       expect(notifications.strings?.channelName, 'Anniversaires');
-      expect(notifications.scheduled, hasLength(2));
     });
 
     test('leaves the reminders alone when signed out', () async {

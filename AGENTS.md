@@ -147,7 +147,7 @@ is in `.claude/skills/architecture/references/migration.md`.
   (Settings › Anniversaires) renames, recolours or deletes a private group; its birthdays lose a
   deleted one.
 - **User** — the profile document `user/{uid}`: name, surname, pseudo, theme (`themeMode`:
-  system, light or dark), locale, biometric token.
+  system, light or dark), locale (absent: the phone's language, else English), biometric token.
 - **Reminder** — local notifications on the day (J-0) and, by default, 7 days before (J-7), at
   10:00 device time; Settings › Anniversaires picks J-30, J-7, J-1 and the time
   (`user/{uid}.reminders`), and a birthday may have its own or none (`birthday/{id}.reminders`).
