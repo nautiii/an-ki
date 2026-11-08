@@ -291,7 +291,7 @@ class _ComingIdentity extends StatelessWidget {
   static const double _avatarRadius = 28;
 
   /// Diamètre de l'orbite à taille de texte normale.
-  static const double _orbitDiameter = 64;
+  static const double _orbitDiameter = 72;
 
   /// Croissance de l'orbite avec le texte, tant qu'elle reste sur la ligne.
   static const double _orbitMaxScale = 1.2;

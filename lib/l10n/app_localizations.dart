@@ -800,7 +800,7 @@ abstract class AppLocalizations {
   /// **'Dans les 7 jours'**
   String get agendaSoon;
 
-  /// Ligne d'agenda : date courte du prochain anniversaire (« 14 nov. ») et âge atteint, sans « aura » pour tenir sur une ligne
+  /// Ligne d'agenda : date du prochain anniversaire (« 14 novembre ») et âge atteint, sans « aura » pour tenir sur une ligne
   ///
   /// In fr, this message translates to:
   /// **'{age, plural, one{{date} · {age} an} other{{date} · {age} ans}}'**

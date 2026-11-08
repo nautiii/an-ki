@@ -36,8 +36,8 @@ class OrbitCountdown extends StatelessWidget {
   /// Arc parcouru et lune ; par défaut `moonlight.color`.
   final Color? arcColor;
 
-  /// Diamètre d'une ligne d'agenda.
-  static const double defaultDiameter = 52;
+  /// Diamètre d'une ligne d'agenda : la hauteur de l'avatar cerclé.
+  static const double defaultDiameter = 56;
 
   /// Épaisseur du trait.
   static const double strokeWidth = 2.5;
@@ -49,10 +49,11 @@ class OrbitCountdown extends StatelessWidget {
   static double progressFor(int daysLeft) =>
       daysLeft >= 29 ? 0 : 1 - daysLeft.clamp(0, 29) / 29;
 
-  /// Côté du carré inscrit au bord intérieur du trait, pour une orbite de
-  /// [side] : la place du contenu.
+  /// Côté du carré inscrit dans le cercle que la lune laisse libre (son bord
+  /// intérieur, où qu'elle soit sur l'orbite), pour une orbite de [side] : la
+  /// place du contenu, qui garde ainsi de l'air jusqu'au trait.
   static double innerSideOf(double side) =>
-      (side - 2 * moonRadius - strokeWidth) / math.sqrt2;
+      (side - 4 * moonRadius) / math.sqrt2;
 
   /// Diamètre effectif dans [context], à sa taille de texte.
   static double extentOf(
@@ -82,8 +83,8 @@ class OrbitCountdown extends StatelessWidget {
       child: SizedBox.square(
         dimension: side,
         child: Center(
-          // Le contenu tient dans le carré inscrit au bord intérieur du
-          // trait : il ne mord jamais sur l'orbite, même réduit.
+          // Le contenu tient dans le carré inscrit au bord intérieur de la
+          // lune : il ne touche jamais l'orbite, même réduit.
           child: SizedBox.square(
             dimension: innerSideOf(side),
             child: Center(

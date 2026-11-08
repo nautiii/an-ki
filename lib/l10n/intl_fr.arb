@@ -396,7 +396,7 @@
   },
   "agendaLine": "{age, plural, one{{date} · {age}\u00a0an} other{{date} · {age}\u00a0ans}}",
   "@agendaLine": {
-    "description": "Ligne d'agenda : date courte du prochain anniversaire (« 14 nov. ») et âge atteint, sans « aura » pour tenir sur une ligne",
+    "description": "Ligne d'agenda : date du prochain anniversaire (« 14 novembre ») et âge atteint, sans « aura » pour tenir sur une ligne",
     "placeholders": {
       "date": { "type": "String" },
       "age": { "type": "int" }
