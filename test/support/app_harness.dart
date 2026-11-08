@@ -13,7 +13,7 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/data/share_service.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
-import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/books/data/book_repository.dart';
 import 'package:an_ki/features/reminders/data/reminder_preferences_repository.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';

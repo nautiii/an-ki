@@ -1,4 +1,4 @@
-import 'package:an_ki/features/book_scanner/domain/isbn.dart';
+import 'package:an_ki/features/books/domain/isbn.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -1,7 +1,7 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/book_scanner/data/book_repository.dart';
-import 'package:an_ki/features/book_scanner/domain/book.dart';
-import 'package:an_ki/features/book_scanner/widgets/book_info_sheet.dart';
+import 'package:an_ki/features/books/data/book_repository.dart';
+import 'package:an_ki/features/books/domain/book.dart';
+import 'package:an_ki/features/books/widgets/book_info_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -5,7 +5,7 @@ import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
-import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/books/data/book_repository.dart';
 import 'package:an_ki/features/reminders/data/reminder_preferences_repository.dart';
 import 'package:an_ki/features/reminders/widgets/reminder_preferences_tiles.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';

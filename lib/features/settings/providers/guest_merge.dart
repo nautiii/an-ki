@@ -7,7 +7,7 @@ import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/guest_merge_plan.dart';
-import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/books/data/book_repository.dart';
 import 'package:an_ki/features/settings/domain/guest_merge_failure.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -18,7 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// `AsyncLoading` pendant l'opération, `AsyncError` portant un `AuthFailure`
 /// (connexion) ou un [GuestMergeFailure], sinon `AsyncData`.
 ///
-/// Orchestration entre features (auth, birthday, book_scanner, user) : elle
+/// Orchestration entre features (auth, birthday, books, user) : elle
 /// vit dans `settings`, qui dépend de chacune, comme la suppression du
 /// compte. Se connecter remplace la session d'invité : ses documents sont
 /// donc marqués pour le compte choisi avant, puis repris par lui après

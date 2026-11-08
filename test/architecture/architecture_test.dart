@@ -21,9 +21,9 @@ const featureDependencies = <String, Set<String>>{
   'auth': {},
   'user': {'auth'},
   'birthday': {'auth', 'user'},
-  'book_scanner': {'auth', 'user'},
+  'books': {'auth', 'user'},
   'reminders': {'auth', 'birthday'},
-  'settings': {'auth', 'user', 'birthday', 'book_scanner', 'reminders'},
+  'settings': {'auth', 'user', 'birthday', 'books', 'reminders'},
 };
 
 /// Dossiers autorisés directement sous `lib/features/<feature>/`.

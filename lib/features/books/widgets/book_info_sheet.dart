@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
-import 'package:an_ki/features/book_scanner/domain/book.dart';
-import 'package:an_ki/features/book_scanner/providers/book_editor.dart';
+import 'package:an_ki/features/books/domain/book.dart';
+import 'package:an_ki/features/books/providers/book_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

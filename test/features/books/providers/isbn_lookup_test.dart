@@ -1,7 +1,7 @@
-import 'package:an_ki/features/book_scanner/data/book_repository.dart';
-import 'package:an_ki/features/book_scanner/domain/book.dart';
-import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
-import 'package:an_ki/features/book_scanner/providers/isbn_lookup.dart';
+import 'package:an_ki/features/books/data/book_repository.dart';
+import 'package:an_ki/features/books/domain/book.dart';
+import 'package:an_ki/features/books/domain/book_failure.dart';
+import 'package:an_ki/features/books/providers/isbn_lookup.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
