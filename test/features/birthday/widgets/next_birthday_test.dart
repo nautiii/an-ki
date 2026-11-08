@@ -1,3 +1,4 @@
+import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/common/orbit_countdown.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
@@ -110,6 +111,17 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('ans'), findsOneWidget);
+      // Sur un téléphone de 360 dp, la carte reste en ligne : le nom entre
+      // l'avatar et l'orbite (empilée, il commencerait sous l'avatar).
+      final name = tester.getRect(find.text('Alice Wonderland'));
+      expect(
+        name.left,
+        greaterThan(tester.getRect(find.byType(AnKiAvatar)).right),
+      );
+      expect(
+        name.right,
+        lessThanOrEqualTo(tester.getRect(find.byType(OrbitCountdown)).left),
+      );
     });
   });
 

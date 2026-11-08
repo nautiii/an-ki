@@ -104,8 +104,9 @@ class _TileContent extends ConsumerWidget {
     final locale = Localizations.localeOf(context).languageCode;
     final today = ref.watch(todayProvider);
     final days = birthday.daysUntilNext(today);
-    // Mois abrégé : la date et l'âge tiennent sur une ligne.
-    final date = DateFormat.MMMd(locale).format(birthday.nextOccurrence(today));
+    // Le mois en entier ; la ligne passe en colonne si la date ne tient pas.
+    final date = DateFormat.MMMMd(locale)
+        .format(birthday.nextOccurrence(today));
     final fullName = birthday.fullName;
     final picture = birthday.picture;
 
@@ -138,9 +139,11 @@ class _TileContent extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Une ligne de deux lignes de texte, toujours la même hauteur ; au
-        // grand texte, ou quand la date ne tient plus sur une ligne (écran
-        // étroit), avatar et orbite passent au-dessus et le texte prend
-        // toute la largeur.
+        // grand texte, ou quand la date la plus longue de l'année ne tient
+        // plus sur une ligne (écran étroit), avatar et orbite passent
+        // au-dessus et le texte prend toute la largeur. Mesurée sur la plus
+        // longue plutôt que sur la sienne, la décision est la même pour
+        // toutes les lignes : la liste garde une seule forme.
         final textWidth =
             constraints.maxWidth -
             AnKiAvatar.ringedExtent() -
@@ -148,7 +151,13 @@ class _TileContent extends ConsumerWidget {
             OrbitCountdown.extentOf(context);
         final largeText = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
         final stacked =
-            largeText || !_fitsOnOneLine(context, when, whenStyle, textWidth);
+            largeText ||
+            !_allFitOnOneLine(
+              context,
+              _longestAgendaLines(context, locale),
+              whenStyle,
+              textWidth,
+            );
         final identity = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -196,24 +205,42 @@ class _TileContent extends ConsumerWidget {
   }
 }
 
-/// [text] tient sur une ligne de [width] au plus, à la taille de texte de
-/// l'écran.
-bool _fitsOnOneLine(
+/// La ligne de date la plus longue de chaque mois, dans la langue de l'app :
+/// un jour à deux chiffres et un âge à deux chiffres (« 28 septembre ·
+/// 88 ans »).
+List<String> _longestAgendaLines(BuildContext context, String locale) {
+  final format = DateFormat.MMMMd(locale);
+  return [
+    for (var month = 1; month <= 12; month++)
+      context.l10n.agendaLine(format.format(DateTime(2000, month, 28)), 88),
+  ];
+}
+
+/// Chacun de [texts] tient sur une ligne de [width] au plus, à la taille de
+/// texte de l'écran.
+bool _allFitOnOneLine(
   BuildContext context,
-  String text,
+  List<String> texts,
   TextStyle? style,
   double width,
 ) {
   if (width <= 0) return false;
   final painter = TextPainter(
-    text: TextSpan(text: text, style: style),
     textDirection: Directionality.of(context),
     textScaler: MediaQuery.textScalerOf(context),
     maxLines: 1,
-  )..layout(maxWidth: width);
-  final fits = !painter.didExceedMaxLines;
-  painter.dispose();
-  return fits;
+  );
+  try {
+    for (final text in texts) {
+      painter
+        ..text = TextSpan(text: text, style: style)
+        ..layout(maxWidth: width);
+      if (painter.didExceedMaxLines) return false;
+    }
+    return true;
+  } finally {
+    painter.dispose();
+  }
 }
 
 /// [name] avec les lettres de [range] surlignées en clair de lune (le
@@ -280,7 +307,9 @@ class _Countdown extends StatelessWidget {
                     context.l10n.orbitDaysUnit(days),
                     style: textTheme.labelMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
-                      height: 1.2,
+                      // Interligne serré : nombre et unité tiennent dans l'orbite
+                      // à leur taille (« jours » à 0,4 % près).
+                      height: 1.1,
                     ),
                   ),
                 ],

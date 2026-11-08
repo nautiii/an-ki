@@ -90,7 +90,7 @@ void main() {
     await pumpTile(tester, birthday());
 
     expect(find.text('Alice Wonderland'), findsOneWidget);
-    expect(find.text('24 oct. · 36 ans'), findsOneWidget);
+    expect(find.text('24 octobre · 36 ans'), findsOneWidget);
     // Les jours restants dans leur orbite.
     expect(find.byType(OrbitCountdown), findsOneWidget);
     expect(find.text('12'), findsOneWidget);
@@ -100,7 +100,7 @@ void main() {
   testWidgets('shows the date alone without a birth year', (tester) async {
     await pumpTile(tester, birthday(date: const BirthDate(month: 10, day: 24)));
 
-    expect(find.text('24 oct.'), findsOneWidget);
+    expect(find.text('24 octobre'), findsOneWidget);
     expect(find.textContaining('ans'), findsNothing);
     expect(find.text('12'), findsOneWidget);
   });
@@ -145,7 +145,7 @@ void main() {
         wishedYears: const [2026],
       ),
       // La police de test, plus large, demande la largeur d'une ligne réelle.
-      width: 420,
+      width: 480,
     );
 
     // L'orbite bouclée passe du gâteau à la coche, sans élargir la ligne.
@@ -154,7 +154,7 @@ void main() {
     expect(stacked(tester), isFalse);
     expect(
       tester.getSemantics(find.text('Alice Wonderland')).label,
-      "Amis, Famille\nAlice Wonderland\n12 oct. · 36 ans\n"
+      "Amis, Famille\nAlice Wonderland\n12 octobre · 36 ans\n"
       "Aujourd'hui\nSouhaité",
     );
     semantics.dispose();
@@ -232,8 +232,7 @@ void main() {
     expect(
       tester.getSemantics(find.text('Alice Wonderland')),
       isSemantics(
-        label:
-            'Amis, Famille\nAlice Wonderland\n24 oct. · 36 ans\nDans 12 jours',
+        label: 'Amis, Famille\nAlice Wonderland\n24 octobre · 36 ans\nDans 12 jours',
         isButton: true,
         hasTapAction: true,
         customActions: [const CustomSemanticsAction(label: 'Supprimer')],
@@ -309,7 +308,7 @@ void main() {
     // Le compte à rebours est au-dessus du nom, mais se lit après lui.
     expect(
       tester.getSemantics(find.text('Alice Wonderland')).label,
-      'Amis, Famille\nAlice Wonderland\n24 oct. · 36 ans\nDans 12 jours',
+      'Amis, Famille\nAlice Wonderland\n24 octobre · 36 ans\nDans 12 jours',
     );
     semantics.dispose();
   });
@@ -326,15 +325,15 @@ void main() {
     expect(stacked(tester), isTrue);
     expect(
       tester.getSemantics(find.text('Alice Wonderland')).label,
-      'Alice Wonderland\n24 oct. · 36 ans\nDans 12 jours',
+      'Alice Wonderland\n24 octobre · 36 ans\nDans 12 jours',
     );
     semantics.dispose();
   });
 
-  // La police des tests est plus large que Outfit : 420 dp y valent la
+  // La police des tests est plus large que Outfit : 480 dp y valent la
   // largeur d'une ligne d'agenda sur un téléphone.
   testWidgets('keeps one row while the date fits on one line', (tester) async {
-    await pumpTile(tester, birthday(), width: 420);
+    await pumpTile(tester, birthday(), width: 480);
 
     expect(stacked(tester), isFalse);
   });
@@ -352,7 +351,7 @@ void main() {
       await tester.pumpHarness(
         Center(
           child: SizedBox(
-            width: 420,
+            width: 480,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -381,8 +380,52 @@ void main() {
   ) async {
     await pumpTile(tester, birthday(), width: 200);
 
-    expect(find.text('24 oct. · 36 ans'), findsOneWidget);
+    expect(find.text('24 octobre · 36 ans'), findsOneWidget);
     expect(stacked(tester), isTrue);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('gives every row the same shape, whatever its month', (
+    tester,
+  ) async {
+    // À 420 dp, « 24 juin · 36 ans » tiendrait sur une ligne, pas la date la
+    // plus longue de l'année : les deux lignes s'empilent ensemble.
+    Birthday person(String id, String name, int month) => Birthday(
+      id: id,
+      name: name,
+      surname: '',
+      date: BirthDate(year: 1990, month: month, day: 24),
+    );
+    await mockNetworkImages(() async {
+      await tester.pumpHarness(
+        Center(
+          child: SizedBox(
+            width: 420,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AgendaTile(birthday: person('1', 'June', 6)),
+                AgendaTile(birthday: person('2', 'September', 9)),
+              ],
+            ),
+          ),
+        ),
+        overrides: overrides(),
+      );
+      await tester.pumpAndSettle();
+    });
+
+    for (final name in ['June', 'September']) {
+      final tile = find.widgetWithText(AgendaTile, name);
+      final avatar = find.descendant(
+        of: tile,
+        matching: find.byType(AnKiAvatar),
+      );
+      expect(
+        tester.getTopLeft(find.text(name)).dy,
+        greaterThanOrEqualTo(tester.getBottomLeft(avatar).dy),
+        reason: name,
+      );
+    }
   });
 }

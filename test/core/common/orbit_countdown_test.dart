@@ -80,5 +80,44 @@ void main() {
     expect(text.width, lessThanOrEqualTo(inner + 0.01));
     expect(text.width, lessThan(tester.getSize(find.byType(Text)).width));
     expect(text.center.dx, closeTo(orbit.center.dx, 0.01));
+    expectCornersFree(orbit, text);
   });
+
+  testWidgets('keeps a number and its unit clear of the moon', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    // Nombre et unité : un contenu presque carré, où les coins comptent.
+    await tester.pumpHarness(
+      const Center(
+        child: OrbitCountdown(
+          daysLeft: 11,
+          maxTextScale: 1.2,
+          child: Column(
+            key: Key('content'),
+            mainAxisSize: MainAxisSize.min,
+            children: [Text('120'), Text('jours')],
+          ),
+        ),
+      ),
+    );
+
+    expectCornersFree(
+      tester.getRect(find.byType(OrbitCountdown)),
+      tester.getRect(find.byKey(const Key('content'))),
+    );
+  });
+}
+
+/// Mesuré sans la formule : chaque coin de [content], à sa place à l'écran,
+/// reste dans le cercle que la lune laisse libre sur [orbit], où qu'elle soit.
+void expectCornersFree(Rect orbit, Rect content) {
+  final free = orbit.width / 2 - 2 * OrbitCountdown.moonRadius;
+  for (final corner in [
+    content.topLeft,
+    content.topRight,
+    content.bottomLeft,
+    content.bottomRight,
+  ]) {
+    expect((corner - orbit.center).distance, lessThanOrEqualTo(free + 0.01));
+  }
 }
