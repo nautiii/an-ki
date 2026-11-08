@@ -29,6 +29,7 @@ lib/
 ├── core/                     # feature-agnostic building blocks — never imports app/ or features/
 │   ├── common/               # dumb shared widgets (design system, see the ux-ui skill)
 │   ├── theme/                # AppTheme, tokens (spacing, radii, motion), AnKiColors
+│   ├── text/                 # pure Dart helpers shared by domains (text folding); imports nothing but what domain/ may
 │   ├── routing/              # route paths only (no screens): what features navigate with
 │   ├── providers/            # infrastructure providers: Firebase instances, clock, config
 │   ├── services/             # thin plugin wrappers used app-wide: notifications, biometrics, contacts
@@ -121,6 +122,7 @@ Why each boundary:
 | A sheet or dialog | `widgets/` with `static Future<T?> show(context)` | `AddIdeaSheet` |
 | Failure → message, enum → label/icon/color | `widgets/` | `idea_failure_text.dart`, `category_display.dart` |
 | A widget used by ≥ 2 features | `core/common/`, dumb (params + callbacks) | `AnKiEmptyState` |
+| A pure text helper used by ≥ 2 domains | `core/text/`, pure Dart (`core-text-purity`) | `text_folding.dart` → `foldForMatching` |
 | Orchestration across features triggered by a user action | the lowest feature that already depends on every participant (often `settings`), else a new feature (`account`) | `AccountDeletion` |
 | Orchestration triggered by the app lifecycle (sign-in, start) | `app/bootstrap/` | `AppInitializer`, `ReminderPrompt` (`app/bootstrap/`) |
 | Tab selection, shell layout | `app/shell/` (tabs are branches of the router) | `MainShell`, `ShellBranches` |
@@ -146,7 +148,8 @@ Rule ids are the ones the architecture test prints.
 | `feature-graph` | a feature imports another only along a declared, acyclic edge | cycles make features impossible to change, test or delete alone |
 | `screens-private` | no feature imports another feature's `screens/` | navigation goes through paths, so screens can move, nest or become routes freely |
 | `repositories-isolated` | a `data/` file never imports another feature's `data/` | repositories don't know each other (Flutter guide); combine sources in providers |
-| `domain-purity` | `domain/` imports only `dart:` core libraries, `flutter/foundation.dart`, `meta`, `collection` and other `domain/` folders | pure, fast, reusable rules |
+| `domain-purity` | `domain/` imports only `dart:` core libraries, `flutter/foundation.dart`, `meta`, `collection`, other `domain/` folders and `core/text/` | pure, fast, reusable rules |
+| `core-text-purity` | `core/text/` files import only what `domain/` may (`dart:` core libraries, `flutter/foundation.dart`, `meta`, `collection`) and other `core/text/` files | the one `core/` folder `domain/` may import must stay as pure as `domain/` itself |
 | `data-no-ui` | `data/` imports no widgets, `providers/`, theme or `l10n` | data serves every caller, UI or not |
 | `state-no-ui` | `providers/` imports no `screens/`, `widgets/`, `l10n` or core UI | state is UI-agnostic; the UI chooses words |
 | `ui-no-backend` | `screens/` and `widgets/` import no `data/` and no backend SDK | widgets render state; I/O goes through providers |

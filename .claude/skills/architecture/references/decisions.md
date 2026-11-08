@@ -53,7 +53,9 @@ extraction mechanical. The layers inside give each kind of code one obvious home
 
 **Decision.** `domain/` holds models, drafts, enums, failures and pure rule functions. No use-case
 classes, no repository interfaces. Orchestration lives in controllers; cross-feature flows in the
-lowest feature that depends on all participants, or in `app/bootstrap`.
+lowest feature that depends on all participants, or in `app/bootstrap`. A pure text helper that
+two domains need (rule of two) lives in `core/text/`, the only `core/` folder `domain/` may
+import, under the `core-text-purity` rule; any other shared pure helper needs its own decision.
 
 **Why.** The previous rule "no domain layer, logic in Notifiers" left rules with no pure home:
 the next-birthday computation existed twice (UI extensions and `NotificationService`),

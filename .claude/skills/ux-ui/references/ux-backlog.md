@@ -82,7 +82,7 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
     roman numerals); « Édition originale » dropped, « Perfect Edition », « Deluxe » and
     « Colossale » kept (other series); nothing sure = « À classer »;
   - `seriesKey(name)` folds a name to match a scan to a series, old names after a rename or merge
-    included (`foldForMatching`, promoted from `birthday` to `core/`, no copy and no edge);
+    included (`foldForMatching`, promoted from `birthday` to `core/text/`, no copy and no edge);
     `parseVolumeRanges('1-12, 15')`; `normalizeIsbn` (dashes out, ISBN-10 to 13, check digit).
 - **Data**: `bookSeries/{id}`: `name`, `keys`, optional `complete`, optional `next` (`number`,
   `status`, `date` as the string `2026-12-03` or `2026-12`, `source` in `bnf`/`googleBooks`/`user`,
