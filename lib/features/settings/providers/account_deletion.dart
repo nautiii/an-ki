@@ -4,7 +4,7 @@ import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
-import 'package:an_ki/features/book_scanner/data/book_repository.dart';
+import 'package:an_ki/features/books/data/book_repository.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

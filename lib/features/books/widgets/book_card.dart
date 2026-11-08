@@ -1,6 +1,6 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
-import 'package:an_ki/features/book_scanner/domain/book.dart';
+import 'package:an_ki/features/books/domain/book.dart';
 import 'package:flutter/material.dart';
 
 /// Livre gardé : couverture, titre, auteurs, ISBN et année de parution.

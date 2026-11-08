@@ -78,7 +78,7 @@ lib/app/            composition root — MaterialApp, route table, shell (tabs),
 lib/core/           feature-agnostic — common/ (dumb shared widgets), theme/, services/ (plugin wrappers),
                     providers/, routing/ (route paths), extensions/, config/, constants/;
                     never imports app/ or a feature
-lib/features/<f>/   auth · user · birthday · book_scanner · reminders · settings — domain/, data/, providers/, screens/, widgets/
+lib/features/<f>/   auth · user · birthday · books · reminders · settings — domain/, data/, providers/, screens/, widgets/
 lib/l10n/           intl_fr.arb (template) + intl_en.arb; app_localizations*.dart are generated
 test/               mirrors lib/; test/support/ holds the widget harness and shared fakes
 scripts/            PowerShell: run, build and deploy

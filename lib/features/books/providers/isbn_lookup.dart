@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:an_ki/features/book_scanner/data/book_repository.dart';
-import 'package:an_ki/features/book_scanner/domain/book.dart';
+import 'package:an_ki/features/books/data/book_repository.dart';
+import 'package:an_ki/features/books/domain/book.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Recherche d'un livre par ISBN (Google Books) : réseau requis, le résultat

@@ -157,7 +157,7 @@ shipped with `!` but held (`firestore.rules.hold`, firebase skill).
   working copy, so ask first.
 - Squash without an editor (`git rebase -i` needs one): `git reset --soft <base>`, then one commit
   through the gate (step 4).
-- A PR title follows the commit format: `FEAT(book_scanner): suggest gifts from scanned books`.
+- A PR title follows the commit format: `FEAT(books): suggest gifts from scanned books`.
   The PR lands by rebase, its commits as they are.
 - PR body, same terse spirit: **Why** (one or two lines), **What** (bullets), **How to test**
   (commands, manual checks on the phone), and any follow-up left out of scope.

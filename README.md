@@ -94,7 +94,7 @@ Architecture MVVM en couches, organisée par fonctionnalité :
 - `lib/app/` : Racine de composition (MaterialApp, routes, shell à onglets, démarrage).
 - `lib/core/` : Éléments partagés indépendants des fonctionnalités (thème, widgets communs,
   services, routage, extensions).
-- `lib/features/<feature>/` : `auth`, `user`, `birthday`, `book_scanner`, `reminders`, `settings`,
+- `lib/features/<feature>/` : `auth`, `user`, `birthday`, `books`, `reminders`, `settings`,
   chacune découpée en `domain/`, `data/`, `providers/`, `screens/`, `widgets/`.
 - `lib/l10n/` : Fichiers de traduction (`intl_fr.arb` comme modèle, `intl_en.arb`).
 - `test/` : Miroir de `lib/`.

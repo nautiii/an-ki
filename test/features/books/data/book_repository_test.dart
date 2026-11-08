@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:an_ki/features/book_scanner/data/book_repository.dart';
-import 'package:an_ki/features/book_scanner/domain/book.dart';
-import 'package:an_ki/features/book_scanner/domain/book_failure.dart';
+import 'package:an_ki/features/books/data/book_repository.dart';
+import 'package:an_ki/features/books/domain/book.dart';
+import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';

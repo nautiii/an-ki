@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:an_ki/features/book_scanner/domain/book.dart';
-import 'package:an_ki/features/book_scanner/widgets/book_card.dart';
+import 'package:an_ki/features/books/domain/book.dart';
+import 'package:an_ki/features/books/widgets/book_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

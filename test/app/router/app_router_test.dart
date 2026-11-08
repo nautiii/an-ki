@@ -15,7 +15,7 @@ import 'package:an_ki/features/birthday/screens/contact_import_screen.dart';
 import 'package:an_ki/features/birthday/screens/groups_screen.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/screens/person_screen.dart';
-import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
+import 'package:an_ki/features/books/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_off_card.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/settings/widgets/guest_backup_card.dart';
