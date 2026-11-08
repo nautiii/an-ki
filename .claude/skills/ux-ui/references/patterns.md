@@ -57,7 +57,7 @@ agenda** (Netflix billboard + Todoist Upcoming / Google Calendar schedule).
 - **Agenda list** grouped by time: « Dans les 7 jours », then one section per month
   (« Novembre », « Janvier 2027 ») — chunking (Miller) that holds for a whole year, where
   « Plus tard » would become a flat list again. Sticky section headers. Each row: avatar ringed
-  with the person's category tones, name on one line, « 9 oct. · 34 ans » on one line, the days
+  with the person's category tones, name on one line, « 9 octobre · 34 ans » on one line, the days
   left in their orbit (S3): every row the same height, whatever the name. The birth year is
   noise here.
 - Greeting personalised by time of day (Spotify « Bonsoir ») is a cheap warm touch; keep it short.
