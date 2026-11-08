@@ -201,12 +201,13 @@ flutter test build/ui_snapshots/_src/palette_audit_test.dart
   `PinnedHeaderSliver` ignores the app bar and slides under it.
 - Strings, plurals and the glyphs Outfit lacks (U+2011, U+202F): `.claude/rules/l10n.md`; sheets from
   a shell tab: `.claude/rules/navigation.md` (`useRootNavigator: true`).
-- An agenda row keeps two lines of text (the name cut by « … », the short date) and stacks
-  (avatar and orbit above, the text on the full width) at large text or once the date no longer
-  fits on one line; its stacked column is built so TalkBack still reads groups, name, date,
+- An agenda row keeps two lines of text (the name cut by « … », the date with its full month)
+  and stacks (avatar and orbit above, the text on the full width) at large text or once the
+  longest date of the year (« 28 septembre · 88 ans ») no longer fits on one line, so a whole
+  list keeps one shape; its stacked column is built so TalkBack still reads groups, name, date,
   countdown in row order: keep both when touching agenda rows, or 200 % text cuts the date or
   TalkBack reads the countdown first — 258c03e, a8952fa. In widget tests the test font is wider
-  than Outfit: a one-line row needs ~420 dp there.
+  than Outfit: a one-line row needs ~480 dp there.
 - A long name goes under « Bonjour, … » rather than being cut: the bar grows with the text up to
   the title cap — 4e00030.
 - Typed dates follow the phone region's order (month first on a US phone), hint and prefill
