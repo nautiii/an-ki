@@ -14,10 +14,14 @@ import 'package:go_router/go_router.dart';
 /// Recherche dans tout le carnet (héros compris) : par nom, filtrée par
 /// groupes. Sans résultat, propose de créer la personne cherchée.
 ///
-/// Le texte et les filtres vivent dans des providers `autoDispose` : ils
-/// repartent de zéro à chaque ouverture.
+/// Le texte et les filtres vivent dans des providers `autoDispose` propres à
+/// l'écran ([SearchScope]) : ils repartent de zéro à chaque ouverture ;
+/// ouverte depuis un groupe de la page d'une personne ([initialCategoryId]),
+/// elle part filtrée sur lui.
 class BirthdaySearchScreen extends ConsumerStatefulWidget {
-  const BirthdaySearchScreen({super.key});
+  const BirthdaySearchScreen({super.key, this.initialCategoryId});
+
+  final String? initialCategoryId;
 
   @override
   ConsumerState<BirthdaySearchScreen> createState() =>
@@ -26,6 +30,10 @@ class BirthdaySearchScreen extends ConsumerStatefulWidget {
 
 class _BirthdaySearchScreenState extends ConsumerState<BirthdaySearchScreen> {
   final _controller = TextEditingController();
+  late final SearchScope _scope = (
+    token: Object(),
+    initialCategoryId: widget.initialCategoryId,
+  );
 
   @override
   void dispose() {
@@ -35,15 +43,15 @@ class _BirthdaySearchScreenState extends ConsumerState<BirthdaySearchScreen> {
 
   void _clear() {
     _controller.clear();
-    ref.read(birthdaySearchProvider.notifier).update('');
+    ref.read(birthdaySearchProvider(_scope).notifier).update('');
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final query = ref.watch(birthdaySearchProvider);
-    final filters = ref.watch(birthdayCategoryFilterProvider);
-    final results = ref.watch(birthdaySearchResultsProvider);
+    final query = ref.watch(birthdaySearchProvider(_scope));
+    final filters = ref.watch(birthdayCategoryFilterProvider(_scope));
+    final results = ref.watch(birthdaySearchResultsProvider(_scope));
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
@@ -60,9 +68,12 @@ class _BirthdaySearchScreenState extends ConsumerState<BirthdaySearchScreen> {
               ),
               child: TextField(
                 controller: _controller,
-                autofocus: true,
+                // Ouverte sur un groupe, la liste prime : pas de clavier d'emblée.
+                autofocus: widget.initialCategoryId == null,
                 textInputAction: TextInputAction.search,
-                onChanged: ref.read(birthdaySearchProvider.notifier).update,
+                onChanged: ref
+                    .read(birthdaySearchProvider(_scope).notifier)
+                    .update,
                 decoration: InputDecoration(
                   hintText: l10n.searchHint,
                   border: const OutlineInputBorder(
@@ -87,10 +98,11 @@ class _BirthdaySearchScreenState extends ConsumerState<BirthdaySearchScreen> {
                 ),
               ),
             ),
-            _CategoryFilters(selected: filters),
+            _CategoryFilters(scope: _scope, selected: filters),
             Expanded(
               child: results.isEmpty
                   ? _NoResults(
+                      scope: _scope,
                       query: query.trim(),
                       hasFilters: filters.isNotEmpty,
                     )
@@ -121,13 +133,16 @@ class _BirthdaySearchScreenState extends ConsumerState<BirthdaySearchScreen> {
 /// Filtres par groupe (tous requis), seulement quand ils départagent : à
 /// partir de deux groupes portés par les anniversaires (`groupFilters`).
 class _CategoryFilters extends ConsumerWidget {
-  const _CategoryFilters({required this.selected});
+  const _CategoryFilters({required this.scope, required this.selected});
 
+  final SearchScope scope;
   final List<String> selected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<BirthdayCategory> groups = ref.watch(groupFiltersProvider);
+    final List<BirthdayCategory> groups = ref.watch(
+      groupFiltersProvider(scope),
+    );
     if (groups.isEmpty) {
       return const SizedBox(height: AppSpacing.sm);
     }
@@ -148,7 +163,7 @@ class _CategoryFilters extends ConsumerWidget {
               onSelected: (_) {
                 HapticFeedback.selectionClick();
                 ref
-                    .read(birthdayCategoryFilterProvider.notifier)
+                    .read(birthdayCategoryFilterProvider(scope).notifier)
                     .toggle(group.id);
               },
             ),
@@ -160,8 +175,13 @@ class _CategoryFilters extends ConsumerWidget {
 
 /// Aucun résultat : créer la personne cherchée, ou retirer les filtres.
 class _NoResults extends ConsumerWidget {
-  const _NoResults({required this.query, required this.hasFilters});
+  const _NoResults({
+    required this.scope,
+    required this.query,
+    required this.hasFilters,
+  });
 
+  final SearchScope scope;
   final String query;
   final bool hasFilters;
 
@@ -196,8 +216,9 @@ class _NoResults extends ConsumerWidget {
           if (hasFilters) ...[
             const SizedBox(height: AppSpacing.xs),
             TextButton(
-              onPressed: () =>
-                  ref.read(birthdayCategoryFilterProvider.notifier).clear(),
+              onPressed: () => ref
+                  .read(birthdayCategoryFilterProvider(scope).notifier)
+                  .clear(),
               child: Text(l10n.clearFilters),
             ),
           ],

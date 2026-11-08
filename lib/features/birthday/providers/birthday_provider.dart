@@ -106,9 +106,19 @@ final agendaProvider = Provider<List<AgendaSection>>((ref) {
       .agenda(ref.watch(todayProvider));
 });
 
-/// Texte de l'écran de recherche ; repart de zéro à chaque ouverture de
-/// l'écran (autoDispose) et quand l'utilisateur change.
+/// Un écran de recherche : chacun a son propre état, même empilé sur un autre
+/// (recherche › personne › groupe › recherche). [token] est créé une fois
+/// par écran ; [initialCategoryId] est le groupe sur lequel il s'ouvre.
+typedef SearchScope = ({Object token, String? initialCategoryId});
+
+/// Texte d'un écran de recherche ; repart de zéro à chaque ouverture de
+/// l'écran (autoDispose) et quand l'utilisateur change. [scope] ne sert qu'à
+/// séparer les écrans : le texte part toujours vide.
 class BirthdaySearchNotifier extends Notifier<String> {
+  BirthdaySearchNotifier(this.scope);
+
+  final SearchScope scope;
+
   @override
   String build() {
     ref.watch(currentUidProvider);
@@ -118,18 +128,23 @@ class BirthdaySearchNotifier extends Notifier<String> {
   void update(String value) => state = value;
 }
 
-final birthdaySearchProvider =
-    NotifierProvider.autoDispose<BirthdaySearchNotifier, String>(
+final birthdaySearchProvider = NotifierProvider.autoDispose
+    .family<BirthdaySearchNotifier, String, SearchScope>(
       BirthdaySearchNotifier.new,
     );
 
 /// Catégories filtrées (par id) dans l'écran de recherche ; même cycle de vie
-/// que le texte.
+/// que le texte ; part du groupe d'ouverture, s'il y en a un.
 class BirthdayCategoryFilterNotifier extends Notifier<List<String>> {
+  BirthdayCategoryFilterNotifier(this.scope);
+
+  final SearchScope scope;
+
   @override
   List<String> build() {
     ref.watch(currentUidProvider);
-    return const [];
+    final initial = scope.initialCategoryId;
+    return initial == null ? const [] : [initial];
   }
 
   /// Ajoute la catégorie au filtre, ou l'en retire si elle y est déjà.
@@ -143,31 +158,31 @@ class BirthdayCategoryFilterNotifier extends Notifier<List<String>> {
   void clear() => state = const [];
 }
 
-final birthdayCategoryFilterProvider =
-    NotifierProvider.autoDispose<BirthdayCategoryFilterNotifier, List<String>>(
+final birthdayCategoryFilterProvider = NotifierProvider.autoDispose
+    .family<BirthdayCategoryFilterNotifier, List<String>, SearchScope>(
       BirthdayCategoryFilterNotifier.new,
     );
 
 /// Groupes proposés comme filtres de la recherche (`groupFilters`) : ceux que
 /// portent les anniversaires, à partir de deux, et ceux déjà choisis.
-final groupFiltersProvider = Provider.autoDispose<List<BirthdayCategory>>(
-  (ref) => groupFilters(
-    ref.watch(userCategoriesProvider),
-    ref.watch(birthdaysListProvider),
-    selected: ref.watch(birthdayCategoryFilterProvider),
-  ),
-);
+final groupFiltersProvider = Provider.autoDispose
+    .family<List<BirthdayCategory>, SearchScope>(
+      (ref, scope) => groupFilters(
+        ref.watch(userCategoriesProvider),
+        ref.watch(birthdaysListProvider),
+        selected: ref.watch(birthdayCategoryFilterProvider(scope)),
+      ),
+    );
 
 /// Résultats de l'écran de recherche : texte et catégories appliqués à tout le
 /// carnet (héros compris), du plus proche au plus lointain.
-final birthdaySearchResultsProvider = Provider.autoDispose<List<Birthday>>((
-  ref,
-) {
-  return ref
-      .watch(birthdaysListProvider)
-      .matching(
-        ref.watch(birthdaySearchProvider),
-        categoryIds: ref.watch(birthdayCategoryFilterProvider),
-      )
-      .sortedByNext(ref.watch(todayProvider));
-});
+final birthdaySearchResultsProvider = Provider.autoDispose
+    .family<List<Birthday>, SearchScope>(
+      (ref, scope) => ref
+          .watch(birthdaysListProvider)
+          .matching(
+            ref.watch(birthdaySearchProvider(scope)),
+            categoryIds: ref.watch(birthdayCategoryFilterProvider(scope)),
+          )
+          .sortedByNext(ref.watch(todayProvider)),
+    );

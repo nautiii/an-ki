@@ -59,6 +59,8 @@ Birthday _relative(
 }
 
 void main() {
+  final SearchScope scope = (token: Object(), initialCategoryId: null);
+
   ProviderContainer sessionContainer(FakeBirthdayRepository repository) =>
       ProviderContainer.test(
         retry: (_, _) => null,
@@ -220,25 +222,27 @@ void main() {
 
     test('birthdaySearchResultsProvider searches everyone, by proximity', () {
       final container = containerWith([far, near, mid]);
-      container.listen(birthdaySearchResultsProvider, (_, _) {});
+      container.listen(birthdaySearchResultsProvider(scope), (_, _) {});
 
-      expect(container.read(birthdaySearchResultsProvider).map((b) => b.id), [
-        'near',
-        'mid',
-        'far',
-      ]);
+      expect(
+        container.read(birthdaySearchResultsProvider(scope)).map((b) => b.id),
+        ['near', 'mid', 'far'],
+      );
 
-      container.read(birthdaySearchProvider.notifier).update('alice');
-      expect(container.read(birthdaySearchResultsProvider).map((b) => b.id), [
-        'near',
-      ]);
+      container.read(birthdaySearchProvider(scope).notifier).update('alice');
+      expect(
+        container.read(birthdaySearchResultsProvider(scope)).map((b) => b.id),
+        ['near'],
+      );
 
-      container.read(birthdaySearchProvider.notifier).update('');
-      container.read(birthdayCategoryFilterProvider.notifier).toggle('cat2');
-      expect(container.read(birthdaySearchResultsProvider).map((b) => b.id), [
-        'mid',
-        'far',
-      ]);
+      container.read(birthdaySearchProvider(scope).notifier).update('');
+      container
+          .read(birthdayCategoryFilterProvider(scope).notifier)
+          .toggle('cat2');
+      expect(
+        container.read(birthdaySearchResultsProvider(scope)).map((b) => b.id),
+        ['mid', 'far'],
+      );
     });
   });
 
@@ -376,47 +380,64 @@ void main() {
   group('Search and category filter notifiers', () {
     test('they expose and update their value', () {
       final container = sessionContainer(RecordingBirthdayRepository());
-      container.listen(birthdaySearchProvider, (_, _) {});
-      container.listen(birthdayCategoryFilterProvider, (_, _) {});
+      container.listen(birthdaySearchProvider(scope), (_, _) {});
+      container.listen(birthdayCategoryFilterProvider(scope), (_, _) {});
 
-      expect(container.read(birthdaySearchProvider), '');
-      container.read(birthdaySearchProvider.notifier).update('x');
-      expect(container.read(birthdaySearchProvider), 'x');
+      expect(container.read(birthdaySearchProvider(scope)), '');
+      container.read(birthdaySearchProvider(scope).notifier).update('x');
+      expect(container.read(birthdaySearchProvider(scope)), 'x');
 
-      final filters = container.read(birthdayCategoryFilterProvider.notifier);
-      expect(container.read(birthdayCategoryFilterProvider), isEmpty);
+      final filters = container.read(
+        birthdayCategoryFilterProvider(scope).notifier,
+      );
+      expect(container.read(birthdayCategoryFilterProvider(scope)), isEmpty);
       filters
         ..toggle('a')
         ..toggle('b');
-      expect(container.read(birthdayCategoryFilterProvider), ['a', 'b']);
+      expect(container.read(birthdayCategoryFilterProvider(scope)), ['a', 'b']);
       filters.toggle('a');
-      expect(container.read(birthdayCategoryFilterProvider), ['b']);
+      expect(container.read(birthdayCategoryFilterProvider(scope)), ['b']);
       filters.clear();
-      expect(container.read(birthdayCategoryFilterProvider), isEmpty);
+      expect(container.read(birthdayCategoryFilterProvider(scope)), isEmpty);
+    });
+
+    test('the filter starts on the opening group, each screen on its own', () {
+      final container = sessionContainer(RecordingBirthdayRepository());
+      final SearchScope opened = (token: Object(), initialCategoryId: 'fam');
+      container.listen(birthdayCategoryFilterProvider(scope), (_, _) {});
+      container.listen(birthdayCategoryFilterProvider(opened), (_, _) {});
+
+      expect(container.read(birthdayCategoryFilterProvider(opened)), ['fam']);
+      container
+          .read(birthdayCategoryFilterProvider(scope).notifier)
+          .toggle('a');
+      expect(container.read(birthdayCategoryFilterProvider(opened)), ['fam']);
     });
 
     test('they reset when the user changes', () {
       final container = sessionContainer(RecordingBirthdayRepository());
-      container.listen(birthdaySearchProvider, (_, _) {});
-      container.listen(birthdayCategoryFilterProvider, (_, _) {});
-      container.read(birthdaySearchProvider.notifier).update('x');
-      container.read(birthdayCategoryFilterProvider.notifier).toggle('a');
+      container.listen(birthdaySearchProvider(scope), (_, _) {});
+      container.listen(birthdayCategoryFilterProvider(scope), (_, _) {});
+      container.read(birthdaySearchProvider(scope).notifier).update('x');
+      container
+          .read(birthdayCategoryFilterProvider(scope).notifier)
+          .toggle('a');
 
       container.read(_session.notifier).signIn(null);
 
-      expect(container.read(birthdaySearchProvider), '');
-      expect(container.read(birthdayCategoryFilterProvider), isEmpty);
+      expect(container.read(birthdaySearchProvider(scope)), '');
+      expect(container.read(birthdayCategoryFilterProvider(scope)), isEmpty);
     });
 
     test('they start over once the search screen is gone', () async {
       final container = sessionContainer(RecordingBirthdayRepository());
-      final search = container.listen(birthdaySearchProvider, (_, _) {});
-      container.read(birthdaySearchProvider.notifier).update('x');
+      final search = container.listen(birthdaySearchProvider(scope), (_, _) {});
+      container.read(birthdaySearchProvider(scope).notifier).update('x');
 
       search.close();
       await container.pump();
 
-      expect(container.read(birthdaySearchProvider), '');
+      expect(container.read(birthdaySearchProvider(scope)), '');
     });
   });
 }

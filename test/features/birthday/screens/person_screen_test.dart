@@ -22,6 +22,7 @@ import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../support/fake_providers.dart';
 import '../../../support/network_image_mock.dart';
@@ -100,7 +101,12 @@ void main() {
         ),
         shareServiceProvider.overrideWithValue(share),
       ],
-      routes: {AppRoutes.birthdays: (_) => const Text('Accueil')},
+      routes: {
+        AppRoutes.birthdays: (_) => const Text('Accueil'),
+        AppRoutes.search: (context) => Text(
+          'Recherche ${GoRouterState.of(context).uri.queryParameters[AppRoutes.searchCategoryParam]}',
+        ),
+      },
     );
     // Le squelette respire sans fin : une frame suffit pendant le chargement.
     if (birthdays is AsyncLoading) {
@@ -151,7 +157,7 @@ void main() {
       expect(orbit(tester).daysLeft, 12);
       expect(inOrbit('36'), findsOneWidget);
       expect(inOrbit('ans'), findsOneWidget);
-      expect(find.widgetWithText(Chip, 'Famille'), findsOneWidget);
+      expect(find.widgetWithText(ActionChip, 'Famille'), findsOneWidget);
       // Hors du jour J et du lendemain, rien à souhaiter.
       expect(find.text('Souhaiter'), findsNothing);
       expect(find.text('Pas encore souhaité avec AnKi'), findsOneWidget);
@@ -435,6 +441,15 @@ void main() {
 
       expect(share.shared, ['Coucou Léa']);
     });
+  });
+
+  testWidgets('a group opens the search filtered on it', (tester) async {
+    await pumpPage(tester);
+
+    await tester.tap(find.widgetWithText(ActionChip, 'Famille'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Recherche fam'), findsOneWidget);
   });
 
   testWidgets('« Modifier » opens the edit sheet', (tester) async {
