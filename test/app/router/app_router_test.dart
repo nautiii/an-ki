@@ -1,5 +1,9 @@
 import 'dart:async';
 
+import 'package:an_ki/app/modules/birthdays_module.dart';
+import 'package:an_ki/app/modules/birthdays_settings_section.dart';
+import 'package:an_ki/app/modules/books_module.dart';
+import 'package:an_ki/app/modules/module_registry.dart';
 import 'package:an_ki/app/router/app_router.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/notification_service.dart';
@@ -19,13 +23,16 @@ import 'package:an_ki/features/books/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_off_card.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/settings/widgets/guest_backup_card.dart';
+import 'package:an_ki/features/settings/widgets/settings_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../support/app_harness.dart';
 import '../../support/fake_mobile_scanner_platform.dart';
 import '../../support/fake_providers.dart';
 import '../../support/network_image_mock.dart';
+import '../../support/probe_module.dart';
 
 void main() {
   group('accessRedirect', () {
@@ -139,6 +146,95 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.byType(BookScannerScreen), findsOneWidget);
       });
+    });
+
+    testWidgets('declares one tab branch per module, in registry order', (
+      tester,
+    ) async {
+      final probe = probeModule();
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          overrides: [
+            appModulesProvider.overrideWithValue([
+              birthdaysModule,
+              booksModule,
+              probe,
+            ]),
+          ],
+        );
+        await tester.settleApp();
+      });
+
+      final shell = tester.appRouter.configuration.routes
+          .whereType<StatefulShellRoute>()
+          .single;
+      expect(
+        [
+          for (final branch in shell.branches)
+            (branch.routes.first as GoRoute).path,
+        ],
+        [AppRoutes.birthdays, AppRoutes.scanner, probeRoot],
+      );
+    });
+
+    testWidgets('the settings show the active modules sections, in order', (
+      tester,
+    ) async {
+      final probe = probeModule(
+        settingsSection: const SettingsSection(
+          title: 'Section sonde',
+          children: [ListTile(title: Text('Réglage sonde'))],
+        ),
+      );
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          overrides: [
+            appModulesProvider.overrideWithValue([
+              birthdaysModule,
+              booksModule,
+              probe,
+            ]),
+          ],
+        );
+        await tester.settleApp();
+
+        unawaited(tester.appRouter.push(AppRoutes.settings));
+        await tester.pumpAndSettle();
+      });
+
+      final sections = tester
+          .widget<SettingsScreen>(find.byType(SettingsScreen))
+          .moduleSections;
+      expect(sections, hasLength(2));
+      expect(sections.first, isA<BirthdaysSettingsSection>());
+      expect(find.text('Section sonde'), findsOneWidget);
+    });
+
+    testWidgets('an inactive module has no settings section', (tester) async {
+      final probe = probeModule(
+        settingsSection: const SettingsSection(
+          title: 'Section sonde',
+          children: [ListTile(title: Text('Réglage sonde'))],
+        ),
+      );
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          overrides: [
+            appModulesProvider.overrideWithValue([birthdaysModule, probe]),
+            activeModulesProvider.overrideWithValue([birthdaysModule]),
+          ],
+        );
+        await tester.settleApp();
+
+        unawaited(tester.appRouter.push(AppRoutes.settings));
+        await tester.pumpAndSettle();
+      });
+
+      expect(find.byType(BirthdaysSettingsSection), findsOneWidget);
+      expect(find.text('Section sonde'), findsNothing);
     });
 
     testWidgets('a person path opens that person above the tab', (

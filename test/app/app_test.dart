@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:an_ki/app/modules/app_module.dart';
+import 'package:an_ki/app/modules/birthdays_module.dart';
+import 'package:an_ki/app/modules/module_registry.dart';
 import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
@@ -8,11 +11,13 @@ import 'package:an_ki/features/auth/screens/welcome_screen.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/app_harness.dart';
 import '../support/fake_providers.dart';
 import '../support/network_image_mock.dart';
+import '../support/probe_module.dart';
 
 /// Session qui n'arrive jamais : le démarrage reste en attente.
 class _PendingAuthRepository extends FakeAuthRepository {
@@ -116,6 +121,41 @@ void main() {
 
       expect(find.byType(MainShell), findsOneWidget);
       expect(find.byType(AuthChoiceScreen), findsNothing);
+    });
+  });
+
+  group('module effects', () {
+    /// L'app connectée, la sonde au registre : renvoie combien de fois son
+    /// effet a été construit. [active] : les modules actifs, sinon tous.
+    Future<int> pumpWithProbe(
+      WidgetTester tester, {
+      List<AppModule> Function(AppModule probe)? active,
+    }) async {
+      var builds = 0;
+      final effect = Provider<void>((ref) => builds++);
+      final probe = probeModule(effects: [effect]);
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          overrides: [
+            appModulesProvider.overrideWithValue([birthdaysModule, probe]),
+            if (active != null)
+              activeModulesProvider.overrideWithValue(active(probe)),
+          ],
+        );
+        await tester.settleApp();
+      });
+      return builds;
+    }
+
+    testWidgets('keeps the effects of the active modules alive', (
+      tester,
+    ) async {
+      expect(await pumpWithProbe(tester), 1);
+    });
+
+    testWidgets('runs nothing for an inactive module', (tester) async {
+      expect(await pumpWithProbe(tester, active: (_) => [birthdaysModule]), 0);
     });
   });
 

@@ -1,3 +1,6 @@
+import 'package:an_ki/app/modules/birthdays_module.dart';
+import 'package:an_ki/app/modules/books_module.dart';
+import 'package:an_ki/app/modules/module_registry.dart';
 import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
@@ -13,6 +16,7 @@ import '../../support/app_harness.dart';
 import '../../support/fake_mobile_scanner_platform.dart';
 import '../../support/fake_providers.dart';
 import '../../support/network_image_mock.dart';
+import '../../support/probe_module.dart';
 
 void main() {
   setUp(FakeMobileScannerPlatform.install);
@@ -134,6 +138,54 @@ void main() {
       );
       expect(fade.opacity.value, 1);
       expect(find.byType(HomeScreen), findsNothing);
+    });
+  });
+
+  test('a tab knows its branch, even when another module is hidden', () {
+    final probe = probeModule();
+    final registry = [birthdaysModule, booksModule, probe];
+
+    final tabs = shellTabs(registry, [probe, birthdaysModule]);
+
+    // Ordre du registre, et l'index de branche de chaque onglet.
+    expect([for (final tab in tabs) tab.module.id], ['birthdays', 'probe']);
+    expect([for (final tab in tabs) tab.branch], [0, 2]);
+    expect(shellTabs(registry, registry).map((tab) => tab.branch), [0, 1, 2]);
+  });
+
+  testWidgets('shows the active modules only and opens the right branch', (
+    tester,
+  ) async {
+    final probe = probeModule();
+    await mockNetworkImages(() async {
+      await tester.pumpApp(
+        auth: FakeAuthRepository(user: MockUser()),
+        overrides: [
+          appModulesProvider.overrideWithValue([
+            birthdaysModule,
+            booksModule,
+            probe,
+          ]),
+          activeModulesProvider.overrideWithValue([birthdaysModule, probe]),
+        ],
+      );
+      await tester.settleApp();
+
+      expect(barIcon(Icons.cake_rounded), findsOneWidget);
+      expect(barIcon(Icons.science_outlined), findsOneWidget);
+      expect(barIcon(Icons.qr_code_scanner_rounded), findsNothing);
+
+      // 2e onglet de la barre, 3e branche du routeur.
+      await tester.tap(barIcon(Icons.science_outlined));
+      await tester.pumpAndSettle();
+      expect(tester.appRouter.state.matchedLocation, probeRoot);
+      expect(find.text('Écran sonde'), findsOneWidget);
+      expect(barIcon(Icons.science_rounded), findsOneWidget);
+
+      await tester.tap(barIcon(Icons.cake_outlined));
+      await tester.pumpAndSettle();
+      expect(tester.appRouter.state.matchedLocation, AppRoutes.birthdays);
+      expect(find.byType(HomeScreen), findsOneWidget);
     });
   });
 }

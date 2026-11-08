@@ -442,6 +442,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tabScanner => 'Scanner';
 
   @override
+  String get moduleBirthdaysDescription =>
+      'Qui fête quoi, et quand le souhaiter';
+
+  @override
+  String get moduleBooksDescription =>
+      'Vos séries : le dernier tome, le prochain et sa date de sortie';
+
+  @override
   String get clearSearch => 'Effacer la recherche';
 
   @override

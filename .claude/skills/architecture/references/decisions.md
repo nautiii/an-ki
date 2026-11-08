@@ -248,9 +248,12 @@ knows every feature (D1); a registry there adds a file per module and nothing to
 
 **How.**
 - `AppModule` (`app/modules/app_module.dart`): `id`, `alwaysOn`, `enabledByDefault`, icons,
-  `name`/`description` from `AppLocalizations`, `rootPath`, a `StatefulShellBranch`, an optional
-  settings section, `effects` and optional `ModuleData` (erase, guest transfer). The registry
-  `appModules` (`module_registry.dart`) fixes the tab order; a registry test fails past 4 tabs.
+  `name`/`description` from `AppLocalizations`, `rootPath`, `buildBranch` (a function: a
+  `StatefulShellBranch` owns its navigator key, which serves one router only, and every
+  `ProviderScope` builds its own), an optional `settingsSection` (a `Widget`), `effects` and
+  optional `ModuleData` (erase, guest transfer). The registry `appModules`
+  (`module_registry.dart`, read through `appModulesProvider`) fixes the tab order; a registry
+  test fails past 4 tabs. The shell maps each visible tab to its branch index (`shellTabs`).
 - Activation: `user/{uid}.modules`, the map of explicit choices (`{'books': true}`), written
   field by field. A missing module follows `enabledByDefault`, `alwaysOn` wins, a non-boolean
   value is ignored: no migration. The pure `activeModuleIds(registry, choices)` and

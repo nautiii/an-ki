@@ -1,15 +1,11 @@
 import 'dart:async';
 
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
-import 'package:an_ki/features/reminders/providers/reminder_preferences_provider.dart';
-import 'package:an_ki/features/reminders/widgets/reminder_preferences_tiles.dart';
-import 'package:an_ki/features/reminders/widgets/reminders_tile.dart';
 import 'package:an_ki/features/settings/widgets/delete_account_tile.dart';
 import 'package:an_ki/features/settings/widgets/preference_choices.dart';
 import 'package:an_ki/features/settings/widgets/pseudo_field.dart';
@@ -17,27 +13,26 @@ import 'package:an_ki/features/settings/widgets/settings_section.dart';
 import 'package:an_ki/features/user/providers/user_profile_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 /// Réglages en blocs : le profil, les préférences appliquées dès le toucher,
-/// les anniversaires (rappels, import, groupes), la sécurité quand l'appareil a une
-/// empreinte, puis le compte, la suppression en dernier.
+/// les sections des modules ([moduleSections]), la sécurité quand l'appareil a
+/// une empreinte, puis le compte, la suppression en dernier.
 class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({super.key, this.moduleSections = const []});
+
+  /// Section de chaque module actif, dans l'ordre des modules : `app/` les
+  /// branche, les Réglages ne connaissent pas les modules.
+  final List<Widget> moduleSections;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Échec d'une écriture optimiste : le profil (pseudo, thème, langue) ou
-    // le réglage des rappels (cadence, heure).
-    void reportFailure(AsyncValue<void>? _, AsyncValue<void> next) {
+    // Échec d'une écriture optimiste du profil (pseudo, thème, langue).
+    ref.listen(userProfileEditorProvider, (_, next) {
       if (next is AsyncError) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(context.l10n.errorUnknown)));
       }
-    }
-
-    ref.listen(userProfileEditorProvider, reportFailure);
-    ref.listen(reminderPreferencesEditorProvider, reportFailure);
+    });
     final l10n = context.l10n;
     final hasFingerprint =
         ref.watch(fingerprintAvailableProvider).value ?? false;
@@ -47,60 +42,43 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.settings)),
       body: SafeArea(
         top: false,
-        child: ListView(
+        // Une colonne plutôt qu'une liste paresseuse : la page est courte, et
+        // chaque section reste montée au défilement, avec ce qu'elle écoute
+        // (l'échec d'une écriture se dit même une fois la section hors écran).
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md,
             AppSpacing.xs,
             AppSpacing.md,
             AppSpacing.xl,
           ),
-          children: [
-            SettingsSection(
-              title: l10n.settingsProfile,
-              children: const [PseudoField()],
-            ),
-            gap,
-            SettingsSection(
-              title: l10n.settingsPreferences,
-              children: const [ThemeChoice(), LanguageChoice()],
-            ),
-            gap,
-            SettingsSection(
-              title: l10n.settingsBirthdays,
-              children: [
-                // L'état des rappels, et de quoi les rétablir s'ils sont coupés.
-                const RemindersTile(),
-                const ReminderLeadsTile(),
-                const ReminderTimeTile(),
-                ListTile(
-                  leading: const Icon(Icons.contact_page_rounded),
-                  title: Text(l10n.importContacts),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  // L'aperçu de l'import, qui annonce lui-même ce qu'il ajoute.
-                  onTap: () => context.push(AppRoutes.contactImport),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.label_rounded),
-                  title: Text(l10n.groups),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  // Renommer, recolorer ou retirer ses groupes.
-                  onTap: () => context.push(AppRoutes.groups),
-                ),
-              ],
-            ),
-            if (hasFingerprint) ...[
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SettingsSection(
+                title: l10n.settingsProfile,
+                children: const [PseudoField()],
+              ),
               gap,
               SettingsSection(
-                title: l10n.settingsSecurity,
-                children: const [_BiometricSwitch()],
+                title: l10n.settingsPreferences,
+                children: const [ThemeChoice(), LanguageChoice()],
+              ),
+              for (final section in moduleSections) ...[gap, section],
+              if (hasFingerprint) ...[
+                gap,
+                SettingsSection(
+                  title: l10n.settingsSecurity,
+                  children: const [_BiometricSwitch()],
+                ),
+              ],
+              gap,
+              SettingsSection(
+                title: l10n.settingsAccount,
+                children: const [_SignOutTile(), DeleteAccountTile()],
               ),
             ],
-            gap,
-            SettingsSection(
-              title: l10n.settingsAccount,
-              children: const [_SignOutTile(), DeleteAccountTile()],
-            ),
-          ],
+          ),
         ),
       ),
     );

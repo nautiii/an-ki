@@ -812,6 +812,18 @@ abstract class AppLocalizations {
   /// **'Scanner'**
   String get tabScanner;
 
+  /// Description du module Anniversaires, sous son nom (écran des modules)
+  ///
+  /// In fr, this message translates to:
+  /// **'Qui fête quoi, et quand le souhaiter'**
+  String get moduleBirthdaysDescription;
+
+  /// Description du module Livres, sous son nom (écran des modules)
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos séries : le dernier tome, le prochain et sa date de sortie'**
+  String get moduleBooksDescription;
+
   /// Infobulle du bouton qui vide le champ de recherche
   ///
   /// In fr, this message translates to:

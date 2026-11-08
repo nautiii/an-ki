@@ -1,5 +1,6 @@
 import 'package:an_ki/app/bootstrap/app_initializer.dart';
 import 'package:an_ki/app/bootstrap/reminder_prompt.dart';
+import 'package:an_ki/app/modules/module_registry.dart';
 import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
@@ -11,12 +12,8 @@ import 'package:an_ki/features/auth/screens/welcome_screen.dart';
 import 'package:an_ki/features/birthday/screens/birthday_search_screen.dart';
 import 'package:an_ki/features/birthday/screens/contact_import_screen.dart';
 import 'package:an_ki/features/birthday/screens/groups_screen.dart';
-import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/screens/person_screen.dart';
-import 'package:an_ki/features/books/screens/book_scanner_screen.dart';
-import 'package:an_ki/features/reminders/widgets/reminders_off_card.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
-import 'package:an_ki/features/settings/widgets/guest_backup_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -24,13 +21,15 @@ import 'package:go_router/go_router.dart';
 /// Écran neutre du démarrage, tant que l'accès n'est pas connu.
 const String _startup = '/';
 
-/// Routeur de l'application : chaque chemin d'[AppRoutes] vers son écran, et
-/// les redirections qui suivent l'accès ([authAccessProvider]).
+/// Routeur de l'application : chaque chemin d'[AppRoutes] vers son écran, les
+/// onglets des modules ([appModulesProvider]), et les redirections qui suivent
+/// l'accès ([authAccessProvider]).
 ///
 /// Vit dans la couche `app/` (composition root) : il a le droit de dépendre
 /// des features, contrairement à `core/`. Créé une seule fois : un changement
 /// d'accès réévalue les redirections sans recréer le routeur.
 final appRouterProvider = Provider<GoRouter>((ref) {
+  final modules = ref.read(appModulesProvider);
   final access = ValueNotifier<AuthAccess?>(null);
   ref.listen(
     authAccessProvider,
@@ -62,33 +61,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
         navigatorContainerBuilder: (_, shell, branches) =>
             ShellBranches(currentIndex: shell.currentIndex, children: branches),
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.birthdays,
-                // Les rappels coupés se disent en haut de l'accueil, la
-                // sauvegarde d'un invité en fin d'agenda.
-                builder: (_, _) => HomeScreen(
-                  notice: const RemindersOffCard(),
-                  guestBackup: (count) => GuestBackupCard(count: count),
-                ),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.scanner,
-                builder: (_, _) => const BookScannerScreen(),
-              ),
-            ],
-          ),
-        ],
+        // Une branche par module du registre, dans son ordre : l'index d'une
+        // branche est la place de son module dans le registre.
+        branches: [for (final module in modules) module.buildBranch()],
       ),
       GoRoute(
         path: AppRoutes.settings,
-        builder: (_, _) => const SettingsScreen(),
+        builder: (_, _) => const _SettingsPage(),
       ),
       GoRoute(
         path: AppRoutes.search,
@@ -135,6 +114,20 @@ String? accessRedirect(AuthAccess? access, String location) {
     AuthAccess.granted =>
       inAuth || atWelcome || location == _startup ? AppRoutes.birthdays : null,
   };
+}
+
+/// Réglages, avec la section de chaque module actif entre les préférences et
+/// la sécurité.
+class _SettingsPage extends ConsumerWidget {
+  const _SettingsPage();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => SettingsScreen(
+    moduleSections: [
+      for (final module in ref.watch(activeModulesProvider))
+        ?module.settingsSection,
+    ],
+  );
 }
 
 /// Démarrage : session et verrou biométrique pas encore connus (quelques
