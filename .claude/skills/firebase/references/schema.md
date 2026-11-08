@@ -29,7 +29,7 @@ Owner: the path (`{uid}` = `request.auth.uid`). Rules: owner reads and writes, n
 | `categories` | array of string, legacy | shared groups picked before private groups (2026-10-24); ignored since 2026-11-04, never written |
 | `themeMode` | string `system` · `light` · `dark` | absent → the legacy `isDark`, else `system` |
 | `isDark` | bool, legacy | read only when `themeMode` is absent; deleted by the next theme change |
-| `locale` | string | `'fr'` |
+| `locale` | string `fr` · `en`, optional | language picked in Settings; absent → the phone's (first translated one of its preferred languages, else English). Not written at creation since 2026-11-08; older profiles keep the `'fr'` they were created with |
 | `biometricToken` | string or null | set by the auth feature when the fingerprint lock is on; null or absent = off |
 | `reminders` | map `{leads: [string], hour: int, minute: int}`, optional | default reminder setting (B6); absent → J-7 + J-0 at 10:00; unknown leads skipped, `sameDay` always added; written only by `ReminderPreferencesRepository.savePreferences` (`update`) |
 | `transferTo` | string, optional | a guest moving to a Google account (§10): that account's address; the marked document is deleted by it |

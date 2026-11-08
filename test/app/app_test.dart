@@ -35,6 +35,48 @@ void main() {
     expect(find.byType(AuthChoiceScreen), findsNothing);
   });
 
+  group('speaks the language of the phone', () {
+    testWidgets('French on a French phone', (tester) async {
+      await tester.pumpApp(auth: FakeAuthRepository());
+      await tester.settleApp();
+
+      expect(find.text('Commencer'), findsOneWidget);
+    });
+
+    testWidgets('English on an English phone', (tester) async {
+      await tester.pumpApp(
+        auth: FakeAuthRepository(),
+        deviceLocale: const Locale('en', 'US'),
+      );
+      await tester.settleApp();
+
+      expect(find.text('Get started'), findsOneWidget);
+    });
+
+    testWidgets('English on a phone in an untranslated language', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        auth: FakeAuthRepository(),
+        deviceLocale: const Locale('de', 'DE'),
+      );
+      await tester.settleApp();
+
+      expect(find.text('Get started'), findsOneWidget);
+    });
+
+    testWidgets('follows the phone when its language changes', (tester) async {
+      await tester.pumpApp(auth: FakeAuthRepository());
+      await tester.settleApp();
+      expect(find.text('Commencer'), findsOneWidget);
+
+      tester.platformDispatcher.localesTestValue = const [Locale('en', 'US')];
+      await tester.settleApp();
+
+      expect(find.text('Get started'), findsOneWidget);
+    });
+  });
+
   testWidgets(
     '« Commencer » opens the app as a guest, greeted without a name',
     (tester) async {

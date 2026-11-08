@@ -135,6 +135,16 @@ void main() {
     expect(users.created.single.surname, 'Martin');
   });
 
+  testWidgets('leaves the language to the phone in a new profile', (
+    tester,
+  ) async {
+    final users = RecordingUserRepository();
+    await pumpInitializer(tester, users: users);
+    await tester.pumpAndSettle();
+
+    expect(users.created.single.locale, isNull);
+  });
+
   testWidgets('keeps the names typed at sign-up, then forgets them', (
     tester,
   ) async {

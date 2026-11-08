@@ -47,7 +47,7 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
   on a French phone — `deviceLocale: Locale('en', 'US')` for another region, which typed dates
   follow — 800×1200, go_router: `routes: {AppRoutes.settings: …}` stands in for the pages the
   widget opens). One harness per test: pumping it again keeps the first page. The whole app, router and redirects included: `tester.pumpApp(auth: …)` then
-  `tester.settleApp()` (`test/support/app_harness.dart`). A non-empty `overrides` list **replaces** `defaultTestOverrides`, it doesn't extend
+  `tester.settleApp()` (`test/support/app_harness.dart`); its `deviceLocale` (French by default) is also the app language while the profile picks none, and `platformDispatcher.localesTestValue` changes it live. A non-empty `overrides` list **replaces** `defaultTestOverrides`, it doesn't extend
   it. Pin async data with `xProvider.overrideWithValue(const AsyncData(…))`. Cover loading, empty,
   data and error; accessibility with `meetsGuideline(androidTapTargetGuideline)`,
   `meetsGuideline(labeledTapTargetGuideline)` and `find.bySemanticsLabel`.

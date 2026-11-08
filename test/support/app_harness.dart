@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:an_ki/app/app.dart';
 import 'package:an_ki/app/bootstrap/notification_strings.dart';
 import 'package:an_ki/app/router/app_router.dart';
+import 'package:an_ki/core/providers/device_locales_provider.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/core/services/device_settings.dart';
@@ -103,18 +104,28 @@ extension AppTesterExt on WidgetTester {
     FakeShareService? share,
     FakeContactsService? contacts,
     FakeDeviceSettings? deviceSettings,
+    Locale deviceLocale = const Locale('fr', 'FR'),
   }) {
     view.physicalSize = const Size(800, 1200);
     view.devicePixelRatio = 1.0;
     addTearDown(view.resetPhysicalSize);
     addTearDown(view.resetDevicePixelRatio);
-    // Téléphone réglé comme l'app, en français de France (voir pumpHarness).
-    platformDispatcher.localeTestValue = const Locale('fr', 'FR');
+    // Téléphone en français de France par défaut (voir pumpHarness) : l'app
+    // en prend la langue tant que le profil n'en choisit pas une.
+    // Un test change la langue du téléphone avec
+    // `platformDispatcher.localesTestValue`, que l'app relit.
+    platformDispatcher
+      ..localeTestValue = deviceLocale
+      ..localesTestValue = [deviceLocale];
     addTearDown(platformDispatcher.clearLocaleTestValue);
+    addTearDown(platformDispatcher.clearLocalesTestValue);
     return pumpWidget(
       ProviderScope(
         retry: (_, _) => null,
         overrides: [
+          deviceLocalesProvider.overrideWith(
+            (ref) => platformDispatcher.locales,
+          ),
           authRepositoryProvider.overrideWithValue(auth),
           biometricServiceProvider.overrideWithValue(
             biometrics ?? FakeBiometricService(),

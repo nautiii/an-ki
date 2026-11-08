@@ -118,8 +118,17 @@ void main() {
 
       expect(
         watched,
-        const UserProfile(id: 'user-3', name: '', surname: '', locale: 'fr'),
+        // Sans langue : celle du téléphone.
+        const UserProfile(id: 'user-3', name: '', surname: ''),
       );
+    });
+
+    test('reads the chosen language', () async {
+      await firestore.collection('user').doc('user-3').set({'locale': 'en'});
+
+      final watched = await repository.watchUser('user-3').first;
+
+      expect(watched?.locale, 'en');
     });
   });
 
@@ -135,6 +144,15 @@ void main() {
         'locale': 'fr',
         'biometricToken': 'token-abc',
       });
+    });
+
+    test('writes no language when none was chosen', () async {
+      await repository.createUser(
+        const UserProfile(id: 'user-4', name: 'Léa', surname: ''),
+      );
+
+      final doc = await firestore.collection('user').doc('user-4').get();
+      expect(doc.data(), {'name': 'Léa', 'surname': '', 'themeMode': 'system'});
     });
 
     test('omits the absent pseudo and biometric token', () async {

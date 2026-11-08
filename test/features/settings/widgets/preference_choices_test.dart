@@ -153,5 +153,34 @@ void main() {
 
       expect(users.stored?.locale, 'en');
     });
+
+    testWidgets('selects the language shown when none was chosen', (
+      tester,
+    ) async {
+      final users = RecordingUserRepository(
+        stored: const UserProfile(id: 'uid-1', name: 'Camille', surname: ''),
+      );
+      // App affichée en anglais (celle d'un téléphone anglais).
+      await tester.pumpHarness(
+        Builder(
+          builder: (context) => Localizations.override(
+            context: context,
+            locale: const Locale('en'),
+            child: const LanguageChoice(),
+          ),
+        ),
+        overrides: overridesWith(users),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<SegmentedButton<String>>(
+              find.byType(SegmentedButton<String>),
+            )
+            .selected,
+        {'en'},
+      );
+    });
   });
 }

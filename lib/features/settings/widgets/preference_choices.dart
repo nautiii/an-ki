@@ -52,7 +52,10 @@ class LanguageChoice extends ConsumerWidget {
     return _ChoiceTile<String>(
       icon: Icons.language_rounded,
       title: l10n.language,
-      selected: ref.watch(localeProvider).languageCode,
+      // Sans choix enregistré : la langue affichée, celle du téléphone.
+      selected:
+          ref.watch(localeProvider)?.languageCode ??
+          Localizations.localeOf(context).languageCode,
       options: [('fr', l10n.languageFrench), ('en', l10n.languageEnglish)],
       onChanged: (languageCode) => unawaited(
         ref.read(userProfileEditorProvider.notifier).setLocale(languageCode),

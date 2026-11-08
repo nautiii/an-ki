@@ -27,10 +27,18 @@ void main() {
   }
 
   group('localeProvider', () {
-    test('defaults to French without a profile', () async {
+    test('has no choice without a profile', () async {
       final container = await makeContainer(null);
 
-      expect(container.read(localeProvider), const Locale('fr'));
+      expect(container.read(localeProvider), isNull);
+    });
+
+    test('has no choice for a profile without a language', () async {
+      final container = await makeContainer(
+        const UserProfile(id: 'u', name: 'A', surname: 'B'),
+      );
+
+      expect(container.read(localeProvider), isNull);
     });
 
     test('reflects the profile language and its edits', () async {
