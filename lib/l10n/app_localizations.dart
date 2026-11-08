@@ -386,7 +386,7 @@ abstract class AppLocalizations {
   /// **'Modifier'**
   String get editBirthday;
 
-  /// Unité sous l'âge en grand du héros, accordée (« 1 an », « 34 ans »)
+  /// Unité sous l'âge en grand, dans l'orbite du héros et de la page personne, accordée (« 1 an », « 34 ans »)
   ///
   /// In fr, this message translates to:
   /// **'{age, plural, one{an} other{ans}}'**

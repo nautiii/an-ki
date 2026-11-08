@@ -126,13 +126,9 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
   matches one already in the Google account, the account's record wins and the guest's photo,
   wished years and own reminders on it are dropped → fill the account record's empty fields from
   the guest's. Priority: low, only if it matters.
-- **D30 person page still on the moon disc** (2026-11-08): the home tiles moved S3 to the orbit
-  (`OrbitCountdown`), the person page header keeps `MoonPhase` next to « Dans N jours »
-  (`person_screen.dart`) → give it the orbit around the days (or the coming age), then delete
-  `moon_phase.dart` and its test. Priority: medium, the one place two S3 forms coexist.
 
 ## Suggested roadmap
 
-1. **B8, D17, D28, D30** — depth and polish (D29 if it matters);
+1. **B8, D17, D28** — depth and polish (D29 if it matters);
    natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
 2. **B4's gift ideas** — when the maintainer picks them up.

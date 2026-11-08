@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/common/anki_empty_state.dart';
-import 'package:an_ki/core/common/moon_phase.dart';
+import 'package:an_ki/core/common/orbit_countdown.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
@@ -153,8 +153,8 @@ class _PersonDetails extends ConsumerWidget {
   }
 }
 
-/// Grand avatar cerclé de ses groupes, nom, lune et compte à rebours, date de
-/// naissance et âge.
+/// Grand avatar cerclé de ses groupes, nom, orbite (l'âge à venir, sinon les
+/// jours), compte à rebours et date de naissance.
 class _Header extends ConsumerWidget {
   const _Header({required this.birthday, required this.today});
 
@@ -168,10 +168,11 @@ class _Header extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final picture = birthday.picture;
     final days = birthday.daysUntilNext(today);
+    // Sans année de naissance, aucun âge inventé : l'orbite porte les jours.
+    final age = birthday.turningAge(today);
     final categories = birthday.categoriesFrom(ref.watch(categoriesProvider));
-    final secondary = textTheme.bodyLarge?.copyWith(
-      color: colorScheme.onSurfaceVariant,
-    );
+    // Les jours déjà dans l'orbite ne se répètent pas en dessous.
+    final daysInOrbit = age == null && days > 0;
 
     return Column(
       children: [
@@ -193,36 +194,122 @@ class _Header extends ConsumerWidget {
             style: textTheme.headlineSmall,
           ),
         ),
-        const SizedBox(height: AppSpacing.xs),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            MoonPhase(daysLeft: days, size: 18),
-            const SizedBox(width: AppSpacing.xs),
-            Flexible(
-              child: Text(switch (days) {
-                0 => l10n.today,
-                1 => l10n.tomorrow,
-                _ => l10n.inDays(days),
-              }, style: textTheme.titleMedium),
-            ),
-          ],
+        const SizedBox(height: AppSpacing.md),
+        _Countdown(
+          days: days,
+          age: age,
+          wished: days == 0 && birthday.isWished(today),
         ),
-        const SizedBox(height: AppSpacing.xxs),
+        const SizedBox(height: AppSpacing.sm),
+        if (!daysInOrbit) ...[
+          Text(
+            switch (days) {
+              0 => l10n.today,
+              1 => l10n.tomorrow,
+              _ => l10n.inDays(days),
+            },
+            textAlign: TextAlign.center,
+            style: textTheme.titleMedium,
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+        ],
         Text(
           birthday.formattedDate(context),
           textAlign: TextAlign.center,
-          style: secondary,
-        ),
-        // Sans année de naissance, aucun âge inventé.
-        if (birthday.turningAge(today) case final age?)
-          Text(
-            days == 0 ? l10n.ageInYears(age) : l10n.personTurning(age),
-            textAlign: TextAlign.center,
-            style: secondary,
+          style: textTheme.bodyLarge?.copyWith(
+            color: colorScheme.onSurfaceVariant,
           ),
+        ),
       ],
     );
+  }
+}
+
+/// L'orbite de l'en-tête (S3) autour de l'âge à venir ou, sans année de
+/// naissance, des jours restants. Le jour J elle se boucle en lotus, en
+/// menthe une fois le vœu fait ; sans âge, un gâteau ou une coche la
+/// remplit. TalkBack lit « Aura 36 ans », « 36 ans » ou « Dans 12 jours ».
+class _Countdown extends StatelessWidget {
+  const _Countdown({
+    required this.days,
+    required this.age,
+    required this.wished,
+  });
+
+  final int days;
+  final int? age;
+
+  /// L'anniversaire du jour est souhaité.
+  final bool wished;
+
+  /// Plus grande que celle du héros : l'orbite est le chiffre de la page.
+  static const double _diameter = 80;
+
+  /// Au-delà, le chiffre se réduit dans l'orbite plutôt que de l'élargir.
+  static const double _maxTextScale = 1.5;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final colors = context.ankiColors;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final dayColor = wished ? colors.success.color : colors.blossom.color;
+    final age = this.age;
+
+    final Widget content;
+    final String? label;
+    if (age == null && days == 0) {
+      // « Aujourd'hui » se lit juste en dessous.
+      content = Icon(
+        wished ? Icons.check_rounded : Icons.cake_rounded,
+        color: dayColor,
+      );
+      label = null;
+    } else {
+      content = Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${age ?? days}',
+            style: textTheme.headlineSmall?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1,
+              height: 1,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          Text(
+            age != null ? l10n.heroAgeUnit(age) : l10n.orbitDaysUnit(days),
+            style: textTheme.labelMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              height: 1.2,
+            ),
+          ),
+        ],
+      );
+      label = switch (age) {
+        final years? when days == 0 => l10n.ageInYears(years),
+        final years? => l10n.personTurning(years),
+        null => l10n.countdownDays(days),
+      };
+    }
+
+    final orbit = ExcludeSemantics(
+      child: OrbitCountdown(
+        daysLeft: days,
+        diameter: _diameter,
+        maxTextScale: _maxTextScale,
+        arcColor: days == 0 ? dayColor : null,
+        child: content,
+      ),
+    );
+    // Pas de « Souhaité » ici, à l'inverse de l'agenda : la pastille sous
+    // l'en-tête le dit déjà.
+    return label == null
+        ? orbit
+        : Semantics(container: true, label: label, child: orbit);
   }
 }
 

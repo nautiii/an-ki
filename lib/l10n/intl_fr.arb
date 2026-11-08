@@ -135,7 +135,7 @@
   "editBirthday": "Modifier",
   "heroAgeUnit": "{age, plural, one{an} other{ans}}",
   "@heroAgeUnit": {
-    "description": "Unité sous l'âge en grand du héros, accordée (« 1 an », « 34 ans »)",
+    "description": "Unité sous l'âge en grand, dans l'orbite du héros et de la page personne, accordée (« 1 an », « 34 ans »)",
     "placeholders": {
       "age": {
         "type": "int"
