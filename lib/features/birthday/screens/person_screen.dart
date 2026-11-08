@@ -24,14 +24,15 @@ import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_reminders_picker.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
+import 'package:an_ki/features/birthday/widgets/wish_message_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// Page d'une personne, à consulter avant de modifier : qui, quand, quel âge,
-/// ses groupes, « Souhaiter » le jour J et le lendemain, ses rappels et les
-/// années où elle a été souhaitée. « Modifier » ouvre la fiche d'édition.
+/// ses groupes, « Souhaiter » le jour J et le lendemain, ses rappels, son
+/// message de vœu et les années où elle a été souhaitée. « Modifier » ouvre la fiche d'édition.
 ///
 /// Supprimée pendant qu'elle est ouverte (depuis sa fiche), la page se ferme
 /// et l'accueil propose « Annuler ».
@@ -146,6 +147,8 @@ class _PersonDetails extends ConsumerWidget {
                 .setReminders(birthday.id, reminders),
           ),
         ),
+        const SizedBox(height: AppSpacing.xl),
+        WishMessageSection(birthday: birthday),
         const SizedBox(height: AppSpacing.xl),
         _WishHistory(birthday: birthday, today: today),
       ],

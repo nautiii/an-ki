@@ -305,9 +305,7 @@ void main() {
       surname: 'Martin',
       date: BirthDate(month: 3, day: 12),
     );
-    const message =
-        'Joyeux anniversaire Léa ! 🎂 Je te souhaite une très belle '
-        'journée.';
+    const message = 'Bon anniversaire Léa ! 🎂';
     const wishTap = NotificationTap(
       payload: 'lea',
       actionId: NotificationActions.wish,

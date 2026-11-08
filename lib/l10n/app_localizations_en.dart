@@ -349,13 +349,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String wishMessage(String name) {
-    return 'Happy birthday $name! 🎂 Have a wonderful day.';
+    return 'Happy birthday $name! 🎂';
   }
 
   @override
   String wishMessageBelated(String name) {
-    return 'Happy belated birthday $name! 🎂 I hope you had a wonderful day.';
+    return 'Sorry I\'m late, happy birthday $name!😅🎂';
   }
+
+  @override
+  String get wishMessageTitle => 'Wish message';
+
+  @override
+  String get wishMessageDefaultCaption => 'Default message';
+
+  @override
+  String get wishMessageEdit => 'Edit the wish message';
+
+  @override
+  String get wishMessageField => 'Message';
+
+  @override
+  String get wishMessageHelper =>
+      'Sent on the day and the day after. You can still edit it before sending.';
+
+  @override
+  String get wishMessageRestored => 'Default message restored';
+
+  @override
+  String get wishMessageReset => 'Restore the default message';
 
   @override
   String get errorSharing => 'Couldn\'t open sharing. Please try again.';

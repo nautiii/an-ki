@@ -304,6 +304,75 @@ void main() {
     });
   });
 
+  group('own wish message', () {
+    test('is read, and absent from older documents', () async {
+      await seed({
+        'uid': 'user-1',
+        'name': 'Old',
+        'date': Timestamp.fromDate(DateTime(1990)),
+      });
+      await seed({
+        'uid': 'user-1',
+        'name': 'Own',
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'wishMessage': 'Coucou',
+      });
+      await seed({
+        'uid': 'user-1',
+        'name': 'Blank',
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'wishMessage': '  ',
+      });
+
+      final birthdays = await repository.fetchBirthdays('user-1');
+      final messages = {
+        for (final birthday in birthdays) birthday.name: birthday.wishMessage,
+      };
+      expect(messages, {'Old': null, 'Own': 'Coucou', 'Blank': null});
+    });
+
+    test('is stored alone', () async {
+      final ref = await seed({
+        'uid': 'user-1',
+        'name': 'Old',
+        'date': Timestamp.fromDate(DateTime(1990)),
+      });
+
+      await repository.updateWishMessage(ref.id, 'Coucou');
+
+      final data = await stored(ref.id);
+      expect(data['wishMessage'], 'Coucou');
+      expect(data['name'], 'Old');
+      expect(data['uid'], 'user-1');
+    });
+
+    test('is erased when the person goes back to the default', () async {
+      final ref = await seed({
+        'uid': 'user-1',
+        'name': 'Old',
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'wishMessage': 'Coucou',
+      });
+
+      await repository.updateWishMessage(ref.id, null);
+
+      expect((await stored(ref.id)).containsKey('wishMessage'), isFalse);
+    });
+
+    test('is kept by an update of the other fields', () async {
+      final ref = await seed({
+        'uid': 'user-1',
+        'name': 'Old',
+        'date': Timestamp.fromDate(DateTime(1990)),
+        'wishMessage': 'Coucou',
+      });
+
+      await repository.updateBirthday('user-1', ref.id, draft(name: 'New'));
+
+      expect((await stored(ref.id))['wishMessage'], 'Coucou');
+    });
+  });
+
   group('updateBirthday', () {
     test('overwrites the stored fields', () async {
       final ref = await seed({

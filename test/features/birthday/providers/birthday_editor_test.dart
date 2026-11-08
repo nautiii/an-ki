@@ -93,6 +93,18 @@ void main() {
     expect(container.read(birthdayEditorProvider), isA<AsyncData<void>>());
   });
 
+  test('writes the own wish message through the repository', () async {
+    final repo = RecordingBirthdayRepository();
+    final container = makeContainer(repo);
+    final editor = container.read(birthdayEditorProvider.notifier);
+
+    await editor.setWishMessage('lea', 'Coucou');
+    await editor.setWishMessage('lea', null);
+
+    expect(repo.wishMessageUpdates, [('lea', 'Coucou'), ('lea', null)]);
+    expect(container.read(birthdayEditorProvider), isA<AsyncData<void>>());
+  });
+
   test('marks and unmarks a wish through the repository', () async {
     final repo = RecordingBirthdayRepository();
     final container = makeContainer(repo);

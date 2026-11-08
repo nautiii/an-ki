@@ -57,6 +57,14 @@ class BirthdayEditor extends AsyncNotifier<void> {
             .updateReminders(birthdayId, reminders),
       );
 
+  /// Message de vœu propre à la personne, déjà normalisé
+  /// (`customWishMessage`) : null prend le message par défaut.
+  Future<void> setWishMessage(String birthdayId, String? message) => _write(
+    (_) => ref
+        .read(birthdayRepositoryProvider)
+        .updateWishMessage(birthdayId, message),
+  );
+
   /// Supprime [birthdayId]. [uid] est le compte connecté quand la suppression
   /// a commencé : différée par « Annuler », elle est abandonnée si le compte a
   /// changé entre-temps (les règles la refuseraient, et l'autre compte lirait

@@ -647,14 +647,56 @@ abstract class AppLocalizations {
   /// Message prêt à envoyer, modifiable dans l'app choisie. La voix de l'utilisateur à un proche : tutoiement
   ///
   /// In fr, this message translates to:
-  /// **'Joyeux anniversaire {name} ! 🎂 Je te souhaite une très belle journée.'**
+  /// **'Bon anniversaire {name} ! 🎂'**
   String wishMessage(String name);
 
   /// Message prêt à envoyer le lendemain d'un anniversaire oublié, modifiable dans l'app choisie. Chaleureux, sans reproche ; tutoiement
   ///
   /// In fr, this message translates to:
-  /// **'Joyeux anniversaire avec un jour de retard, {name} ! 🎂 J\'espère que tu as passé une très belle journée.'**
+  /// **'Désolé pour le retard, bon anniversaire {name} !😅🎂'**
   String wishMessageBelated(String name);
+
+  /// Titre de la section de la page d'une personne et de la feuille qui personnalise le message envoyé par « Souhaiter »
+  ///
+  /// In fr, this message translates to:
+  /// **'Message de vœux'**
+  String get wishMessageTitle;
+
+  /// Sous le message de la page d'une personne, quand aucun message personnalisé n'est enregistré
+  ///
+  /// In fr, this message translates to:
+  /// **'Message par défaut'**
+  String get wishMessageDefaultCaption;
+
+  /// Libellé d'accessibilité de la ligne qui ouvre la feuille du message de vœu
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le message de vœux'**
+  String get wishMessageEdit;
+
+  /// Libellé du champ de la feuille du message de vœu
+  ///
+  /// In fr, this message translates to:
+  /// **'Message'**
+  String get wishMessageField;
+
+  /// Aide sous le champ du message de vœu
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyé le jour J et le lendemain. Vous pourrez encore le modifier avant l\'envoi.'**
+  String get wishMessageHelper;
+
+  /// Snackbar après « Rétablir le message par défaut », avec « Annuler »
+  ///
+  /// In fr, this message translates to:
+  /// **'Message par défaut rétabli'**
+  String get wishMessageRestored;
+
+  /// Bouton de la feuille du message de vœu : efface le message personnalisé
+  ///
+  /// In fr, this message translates to:
+  /// **'Rétablir le message par défaut'**
+  String get wishMessageReset;
 
   /// Snackbar quand la feuille de partage du système ne s'ouvre pas
   ///

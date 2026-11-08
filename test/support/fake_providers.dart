@@ -202,6 +202,9 @@ class FakeBirthdayRepository extends Fake implements BirthdayRepository {
   ) async {}
 
   @override
+  Future<void> updateWishMessage(String birthdayId, String? message) async {}
+
+  @override
   Future<void> updateBirthday(
     String uid,
     String birthdayId,
@@ -283,6 +286,15 @@ class RecordingBirthdayRepository extends FakeBirthdayRepository {
   ) async {
     _maybeFail();
     reminderUpdates.add((birthdayId, reminders));
+  }
+
+  /// Messages de vœu écrits, dans l'ordre : (id, message).
+  final wishMessageUpdates = <(String, String?)>[];
+
+  @override
+  Future<void> updateWishMessage(String birthdayId, String? message) async {
+    _maybeFail();
+    wishMessageUpdates.add((birthdayId, message));
   }
 
   @override

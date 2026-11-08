@@ -125,9 +125,10 @@ class WishedPill extends StatelessWidget {
 }
 
 /// Souhaite [birthday] par la feuille de partage du système, avec un message
-/// prêt (modifiable dans l'app choisie) ; une app choisie le marque souhaité,
-/// avec « Annuler ». [origin] situe la feuille sur iPad ; [belated] prend le
-/// message du lendemain, « avec un jour de retard ».
+/// prêt (modifiable dans l'app choisie) : le sien s'il en a un, sinon celui
+/// par défaut. Une app choisie le marque souhaité, avec « Annuler ». [origin]
+/// situe la feuille sur iPad ; [belated] prend le message par défaut du
+/// lendemain, « Désolé pour le retard ».
 Future<void> wishBirthday(
   BuildContext context,
   Birthday birthday, {
@@ -147,9 +148,11 @@ Future<void> wishBirthday(
         .wish(
           birthdayId: birthday.id,
           year: year,
-          message: belated
-              ? announcer.l10n.wishMessageBelated(birthday.name)
-              : announcer.l10n.wishMessage(birthday.name),
+          message:
+              birthday.wishMessage ??
+              (belated
+                  ? announcer.l10n.wishMessageBelated(birthday.name)
+                  : announcer.l10n.wishMessage(birthday.name)),
           origin: origin,
         );
     if (wished) announcer.wished(birthday, year);
