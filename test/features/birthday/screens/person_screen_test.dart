@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
+import 'package:an_ki/core/common/orbit_countdown.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
@@ -114,6 +116,19 @@ void main() {
     for (final (_, leads) in repository.reminderUpdates) leads,
   ];
 
+  OrbitCountdown orbit(WidgetTester tester) =>
+      tester.widget<OrbitCountdown>(find.byType(OrbitCountdown));
+  Finder inOrbit(String text) => find.descendant(
+    of: find.byType(OrbitCountdown),
+    matching: find.text(text),
+  );
+  Finder inOrbitIcon(IconData icon) => find.descendant(
+    of: find.byType(OrbitCountdown),
+    matching: find.byIcon(icon),
+  );
+  AnKiColors colorsOf(WidgetTester tester) =>
+      tester.element(find.byType(OrbitCountdown)).ankiColors;
+
   ChoiceChip choice(WidgetTester tester, String label) =>
       tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, label));
 
@@ -130,7 +145,10 @@ void main() {
       );
       expect(find.text('Dans 12 jours'), findsOneWidget);
       expect(find.text('24 octobre 1990'), findsOneWidget);
-      expect(find.text('Aura 36 ans'), findsOneWidget);
+      // L'âge à venir, dans l'orbite.
+      expect(orbit(tester).daysLeft, 12);
+      expect(inOrbit('36'), findsOneWidget);
+      expect(inOrbit('ans'), findsOneWidget);
       expect(find.widgetWithText(Chip, 'Famille'), findsOneWidget);
       // Hors du jour J et du lendemain, rien à souhaiter.
       expect(find.text('Souhaiter'), findsNothing);
@@ -138,24 +156,92 @@ void main() {
       expect(choice(tester, "Comme d'habitude").selected, isTrue);
     });
 
-    testWidgets('no age without a birth year', (tester) async {
+    testWidgets('the days in the orbit, no age, without a birth year', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
       await pumpPage(tester, person: lea(yearKnown: false));
 
       expect(find.text('24 octobre'), findsOneWidget);
-      expect(find.textContaining('Aura'), findsNothing);
+      expect(inOrbit('12'), findsOneWidget);
+      expect(inOrbit('jours'), findsOneWidget);
+      // Déjà dans l'orbite : pas répété en dessous, mais lu par TalkBack.
+      expect(find.text('Dans 12 jours'), findsNothing);
+      expect(find.bySemanticsLabel('Dans 12 jours'), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp('Aura')), findsNothing);
+      semantics.dispose();
     });
 
-    testWidgets('the age reached on the day itself', (tester) async {
+    testWidgets('the orbit read as the coming age', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpPage(tester);
+
+      expect(find.bySemanticsLabel('Aura 36 ans'), findsOneWidget);
+      // Le dessin et ses chiffres ne se lisent pas une seconde fois.
+      expect(find.bySemanticsLabel('36'), findsNothing);
+      semantics.dispose();
+    });
+
+    testWidgets('the age reached on the day itself, the orbit closed', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
       await pumpPage(tester, person: lea(day: 12));
 
       expect(find.text("Aujourd'hui 🎉"), findsOneWidget);
-      expect(find.text('36 ans'), findsOneWidget);
+      expect(inOrbit('36'), findsOneWidget);
+      expect(find.bySemanticsLabel('36 ans'), findsOneWidget);
+      expect(orbit(tester).daysLeft, 0);
+      expect(orbit(tester).arcColor, colorsOf(tester).blossom.color);
+      semantics.dispose();
+    });
+
+    testWidgets('the orbit turns mint once the day is wished', (tester) async {
+      await pumpPage(tester, person: lea(day: 12, wishedYears: [2026]));
+
+      expect(orbit(tester).arcColor, colorsOf(tester).success.color);
+      expect(inOrbit('36'), findsOneWidget);
+    });
+
+    testWidgets('a cake on the day without a birth year', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpPage(tester, person: lea(day: 12, yearKnown: false));
+
+      expect(find.text("Aujourd'hui 🎉"), findsOneWidget);
+      expect(inOrbitIcon(Icons.cake_rounded), findsOneWidget);
+      // L'orbite muette : « Aujourd'hui » ne se lit qu'une fois, sous elle.
+      expect(find.bySemanticsLabel(RegExp("^Aujourd'hui")), findsOneWidget);
+      semantics.dispose();
+    });
+
+    testWidgets('the day before without a birth year, read « Demain »', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpPage(tester, person: lea(day: 13, yearKnown: false));
+
+      expect(inOrbit('1'), findsOneWidget);
+      expect(inOrbit('jour'), findsOneWidget);
+      expect(find.text('Demain'), findsNothing);
+      expect(find.bySemanticsLabel('Demain'), findsOneWidget);
+      semantics.dispose();
+    });
+
+    testWidgets('a check once wished, without a birth year', (tester) async {
+      await pumpPage(
+        tester,
+        person: lea(day: 12, yearKnown: false, wishedYears: [2026]),
+      );
+
+      expect(inOrbitIcon(Icons.check_rounded), findsOneWidget);
+      expect(orbit(tester).arcColor, colorsOf(tester).success.color);
     });
 
     testWidgets('tomorrow, the day before', (tester) async {
       await pumpPage(tester, person: lea(day: 13));
 
       expect(find.text('Demain'), findsOneWidget);
+      expect(orbit(tester).arcColor, isNull);
     });
 
     testWidgets('the name as the page header, with 48 dp targets', (
