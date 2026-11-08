@@ -1,3 +1,4 @@
+import 'package:an_ki/core/text/text_folding.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/contact_import_preview.dart';

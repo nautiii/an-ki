@@ -77,7 +77,10 @@ const ruleHints = <String, String>{
       'sources dans un provider.',
   'domain-purity':
       'domain/ est du Dart pur : ni Flutter UI, ni Firebase, ni Riverpod, ni '
-      'plugin, ni l10n, ni autre couche.',
+      'plugin, ni l10n, ni autre couche ; de core/, seul core/text/ est permis.',
+  'core-text-purity':
+      'core/text/ est du Dart pur partagé par les domain/ : mêmes imports que '
+      'domain/, et aucun autre dossier de core/.',
   'data-no-ui':
       'data/ ignore l\'UI et l\'état : pas de widgets, de providers d\'état, de '
       'thème ni de l10n.',
@@ -113,6 +116,9 @@ final _flutterUi = RegExp(
 
 /// Dossiers de `core/` qui relèvent de l'UI (interdits à data/ et providers/).
 final _coreUi = RegExp(r'^lib/core/(common|theme|animations)/');
+
+/// Helpers de Dart pur de `core/text/`, que les `domain/` peuvent importer.
+final _coreText = RegExp(r'^lib/core/text/');
 
 void main() {
   final packageName = _readPackageName();
@@ -259,6 +265,12 @@ String? _check(_Location source, _Location target) {
       (target.zone == _Zone.app || target.zone == _Zone.entrypoint)) {
     return 'app-only';
   }
+  if (_coreText.hasMatch(source.label)) {
+    final ok = target.zone == _Zone.external
+        ? _domainExternalAllowed.any((r) => r.hasMatch(target.label))
+        : _coreText.hasMatch(target.label);
+    return ok ? null : 'core-text-purity';
+  }
   if (source.zone != _Zone.feature) return null;
 
   final layer = source.layer;
@@ -277,7 +289,9 @@ String? _check(_Location source, _Location target) {
         final ok = _domainExternalAllowed.any((r) => r.hasMatch(target.label));
         return ok ? null : 'domain-purity';
       }
-      final ok = target.zone == _Zone.feature && target.layer == 'domain';
+      final ok =
+          (target.zone == _Zone.feature && target.layer == 'domain') ||
+          _coreText.hasMatch(target.label);
       return ok ? null : 'domain-purity';
     case 'data':
       if (_flutterUi.hasMatch(target.label) ||
