@@ -242,7 +242,10 @@ class AuthController extends AsyncNotifier<void> {
   }
 
   /// Supprime le compte d'authentification, une fois ses données effacées
-  /// par les réglages, puis la connexion Google et l'empreinte.
+  /// par les réglages, puis la connexion Google et l'empreinte. Le compte
+  /// supprimé, l'opération a abouti : le nettoyage qui suit se fait au mieux,
+  /// son échec n'annonce pas une suppression ratée. Renvoie `true` seulement
+  /// une fois la session fermée.
   Future<bool> deleteAccount() {
     final biometrics = _biometrics;
     final repository = _repository;
@@ -257,14 +260,27 @@ class AuthController extends AsyncNotifier<void> {
         if (!guest || failure != AuthFailure.requiresRecentLogin) rethrow;
       }
       // Firebase ferme déjà la session d'un compte supprimé : on le dit.
-      await repository.signOutFirebase();
-      await repository.signOutGoogle();
+      await _bestEffort(repository.signOutFirebase);
+      await _bestEffort(repository.signOutGoogle);
       // Le profil, jeton compris, est déjà effacé, et la session fermée
       // interdit d'y écrire : seul l'appareil garde un jeton à oublier.
-      await biometrics.clearBiometricData();
+      await _bestEffort(biometrics.clearBiometricData);
+      // Réussie veut dire session fermée : le dialogue attend la redirection.
+      // Un invité refusé par Firebase n'est injoignable qu'une fois sorti.
+      if (repository.currentUser != null) throw AuthFailure.deleteAccountFailed;
       lock.disable();
       return true;
     });
+  }
+
+  /// Exécute [cleanup] au mieux : l'issue à annoncer reste celle de
+  /// l'opération en cours.
+  Future<void> _bestEffort(Future<void> Function() cleanup) async {
+    try {
+      await cleanup();
+    } on Exception {
+      // Rien à faire : l'étape suivante a lieu quand même.
+    }
   }
 
   /// Connexion explicite : elle passe aussi le verrou biométrique et se note
