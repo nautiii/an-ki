@@ -37,6 +37,22 @@ Map<String, Object?> bookOf(String owner) => {
   'scannedAt': DateTime.utc(2026, 10, 12),
 };
 
+Map<String, Object?> seriesDoc() => {
+  'name': 'One Piece',
+  'keys': ['one piece'],
+  'createdAt': DateTime.utc(2026, 11, 8),
+};
+
+Map<String, Object?> volumeDoc() => {
+  'seriesId': 's1',
+  'number': 108,
+  'isbn': '9782344059568',
+  'title': 'One Piece',
+  'authors': ['Eiichirō Oda'],
+  'lookup': 'found',
+  'addedAt': DateTime.utc(2026, 11, 8),
+};
+
 Map<String, Object?> userGroup() => {
   'name': 'Escalade',
   'icon': 0xe148,
@@ -140,6 +156,95 @@ void main() {
           );
           expect(await db.canUpdate(signedOut, path, {'name': 'x'}), isFalse);
           expect(await db.canDelete(signedOut, path), isFalse);
+        });
+      });
+
+      group('user/{uid}/bookSeries and bookVolumes shelf', () {
+        const series = 'user/alice/bookSeries/s1';
+        const volume = 'user/alice/bookVolumes/9782344059568';
+
+        test('their owner writes, lists and deletes them', () async {
+          // Série créée avec son id client, tome scanné écrit par fusion.
+          expect(await db.canCreate(alice, series, seriesDoc()), isTrue);
+          expect(await db.canMerge(alice, volume, volumeDoc()), isTrue);
+          // Les deux flux de l'étagère : sous-collections entières.
+          expect(await db.canQuery(alice, 'user/alice/bookSeries'), isTrue);
+          expect(await db.canQuery(alice, 'user/alice/bookVolumes'), isTrue);
+          expect(await db.canGet(alice, volume), isTrue);
+          // Fusion de séries : les tomes de la source.
+          expect(
+            await db.canQuery(
+              alice,
+              'user/alice/bookVolumes',
+              whereField: 'seriesId',
+              isEqualTo: 's1',
+            ),
+            isTrue,
+          );
+          // Renommer, clore, la date du prochain tome ; reclasser un tome.
+          expect(
+            await db.canUpdate(alice, series, {
+              'name': 'One Piece (Glénat)',
+              'keys': ['one piece', 'one piece glenat'],
+              'complete': true,
+              'next': {
+                'number': 109,
+                'status': 'announced',
+                'date': '2026-12',
+                'source': 'user',
+                'checkedAt': DateTime.utc(2026, 11, 8),
+              },
+            }),
+            isTrue,
+          );
+          expect(
+            await db.canUpdate(
+              alice,
+              volume,
+              {'lookup': 'found'},
+              removing: ['seriesId', 'number'],
+            ),
+            isTrue,
+          );
+          expect(await db.canDelete(alice, volume), isTrue);
+          expect(await db.canDelete(alice, series), isTrue);
+        });
+
+        test('nobody else reads, lists or writes them', () async {
+          await db.seed(series, seriesDoc());
+          await db.seed(volume, volumeDoc());
+
+          for (final caller in [bob, signedOut]) {
+            for (final collection in ['bookSeries', 'bookVolumes']) {
+              expect(
+                await db.canQuery(caller, 'user/alice/$collection'),
+                isFalse,
+                reason: '$caller lists $collection',
+              );
+            }
+            expect(await db.canGet(caller, series), isFalse);
+            expect(await db.canGet(caller, volume), isFalse);
+            expect(
+              await db.canCreate(
+                caller,
+                'user/alice/bookSeries/s2',
+                seriesDoc(),
+              ),
+              isFalse,
+            );
+            expect(
+              await db.canMerge(
+                caller,
+                'user/alice/bookVolumes/9782505000002',
+                volumeDoc(),
+              ),
+              isFalse,
+            );
+            expect(await db.canUpdate(caller, series, {'name': 'x'}), isFalse);
+            expect(await db.canUpdate(caller, volume, {'number': 1}), isFalse);
+            expect(await db.canDelete(caller, series), isFalse);
+            expect(await db.canDelete(caller, volume), isFalse);
+          }
         });
       });
 
@@ -486,6 +591,65 @@ void main() {
             expect(await db.canDelete(bob, 'user/guest'), isTrue);
           },
         );
+
+        test(
+          'the marked address deletes the guest shelf, once copied',
+          () async {
+            const series = 'user/guest/bookSeries/s1';
+            const volume = 'user/guest/bookVolumes/9782344059568';
+            await db.seed(series, seriesDoc());
+            await db.seed(volume, volumeDoc());
+
+            // L'invité marque son étagère.
+            expect(
+              await db.canUpdate(guest, series, {'transferTo': bobEmail}),
+              isTrue,
+            );
+            expect(
+              await db.canUpdate(guest, volume, {'transferTo': bobEmail}),
+              isTrue,
+            );
+            // Le compte cible copie sous son propre chemin.
+            expect(
+              await db.canCreate(bob, 'user/bob/bookSeries/s1', seriesDoc()),
+              isTrue,
+            );
+            expect(
+              await db.canMerge(
+                bob,
+                'user/bob/bookVolumes/9782344059568',
+                volumeDoc(),
+              ),
+              isTrue,
+            );
+            for (final caller in [carol, bobUnverified, alice, signedOut]) {
+              expect(
+                await db.canDelete(caller, series),
+                isFalse,
+                reason: '$caller deletes the series',
+              );
+              expect(
+                await db.canDelete(caller, volume),
+                isFalse,
+                reason: '$caller deletes the volume',
+              );
+            }
+            // Marqués, ils ne se lisent ni ne s'écrivent pour autant.
+            expect(await db.canGet(bob, series), isFalse);
+            expect(await db.canQuery(bob, 'user/guest/bookVolumes'), isFalse);
+            expect(await db.canUpdate(bob, volume, {'number': 1}), isFalse);
+            expect(await db.canDelete(bob, volume), isTrue);
+            expect(await db.canDelete(bob, series), isTrue);
+          },
+        );
+
+        test('an unmarked shelf stays out of reach', () async {
+          await db.seed('user/guest/bookSeries/s1', seriesDoc());
+          await db.seed('user/guest/bookVolumes/v1', volumeDoc());
+
+          expect(await db.canDelete(bob, 'user/guest/bookSeries/s1'), isFalse);
+          expect(await db.canDelete(bob, 'user/guest/bookVolumes/v1'), isFalse);
+        });
 
         test('an unmarked profile or group stays out of reach', () async {
           await db.seed('user/guest', profile());

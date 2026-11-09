@@ -245,4 +245,26 @@ void main() {
     expect(a.entries.single.hashCode, b.entries.single.hashCode);
     expect(a.entries.single, isNot(c.entries.single));
   });
+
+  test('volumesByRecency lists every volume, the newest first', () {
+    final old = volume(
+      'old',
+      seriesId: 's1',
+      number: 1,
+      addedAt: DateTime(2024),
+    );
+    final recent = volume('recent', addedAt: DateTime(2026, 5));
+    final middle = volume(
+      'middle',
+      seriesId: 's1',
+      number: 2,
+      addedAt: DateTime(2025),
+    );
+
+    expect(volumesByRecency(shelfOf([series('s1')], [old, recent, middle])), [
+      recent,
+      middle,
+      old,
+    ]);
+  });
 }

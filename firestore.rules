@@ -34,6 +34,18 @@ service cloud.firestore {
         allow read, write: if request.auth != null && request.auth.uid == userId;
         allow delete: if isMarkedFor(resource.data);
       }
+
+      // Étagère du module Livres : séries et tomes, réservés à leur
+      // propriétaire. Le compte qui reprend un invité copie sous son propre
+      // chemin, puis efface les documents que l'invité lui a marqués.
+      match /bookSeries/{seriesId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow delete: if isMarkedFor(resource.data);
+      }
+      match /bookVolumes/{volumeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow delete: if isMarkedFor(resource.data);
+      }
     }
 
     // Anniversaires : le propriétaire est le champ `uid`.
