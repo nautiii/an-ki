@@ -145,3 +145,8 @@ ShelfEntry _entryOf(Series series, List<Volume> numbered) {
     coverUrl: coverUrl,
   );
 }
+
+/// Tous les tomes de [shelf], rangés ou non, le plus récemment ajouté d'abord.
+List<Volume> volumesByRecency(Shelf shelf) =>
+    [for (final entry in shelf.entries) ...entry.volumes, ...shelf.unclassified]
+      ..sort((a, b) => b.addedAt.compareTo(a.addedAt));

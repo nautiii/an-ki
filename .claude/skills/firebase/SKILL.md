@@ -140,7 +140,7 @@ Rollback: the maintainer restores the previous version from the console Rules ta
 ## Verify — show, don't claim
 
 - **Rules**: `& .\scripts\test_firestore_rules.ps1` (PowerShell tool or Terminal panel; from Bash
-  `powershell.exe -NoProfile -File scripts/test_firestore_rules.ps1`) — about 2 min, mostly `flutter test` compiling (23 tests on 2026-11-07).
+  `powershell.exe -NoProfile -File scripts/test_firestore_rules.ps1`) — about 2 min, mostly `flutter test` compiling (27 tests on 2026-11-09).
   For a new or loosened rule, prove the test bites: weaken the rule in a scratch copy and watch a
   test fail (`references/rules.md` §4). Never edit `firestore.rules` in place for that: the
   maintainer works in the same tree.

@@ -20,6 +20,7 @@ change like a schema change: test first, prove it in the emulator, deploy delibe
 |------|------|--------|--------|--------|
 | `user/{uid}` | owner | owner | owner | owner, or its marked address |
 | `user/{uid}/categories/{id}` | owner | owner | owner | owner, or its marked address |
+| `user/{uid}/bookSeries/{id}`, `user/{uid}/bookVolumes/{id}` | owner | owner | owner | owner, or its marked address |
 | `birthday/{id}`, `books/{id}` | `resource.data.uid` = caller | `request.resource.data.uid` = caller | owner, `uid` unchanged; or its marked address, taking it (`uid` its own, mark removed) | owner, or its marked address |
 | `category/{id}` | signed-in, `resource.data.predefined == true` | nobody | nobody | nobody |
 | anything else | nobody | nobody | nobody | nobody |
@@ -28,7 +29,9 @@ change like a schema change: test first, prove it in the emulator, deploy delibe
 document's `transferTo` names — a guest moving to an existing Google account (`schema.md` §10).
 
 Deploys: the rules of the older shared groups on 2026-11-04; the ux B5.5 rules (c626403) on
-2026-11-05.
+2026-11-05. The `bookSeries` and `bookVolumes` rules (Livres step 6, 2026-11-09) are proved in
+the emulator but **not deployed**: they deploy once the Livres chain is on `main`, before an APK
+that writes these paths is installed (`architecture/references/migration.md` §1).
 
 `test/firestore/firestore_rules_test.dart` is the executable version of this table: when they
 disagree, the tests win and this table gets fixed.
