@@ -21,9 +21,20 @@ architecture skill, `references/patterns.md` §12.
 - Access chooses the screen, not the code that signs in or out: the router re-runs the pure
   `accessRedirect` whenever `authAccessProvider` changes (`refreshListenable`). Never `go` after a
   sign-in, a sign-out or an unlock.
-- Tabs are branches of the `StatefulShellRoute`; `ShellBranches` keeps every branch mounted and
-  cross-fades the current one, so a tab keeps its scroll and state. A page pushed from a tab
-  (`/settings`, `/search`) is a top-level route that covers the tabs.
+- Tabs are branches of the `StatefulShellRoute`, one per module of the registry
+  (`app/modules/module_registry.dart`), all declared. `ShellBranches` keeps the branch of every
+  running module mounted and cross-fades the current one, so a tab keeps its scroll and state; a
+  disabled module's branch is unmounted (screens and subscriptions released) and reopens at its
+  root. The bar shows the running modules (`runningModulesProvider`); one module, no bar. A page
+  pushed from a tab (`/settings`, `/search`) is a top-level route that covers the tabs.
+- Modules gate their paths: after `accessRedirect`, the pure `moduleRedirect` sends a location
+  under an inactive module's `rootPath` to the first active module's root, and the shell says
+  « Le module Livres est désactivé · Activer » (`moduleRedirectNoticeProvider`). While the profile
+  loads (`activeModulesProvider` null) it returns null: wait, never redirect early. The router
+  re-runs its redirects when access changes or the activation becomes known — not on every
+  module change: go_router re-runs a refresh on the base location of the stack, which would
+  replace pages pushed above the tab. A module turned off under an open page is left by the
+  shell itself (`MainShell`), once it is back in front.
 - Signed-in screens sit in a shell branch: `showModalBottomSheet(useRootNavigator: true)`, or the
   sheet opens inside the tab, under the floating bar. Dialogs already use the root navigator.
   Sheets and dialogs stay on `Navigator` (`Navigator.pop(context)`).

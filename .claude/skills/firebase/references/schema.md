@@ -33,10 +33,13 @@ Owner: the path (`{uid}` = `request.auth.uid`). Rules: owner reads and writes, n
 | `biometricToken` | string or null | set by the auth feature when the fingerprint lock is on; null or absent = off |
 | `reminders` | map `{leads: [string], hour: int, minute: int}`, optional | default reminder setting (B6); absent → J-7 + J-0 at 10:00; unknown leads skipped, `sameDay` always added; written only by `ReminderPreferencesRepository.savePreferences` (`update`) |
 | `transferTo` | string, optional | a guest moving to a Google account (§10): that account's address; the marked document is deleted by it |
+| `modules` | map `{<module id>: bool}`, optional | the user's explicit module choices (D13, since 2026-11-09), e.g. `{books: true}`; absent or a missing id → that module's default (`enabledByDefault`: Anniversaires on, Livres off), `alwaysOn` wins (Anniversaires); a non-bool value or a non-map field is ignored; an id the registry doesn't know is kept and ignored |
 
-- Written by `UserRepository.markForTransfer` (§10), `UserRepository.createUser` (transaction: creates only if absent, never overwrites),
+- Written by `UserRepository.markForTransfer` (§10), `UserRepository.createUser` (transaction: creates only if absent, never overwrites;
+  `modules` only when a choice exists),
   `updatePreferences` (`update`: `pseudo`, `themeMode` + delete `isDark`, `locale`), `updateNames`
-  (`update`), `deleteUser`; `AuthRepository.setBiometricToken` (`set` with `merge`).
+  (`update`), `setModuleEnabled` (`update` of the field path `modules.<id>` alone, so two devices
+  choosing two modules don't overwrite each other), `deleteUser`; `AuthRepository.setBiometricToken` (`set` with `merge`).
 - Read by `UserRepository.watchUser` (stream; null while the document doesn't exist) and
   `AuthRepository.isBiometricTokenValid` (`get`), `ReminderPreferencesRepository.watchPreferences`
   (the `reminders` field of the profile document).
@@ -193,6 +196,9 @@ Delete a line only when no such document can remain (migrated, or the field rewr
 everywhere):
 - `birthday` without `yearKnown` (year known), `wishedYears` (never wished), `reminders` (default setting) or `wishMessage` (default message).
 - `user` without `reminders` (default setting).
+- `user` without `modules` (every profile before 2026-11-09): no choice, the defaults —
+  Anniversaires alone, Livres off. No migration: an account that had scanned books sees them
+  again once Livres is turned on (Réglages › Modules).
 - `user` with `isDark` instead of `themeMode`.
 - `user.categories` (shared groups picked before): no longer read nor written since 2026-11-04;
   older profiles keep it, ignored, until the account is deleted.
@@ -224,6 +230,11 @@ would leave the guest's documents orphaned under a uid nobody opens again. They 
    `user/{guest}/categories` (before the birthdays move); then each module's takeover runs
    (Livres: `books` get the target `uid`, without the mark), and the guest profile is deleted.
    A takeover that fails leaves `GuestMergeFailure.incomplete` and the guest profile in place.
+   First of all, as soon as the account opens, the modules the guest had turned on
+   (`modules.<id> = true` of the guest profile read at step 1) are turned on for the target
+   (`setModuleEnabled`, unawaited optimistic writes; never one turned off), so moved data shows
+   even when a takeover stops halfway. A target without a profile document keeps its defaults
+   (the `update` fails, logged).
 
 Rules (`rules.md` §1): the marked address may delete a marked document, and update a marked
 `birthday` or `books` document only to make it its own without the mark; it never reads them.

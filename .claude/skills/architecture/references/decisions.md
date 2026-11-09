@@ -178,7 +178,8 @@ with a correct back stack — including from a cold start — are exactly where 
 last 17.x, same API) is pinned until the Material decoupling migration. The `GoRouter` is built
 once in `appRouterProvider`; Riverpod 3.4 has no `Listenable` adapter, so a `ValueNotifier` fed
 by `ref.listen(authAccessProvider)` is its `refreshListenable`, and the pure `accessRedirect`
-decides. The tabs are a `StatefulShellRoute` whose container keeps every branch mounted and
+decides (then `moduleRedirect`, D13; the activation becoming known also refreshes it). The tabs
+are a `StatefulShellRoute` whose container keeps every running module's branch mounted and
 cross-fades the current one (as before, honouring disabled animations); go_router_builder is
 out (build_runner).
 
@@ -265,6 +266,12 @@ knows every feature (D1); a registry there adds a file per module and nothing to
   « Plus » from the 5th, designed but not built); `moduleRedirect(active, path)`, pure like
   `accessRedirect`, sends a deep link to an inactive module to the first active root; the
   `refreshListenable` combines access and modules; a deactivated branch is unmounted.
+  As built (2026-11-09): the modules part of the `refreshListenable` is « the activation
+  became known » only. go_router 17.5 re-runs a refresh's redirect on the base location of
+  the stack (a push keeps the base URI) and a changed result replaces the whole stack, so a
+  module turned off from Réglages › Modules, opened above its tab, would close that screen.
+  The shell leaves an inactive current branch itself, once it is the page in front. Revisit
+  with go_router 18+.
 - Effects (`reminderSyncProvider` for Anniversaires) are watched by `app/` only while their
   module is active. A disabled module builds nothing and runs nothing.
 - Settings: `SettingsScreen` receives `moduleSections`, a slot `app/` fills with the active
