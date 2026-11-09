@@ -78,6 +78,40 @@ void main() {
       );
     });
 
+    test('reads the module choices', () async {
+      await firestore.collection('user').doc('user-2').set({
+        'name': 'Quentin',
+        'modules': {'books': true, 'gifts': false},
+      });
+
+      final watched = await repository.watchUser('user-2').first;
+
+      expect(watched?.moduleChoices, {'books': true, 'gifts': false});
+    });
+
+    test('a profile from before the modules has no choice', () async {
+      await firestore.collection('user').doc('user-2').set({'name': 'Q'});
+
+      final watched = await repository.watchUser('user-2').first;
+
+      expect(watched?.moduleChoices, isEmpty);
+    });
+
+    test('ignores odd module values and an odd modules field', () async {
+      await firestore.collection('user').doc('odd').set({
+        'modules': {'books': 'yes', 'gifts': 1, 'films': null, 'maps': true},
+      });
+      await firestore.collection('user').doc('list').set({
+        'modules': ['books'],
+      });
+
+      final odd = await repository.watchUser('odd').first;
+      final list = await repository.watchUser('list').first;
+
+      expect(odd?.moduleChoices, {'maps': true});
+      expect(list?.moduleChoices, isEmpty);
+    });
+
     test('reads an old isDark document as a light or dark choice', () async {
       await firestore.collection('user').doc('dark').set({'isDark': true});
       await firestore.collection('user').doc('light').set({'isDark': false});
@@ -267,6 +301,54 @@ void main() {
     });
   });
 
+  group('setModuleEnabled', () {
+    test('writes one module and keeps the others', () async {
+      await firestore.collection('user').doc('user-1').set({
+        'name': 'Quentin',
+        'modules': {'gifts': false},
+      });
+
+      await repository.setModuleEnabled('user-1', 'books', enabled: true);
+
+      final data = (await firestore.collection('user').doc('user-1').get())
+          .data()!;
+      expect(data, {
+        'name': 'Quentin',
+        'modules': {'gifts': false, 'books': true},
+      });
+    });
+
+    test('two devices choosing two modules do not overwrite each '
+        'other', () async {
+      await repository.createUser(user);
+
+      await Future.wait([
+        repository.setModuleEnabled('user-1', 'books', enabled: true),
+        repository.setModuleEnabled('user-1', 'gifts', enabled: false),
+      ]);
+
+      final watched = await repository.watchUser('user-1').first;
+      expect(watched?.moduleChoices, {'books': true, 'gifts': false});
+    });
+
+    test('turns a module off again', () async {
+      await repository.createUser(user);
+      await repository.setModuleEnabled('user-1', 'books', enabled: true);
+
+      await repository.setModuleEnabled('user-1', 'books', enabled: false);
+
+      final watched = await repository.watchUser('user-1').first;
+      expect(watched?.moduleChoices, {'books': false});
+    });
+  });
+
+  test('createUser writes no modules field without a choice', () async {
+    await repository.createUser(user);
+
+    final doc = await firestore.collection('user').doc('user-1').get();
+    expect(doc.data()!.containsKey('modules'), isFalse);
+  });
+
   test('deleteUser removes the document', () async {
     await repository.createUser(user);
 
@@ -277,13 +359,16 @@ void main() {
   });
 
   group('guest move (B5.5)', () {
-    test('marks an existing profile', () async {
-      await firestore.collection('user').doc('guest').set({'name': ''});
+    test('marks an existing profile and returns it', () async {
+      await firestore.collection('user').doc('guest').set({
+        'name': '',
+        'modules': {'books': true},
+      });
 
-      expect(
-        await repository.markForTransfer('guest', 'lea@gmail.com'),
-        isTrue,
-      );
+      final marked = await repository.markForTransfer('guest', 'lea@gmail.com');
+
+      expect(marked?.id, 'guest');
+      expect(marked?.moduleChoices, {'books': true});
       final doc = await firestore.collection('user').doc('guest').get();
       expect(doc.data()?['transferTo'], 'lea@gmail.com');
     });
@@ -291,7 +376,7 @@ void main() {
     test('has nothing to mark without a profile', () async {
       expect(
         await repository.markForTransfer('guest', 'lea@gmail.com'),
-        isFalse,
+        isNull,
       );
       expect(
         (await firestore.collection('user').doc('guest').get()).exists,

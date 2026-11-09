@@ -10,7 +10,9 @@ import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/guest_merge_plan.dart';
 import 'package:an_ki/features/settings/domain/guest_merge_failure.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Ouverture, par un invité, du compte Google qu'AnKi connaît déjà, avec ses
@@ -93,6 +95,8 @@ class GuestMerge extends AsyncNotifier<void> {
         }
         return null;
       }
+      // Dès le compte ouvert : ce qui est repris, même en partie, se voit.
+      _enableGuestModules(users, targetUid, marked.profile);
       try {
         final plan = planGuestMerge(
           guest: marked.birthdays,
@@ -114,7 +118,7 @@ class GuestMerge extends AsyncNotifier<void> {
         for (final takeOver in marked.takeOvers) {
           await takeOver(targetUid);
         }
-        if (marked.hasProfile) await users.deleteUser(guestUid);
+        if (marked.profile != null) await users.deleteUser(guestUid);
         if (ref.mounted) state = const AsyncData(null);
         return plan;
       } catch (error, stackTrace) {
@@ -125,6 +129,32 @@ class GuestMerge extends AsyncNotifier<void> {
       }
     } finally {
       keepAlive.close();
+    }
+  }
+
+  /// Active sur le compte [targetUid] les modules que l'invité avait activés,
+  /// sans jamais en désactiver : ses données reprises restent visibles, même
+  /// si la reprise s'arrête en route. Au mieux : un module resté éteint se
+  /// rallume dans les Réglages. Écritures optimistes, non attendues : le
+  /// cache les montre tout de suite, l'accusé du serveur peut tarder.
+  void _enableGuestModules(
+    UserRepository users,
+    String targetUid,
+    UserProfile? guest,
+  ) {
+    final choices = guest?.moduleChoices ?? const <String, bool>{};
+    for (final MapEntry(key: moduleId, value: enabled) in choices.entries) {
+      if (!enabled) continue;
+      unawaited(
+        users
+            .setModuleEnabled(targetUid, moduleId, enabled: true)
+            // Profil du compte absent ou refusé : le module reste tel quel.
+            .catchError(
+              (Object error) => debugPrint(
+                '[GuestMerge] module $moduleId not enabled: $error',
+              ),
+            ),
+      );
     }
   }
 
@@ -152,7 +182,7 @@ class _GuestData {
     required this.birthdays,
     required this.groups,
     required this.takeOvers,
-    required this.hasProfile,
+    required this.profile,
   });
 
   /// Marque, comme invité [uid], tout ce qu'il possède pour [email] : ses
@@ -176,7 +206,7 @@ class _GuestData {
       birthdays: guestBirthdays,
       groups: groups,
       takeOvers: takeOvers,
-      hasProfile: await users.markForTransfer(uid, email),
+      profile: await users.markForTransfer(uid, email),
     );
   }
 
@@ -186,7 +216,9 @@ class _GuestData {
   /// Reprise des données marquées de chaque autre module, une fois le compte
   /// ouvert.
   final List<GuestDataTakeOver> takeOvers;
-  final bool hasProfile;
+
+  /// Profil de l'invité, lu sur le serveur ; null s'il n'en a pas.
+  final UserProfile? profile;
 }
 
 final guestMergeProvider = AsyncNotifierProvider.autoDispose<GuestMerge, void>(

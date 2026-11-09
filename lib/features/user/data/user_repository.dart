@@ -71,16 +71,28 @@ class UserRepository {
     required String surname,
   }) => _users.doc(uid).update({'name': name, 'surname': surname});
 
+  /// Active ou désactive le module [moduleId] pour [uid] : son seul champ
+  /// (`modules.<id>`), pour que deux appareils qui choisissent chacun un
+  /// module ne s'écrasent pas. Écriture optimiste, comme les préférences.
+  Future<void> setModuleEnabled(
+    String uid,
+    String moduleId, {
+    required bool enabled,
+  }) => _users.doc(uid).update({
+    FieldPath(['modules', moduleId]): enabled,
+  });
+
   /// Marque le profil de [uid], un invité, pour le compte Google [email] qui
-  /// l'effacera une fois ses données reprises ; false s'il n'existe pas. Lu
-  /// sur le serveur ; le Future attend l'accusé du serveur.
-  Future<bool> markForTransfer(String uid, String email) async {
+  /// l'effacera une fois ses données reprises, et renvoie ce profil (ses
+  /// modules suivent l'invité) ; null s'il n'existe pas. Lu sur le serveur ;
+  /// le Future attend l'accusé du serveur.
+  Future<UserProfile?> markForTransfer(String uid, String email) async {
     final doc = await _users
         .doc(uid)
         .get(const GetOptions(source: Source.server));
-    if (!doc.exists) return false;
+    if (!doc.exists) return null;
     await doc.reference.update({'transferTo': email});
-    return true;
+    return _userFromDoc(doc);
   }
 
   Future<void> deleteUser(String uid) async {
@@ -105,7 +117,18 @@ UserProfile _userFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     // Absente (profils créés depuis 2026-11-08) : la langue du téléphone.
     locale: data['locale'] as String?,
     biometricToken: data['biometricToken'] as String?,
+    moduleChoices: _moduleChoicesFrom(data['modules']),
   );
+}
+
+/// Choix des modules du document : absents (profils d'avant les modules),
+/// aucun choix ; une valeur qui n'est pas un booléen est ignorée.
+Map<String, bool> _moduleChoicesFrom(Object? modules) {
+  if (modules is! Map<String, dynamic>) return const {};
+  return Map.unmodifiable({
+    for (final MapEntry(:key, :value) in modules.entries)
+      if (value case final bool enabled) key: enabled,
+  });
 }
 
 /// Thème du document : `themeMode`, sinon l'ancien `isDark`, gardé comme un
@@ -130,4 +153,5 @@ Map<String, Object> _userToMap(UserProfile user) => {
   'themeMode': user.theme.name,
   'locale': ?user.locale,
   'biometricToken': ?user.biometricToken,
+  if (user.moduleChoices.isNotEmpty) 'modules': user.moduleChoices,
 };

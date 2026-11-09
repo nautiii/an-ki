@@ -5,7 +5,8 @@ import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Modifications du profil (pseudo, thème, langue) et état de la dernière :
+/// Modifications du profil (pseudo, thème, langue, modules) et état de la
+/// dernière :
 /// `AsyncLoading` pendant l'écriture, `AsyncError` si elle échoue.
 ///
 /// Écritures optimistes : Firestore met le profil à jour dans son cache tout
@@ -22,24 +23,38 @@ class UserProfileEditor extends AsyncNotifier<void> {
 
   Future<void> setLocale(String languageCode) => _update(locale: languageCode);
 
-  /// Écrit les seuls champs donnés ; sans profil chargé, ne fait rien.
+  /// Choix explicite pour le module [moduleId] : `app/` en déduit les modules
+  /// actifs, la feature `user` ne stocke que l'id.
+  Future<void> setModuleEnabled(String moduleId, {required bool enabled}) =>
+      _write(
+        (repository, uid) =>
+            repository.setModuleEnabled(uid, moduleId, enabled: enabled),
+      );
+
+  /// Écrit les seuls champs donnés.
   Future<void> _update({
     String? pseudo,
     ThemePreference? theme,
     String? locale,
-  }) async {
+  }) => _write(
+    (repository, uid) => repository.updatePreferences(
+      uid,
+      pseudo: pseudo,
+      theme: theme,
+      locale: locale,
+    ),
+  );
+
+  /// Lance l'écriture [write] sur le profil chargé et publie son issue ; sans
+  /// profil chargé, ne fait rien.
+  Future<void> _write(
+    Future<void> Function(UserRepository repository, String uid) write,
+  ) async {
     final user = ref.read(userProfileProvider).value;
     if (user == null) return;
     final repository = ref.read(userRepositoryProvider);
     state = const AsyncLoading();
-    final result = await AsyncValue.guard(
-      () => repository.updatePreferences(
-        user.id,
-        pseudo: pseudo,
-        theme: theme,
-        locale: locale,
-      ),
-    );
+    final result = await AsyncValue.guard(() => write(repository, user.id));
     if (ref.mounted) state = result;
   }
 }

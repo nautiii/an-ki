@@ -57,5 +57,33 @@ void main() {
 
       expect(profile(locale: 'en'), isNot(base));
     });
+
+    test('compares the module choices by value, in any order', () {
+      const a = UserProfile(
+        id: '1',
+        name: 'Q',
+        surname: '',
+        moduleChoices: {'books': true, 'gifts': false},
+      );
+      const b = UserProfile(
+        id: '1',
+        name: 'Q',
+        surname: '',
+        moduleChoices: {'gifts': false, 'books': true},
+      );
+
+      expect(b, a);
+      expect(b.hashCode, a.hashCode);
+      expect(
+        const UserProfile(
+          id: '1',
+          name: 'Q',
+          surname: '',
+          moduleChoices: {'books': false, 'gifts': false},
+        ),
+        isNot(a),
+      );
+      expect(const UserProfile(id: '1', name: 'Q', surname: ''), isNot(a));
+    });
   });
 }
