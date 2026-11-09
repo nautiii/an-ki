@@ -113,7 +113,10 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
   discovery card after the agenda (« Essayer » turns the module on and opens `/books`, « Plus
   tard » stores `books: false`), never above the hero nor at first launch.
 - **Commit steps** (each green: format, analysis, tests, review; steps 1 to 5 are the modules
-  lot: docs, registry, data hooks, activation, rename):
+  lot: docs, registry, data hooks, activation, rename). Step 4 built on 2026-11-09: Réglages ›
+  Modules (`/settings/modules`, a switch per module, « Toujours actif », « Effacer les données
+  Livres… »), no bar with one module, the redirect snackbar; the tab already reads « Livres »
+  with a book icon, over the old scanner until step 7.
   6. `FEAT(books): series and volumes`: domain, repositories (Firestore, BnF, Google), rules,
      emulator tests and deployment, eraser and guest transfer, legacy import;
   7. `FEAT(books): shelf and series pages`: shelf, series page, volume sheet, « À classer », the

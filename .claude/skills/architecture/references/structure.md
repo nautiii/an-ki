@@ -127,6 +127,7 @@ Why each boundary:
 | Asset paths, fixed keys | `core/constants/` | `AppAssets` |
 | A new module (a bundle of features the user can turn on) | `app/modules/<module>_module.dart` + a line in `module_registry.dart` + its features in `moduleFeatures` (architecture test); its features stay unaware | `booksModule` |
 | A settings section that assembles features of one module | `app/modules/`, handed to `SettingsScreen.moduleSections` through `AppModule.settingsSection` | `BirthdaysSettingsSection` |
+| Turning modules on and off | the pure rule (`module_activation.dart`: `activeModuleIds`, `moduleRedirect`), the providers (`activeModulesProvider`, `runningModulesProvider`), the Modules screen, its settings row and its erase controller, all in `app/modules/`: they know the registry; the choice is stored by `user` as a map of ids | `ModulesScreen`, `ModuleDataEraser` |
 | A module's user data for account deletion and guest takeover | `ModuleData` of its `AppModule` (eraser, guest transfer), wired by `app/modules/module_data_hooks.dart` into the `core` hooks | `userDataErasersProvider`, `guestDataTransfersProvider` |
 | A fake shared by several test files | `test/support/` | `FakeIdeaRepository` |
 

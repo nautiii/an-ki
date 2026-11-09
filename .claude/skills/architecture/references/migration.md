@@ -15,6 +15,13 @@ what you discover.
 ## 1. Not verified outside the tests
 
 Delete each line once done:
+- Modules the user turns on (B9 step 4, 2026-11-09), on the maintainer's phone with their real
+  account: an existing profile (no `modules` field) opens on Anniversaires alone, no bar, its
+  reminders still scheduled; Réglages › Modules turns Livres on (the bar and the « Livres » tab
+  appear, the old scanned books show) and off; the choice follows to a second device signed in
+  to the same account; a guest who turned Livres on and opens an existing Google account
+  (B5.5) finds Livres on there; « Effacer les données Livres… » on a test account only, once
+  online (`books` gone in the console) and once in airplane mode (refused, nothing erased).
 - B5.5 (2026-11-05; rules of c626403 deployed the same day), behind the maintainer on a test
   Google account that already has AnKi data: a guest with ≥ 3 birthdays (one shared with the
   account) taps « Sauvegarder avec Google », picks that account, then « Ouvrir ce compte avec
