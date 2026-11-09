@@ -14,7 +14,7 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/data/share_service.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
-import 'package:an_ki/features/books/data/book_repository.dart';
+import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/reminders/data/reminder_preferences_repository.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -171,7 +171,9 @@ extension AppTesterExt on WidgetTester {
           categoryRepositoryProvider.overrideWithValue(
             RecordingCategoryRepository(const []),
           ),
-          bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
+          bookshelfRepositoryProvider.overrideWithValue(
+            FakeBookshelfRepository(),
+          ),
           reminderPreferencesRepositoryProvider.overrideWithValue(
             RecordingReminderPreferencesRepository(),
           ),

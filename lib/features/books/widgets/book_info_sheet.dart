@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
-import 'package:an_ki/features/books/domain/book.dart';
-import 'package:an_ki/features/books/providers/book_editor.dart';
+import 'package:an_ki/features/books/domain/volume_identification.dart';
+import 'package:an_ki/features/books/domain/volume_placement.dart';
+import 'package:an_ki/features/books/providers/shelf_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,9 +13,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Se ferme d'elle-même après l'ajout ; l'appelant reprend le scan quelle
 /// que soit la façon dont la feuille se ferme.
 class BookInfoSheet extends ConsumerWidget {
-  const BookInfoSheet({super.key, required this.book});
+  const BookInfoSheet({super.key, required this.volume});
 
-  final Book book;
+  /// Le livre scanné, identifié par les catalogues.
+  final IdentifiedVolume volume;
 
   static const _coverSize = Size(80, 120);
   static const _coverRadius = BorderRadius.all(Radius.circular(AppRadii.xs));
@@ -23,7 +25,10 @@ class BookInfoSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final imageUrl = book.imageUrl;
+    final metadata = volume.metadata;
+    final imageUrl = metadata.imageUrl;
+    final title = volumeTitleOf(metadata);
+    final publishedDate = metadata.publishedDate;
     const coverShape = RoundedSuperellipseBorder(borderRadius: _coverRadius);
 
     return SafeArea(
@@ -84,32 +89,30 @@ class BookInfoSheet extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
-                        book.title.isEmpty
-                            ? context.l10n.bookUntitled
-                            : book.title,
+                        title.isEmpty ? context.l10n.bookUntitled : title,
                         style: textTheme.titleLarge,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      if (book.authors.isNotEmpty) ...[
+                      if (metadata.authors.isNotEmpty) ...[
                         const SizedBox(height: AppSpacing.xxs),
                         Text(
-                          book.authors.join(', '),
+                          metadata.authors.join(', '),
                           style: textTheme.bodyMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
                       const SizedBox(height: AppSpacing.xs),
-                      if (book.publishedDate != null)
+                      if (publishedDate != null)
                         Text(
-                          book.publishedDate!,
+                          publishedDate,
                           style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       Text(
-                        context.l10n.isbnLabel(book.isbn),
+                        context.l10n.isbnLabel(volume.isbn),
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -119,23 +122,19 @@ class BookInfoSheet extends ConsumerWidget {
                 ),
               ],
             ),
-            if (book.description != null) ...[
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                book.description!,
-                style: textTheme.bodyMedium,
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
             const SizedBox(height: AppSpacing.xl),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
                 // Écriture optimiste : on ferme tout de suite, l'écran du
-                // scanner annonce un échec éventuel.
+                // scanner annonce un échec éventuel. Le livre est déjà
+                // identifié : pas de seconde recherche.
                 onPressed: () {
-                  unawaited(ref.read(bookEditorProvider.notifier).save(book));
+                  unawaited(
+                    ref
+                        .read(shelfEditorProvider.notifier)
+                        .addScanned(volume.isbn, identified: volume),
+                  );
                   Navigator.pop(context);
                 },
                 child: Text(context.l10n.add),

@@ -1,42 +1,41 @@
-import 'package:an_ki/features/books/data/book_repository.dart';
-import 'package:an_ki/features/books/domain/book.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
+import 'package:an_ki/features/books/domain/book_metadata.dart';
+import 'package:an_ki/features/books/domain/volume_identification.dart';
 import 'package:an_ki/features/books/providers/isbn_lookup.dart';
+import 'package:an_ki/features/books/providers/volume_lookup.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
 
-const _book = Book(
-  id: '',
-  isbn: '987654321',
-  title: '1984',
-  authors: ['George Orwell'],
+IdentifiedVolume _orwell(String isbn) => IdentifiedVolume(
+  isbn: isbn,
+  metadata: const BookMetadata(title: '1984', authors: ['George Orwell']),
 );
 
 void main() {
-  ProviderContainer makeContainer(RecordingBookRepository repo) {
+  ProviderContainer makeContainer(RecordingVolumeLookup lookup) {
     final container = ProviderContainer.test(
       retry: (_, _) => null,
-      overrides: [bookRepositoryProvider.overrideWithValue(repo)],
+      overrides: [volumeLookupProvider.overrideWithValue(lookup)],
     );
     container.listen(isbnLookupProvider, (_, _) {});
     return container;
   }
 
   test('returns and publishes the book found', () async {
-    final container = makeContainer(RecordingBookRepository(bookByIsbn: _book));
+    final container = makeContainer(RecordingVolumeLookup(found: _orwell));
     final lookup = container.read(isbnLookupProvider.notifier);
 
-    final future = lookup.lookUp('987654321');
+    final future = lookup.lookUp('9780451524935');
     expect(container.read(isbnLookupProvider).isLoading, isTrue);
 
-    expect(await future, _book);
-    expect(container.read(isbnLookupProvider).value, _book);
+    expect(await future, _orwell('9780451524935'));
+    expect(container.read(isbnLookupProvider).value, _orwell('9780451524935'));
   });
 
   test('returns null for an unknown ISBN', () async {
-    final container = makeContainer(RecordingBookRepository());
+    final container = makeContainer(RecordingVolumeLookup());
 
     expect(await container.read(isbnLookupProvider.notifier).lookUp('0'), null);
     expect(container.read(isbnLookupProvider).hasValue, isTrue);
@@ -44,7 +43,7 @@ void main() {
 
   test('rethrows and publishes the error', () async {
     final container = makeContainer(
-      RecordingBookRepository(throwOnScan: BookFailure.quotaExceeded),
+      RecordingVolumeLookup(failure: BookFailure.quotaExceeded),
     );
 
     await expectLater(

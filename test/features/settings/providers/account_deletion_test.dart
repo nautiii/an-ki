@@ -8,7 +8,7 @@ import 'package:an_ki/features/auth/domain/sign_in_method.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
-import 'package:an_ki/features/books/data/book_repository.dart';
+import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -28,7 +28,7 @@ const _user = UserProfile(
 void main() {
   late FakeAuthRepository auth;
   late RecordingBirthdayRepository birthdays;
-  late RecordingBookRepository books;
+  late RecordingBookshelfRepository books;
   late RecordingCategoryRepository categories;
   late RecordingUserRepository users;
 
@@ -43,7 +43,7 @@ void main() {
         authRepositoryProvider.overrideWithValue(auth),
         biometricServiceProvider.overrideWithValue(FakeBiometricService()),
         birthdayRepositoryProvider.overrideWithValue(birthdays),
-        bookRepositoryProvider.overrideWithValue(books),
+        bookshelfRepositoryProvider.overrideWithValue(books),
         categoryRepositoryProvider.overrideWithValue(categories),
         userRepositoryProvider.overrideWithValue(users),
         currentUidProvider.overrideWithValue(uid),
@@ -70,7 +70,7 @@ void main() {
   setUp(() {
     auth = FakeAuthRepository(user: MockUser(uid: 'user-1'));
     birthdays = RecordingBirthdayRepository();
-    books = RecordingBookRepository();
+    books = RecordingBookshelfRepository();
     categories = RecordingCategoryRepository(const []);
     users = RecordingUserRepository(stored: _user);
   });
@@ -189,7 +189,7 @@ void main() {
   });
 
   test('keeps the profile and the account when the books stay', () async {
-    books = RecordingBookRepository(failure: Exception('denied'));
+    books = RecordingBookshelfRepository(failure: Exception('denied'));
     final container = makeContainer();
 
     expect(await delete(container, password: 'pw'), isFalse);

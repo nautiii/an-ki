@@ -40,7 +40,8 @@ use `demo-anki`, which can't reach production).
   the guest's photo, `wishedYears` and own reminders are lost (ux D29, open). Optional biometric
   lock: a token on the profile document.
 - **Firestore** (standard edition, offline persistence on): `user/{uid}` and its
-  `categories` subcollection; top-level `birthday`, `books` (owned through a `uid` field) and the
+  `categories`, `bookSeries` and `bookVolumes` subcollections; top-level `birthday`, legacy `books`
+  (owned through a `uid` field) and the
   shared `category`. Photos are base64 inside birthday documents.
 - **Files**: `firestore.rules`, `firestore.indexes.json` (a copy of production's),
   `firebase.json` (rules, indexes, emulator on port 8080), `test/firestore/firestore_rules_test.dart`

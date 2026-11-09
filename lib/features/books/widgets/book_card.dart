@@ -1,13 +1,13 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
-import 'package:an_ki/features/books/domain/book.dart';
+import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:flutter/material.dart';
 
-/// Livre gardé : couverture, titre, auteurs, ISBN et année de parution.
+/// Tome de l'étagère : couverture, titre, auteurs, ISBN et date de parution.
 class BookCard extends StatelessWidget {
-  final Book book;
+  final Volume volume;
 
-  const BookCard({super.key, required this.book});
+  const BookCard({super.key, required this.volume});
 
   @override
   Widget build(BuildContext context) {
@@ -16,8 +16,9 @@ class BookCard extends StatelessWidget {
     final muted = textTheme.bodySmall?.copyWith(
       color: colorScheme.onSurfaceVariant,
     );
-    final imageUrl = book.imageUrl;
-    final publishedDate = book.publishedDate;
+    final imageUrl = volume.imageUrl;
+    final publishedDate = volume.publishedDate;
+    final isbn = volume.isbn;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
@@ -61,24 +62,26 @@ class BookCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          book.title.isEmpty
+                          volume.title.isEmpty
                               ? context.l10n.bookUntitled
-                              : book.title,
+                              : volume.title,
                           style: textTheme.titleMedium?.copyWith(
                             color: colorScheme.onSurface,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (book.authors.isNotEmpty)
+                        if (volume.authors.isNotEmpty)
                           Text(
-                            book.authors.join(', '),
+                            volume.authors.join(', '),
                             style: muted,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        Text(context.l10n.isbnLabel(book.isbn), style: muted),
+                        if (isbn != null) ...[
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(context.l10n.isbnLabel(isbn), style: muted),
+                        ],
                         if (publishedDate != null) ...[
                           const SizedBox(height: AppSpacing.xxs),
                           Text(

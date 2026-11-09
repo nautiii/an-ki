@@ -4,7 +4,7 @@ import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
-import 'package:an_ki/features/books/data/book_repository.dart';
+import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/settings/widgets/settings_section.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
@@ -73,7 +73,7 @@ void main() {
       users ?? RecordingUserRepository(stored: _profile),
     ),
     birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
-    bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
+    bookshelfRepositoryProvider.overrideWithValue(FakeBookshelfRepository()),
     categoryRepositoryProvider.overrideWithValue(
       RecordingCategoryRepository(const []),
     ),

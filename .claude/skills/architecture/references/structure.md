@@ -109,7 +109,7 @@ Why each boundary:
 | A failure the user can hit | `domain/<f>_failure.dart` | `enum XFailure implements Exception`, or `sealed class` when cases carry data |
 | Firestore or HTTP access | `data/<x>_repository.dart` | `XRepository` + `xRepositoryProvider` in the same file |
 | Firestore ↔ model mapping | private functions in the repository file; `data/<x>_mapper.dart` once it passes ~60 lines or handles schema versions | `_xFromDoc`, `_xToMap` |
-| A plugin or API used by one feature | that feature's `data/` | `BookRepository` (`books/data/book_repository.dart`, Google Books over `http`) |
+| A plugin or API used by one feature | that feature's `data/` | `GoogleBooksCatalog` (`books/data/google_books_catalog.dart`, Google Books over `http`) |
 | A plugin used by ≥ 2 features or by `app/` | `core/services/` + provider | `NotificationService`, `notificationServiceProvider` |
 | Firebase instances, clock, today's date, HTTP client, config | `core/providers/` | `firestoreProvider`, `clockProvider`, `todayProvider` |
 | The current user id | `features/auth/providers/session_providers.dart` | `currentUidProvider` |

@@ -10,12 +10,14 @@ import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/greeting_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
-import 'package:an_ki/features/books/domain/book.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/isbn.dart';
-import 'package:an_ki/features/books/providers/book_editor.dart';
+import 'package:an_ki/features/books/domain/volume.dart';
+import 'package:an_ki/features/books/domain/volume_identification.dart';
 import 'package:an_ki/features/books/providers/book_scanner_provider.dart';
 import 'package:an_ki/features/books/providers/isbn_lookup.dart';
+import 'package:an_ki/features/books/providers/legacy_import.dart';
+import 'package:an_ki/features/books/providers/shelf_editor.dart';
 import 'package:an_ki/features/books/widgets/book_card.dart';
 import 'package:an_ki/features/books/widgets/book_info_sheet.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -76,10 +78,10 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
     if (!mounted) return;
 
     try {
-      final book = await ref.read(isbnLookupProvider.notifier).lookUp(isbn);
+      final volume = await ref.read(isbnLookupProvider.notifier).lookUp(isbn);
       if (mounted) {
-        if (book != null) {
-          unawaited(_showBookInfo(book));
+        if (volume != null) {
+          unawaited(_showBookInfo(volume));
         } else {
           _showErrorSnippet(context.l10n.bookNotFound);
           unawaited(_resetScanning());
@@ -108,14 +110,14 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
 
   /// Le scan reprend à la fermeture de la fiche, livre ajouté ou non
   /// (glissée vers le bas, toucher hors de la feuille, retour).
-  Future<void> _showBookInfo(Book book) async {
+  Future<void> _showBookInfo(IdentifiedVolume volume) async {
     await showModalBottomSheet<void>(
       context: context,
       // Au-dessus de la barre flottante, pas dans l'onglet.
       useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (context) => BookInfoSheet(book: book),
+      builder: (context) => BookInfoSheet(volume: volume),
     );
     if (mounted) await _resetScanning();
   }
@@ -130,14 +132,19 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     // L'ajout d'un livre est optimiste (la feuille se ferme sans attendre) :
     // l'écran, toujours monté dessous, annonce un échec tardif.
-    ref.listen(bookEditorProvider, (_, next) {
+    ref.listen(shelfEditorProvider, (_, next) {
       if (next is AsyncError) _showErrorSnippet(context.l10n.errorUnknown);
     });
-    final savedBooks = ref.watch(savedBooksProvider);
+    // Les anciens livres passent dans l'étagère à l'ouverture de l'écran, une
+    // fois par session ; hors ligne, à l'ouverture suivante.
+    ref.watch(legacyImportProvider);
+    final savedVolumes = ref.watch(scannedVolumesProvider);
     final isLoading =
-        savedBooks.isLoading && !savedBooks.hasValue && !savedBooks.hasError;
+        savedVolumes.isLoading &&
+        !savedVolumes.hasValue &&
+        !savedVolumes.hasError;
     final isScanning = ref.watch(isbnLookupProvider.select((s) => s.isLoading));
-    final books = savedBooks.value ?? const <Book>[];
+    final volumes = savedVolumes.value ?? const <Volume>[];
     final l10n = context.l10n;
     final period = ref.watch(greetingProvider).name;
     // Sans nom (invité, profil pas encore chargé) : la salutation seule.
@@ -264,7 +271,7 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                     radius: AppRadii.lg,
                   ),
                 )
-              else if (books.isEmpty)
+              else if (volumes.isEmpty)
                 AnKiEmptyState(
                   illustration: Image.asset(AppAssets.moon),
                   title: context.l10n.noBooksYet,
@@ -274,11 +281,11 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                 SizedBox(
                   height: bookCardHeight,
                   child: PageView.builder(
-                    itemCount: books.length,
+                    itemCount: volumes.length,
                     controller: _booksController,
                     padEnds: false,
                     itemBuilder: (context, index) {
-                      return BookCard(book: books[index]);
+                      return BookCard(volume: volumes[index]);
                     },
                   ),
                 ),

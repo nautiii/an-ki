@@ -1,10 +1,14 @@
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/books/data/book_repository.dart';
-import 'package:an_ki/features/books/domain/book.dart';
+import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
+import 'package:an_ki/features/books/domain/book_metadata.dart';
+import 'package:an_ki/features/books/domain/volume.dart';
+import 'package:an_ki/features/books/domain/volume_identification.dart';
 import 'package:an_ki/features/books/providers/book_scanner_provider.dart';
+import 'package:an_ki/features/books/providers/legacy_import.dart';
+import 'package:an_ki/features/books/providers/volume_lookup.dart';
 import 'package:an_ki/features/books/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/books/widgets/book_info_sheet.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -21,13 +25,20 @@ import '../../../support/test_harness.dart';
 /// ISBN-13 lu sur un code-barres de livre.
 const _isbn = '9780451524935';
 
-Book _book({String id = '1', String? imageUrl}) => Book(
+Volume _volume({String id = '1', String? imageUrl}) => Volume(
   id: id,
   isbn: _isbn,
   title: '1984',
   authors: const ['George Orwell'],
-  description: 'Big Brother is watching you.',
   imageUrl: imageUrl,
+  lookup: LookupState.found,
+  addedAt: DateTime(2026, 11, 9),
+);
+
+/// Ce que les catalogues savent de « 1984 ».
+IdentifiedVolume _identified(String isbn) => IdentifiedVolume(
+  isbn: isbn,
+  metadata: const BookMetadata(title: '1984', authors: ['George Orwell']),
 );
 
 /// Profil chargé : la barre salue par le prénom.
@@ -42,11 +53,12 @@ void main() {
   group('BookScannerScreen rendering', () {
     Future<void> pumpScreen(
       WidgetTester tester,
-      AsyncValue<List<Book>> books,
+      AsyncValue<List<Volume>> volumes,
     ) => tester.pumpHarness(
       const BookScannerScreen(),
       overrides: [
-        savedBooksProvider.overrideWithValue(books),
+        scannedVolumesProvider.overrideWithValue(volumes),
+        legacyImportProvider.overrideWithValue(const AsyncData(null)),
         userProfileProvider.overrideWithValue(const AsyncData(_profile)),
       ],
     );
@@ -79,7 +91,8 @@ void main() {
       await tester.pumpHarness(
         const BookScannerScreen(),
         overrides: [
-          savedBooksProvider.overrideWithValue(const AsyncData([])),
+          scannedVolumesProvider.overrideWithValue(const AsyncData([])),
+          legacyImportProvider.overrideWithValue(const AsyncData(null)),
           userProfileProvider.overrideWithValue(const AsyncData(_profile)),
         ],
         routes: {AppRoutes.settings: (_) => const Text('Settings route')},
@@ -106,7 +119,7 @@ void main() {
     });
 
     testWidgets('displays saved books in a carousel', (tester) async {
-      await pumpScreen(tester, AsyncData([_book()]));
+      await pumpScreen(tester, AsyncData([_volume()]));
       await tester.pumpAndSettle();
 
       expect(find.text('1984'), findsOneWidget);
@@ -117,7 +130,7 @@ void main() {
     testWidgets('grows the carousel with large text', (tester) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-      await pumpScreen(tester, AsyncData([_book()]));
+      await pumpScreen(tester, AsyncData([_volume()]));
       await tester.pumpAndSettle();
 
       expect(tester.getSize(find.byType(PageView)).height, 360);
@@ -135,7 +148,8 @@ void main() {
           ),
         ),
         overrides: [
-          savedBooksProvider.overrideWithValue(AsyncData([_book()])),
+          scannedVolumesProvider.overrideWithValue(AsyncData([_volume()])),
+          legacyImportProvider.overrideWithValue(const AsyncData(null)),
           userProfileProvider.overrideWithValue(const AsyncData(_profile)),
         ],
       );
@@ -152,7 +166,7 @@ void main() {
       addTearDown(tester.view.reset);
       tester.platformDispatcher.textScaleFactorTestValue = 2;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-      await pumpScreen(tester, AsyncData([_book()]));
+      await pumpScreen(tester, AsyncData([_volume()]));
       await tester.pumpAndSettle();
 
       // Aucun débordement, et la carte garde toute sa hauteur.
@@ -178,11 +192,13 @@ void main() {
 
     Future<void> pumpScreen(
       WidgetTester tester,
-      RecordingBookRepository repo,
+      RecordingBookshelfRepository repo,
+      RecordingVolumeLookup lookup,
     ) => tester.pumpHarness(
       const BookScannerScreen(),
       overrides: [
-        bookRepositoryProvider.overrideWithValue(repo),
+        bookshelfRepositoryProvider.overrideWithValue(repo),
+        volumeLookupProvider.overrideWithValue(lookup),
         currentUidProvider.overrideWithValue('fake-uid'),
         userProfileProvider.overrideWithValue(const AsyncData(_profile)),
       ],
@@ -204,8 +220,9 @@ void main() {
     testWidgets('a successful scan opens the sheet and saves the book', (
       tester,
     ) async {
-      final repo = RecordingBookRepository(bookByIsbn: _book());
-      await pumpScreen(tester, repo);
+      final repo = RecordingBookshelfRepository();
+      final lookup = RecordingVolumeLookup(found: _identified);
+      await pumpScreen(tester, repo, lookup);
       await tester.pump();
 
       // La caméra relit le code tant qu'il est devant elle : une seule fiche.
@@ -219,15 +236,35 @@ void main() {
       await tester.tap(find.text('Ajouter'));
       await settleScan(tester);
 
-      expect(repo.saved.single.title, '1984');
+      expect(repo.volumes.single.title, '1984');
+      // « Ajouter » ne relance pas la recherche : la fiche porte déjà le livre.
+      expect(lookup.lookedUp, [_isbn]);
       expect(find.byType(BookInfoSheet), findsNothing);
+    });
+
+    testWidgets('the carousel shows a volume added through the sheet', (
+      tester,
+    ) async {
+      final repo = RecordingBookshelfRepository();
+      await pumpScreen(tester, repo, RecordingVolumeLookup(found: _identified));
+      await tester.pump();
+      expect(find.byType(PageView), findsNothing);
+
+      detect(tester, _isbn);
+      await settleScan(tester);
+      await tester.tap(find.text('Ajouter'));
+      await settleScan(tester);
+
+      expect(find.byType(BookInfoSheet), findsNothing);
+      expect(find.byType(PageView), findsOneWidget);
+      expect(find.text('1984'), findsOneWidget);
     });
 
     testWidgets('closing the sheet without adding resumes scanning', (
       tester,
     ) async {
-      final repo = RecordingBookRepository(bookByIsbn: _book());
-      await pumpScreen(tester, repo);
+      final repo = RecordingBookshelfRepository();
+      await pumpScreen(tester, repo, RecordingVolumeLookup(found: _identified));
       await tester.pump();
       final startsBefore = platform.startCalls;
 
@@ -240,17 +277,14 @@ void main() {
       await settleScan(tester);
 
       expect(find.byType(BookInfoSheet), findsNothing);
-      expect(repo.saved, isEmpty);
+      expect(repo.savedVolumes, isEmpty);
       expect(platform.startCalls, greaterThan(startsBefore));
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
     testWidgets('a failed save is announced by the screen', (tester) async {
-      final repo = RecordingBookRepository(
-        bookByIsbn: _book(),
-        failure: Exception('denied'),
-      );
-      await pumpScreen(tester, repo);
+      final repo = RecordingBookshelfRepository(failure: Exception('denied'));
+      await pumpScreen(tester, repo, RecordingVolumeLookup(found: _identified));
       await tester.pump();
 
       detect(tester, _isbn);
@@ -266,8 +300,8 @@ void main() {
     });
 
     testWidgets('ignores a code that is not a book ISBN', (tester) async {
-      final repo = RecordingBookRepository(bookByIsbn: _book());
-      await pumpScreen(tester, repo);
+      final repo = RecordingBookshelfRepository();
+      await pumpScreen(tester, repo, RecordingVolumeLookup(found: _identified));
       await tester.pump();
       final stopsBefore = platform.stopCalls;
 
@@ -283,7 +317,11 @@ void main() {
     testWidgets('an unknown ISBN shows the "not found" message', (
       tester,
     ) async {
-      await pumpScreen(tester, RecordingBookRepository());
+      await pumpScreen(
+        tester,
+        RecordingBookshelfRepository(),
+        RecordingVolumeLookup(),
+      );
       await tester.pump();
 
       detect(tester, _isbn);
@@ -299,7 +337,8 @@ void main() {
     ) async {
       await pumpScreen(
         tester,
-        RecordingBookRepository(throwOnScan: Exception('boom')),
+        RecordingBookshelfRepository(),
+        RecordingVolumeLookup(failure: Exception('boom')),
       );
       await tester.pump();
 
@@ -316,7 +355,8 @@ void main() {
     testWidgets('a network error asks to check the connection', (tester) async {
       await pumpScreen(
         tester,
-        RecordingBookRepository(throwOnScan: BookFailure.network),
+        RecordingBookshelfRepository(),
+        RecordingVolumeLookup(failure: BookFailure.network),
       );
       await tester.pump();
 
@@ -333,7 +373,8 @@ void main() {
     testWidgets('a quota error shows the dedicated message', (tester) async {
       await pumpScreen(
         tester,
-        RecordingBookRepository(throwOnScan: BookFailure.quotaExceeded),
+        RecordingBookshelfRepository(),
+        RecordingVolumeLookup(failure: BookFailure.quotaExceeded),
       );
       await tester.pump();
 

@@ -12,8 +12,12 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
-import 'package:an_ki/features/books/data/book_repository.dart';
-import 'package:an_ki/features/books/domain/book.dart';
+import 'package:an_ki/features/books/data/bookshelf_repository.dart';
+import 'package:an_ki/features/books/domain/legacy_import.dart';
+import 'package:an_ki/features/books/domain/series.dart';
+import 'package:an_ki/features/books/domain/volume.dart';
+import 'package:an_ki/features/books/domain/volume_identification.dart';
+import 'package:an_ki/features/books/providers/volume_lookup.dart';
 import 'package:an_ki/features/reminders/data/reminder_preferences_repository.dart';
 import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
@@ -481,85 +485,256 @@ class RecordingCategoryRepository extends Fake implements CategoryRepository {
   }
 }
 
-class FakeBookRepository extends Fake implements BookRepository {
+/// Étagère vide, écritures ignorées.
+class FakeBookshelfRepository extends Fake implements BookshelfRepository {
   @override
-  Future<Book?> fetchBookByIsbn(String isbn) async => null;
+  Stream<List<Series>> watchSeries(String uid) => Stream.value(const []);
 
   @override
-  Stream<List<Book>> watchBooks(String uid) => Stream.value([]);
+  Stream<List<Volume>> watchVolumes(String uid) => Stream.value(const []);
 
   @override
-  Future<void> saveBook(
-    String uid,
-    Book book, {
-    required DateTime scannedAt,
-  }) async {}
+  Future<List<LegacyBook>> fetchLegacyBooks(String uid) async => const [];
 
   @override
-  Future<void> deleteAllUserBooks(String uid) async {}
+  Future<void> deleteAllUserData(String uid) async {}
 }
 
-/// Dépôt de livres configurable qui enregistre les écritures.
-class RecordingBookRepository extends FakeBookRepository {
-  RecordingBookRepository({
-    this.bookByIsbn,
-    this.throwOnScan,
-    this.books = const [],
+/// Étagère gardée en mémoire qui enregistre les écritures ; ses flux
+/// reflètent les écritures, comme le cache de Firestore.
+class RecordingBookshelfRepository extends FakeBookshelfRepository {
+  RecordingBookshelfRepository({
+    List<Series> series = const [],
+    List<Volume> volumes = const [],
+    this.legacyBooks = const [],
     this.failure,
-  });
+  }) : _series = {for (final s in series) s.id: s},
+       _volumes = {for (final v in volumes) v.id: v};
 
-  final Book? bookByIsbn;
-  final Exception? throwOnScan;
+  final Map<String, Series> _series;
+  final Map<String, Volume> _volumes;
 
-  /// Livres servis par [watchBooks].
-  final List<Book> books;
+  /// Anciens livres servis par [fetchLegacyBooks].
+  final List<LegacyBook> legacyBooks;
 
   /// Erreur levée par chaque écriture quand elle est définie.
   final Exception? failure;
 
-  final watchedUids = <String>[];
-  final saved = <Book>[];
+  final _changes = StreamController<void>.broadcast();
+  var _nextId = 0;
+
+  /// Tomes écrits par [saveScannedVolume], dans l'ordre.
+  final savedVolumes = <Volume>[];
+  final createdSeries = <Series>[];
   final erasedUids = <String>[];
+  final importedPlans = <LegacyImportPlan>[];
 
-  @override
-  Future<Book?> fetchBookByIsbn(String isbn) async {
-    if (throwOnScan case final error?) throw error;
-    return bookByIsbn;
+  List<Series> get series => [..._series.values];
+  List<Volume> get volumes => [..._volumes.values];
+
+  Stream<T> _watch<T>(T Function() read) {
+    final controller = StreamController<T>();
+    final changes = _changes.stream.listen((_) => controller.add(read()));
+    controller
+      ..onCancel = () async {
+        await changes.cancel();
+        await controller.close();
+      }
+      ..add(read());
+    return controller.stream;
   }
 
-  @override
-  Stream<List<Book>> watchBooks(String uid) {
-    watchedUids.add(uid);
-    return Stream.value(books);
-  }
-
-  /// Livres enregistrés, datés comme ils le seraient dans Firestore.
-  @override
-  Future<void> saveBook(
-    String uid,
-    Book book, {
-    required DateTime scannedAt,
-  }) async {
+  Future<void> _write(void Function() apply) async {
     if (failure case final error?) throw error;
-    saved.add(
-      Book(
-        id: book.id,
-        title: book.title,
-        authors: book.authors,
-        isbn: book.isbn,
-        imageUrl: book.imageUrl,
-        publishedDate: book.publishedDate,
-        description: book.description,
-        pageCount: book.pageCount,
-        scannedAt: scannedAt,
-      ),
-    );
+    apply();
+    _changes.add(null);
   }
 
   @override
-  Future<void> deleteAllUserBooks(String uid) async {
+  Stream<List<Series>> watchSeries(String uid) => _watch(() => series);
+
+  @override
+  Stream<List<Volume>> watchVolumes(String uid) => _watch(() => volumes);
+
+  @override
+  Future<ShelfContents> fetchShelf(String uid) async =>
+      (series: series, volumes: volumes);
+
+  @override
+  Future<List<LegacyBook>> fetchLegacyBooks(String uid) async => legacyBooks;
+
+  @override
+  String newSeriesId(String uid) => 'series-${_nextId++}';
+
+  @override
+  Future<void> saveScannedVolume(
+    String uid,
+    Volume volume, {
+    ({Series series, DateTime createdAt})? withSeries,
+  }) => _write(() {
+    if (withSeries case (:final series, createdAt: _)) {
+      createdSeries.add(series);
+      _series[series.id] = series;
+    }
+    savedVolumes.add(volume);
+    _volumes[volume.id] = volume;
+  });
+
+  @override
+  Future<void> createSeries(
+    String uid,
+    Series series, {
+    required DateTime createdAt,
+  }) => _write(() {
+    createdSeries.add(series);
+    _series[series.id] = series;
+  });
+
+  @override
+  Future<void> classifyVolume(
+    String uid,
+    String volumeId, {
+    required String? seriesId,
+    required int? number,
+  }) => _write(() {
+    final volume = _volumes[volumeId]!;
+    _volumes[volumeId] = Volume(
+      id: volume.id,
+      seriesId: seriesId,
+      number: number,
+      isbn: volume.isbn,
+      title: volume.title,
+      authors: volume.authors,
+      imageUrl: volume.imageUrl,
+      publisher: volume.publisher,
+      publishedDate: volume.publishedDate,
+      lookup: volume.lookup,
+      addedAt: volume.addedAt,
+    );
+  });
+
+  @override
+  Future<void> deleteVolume(String uid, String volumeId) =>
+      _write(() => _volumes.remove(volumeId));
+
+  @override
+  Future<void> renameSeries(
+    String uid,
+    String seriesId, {
+    required String name,
+    required String key,
+  }) => _write(() {
+    final series = _series[seriesId]!;
+    _series[seriesId] = Series(
+      id: seriesId,
+      name: name,
+      keys: {...series.keys, key}.toList(),
+      complete: series.complete,
+      next: series.next,
+    );
+  });
+
+  @override
+  Future<void> mergeSeries(
+    String uid, {
+    required String sourceId,
+    required String targetId,
+    required List<String> keys,
+  }) => _write(() {
+    for (final volume in volumes.where((v) => v.seriesId == sourceId)) {
+      _volumes[volume.id] = Volume(
+        id: volume.id,
+        seriesId: targetId,
+        number: volume.number,
+        isbn: volume.isbn,
+        title: volume.title,
+        authors: volume.authors,
+        imageUrl: volume.imageUrl,
+        publisher: volume.publisher,
+        publishedDate: volume.publishedDate,
+        lookup: volume.lookup,
+        addedAt: volume.addedAt,
+      );
+    }
+    final target = _series[targetId]!;
+    _series[targetId] = Series(
+      id: targetId,
+      name: target.name,
+      keys: {...target.keys, ...keys}.toList(),
+      complete: target.complete,
+      next: target.next,
+    );
+    _series.remove(sourceId);
+  });
+
+  @override
+  Future<void> setSeriesComplete(
+    String uid,
+    String seriesId, {
+    required bool complete,
+  }) => _write(() {
+    final series = _series[seriesId]!;
+    _series[seriesId] = Series(
+      id: seriesId,
+      name: series.name,
+      keys: series.keys,
+      complete: complete,
+      next: series.next,
+    );
+  });
+
+  @override
+  Future<void> setNextVolume(
+    String uid,
+    String seriesId,
+    NextVolumeInfo? next,
+  ) => _write(() {
+    final series = _series[seriesId]!;
+    _series[seriesId] = Series(
+      id: seriesId,
+      name: series.name,
+      keys: series.keys,
+      complete: series.complete,
+      next: next,
+    );
+  });
+
+  @override
+  Future<void> applyLegacyImport(
+    String uid,
+    LegacyImportPlan plan, {
+    required DateTime importedAt,
+  }) => _write(() {
+    importedPlans.add(plan);
+    for (final entry in plan.entries) {
+      if (entry.newSeries case final series?) _series[series.id] = series;
+      if (entry.volume case final volume?) _volumes[volume.id] = volume;
+    }
+  });
+
+  @override
+  Future<void> deleteAllUserData(String uid) async {
     if (failure case final error?) throw error;
     erasedUids.add(uid);
+  }
+}
+
+/// Recherche de livres configurable : [found] pour tout ISBN, ou [failure]
+/// levée ; compte les recherches.
+class RecordingVolumeLookup extends Fake implements VolumeLookup {
+  RecordingVolumeLookup({this.found, this.failure});
+
+  /// Identifie l'ISBN demandé avec ces métadonnées ; null : livre inconnu.
+  final IdentifiedVolume Function(String isbn)? found;
+  final Exception? failure;
+
+  final lookedUp = <String>[];
+
+  @override
+  Future<IdentifiedVolume?> lookUp(String isbn) async {
+    lookedUp.add(isbn);
+    if (failure case final error?) throw error;
+    return found?.call(isbn);
   }
 }
 
@@ -890,7 +1065,7 @@ List<Object> get defaultTestOverrides => [
   userRepositoryProvider.overrideWithValue(FakeUserRepository()),
   birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
   categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),
-  bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
+  bookshelfRepositoryProvider.overrideWithValue(FakeBookshelfRepository()),
   authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
   biometricServiceProvider.overrideWithValue(FakeBiometricService()),
   shareServiceProvider.overrideWithValue(FakeShareService()),

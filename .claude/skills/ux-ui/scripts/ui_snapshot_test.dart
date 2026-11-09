@@ -32,8 +32,9 @@ import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
-import 'package:an_ki/features/books/data/book_repository.dart';
+import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/providers/book_scanner_provider.dart';
+import 'package:an_ki/features/books/providers/legacy_import.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -208,13 +209,14 @@ List<Override> sampleOverrides({
           ? const AsyncLoading()
           : AsyncData(birthdays ?? sampleBirthdays()),
     ),
-    savedBooksProvider.overrideWithValue(const AsyncData([])),
+    scannedVolumesProvider.overrideWithValue(const AsyncData([])),
+    legacyImportProvider.overrideWithValue(const AsyncData(null)),
     categoryRepositoryProvider.overrideWithValue(
       RecordingCategoryRepository(cats),
     ),
     userRepositoryProvider.overrideWithValue(FakeUserRepository()),
     birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
-    bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
+    bookshelfRepositoryProvider.overrideWithValue(FakeBookshelfRepository()),
   ];
 }
 
