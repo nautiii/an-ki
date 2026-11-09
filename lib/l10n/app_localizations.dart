@@ -800,17 +800,17 @@ abstract class AppLocalizations {
   /// **'Sarcelle'**
   String get toneTeal;
 
-  /// Libellé de l'onglet des anniversaires (barre du bas)
+  /// Nom du module Anniversaires : son onglet, l'écran des modules
   ///
   /// In fr, this message translates to:
   /// **'Anniversaires'**
-  String get tabBirthdays;
+  String get moduleBirthdays;
 
-  /// Libellé de l'onglet du scanner de livres (barre du bas)
+  /// Nom du module Livres : son onglet, l'écran des modules
   ///
   /// In fr, this message translates to:
-  /// **'Scanner'**
-  String get tabScanner;
+  /// **'Livres'**
+  String get moduleBooks;
 
   /// Description du module Anniversaires, sous son nom (écran des modules)
   ///
@@ -823,6 +823,96 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Vos séries : le dernier tome, le prochain et sa date de sortie'**
   String get moduleBooksDescription;
+
+  /// Titre de l'écran des modules, et de sa ligne dans les réglages
+  ///
+  /// In fr, this message translates to:
+  /// **'Modules'**
+  String get modules;
+
+  /// Sous-titre de la ligne Modules des réglages : combien de modules sont actifs
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 actif} other{{count} actifs}}'**
+  String modulesActiveCount(int count);
+
+  /// Phrase d'introduction de l'écran des modules
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez ce qu\'AnKi fait pour vous. Un module désactivé garde vos données.'**
+  String get modulesIntro;
+
+  /// Lu par TalkBack tant que les modules de l'utilisateur ne sont pas connus
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement des modules'**
+  String get modulesLoading;
+
+  /// Titre de l'écran des modules quand le profil n'a pas pu être lu
+  ///
+  /// In fr, this message translates to:
+  /// **'Modules indisponibles'**
+  String get modulesErrorTitle;
+
+  /// À la place de l'interrupteur, pour un module qu'on ne peut pas désactiver
+  ///
+  /// In fr, this message translates to:
+  /// **'Toujours actif'**
+  String get moduleAlwaysOn;
+
+  /// Bouton sous un module : ouvre la confirmation de l'effacement de ses données
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer les données {module}…'**
+  String moduleEraseData(String module);
+
+  /// Titre du dialogue d'effacement des données d'un module
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer les données {module} ?'**
+  String moduleEraseTitle(String module);
+
+  /// Texte du dialogue d'effacement des données d'un module : la conséquence
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout ce que vous avez enregistré dans {module} sera effacé de votre compte, sur tous vos appareils. C\'est définitif.'**
+  String moduleEraseConfirmation(String module);
+
+  /// Bouton qui confirme l'effacement des données d'un module
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer'**
+  String get moduleErase;
+
+  /// Lu par TalkBack pendant l'effacement des données d'un module
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacement en cours…'**
+  String get moduleEraseInProgress;
+
+  /// Snackbar : les données d'un module ont été effacées
+  ///
+  /// In fr, this message translates to:
+  /// **'Données {module} effacées'**
+  String moduleErased(String module);
+
+  /// Snackbar : l'effacement des données d'un module a échoué (hors ligne)
+  ///
+  /// In fr, this message translates to:
+  /// **'Les données {module} n\'ont pas pu être effacées. Vérifiez votre connexion et réessayez.'**
+  String moduleEraseError(String module);
+
+  /// Snackbar : un lien ou une notification menait vers un module désactivé
+  ///
+  /// In fr, this message translates to:
+  /// **'Le module {module} est désactivé'**
+  String moduleDisabledNotice(String module);
+
+  /// Action de la snackbar d'un module désactivé : l'active et l'ouvre
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer'**
+  String get moduleEnable;
 
   /// Infobulle du bouton qui vide le champ de recherche
   ///

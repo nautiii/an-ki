@@ -19,7 +19,7 @@ final birthdaysModule = AppModule(
   enabledByDefault: true,
   icon: Icons.cake_outlined,
   selectedIcon: Icons.cake_rounded,
-  name: (l10n) => l10n.tabBirthdays,
+  name: (l10n) => l10n.moduleBirthdays,
   description: (l10n) => l10n.moduleBirthdaysDescription,
   rootPath: AppRoutes.birthdays,
   buildBranch: () => StatefulShellBranch(

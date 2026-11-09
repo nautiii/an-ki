@@ -9,6 +9,7 @@ import 'package:an_ki/features/auth/screens/login_screen.dart';
 import 'package:an_ki/features/auth/screens/signup_screen.dart';
 import 'package:an_ki/features/auth/screens/welcome_screen.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -126,7 +127,8 @@ void main() {
 
   group('module effects', () {
     /// L'app connectée, la sonde au registre : renvoie combien de fois son
-    /// effet a été construit. [active] : les modules actifs, sinon tous.
+    /// effet a été construit. [active] : les modules actifs, sinon la sonde
+    /// activée dans le profil.
     Future<int> pumpWithProbe(
       WidgetTester tester, {
       List<AppModule> Function(AppModule probe)? active,
@@ -137,6 +139,15 @@ void main() {
       await mockNetworkImages(() async {
         await tester.pumpApp(
           auth: FakeAuthRepository(user: MockUser()),
+          profile: active == null
+              ? const UserProfile(
+                  id: 'fake-uid',
+                  name: 'Camille',
+                  surname: 'Durand',
+                  locale: 'fr',
+                  moduleChoices: {'probe': true},
+                )
+              : testProfile,
           overrides: [
             appModulesProvider.overrideWithValue([birthdaysModule, probe]),
             if (active != null)

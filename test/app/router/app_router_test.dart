@@ -4,7 +4,9 @@ import 'package:an_ki/app/modules/birthdays_module.dart';
 import 'package:an_ki/app/modules/birthdays_settings_section.dart';
 import 'package:an_ki/app/modules/books_module.dart';
 import 'package:an_ki/app/modules/module_registry.dart';
+import 'package:an_ki/app/modules/modules_screen.dart';
 import 'package:an_ki/app/router/app_router.dart';
+import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
@@ -24,6 +26,7 @@ import 'package:an_ki/features/reminders/widgets/reminders_off_card.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/settings/widgets/guest_backup_card.dart';
 import 'package:an_ki/features/settings/widgets/settings_section.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -86,7 +89,10 @@ void main() {
 
     testWidgets('each signed-in path opens its screen', (tester) async {
       await mockNetworkImages(() async {
-        await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          profile: booksOnProfile,
+        );
         await tester.settleApp();
         expect(find.byType(HomeScreen), findsOneWidget);
         // L'accueil reçoit la carte de sauvegarde de `settings`.
@@ -190,6 +196,13 @@ void main() {
       await mockNetworkImages(() async {
         await tester.pumpApp(
           auth: FakeAuthRepository(user: MockUser()),
+          profile: const UserProfile(
+            id: 'fake-uid',
+            name: 'Camille',
+            surname: 'Durand',
+            locale: 'fr',
+            moduleChoices: {'probe': true},
+          ),
           overrides: [
             appModulesProvider.overrideWithValue([
               birthdaysModule,
@@ -335,4 +348,134 @@ void main() {
       expect(find.byType(WelcomeScreen), findsOneWidget);
     });
   });
+
+  group('modules', () {
+    setUp(FakeMobileScannerPlatform.install);
+
+    testWidgets('a path of a turned-off module lands on Birthdays and says '
+        'so; « Activer » turns it on and opens it', (tester) async {
+      await mockNetworkImages(() async {
+        await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
+        await tester.settleApp();
+
+        tester.appRouter.go(AppRoutes.scanner);
+        await tester.pumpAndSettle();
+
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.birthdays);
+        expect(find.byType(BookScannerScreen), findsNothing);
+        expect(find.text('Le module Livres est désactivé'), findsOneWidget);
+
+        await tester.tap(find.text('Activer'));
+        await tester.pumpAndSettle();
+
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.scanner);
+        expect(find.byType(BookScannerScreen), findsOneWidget);
+        expect(find.byType(BottomBar), findsOneWidget);
+      });
+    });
+
+    testWidgets('a path opened while the profile loads waits for it, then '
+        'goes where the modules say', (tester) async {
+      final profiles = _LateProfile();
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          users: profiles,
+        );
+        await tester.settleApp();
+
+        tester.appRouter.go(AppRoutes.scanner);
+        await tester.pumpAndSettle();
+        // Pas encore de verdict : le chemin reste, rien de Livres ne se
+        // montre en attendant.
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.scanner);
+        expect(find.byType(BookScannerScreen), findsNothing);
+        expect(find.byType(HomeScreen), findsOneWidget);
+
+        profiles.emit(testProfile);
+        await tester.pumpAndSettle();
+
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.birthdays);
+        expect(find.text('Le module Livres est désactivé'), findsOneWidget);
+      });
+    });
+
+    testWidgets('a path of a module turned on stays once the profile says '
+        'so', (tester) async {
+      final profiles = _LateProfile();
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          users: profiles,
+        );
+        await tester.settleApp();
+        tester.appRouter.go(AppRoutes.scanner);
+        await tester.pumpAndSettle();
+
+        profiles.emit(booksOnProfile);
+        await tester.pumpAndSettle();
+
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.scanner);
+        expect(find.byType(BookScannerScreen), findsOneWidget);
+        expect(find.byType(SnackBar), findsNothing);
+      });
+    });
+
+    testWidgets('« Activer » touched once the settings are open turns the '
+        'module on and leaves them open', (tester) async {
+      await mockNetworkImages(() async {
+        await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
+        await tester.settleApp();
+        tester.appRouter.go(AppRoutes.scanner);
+        await tester.pumpAndSettle();
+        unawaited(tester.appRouter.push(AppRoutes.settings));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Activer'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(SettingsScreen), findsOneWidget);
+        expect(find.text('2 actifs'), findsOneWidget);
+        await tester.tap(find.byType(BackButton));
+        await tester.pumpAndSettle();
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.birthdays);
+        expect(find.byType(BottomBar), findsOneWidget);
+      });
+    });
+
+    testWidgets('the settings row opens the Modules screen above them', (
+      tester,
+    ) async {
+      await mockNetworkImages(() async {
+        await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
+        await tester.settleApp();
+        unawaited(tester.appRouter.push(AppRoutes.settings));
+        await tester.pumpAndSettle();
+
+        expect(find.text('1 actif'), findsOneWidget);
+        await tester.tap(find.text('Modules'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(ModulesScreen), findsOneWidget);
+        await tester.tap(find.text('Livres'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byType(BackButton));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(SettingsScreen), findsOneWidget);
+        expect(find.text('2 actifs'), findsOneWidget);
+      });
+    });
+  });
+}
+
+/// Profil qui n'arrive qu'à l'appel d'[emit] : le démarrage d'un téléphone
+/// lent.
+class _LateProfile extends FakeUserRepository {
+  final _profile = StreamController<UserProfile?>.broadcast();
+
+  @override
+  Stream<UserProfile?> watchUser(String uid) => _profile.stream;
+
+  void emit(UserProfile profile) => _profile.add(profile);
 }

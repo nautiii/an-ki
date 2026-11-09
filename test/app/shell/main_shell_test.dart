@@ -1,3 +1,4 @@
+import 'package:an_ki/app/app.dart';
 import 'package:an_ki/app/modules/birthdays_module.dart';
 import 'package:an_ki/app/modules/books_module.dart';
 import 'package:an_ki/app/modules/module_registry.dart';
@@ -9,7 +10,10 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/books/screens/book_scanner_screen.dart';
+import 'package:an_ki/features/settings/screens/settings_screen.dart';
+import 'package:an_ki/features/user/providers/user_profile_editor.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/app_harness.dart';
@@ -25,9 +29,11 @@ void main() {
       find.descendant(of: find.byType(BottomBar), matching: find.byIcon(icon));
 
   /// L'app connectée, ouverte sur l'onglet des anniversaires, avec un
-  /// anniversaire au carnet.
+  /// anniversaire au carnet et avec Livres activé : la barre et ses deux
+  /// onglets.
   Future<void> pumpSignedIn(WidgetTester tester) async {
     await tester.pumpApp(
+      profile: booksOnProfile,
       auth: FakeAuthRepository(user: MockUser()),
       birthdays: [
         Birthday(
@@ -41,7 +47,7 @@ void main() {
     await tester.settleApp();
   }
 
-  testWidgets('opens on the birthdays tab and switches to the scanner', (
+  testWidgets('opens on the birthdays tab and switches to the books', (
     tester,
   ) async {
     await mockNetworkImages(() async {
@@ -51,7 +57,7 @@ void main() {
       expect(find.byType(HomeScreen), findsOneWidget);
       expect(tester.appRouter.state.matchedLocation, AppRoutes.birthdays);
 
-      await tester.tap(barIcon(Icons.qr_code_scanner_rounded));
+      await tester.tap(barIcon(Icons.auto_stories_outlined));
       await tester.pumpAndSettle();
 
       expect(find.byType(BookScannerScreen), findsOneWidget);
@@ -105,7 +111,7 @@ void main() {
       await pumpSignedIn(tester);
       final home = tester.element(find.byType(HomeScreen));
 
-      await tester.tap(barIcon(Icons.qr_code_scanner_rounded));
+      await tester.tap(barIcon(Icons.auto_stories_outlined));
       await tester.pumpAndSettle();
       // Caché, l'onglet des anniversaires n'est pas démonté.
       expect(find.byType(HomeScreen, skipOffstage: false), findsOneWidget);
@@ -125,7 +131,7 @@ void main() {
     await mockNetworkImages(() async {
       await pumpSignedIn(tester);
 
-      await tester.tap(barIcon(Icons.qr_code_scanner_rounded));
+      await tester.tap(barIcon(Icons.auto_stories_outlined));
       await tester.pump();
 
       final fade = tester.widget<FadeTransition>(
@@ -173,7 +179,7 @@ void main() {
 
       expect(barIcon(Icons.cake_rounded), findsOneWidget);
       expect(barIcon(Icons.science_outlined), findsOneWidget);
-      expect(barIcon(Icons.qr_code_scanner_rounded), findsNothing);
+      expect(barIcon(Icons.auto_stories_outlined), findsNothing);
 
       // 2e onglet de la barre, 3e branche du routeur.
       await tester.tap(barIcon(Icons.science_outlined));
@@ -186,6 +192,164 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.appRouter.state.matchedLocation, AppRoutes.birthdays);
       expect(find.byType(HomeScreen), findsOneWidget);
+    });
+  });
+
+  group('modules turned on and off', () {
+    /// Active ou désactive Livres comme l'écran Modules, par l'éditeur du
+    /// profil.
+    Future<void> setBooks(WidgetTester tester, {required bool enabled}) async {
+      await ProviderScope.containerOf(tester.element(find.byType(App)))
+          .read(userProfileEditorProvider.notifier)
+          .setModuleEnabled('books', enabled: enabled);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('one module: no bar, the content and snackbars reach the '
+        'bottom', (tester) async {
+      await mockNetworkImages(() async {
+        await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
+        await tester.settleApp();
+
+        expect(find.byType(HomeScreen), findsOneWidget);
+        expect(find.byType(BottomBar), findsNothing);
+        // Rien à réserver pour une barre absente.
+        expect(
+          MediaQuery.paddingOf(tester.element(find.byType(HomeScreen))).bottom,
+          0,
+        );
+
+        ScaffoldMessenger.of(tester.element(find.byType(HomeScreen)))
+            .showSnackBar(const SnackBar(content: Text('Hello')));
+        await tester.pumpAndSettle();
+        final snackBar = tester.getRect(find.byType(SnackBar));
+        expect(snackBar.bottom, lessThanOrEqualTo(1200));
+        expect(snackBar.bottom, greaterThan(1200 - 120));
+
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pumpAndSettle();
+      });
+    });
+
+    testWidgets('turned on, Books brings the bar with both tabs', (
+      tester,
+    ) async {
+      await mockNetworkImages(() async {
+        await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
+        await tester.settleApp();
+
+        await setBooks(tester, enabled: true);
+
+        expect(barIcon(Icons.cake_rounded), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(BottomBar),
+            matching: find.text('Livres'),
+          ),
+          findsOneWidget,
+        );
+        await tester.tap(barIcon(Icons.auto_stories_outlined));
+        await tester.pumpAndSettle();
+        expect(find.byType(BookScannerScreen), findsOneWidget);
+      });
+    });
+
+    testWidgets('turned off, a visited Books tab is unmounted', (tester) async {
+      await mockNetworkImages(() async {
+        await pumpSignedIn(tester);
+        await tester.tap(barIcon(Icons.auto_stories_outlined));
+        await tester.pumpAndSettle();
+        await tester.tap(barIcon(Icons.cake_outlined));
+        await tester.pumpAndSettle();
+        expect(
+          find.byType(BookScannerScreen, skipOffstage: false),
+          findsOneWidget,
+        );
+
+        await setBooks(tester, enabled: false);
+
+        expect(
+          find.byType(BookScannerScreen, skipOffstage: false),
+          findsNothing,
+        );
+        expect(find.byType(BottomBar), findsNothing);
+        expect(find.byType(HomeScreen), findsOneWidget);
+      });
+    });
+
+    testWidgets('turned off while on its tab, back on Birthdays', (
+      tester,
+    ) async {
+      await mockNetworkImages(() async {
+        await pumpSignedIn(tester);
+        await tester.tap(barIcon(Icons.auto_stories_outlined));
+        await tester.pumpAndSettle();
+
+        await setBooks(tester, enabled: false);
+
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.birthdays);
+        expect(find.byType(HomeScreen), findsOneWidget);
+        expect(
+          find.byType(BookScannerScreen, skipOffstage: false),
+          findsNothing,
+        );
+        // La coquille l'a quitté d'elle-même : rien à annoncer.
+        expect(find.byType(SnackBar), findsNothing);
+      });
+    });
+
+    testWidgets('turned off under the settings, which stay open until '
+        'closed', (tester) async {
+      await mockNetworkImages(() async {
+        await pumpSignedIn(tester);
+        await tester.tap(barIcon(Icons.auto_stories_outlined));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('Paramètres'));
+        await tester.pumpAndSettle();
+
+        await setBooks(tester, enabled: false);
+
+        expect(find.byType(SettingsScreen), findsOneWidget);
+        await tester.tap(find.byType(BackButton));
+        await tester.pumpAndSettle();
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.birthdays);
+        expect(find.byType(HomeScreen), findsOneWidget);
+        expect(
+          find.byType(BookScannerScreen, skipOffstage: false),
+          findsNothing,
+        );
+      });
+    });
+
+    testWidgets('turned on again, its tab opens at its root', (tester) async {
+      await mockNetworkImages(() async {
+        await pumpSignedIn(tester);
+        await tester.tap(barIcon(Icons.auto_stories_outlined));
+        await tester.pumpAndSettle();
+        await setBooks(tester, enabled: false);
+
+        await setBooks(tester, enabled: true);
+        await tester.tap(barIcon(Icons.auto_stories_outlined));
+        await tester.pumpAndSettle();
+
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.scanner);
+        expect(find.byType(BookScannerScreen), findsOneWidget);
+      });
+    });
+  });
+
+  group('shownBranch', () {
+    final tabs = shellTabs(
+      [birthdaysModule, booksModule],
+      [birthdaysModule, booksModule],
+    );
+
+    test('the current branch while its module runs', () {
+      expect(shownBranch(tabs, 1), 1);
+    });
+
+    test('the first tab once it no longer runs', () {
+      expect(shownBranch(tabs.sublist(0, 1), 1), 0);
     });
   });
 }

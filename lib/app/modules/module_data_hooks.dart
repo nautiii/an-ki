@@ -1,6 +1,17 @@
 import 'package:an_ki/app/modules/module_registry.dart';
 import 'package:an_ki/core/providers/user_data_hooks.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+
+/// Effaceur des données de chaque module du registre qui en a, par id :
+/// actif ou non. La suppression du compte les prend tous
+/// ([moduleDataHooks]) ; l'écran Modules, celui d'un seul.
+final moduleErasersProvider = Provider<Map<String, UserDataEraser>>(
+  (ref) => {
+    for (final module in ref.watch(appModulesProvider))
+      if (module.data case final data?) module.id: data.eraser(ref),
+  },
+);
 
 /// Crochets de données des modules ([ModuleData]) pour la suppression du
 /// compte et la reprise d'un invité : ceux de **tous** les modules du
@@ -11,10 +22,7 @@ import 'package:flutter_riverpod/misc.dart';
 /// suppriment un compte ou reprennent un invité.
 final moduleDataHooks = <Override>[
   userDataErasersProvider.overrideWith(
-    (ref) => [
-      for (final module in ref.watch(appModulesProvider))
-        if (module.data case final data?) data.eraser(ref),
-    ],
+    (ref) => [...ref.watch(moduleErasersProvider).values],
   ),
   guestDataTransfersProvider.overrideWith(
     (ref) => [

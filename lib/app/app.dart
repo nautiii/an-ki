@@ -38,9 +38,10 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // Garde en vie les effets des modules actifs (la synchro des rappels pour
-    // Anniversaires) : un provider que personne n'écoute est mis en pause.
-    for (final module in ref.watch(activeModulesProvider)) {
+    // Garde en vie les effets des modules qui tournent (la synchro des rappels
+    // pour Anniversaires, même pendant le chargement du profil) : un provider
+    // que personne n'écoute est mis en pause.
+    for (final module in ref.watch(runningModulesProvider)) {
       for (final effect in module.effects) {
         ref.watch(effect);
       }

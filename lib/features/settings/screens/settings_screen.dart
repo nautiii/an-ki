@@ -14,14 +14,23 @@ import 'package:an_ki/features/user/providers/user_profile_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Réglages en blocs : le profil, les préférences appliquées dès le toucher,
-/// les sections des modules ([moduleSections]), la sécurité quand l'appareil a
-/// une empreinte, puis le compte, la suppression en dernier.
+/// Réglages en blocs : le profil, les préférences appliquées dès le toucher
+/// (et le choix des modules, [modulesTile]), les sections des modules
+/// ([moduleSections]), la sécurité quand l'appareil a une empreinte, puis le
+/// compte, la suppression en dernier.
 class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen({super.key, this.moduleSections = const []});
+  const SettingsScreen({
+    super.key,
+    this.modulesTile,
+    this.moduleSections = const [],
+  });
+
+  /// Ligne qui ouvre le choix des modules, en fin de préférences : `app/` la
+  /// fournit, les Réglages ne connaissent pas les modules.
+  final Widget? modulesTile;
 
   /// Section de chaque module actif, dans l'ordre des modules : `app/` les
-  /// branche, les Réglages ne connaissent pas les modules.
+  /// branche.
   final List<Widget> moduleSections;
 
   @override
@@ -62,7 +71,11 @@ class SettingsScreen extends ConsumerWidget {
               gap,
               SettingsSection(
                 title: l10n.settingsPreferences,
-                children: const [ThemeChoice(), LanguageChoice()],
+                children: [
+                  const ThemeChoice(),
+                  const LanguageChoice(),
+                  ?modulesTile,
+                ],
               ),
               for (final section in moduleSections) ...[gap, section],
               if (hasFingerprint) ...[
