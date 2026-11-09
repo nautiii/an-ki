@@ -8,7 +8,7 @@ import 'package:an_ki/features/auth/domain/sign_in_method.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
-import 'package:an_ki/features/books/data/book_repository.dart';
+import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/settings/widgets/delete_account_tile.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -53,7 +53,9 @@ void main() {
         signInMethodProvider.overrideWithValue(method),
         userRepositoryProvider.overrideWithValue(users),
         birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
-        bookRepositoryProvider.overrideWithValue(FakeBookRepository()),
+        bookshelfRepositoryProvider.overrideWithValue(
+          FakeBookshelfRepository(),
+        ),
         categoryRepositoryProvider.overrideWithValue(
           RecordingCategoryRepository(const []),
         ),

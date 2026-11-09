@@ -26,6 +26,11 @@ void main() {
   Future<bool> exists(String collection, String id) async =>
       (await db.collection(collection).doc(id).get()).exists;
 
+  CollectionReference<Map<String, dynamic>> shelfOf(
+    String uid,
+    String collection,
+  ) => db.collection('user').doc(uid).collection(collection);
+
   setUp(() async {
     db = FakeFirebaseFirestore();
     await db.collection('birthday').doc('b1').set({
@@ -54,6 +59,17 @@ void main() {
       'authors': <String>[],
       'isbn': '2',
     });
+    await shelfOf('u1', 'bookSeries').doc('s1').set({
+      'name': 'One-Piece',
+      'keys': ['one piece', 'op'],
+    });
+    await shelfOf('u1', 'bookVolumes').doc('9782344059562').set({
+      'seriesId': 's1',
+      'number': 108,
+      'isbn': '9782344059562',
+      'title': 'One Piece',
+      'lookup': 'found',
+    });
   });
 
   test('erases the data of every registered module, active or not', () async {
@@ -71,6 +87,8 @@ void main() {
       isEmpty,
     );
     expect(await exists('books', 'k1'), isFalse);
+    expect((await shelfOf('u1', 'bookSeries').get()).docs, isEmpty);
+    expect((await shelfOf('u1', 'bookVolumes').get()).docs, isEmpty);
     // Rien d'un autre compte.
     expect(await exists('books', 'k2'), isTrue);
   });
@@ -93,6 +111,39 @@ void main() {
       'someone-else',
     );
   });
+
+  test(
+    'moves a guest shelf, joining the target series of the same key',
+    () async {
+      await shelfOf('target', 'bookSeries').doc('t1').set({
+        'name': 'One Piece',
+        'keys': ['one piece'],
+      });
+      final transfers = makeContainer().read(guestDataTransfersProvider);
+
+      final takeOver = await transfers.single('u1', 'lea@example.com');
+      expect(
+        (await shelfOf(
+          'u1',
+          'bookVolumes',
+        ).doc('9782344059562').get()).data()?['transferTo'],
+        'lea@example.com',
+      );
+      await takeOver('target');
+
+      final series = await shelfOf('target', 'bookSeries').get();
+      expect(series.docs.map((d) => d.id), ['t1']);
+      expect(series.docs.single.data()['keys'], ['one piece', 'op']);
+      final volume = (await shelfOf(
+        'target',
+        'bookVolumes',
+      ).doc('9782344059562').get()).data();
+      expect(volume?['seriesId'], 't1');
+      expect(volume?.containsKey('transferTo'), isFalse);
+      expect((await shelfOf('u1', 'bookSeries').get()).docs, isEmpty);
+      expect((await shelfOf('u1', 'bookVolumes').get()).docs, isEmpty);
+    },
+  );
 
   test('without app/, deleting or moving an account fails loudly', () {
     final container = ProviderContainer.test(retry: (_, _) => null);

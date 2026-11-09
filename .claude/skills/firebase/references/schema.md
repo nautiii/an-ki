@@ -15,6 +15,8 @@ Firestore types; « absent » means older documents may lack the field and the r
 8. Account deletion
 9. Shapes still read for old documents
 10. Guest move to an existing Google account (B5.5)
+11. `user/{uid}/bookSeries/{id}` — Livres series
+12. `user/{uid}/bookVolumes/{id}` — Livres volumes
 
 ---
 
@@ -92,9 +94,12 @@ update by the owner without changing `uid`; the marked address deletes or takes 
   (§10).
 - Read by `watchBirthdays`: `where('uid', isEqualTo: uid)`, stream; `fetchBirthdays` (same filter).
 
-## 4. `books/{id}`
+## 4. `books/{id}` — legacy scanned books
 
-Owner: the `uid` field. Rules: same as `birthday`; the marked address deletes or takes over a marked document (§10).
+The scanner's list before the Livres shelf (§11, §12). No longer written by a scan since
+2026-11-09: each document is imported once into the shelf, then kept as the way back until a
+later version (or a console step) removes the collection, its rules and its index. Owner: the
+`uid` field. Rules: same as `birthday`; the marked address deletes or takes over a marked document (§10).
 
 | Field | Type | Meaning |
 |-------|------|---------|
@@ -106,11 +111,19 @@ Owner: the `uid` field. Rules: same as `birthday`; the marked address deletes or
 | `pageCount` | int, optional | |
 | `scannedAt` | timestamp | the app's clock at saving; the list's order |
 | `transferTo` | string, optional | guest move (§10), as on `birthday` |
+| `importedAt` | timestamp, optional | set when the document was imported into the shelf (§11, §12); never imported again |
 
-- Written by `BookRepository.saveBook` (`add`), `markForTransfer` and `takeOver` (§10); erased by
-  `deleteAllUserBooks`.
-- Read by `watchBooks`: `where('uid', isEqualTo: uid).orderBy('scannedAt', descending: true)` —
-  composite index (§7).
+- Written (until 2026-11-09) by `BookRepository.saveBook` (`add`). Now only by
+  `BookshelfRepository`: `applyLegacyImport` (`update` of `importedAt`, in the batch of its
+  volume), `markForTransfer` and `takeOver` (§10); erased by `deleteAllUserData`.
+- Read by `fetchLegacyBooks`: `where('uid', isEqualTo: uid)`, server read, documents with
+  `importedAt` skipped (filtered on the client: no index). Imported lazily by
+  `legacyImportProvider` when a Livres screen opens, once per session: legacy `books` → volumes
+  (one per normalised ISBN, duplicates merged, the oldest scan first), `guessVolume` on the title
+  (medium or high confidence: the series of the same key, or a new one), a volume already on the
+  shelf only marked. Offline, it retries at the next opening.
+- The old reader (`watchBooks`, ordered by `scannedAt`) is gone; its composite index (§7) stays
+  deployed until the collection goes.
 
 ## 5. `category/{id}` — shared groups
 
@@ -148,7 +161,10 @@ Older users' groups (app versions before 2026-10-24) were copied by the maintain
 | Query | Index | Where |
 |-------|-------|-------|
 | `birthday` where `uid ==` | automatic single-field | — |
-| `books` where `uid ==`, order by `scannedAt` desc | composite `uid` ASC, `scannedAt` DESC | `firestore.indexes.json` (deployed) |
+| `books` where `uid ==`, order by `scannedAt` desc | composite `uid` ASC, `scannedAt` DESC | `firestore.indexes.json` (deployed); no longer queried since 2026-11-09, removed with the collection |
+| `books` where `uid ==` (import, erase, guest mark) | automatic single-field | — |
+| `user/{uid}/bookSeries`, `user/{uid}/bookVolumes` (all, streams and server reads) | none | — |
+| `user/{uid}/bookVolumes` where `seriesId ==` (merge of two series) | automatic single-field | — |
 | `category` where `predefined ==` | automatic single-field | — |
 | `user/{uid}/categories` (all) | none | — |
 
@@ -172,7 +188,7 @@ first eraser that fails stops the run, and the profile and the account stay.
 |-------|--------|--------|-----|
 | 1 | Anniversaires (`birthdaysModule.data`) | `birthday` where `uid ==` | query, then batches of deletes |
 | 2 | Anniversaires | `user/{uid}/categories` | query, then batches (a subcollection survives its parent) |
-| 3 | Livres (`booksModule.data`) | `books` where `uid ==` | query, then batches of deletes |
+| 3 | Livres (`booksModule.data`, `shelfDataEraserProvider`) | `user/{uid}/bookVolumes`, then `user/{uid}/bookSeries`, then legacy `books` where `uid ==` | server reads, then batches of deletes, one collection after the other |
 | 4 | — | `user/{uid}` | delete |
 | 5 | — | the Auth account | after the data, identity confirmed first (a guest that gets `requires-recent-login` is signed out) |
 
@@ -204,6 +220,11 @@ everywhere):
   older profiles keep it, ignored, until the account is deleted.
 - `category` without `tone`; any group without `icon`.
 - `birthday` without `date`: skipped, not shown.
+- `books` (legacy) without `importedAt`: not imported yet, imported at the next opening of Livres.
+- `bookSeries` without `keys` (matched by its folded name), `complete` (not complete), `next` or
+  with a `next` whose `status` or `source` is unknown (no information); `bookVolumes` without
+  `lookup` (found when it has a title, else pending), `addedAt` (the oldest), with a decimal
+  `number` (whole: kept; else unclassified).
 - A contact imported before 2026-10-12 without a year: `date` in 2000 without `yearKnown`, so read
   as born in 2000; only the birthday form fixes it (99771e2).
 
@@ -220,7 +241,9 @@ would leave the guest's documents orphaned under a uid nobody opens again. They 
    transfer, then `user/{uid}`. `GuestMerge` marks the birthdays and groups itself (their
    duplicate plan); the other modules go through `guestDataTransfersProvider`, a `core` provider
    that `app/` overrides from the module registry (`app/modules/module_data_hooks.dart`), every
-   registered module, active or not: Livres marks `books` and returns its takeover by ids.
+   registered module, active or not: Livres (`shelfGuestTransferProvider`) reads on the server
+   and marks `user/{uid}/bookSeries`, `user/{uid}/bookVolumes` and legacy `books`, keeping what it
+   read in memory (`MarkedShelf`).
 2. Sign-in with that Google account (`AuthController.openGoogleAccount`).
 3. As the target, by the ids kept in memory (no query on someone else's data): `takeOver`
    gives each guest birthday to the target (`uid`, remapped `categories`, `transferTo`
@@ -228,7 +251,11 @@ would leave the guest's documents orphaned under a uid nobody opens again. They 
    name, day and month); guest groups are recreated under `user/{target}/categories` with their
    ids, or mapped to a target group of the same folded name, and deleted under
    `user/{guest}/categories` (before the birthdays move); then each module's takeover runs
-   (Livres: `books` get the target `uid`, without the mark), and the guest profile is deleted.
+   (Livres: the target reads its own shelf, `planShelfTakeOver` maps a guest series sharing a key
+   with one of the target's to it and adds its keys, skips a volume whose id or ISBN the target
+   owns, copies the rest under `user/{target}/…` with `set`, then deletes the guest's marked
+   series and volumes; legacy `books` get the target `uid`, without the mark), and the guest
+   profile is deleted.
    A takeover that fails leaves `GuestMergeFailure.incomplete` and the guest profile in place.
    First of all, as soon as the account opens, the modules the guest had turned on
    (`modules.<id> = true` of the guest profile read at step 1) are turned on for the target
@@ -237,8 +264,67 @@ would leave the guest's documents orphaned under a uid nobody opens again. They 
    (the `update` fails, logged).
 
 Rules (`rules.md` §1): the marked address may delete a marked document, and update a marked
-`birthday` or `books` document only to make it its own without the mark; it never reads them.
+`birthday` or `books` document only to make it its own without the mark; it never reads them
+(the `bookSeries` and `bookVolumes` rules await their deploy, `rules.md` §1).
 What stays: the empty anonymous Auth user; a move cut between steps 2 and 3 (app killed) leaves
 marked documents nobody claims; an unverified address (marks set, takeover refused:
 `GuestMergeFailure.incomplete`) leaves the documents marked; on a duplicate, the guest's photo,
 `wishedYears`, own reminders and own wish message are lost (ux D29, open).
+
+## 11. `user/{uid}/bookSeries/{id}` — Livres series
+
+A series the user follows (One Piece, Blacksad…). Owner: the path. Rules: owner reads and writes;
+the marked address deletes a marked document (§10). Added 2026-11-09, rules **not deployed yet**
+(`rules.md` §1).
+
+| Field | Type | Meaning, default when absent |
+|-------|------|------------------------------|
+| `name` | string | shown name; `''` |
+| `keys` | array of string | matching keys (`seriesKey`: folded name, punctuation as spaces): the name's, plus former names after a rename or a merge; `[]` → matched by its folded name; non-strings skipped |
+| `complete` | bool, optional | closed by the user; written only when true at creation; absent → false |
+| `next` | map, optional | the next volume: `number` int, `status` `released` · `announced` · `unknown`, `date` string `2026-12-03` or `2026-12` (optional, never a `Timestamp`: no timezone shift), `source` `bnf` · `googleBooks` · `user`, `checkedAt` timestamp; unreadable or an unknown status/source → no information |
+| `createdAt` | timestamp | the app's clock at creation; not read |
+| `transferTo` | string, optional | guest move (§10) |
+
+- Ids drawn client-side (`newSeriesId`), so a series exists offline before its write.
+- Written by `BookshelfRepository.createSeries` (`set`), `renameSeries` (`update` of `name`,
+  `keys` with `arrayUnion`), `mergeSeries` (the target's `keys` with `arrayUnion`, the source
+  deleted, in the batch that moves its volumes), `setSeriesComplete`, `setNextVolume` (`next`,
+  `FieldValue.delete()` to clear), `applyLegacyImport`, `takeOver` (§10); erased by
+  `deleteAllUserData`.
+- Read by `watchSeries` (whole subcollection, stream; `bookSeriesProvider`) and `fetchShelf`
+  (server read: import, takeover).
+
+## 12. `user/{uid}/bookVolumes/{id}` — Livres volumes
+
+A volume the user owns. **Id = its ISBN-13** for a scanned volume (normalised, check digit
+verified): rescanning, offline or from two devices, rewrites the same document; a legacy book
+whose ISBN is unreadable keeps its `books` id. Owner: the path. Rules: as §11.
+
+| Field | Type | Meaning, default when absent |
+|-------|------|------------------------------|
+| `seriesId`, `number` | string, int, optional | its series and whole number; absent (or a series that no longer exists, or a number outside 1–1000) → « à classer » |
+| `isbn` | string, optional | ISBN-13 |
+| `title` | string | catalogue title, then « : subtitle »; written only when not empty; `''` |
+| `authors` | array of string | written only when not empty; `[]` |
+| `imageUrl`, `publisher`, `publishedDate` | string, optional | from the catalogues (`publishedDate` as the source gives it: `2013`, `2013-06-28`) |
+| `lookup` | string `found` · `notFound` | metadata search; **`pending` is never written** (a merge must not downgrade a found volume): absent → `found` with a title, else `pending` |
+| `addedAt` | timestamp | the app's clock at the scan (legacy: its `scannedAt`); absent → the oldest |
+| `transferTo` | string, optional | guest move (§10) |
+
+- No summary or description (size, Google APIs terms §5(e)(1)).
+- Written by `saveScannedVolume` (`set` with merge, known fields only: a pending rescan erases
+  nothing), `classifyVolume` (`update`, `FieldValue.delete()` to unclassify), `deleteVolume`,
+  `mergeSeries` (`seriesId`), `applyLegacyImport`, `takeOver` (§10); erased by
+  `deleteAllUserData`. A new series and the volume that opens it go in one batch
+  (`saveScannedVolume(withSeries:)`). `ShelfEditor.addScanned`, already identified (today's
+  scanner sheet: the lookup ran before « Ajouter »), writes the volume found at once; without
+  it, writes it pending, then completes it from the lookup (BnF and Google Books,
+  `VolumeLookup`): found → its series (same key, or a new one at medium or high confidence) or
+  unclassified; unknown to both → `notFound`; network or quota error → stays pending, for
+  `completePending`. A volume removed or classified during the lookup is neither recreated nor
+  moved. The pending path and `completePending` are not called by any screen yet (step 8:
+  burst scanning, offline queue).
+- Read by `watchVolumes` (whole subcollection, stream; `bookVolumesProvider`, joined with the
+  series by `shelfOf` in `shelfProvider`), `fetchShelf` (server read) and `mergeSeries` (`where
+  seriesId ==`, cache or server).

@@ -90,12 +90,27 @@ class BookshelfRepository {
   /// Écrit le tome scanné [volume] (id = ISBN), par fusion : rescanner, même
   /// hors ligne ou depuis deux appareils, réécrit le même document. Seuls les
   /// champs connus sont écrits : un tome en attente n'efface pas un titre.
-  Future<void> saveScannedVolume(String uid, Volume volume) => _guard(
-    () =>
-        _volumes(uid)
-            .doc(volume.id)
-            .set(_volumeToMap(volume), SetOptions(merge: true)),
-  );
+  /// [withSeries] : la série neuve qu'il ouvre, créée dans le même lot (jamais
+  /// un tome vers une série refusée).
+  Future<void> saveScannedVolume(
+    String uid,
+    Volume volume, {
+    ({Series series, DateTime createdAt})? withSeries,
+  }) => _guard(() {
+    final volumeDoc = _volumes(uid).doc(volume.id);
+    if (withSeries == null) {
+      return volumeDoc.set(_volumeToMap(volume), SetOptions(merge: true));
+    }
+    final (:series, :createdAt) = withSeries;
+    return _firestore.writeInBatches(<void Function(WriteBatch)>[
+      (batch) => batch.set(
+        _series(uid).doc(series.id),
+        _seriesToMap(series, createdAt: createdAt),
+      ),
+      (batch) =>
+          batch.set(volumeDoc, _volumeToMap(volume), SetOptions(merge: true)),
+    ], (batch, write) => write(batch));
+  });
 
   /// Range le tome [volumeId] dans [seriesId] au numéro [number] ; null efface
   /// le champ (sans série : « à classer »).

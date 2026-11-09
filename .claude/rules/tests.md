@@ -37,7 +37,7 @@ Per-layer patterns: architecture skill, `references/patterns.md` §14. UI checks
 - Fake **repositories** (`class _FakeX extends Fake implements XRepository`), not notifiers: they
   exercise the real logic. Start a notifier in a given state with `overrideWithBuild`; families
   use `overrideWith2` (`overrideWith` is deprecated since Riverpod 3.2). Shared fakes:
-  `RecordingBirthdayRepository`, `RecordingBookRepository`, `RecordingCategoryRepository`,
+  `RecordingBirthdayRepository`, `RecordingBookshelfRepository` (and `RecordingVolumeLookup`), `RecordingCategoryRepository`,
   `RecordingUserRepository` (its `watchUser` reflects writes, like the Firestore cache),
   `FakeAuthRepository` (its session follows its calls) and `FakeBiometricService`; the sign-in
   screens start from `authOverrides`, `failingAuthOverrides` or `loadingAuthOverrides`

@@ -22,6 +22,20 @@ Delete each line once done:
   to the same account; a guest who turned Livres on and opens an existing Google account
   (B5.5) finds Livres on there; « Effacer les données Livres… » on a test account only, once
   online (`books` gone in the console) and once in airplane mode (refused, nothing erased).
+- Livres step 6, series and volumes in Firestore (2026-11-09, branch
+  `claude/books-firestore-ce51f6`). **The `bookSeries` and `bookVolumes` rules are proved in the
+  emulator but not deployed**: deploy them (firebase Workflow D) once the chain is on `main`,
+  before installing an APK built from it, else every scan and the legacy import are refused.
+  Then, on the phone (the emulator's camera can't present a barcode): scan a known manga (« One
+  Piece », a recent volume) → the sheet, « Ajouter », the volume in the carousel with its cover;
+  in the console `user/{uid}/bookVolumes/{isbn}` with `seriesId`, `number`, `lookup: found`, and
+  its `bookSeries` document; a second volume of the same series joins it. Scan in airplane mode
+  → « Pas de connexion… » and nothing written (the old sheet still needs a lookup first). An
+  account with legacy `books`: open the Livres tab once online → its volumes appear, each legacy
+  document carries `importedAt`, reopening imports nothing more; deleting a volume and reopening
+  doesn't bring it back. Account deletion erases `bookSeries`, `bookVolumes` and legacy `books`;
+  a guest with volumes moving to a Google account that already has a series of the same name
+  ends with one series.
 - B5.5 (2026-11-05; rules of c626403 deployed the same day), behind the maintainer on a test
   Google account that already has AnKi data: a guest with ≥ 3 birthdays (one shared with the
   account) taps « Sauvegarder avec Google », picks that account, then « Ouvrir ce compte avec

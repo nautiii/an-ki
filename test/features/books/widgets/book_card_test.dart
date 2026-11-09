@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:an_ki/features/books/domain/book.dart';
+import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/widgets/book_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,25 +9,27 @@ import '../../../support/network_image_mock.dart';
 import '../../../support/test_harness.dart';
 
 void main() {
-  Book book({
+  Volume volume({
     String? imageUrl,
     List<String> authors = const ['Orwell'],
     String title = '1984',
-  }) => Book(
+    String? isbn = '123',
+  }) => Volume(
     id: '1',
-    isbn: '123',
+    isbn: isbn,
     title: title,
     authors: authors,
-    description: 'Dystopia',
     publishedDate: '1949',
     imageUrl: imageUrl,
+    lookup: LookupState.found,
+    addedAt: DateTime(2026, 11, 9),
   );
 
   group('BookCard', () {
     testWidgets('renders a network cover and the metadata', (tester) async {
       await mockNetworkImages(() async {
         await tester.pumpHarness(
-          BookCard(book: book(imageUrl: 'https://example.com/cover.jpg')),
+          BookCard(volume: volume(imageUrl: 'https://example.com/cover.jpg')),
         );
         await tester.pumpAndSettle();
 
@@ -40,6 +42,16 @@ void main() {
       });
     });
 
+    testWidgets('shows no ISBN line for a volume without ISBN', (tester) async {
+      await mockNetworkImages(() async {
+        await tester.pumpHarness(BookCard(volume: volume(isbn: null)));
+        await tester.pumpAndSettle();
+
+        expect(find.text('1984'), findsOneWidget);
+        expect(find.textContaining('ISBN'), findsNothing);
+      });
+    });
+
     testWidgets('falls back to a placeholder cover, without one or when it '
         'cannot load', (tester) async {
       await mockNetworkImages(statusCode: HttpStatus.notFound, () async {
@@ -48,12 +60,12 @@ void main() {
             children: [
               SizedBox(
                 height: 180,
-                child: BookCard(book: book(authors: const [])),
+                child: BookCard(volume: volume(authors: const [])),
               ),
               SizedBox(
                 height: 180,
                 child: BookCard(
-                  book: book(imageUrl: 'https://example.com/lost.jpg'),
+                  volume: volume(imageUrl: 'https://example.com/lost.jpg'),
                 ),
               ),
             ],
@@ -65,11 +77,9 @@ void main() {
       });
     });
 
-    testWidgets('names a book Google Books knows without title', (
-      tester,
-    ) async {
+    testWidgets('names a book without title', (tester) async {
       await mockNetworkImages(() async {
-        await tester.pumpHarness(BookCard(book: book(title: '')));
+        await tester.pumpHarness(BookCard(volume: volume(title: '')));
         await tester.pumpAndSettle();
 
         expect(find.text('Titre inconnu'), findsOneWidget);
@@ -85,7 +95,7 @@ void main() {
             child: SizedBox(
               width: 320,
               height: 180,
-              child: BookCard(book: book()),
+              child: BookCard(volume: volume()),
             ),
           ),
         );

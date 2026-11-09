@@ -8,7 +8,8 @@ import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
-import 'package:an_ki/features/books/data/book_repository.dart';
+import 'package:an_ki/features/books/data/bookshelf_repository.dart';
+import 'package:an_ki/features/books/domain/shelf_takeover.dart';
 import 'package:an_ki/features/settings/domain/guest_merge_failure.dart';
 import 'package:an_ki/features/settings/providers/guest_merge.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,8 +18,6 @@ import 'package:firebase_auth/firebase_auth.dart' show User;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 
 import '../../../support/fake_providers.dart';
 
@@ -55,33 +54,29 @@ class _FailingTakeOver extends BirthdayRepository {
 
 /// Livres dont les marques échouent avec [error], ou n'arrivent jamais sans
 /// erreur : avant la connexion. [takeOverError] : leur reprise échoue, après.
-class _FragileBooks extends BookRepository {
+class _FragileBooks extends BookshelfRepository {
   _FragileBooks(
     FakeFirebaseFirestore firestore, {
     this.error,
     this.neverMarks = false,
     this.takeOverError,
-  }) : super(
-         firestore: firestore,
-         httpClient: MockClient((_) async => http.Response('', 500)),
-         apiKey: '',
-       );
+  }) : super(firestore: firestore);
 
   final Exception? error;
   final bool neverMarks;
   final Exception? takeOverError;
 
   @override
-  Future<List<String>> markForTransfer(String uid, String email) {
+  Future<MarkedShelf> markForTransfer(String uid, String email) {
     if (error case final error?) throw error;
-    if (neverMarks) return Completer<List<String>>().future;
+    if (neverMarks) return Completer<MarkedShelf>().future;
     return super.markForTransfer(uid, email);
   }
 
   @override
-  Future<void> takeOver(String uid, Iterable<String> bookIds) {
+  Future<void> takeOver(String targetUid, ShelfTakeOverPlan plan) {
     if (takeOverError case final error?) throw error;
-    return super.takeOver(uid, bookIds);
+    return super.takeOver(targetUid, plan);
   }
 }
 
@@ -117,7 +112,7 @@ void main() {
   /// [wired] : `app/` fournit les reprises des modules, comme dans `main()`.
   ProviderContainer makeContainer({
     BirthdayRepository? birthdays,
-    BookRepository? books,
+    BookshelfRepository? books,
     bool wired = true,
   }) {
     final container = ProviderContainer.test(
@@ -129,7 +124,7 @@ void main() {
         biometricServiceProvider.overrideWithValue(FakeBiometricService()),
         if (birthdays != null)
           birthdayRepositoryProvider.overrideWithValue(birthdays),
-        if (books != null) bookRepositoryProvider.overrideWithValue(books),
+        if (books != null) bookshelfRepositoryProvider.overrideWithValue(books),
       ],
     );
     container.listen(guestMergeProvider, (_, _) {});

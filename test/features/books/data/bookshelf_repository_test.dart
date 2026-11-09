@@ -217,6 +217,49 @@ void main() {
       expect((await volumesOf('u1').get()).docs, hasLength(1));
     });
 
+    test('a volume that opens a series writes both together', () async {
+      await repository.saveScannedVolume(
+        'u1',
+        _volume('v1', seriesId: 's1', number: 1),
+        withSeries: (series: _series('s1'), createdAt: _added),
+      );
+      final shelf = await repository.fetchShelf('u1');
+      expect(shelf.series, [_series('s1')]);
+      expect(shelf.volumes, [_volume('v1', seriesId: 's1', number: 1)]);
+      expect(
+        (await seriesOf('u1').doc('s1').get()).data()!['createdAt'],
+        Timestamp.fromDate(_added),
+      );
+    });
+
+    test('with its series, a volume is still merged, not replaced', () async {
+      await repository.saveScannedVolume('u1', _volume('v1'));
+
+      await repository.saveScannedVolume(
+        'u1',
+        Volume(
+          id: 'v1',
+          seriesId: 's1',
+          number: 1,
+          title: '',
+          authors: const [],
+          lookup: LookupState.pending,
+          addedAt: _added,
+        ),
+        withSeries: (series: _series('s1'), createdAt: _added),
+      );
+
+      final data = (await volumesOf('u1').doc('v1').get()).data()!;
+      expect(
+        (data['title'], data['lookup'], data['seriesId']),
+        ('One Piece', 'found', 's1'),
+      );
+    });
+
+    // Un lot refusé n'est pas testé ici : FakeFirebaseFirestore donne un
+    // WriteBatch neuf à chaque batch(), que mock_exceptions ne peut viser ;
+    // la traduction passe par le même _guard que les écritures simples.
+
     test('classifies, unclassifies and deletes a volume', () async {
       await repository.saveScannedVolume('u1', _volume('v1'));
 

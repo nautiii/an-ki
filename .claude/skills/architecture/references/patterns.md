@@ -327,17 +327,17 @@ UI):
 /// État : `AsyncLoading` pendant la recherche, puis le livre trouvé (null
 /// s'il est inconnu) ou l'erreur. L'écran filtre lui-même les scans qui
 /// arrivent pendant une recherche.
-class IsbnLookup extends AsyncNotifier<Book?> {
+class IsbnLookup extends AsyncNotifier<IdentifiedVolume?> {
   @override
-  FutureOr<Book?> build() => null;
+  FutureOr<IdentifiedVolume?> build() => null;
 
   /// Renvoie le livre trouvé, null s'il est inconnu ; relance l'erreur (quota
   /// dépassé, réseau) pour que l'écran choisisse son message.
-  Future<Book?> lookUp(String isbn) async {
-    final repository = ref.read(bookRepositoryProvider);
+  Future<IdentifiedVolume?> lookUp(String isbn) async {
+    final lookup = ref.read(volumeLookupProvider);
     state = const AsyncLoading();
     try {
-      final book = await repository.fetchBookByIsbn(isbn);
+      final book = await lookup.lookUp(isbn);
       if (ref.mounted) state = AsyncData(book);
       return book;
     } catch (error, stackTrace) {
@@ -507,8 +507,8 @@ final userDataErasersProvider = Provider<List<UserDataEraser>>(
 
 // app/modules/books_module.dart — le module dit comment ses données partent.
 data: ModuleData(
-  eraser: (ref) => ref.watch(bookRepositoryProvider).deleteAllUserBooks,
-  guestTransfer: (ref) { ... }, // marquer, puis renvoyer la reprise par ids
+  eraser: (ref) => ref.watch(shelfDataEraserProvider),
+  guestTransfer: (ref) => ref.watch(shelfGuestTransferProvider), // marquer, puis renvoyer la reprise
 ),
 
 // settings — AccountDeletion._eraseData
