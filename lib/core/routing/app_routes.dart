@@ -24,6 +24,10 @@ abstract final class AppRoutes {
   /// Réglages, ouverts par-dessus un onglet (`context.push`).
   static const String settings = '/settings';
 
+  /// Modules que l'utilisateur active, ouverts par-dessus les réglages
+  /// (`context.push`).
+  static const String modules = '/settings/modules';
+
   /// Recherche d'anniversaires, ouverte par-dessus un onglet (`context.push`).
   static const String search = '/search';
 

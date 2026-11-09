@@ -123,6 +123,28 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('puts the modules row last of the preferences', (tester) async {
+    await tester.pumpHarness(
+      const SettingsScreen(
+        modulesTile: ListTile(title: Text('Ligne modules')),
+        moduleSections: [
+          SettingsSection(
+            title: 'Module A',
+            children: [ListTile(title: Text('a'))],
+          ),
+        ],
+      ),
+      overrides: overridesWith(),
+    );
+    await tester.pumpAndSettle();
+
+    final tops = [
+      for (final text in ['Préférences', 'Langue', 'Ligne modules', 'Module A'])
+        tester.getTopLeft(find.text(text)).dy,
+    ];
+    expect(tops, [...tops]..sort());
+  });
+
   testWidgets('shows no module section when given none', (tester) async {
     await tester.pumpHarness(
       const SettingsScreen(),

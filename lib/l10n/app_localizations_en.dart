@@ -431,10 +431,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get toneTeal => 'Teal';
 
   @override
-  String get tabBirthdays => 'Birthdays';
+  String get moduleBirthdays => 'Birthdays';
 
   @override
-  String get tabScanner => 'Scanner';
+  String get moduleBooks => 'Books';
 
   @override
   String get moduleBirthdaysDescription =>
@@ -443,6 +443,72 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get moduleBooksDescription =>
       'Your series: the latest volume, the next one and its release date';
+
+  @override
+  String get modules => 'Modules';
+
+  @override
+  String modulesActiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count on',
+      one: '1 on',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get modulesIntro =>
+      'Choose what AnKi does for you. A module you turn off keeps your data.';
+
+  @override
+  String get modulesLoading => 'Loading modules';
+
+  @override
+  String get modulesErrorTitle => 'Modules unavailable';
+
+  @override
+  String get moduleAlwaysOn => 'Always on';
+
+  @override
+  String moduleEraseData(String module) {
+    return 'Erase $module data…';
+  }
+
+  @override
+  String moduleEraseTitle(String module) {
+    return 'Erase $module data?';
+  }
+
+  @override
+  String moduleEraseConfirmation(String module) {
+    return 'Everything you saved in $module will be erased from your account, on all your devices. This can\'t be undone.';
+  }
+
+  @override
+  String get moduleErase => 'Erase';
+
+  @override
+  String get moduleEraseInProgress => 'Erasing…';
+
+  @override
+  String moduleErased(String module) {
+    return '$module data erased';
+  }
+
+  @override
+  String moduleEraseError(String module) {
+    return 'The $module data couldn\'t be erased. Check your connection and try again.';
+  }
+
+  @override
+  String moduleDisabledNotice(String module) {
+    return 'The $module module is off';
+  }
+
+  @override
+  String get moduleEnable => 'Turn on';
 
   @override
   String get clearSearch => 'Clear search';

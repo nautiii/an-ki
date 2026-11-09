@@ -5,14 +5,15 @@ import 'package:an_ki/features/books/screens/book_scanner_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// Livres : la feature `books`. Aujourd'hui, l'onglet du scanner de livres.
+/// Livres : la feature `books`, éteint par défaut. Aujourd'hui, son onglet
+/// est encore le scanner de livres.
 final booksModule = AppModule(
   id: 'books',
   alwaysOn: false,
   enabledByDefault: false,
-  icon: Icons.qr_code_scanner_rounded,
-  selectedIcon: Icons.qr_code_scanner_rounded,
-  name: (l10n) => l10n.tabScanner,
+  icon: Icons.auto_stories_outlined,
+  selectedIcon: Icons.auto_stories_rounded,
+  name: (l10n) => l10n.moduleBooks,
   description: (l10n) => l10n.moduleBooksDescription,
   rootPath: AppRoutes.scanner,
   buildBranch: () => StatefulShellBranch(

@@ -394,13 +394,13 @@
   "@toneTeal": {
     "description": "Nom d'une teinte de groupe, lu par TalkBack"
   },
-  "tabBirthdays": "Anniversaires",
-  "@tabBirthdays": {
-    "description": "Libellé de l'onglet des anniversaires (barre du bas)"
+  "moduleBirthdays": "Anniversaires",
+  "@moduleBirthdays": {
+    "description": "Nom du module Anniversaires : son onglet, l'écran des modules"
   },
-  "tabScanner": "Scanner",
-  "@tabScanner": {
-    "description": "Libellé de l'onglet du scanner de livres (barre du bas)"
+  "moduleBooks": "Livres",
+  "@moduleBooks": {
+    "description": "Nom du module Livres : son onglet, l'écran des modules"
   },
   "moduleBirthdaysDescription": "Qui fête quoi, et quand le souhaiter",
   "@moduleBirthdaysDescription": {
@@ -409,6 +409,107 @@
   "moduleBooksDescription": "Vos séries : le dernier tome, le prochain et sa date de sortie",
   "@moduleBooksDescription": {
     "description": "Description du module Livres, sous son nom (écran des modules)"
+  },
+  "modules": "Modules",
+  "@modules": {
+    "description": "Titre de l'écran des modules, et de sa ligne dans les réglages"
+  },
+  "modulesActiveCount": "{count, plural, =1{1 actif} other{{count} actifs}}",
+  "@modulesActiveCount": {
+    "description": "Sous-titre de la ligne Modules des réglages : combien de modules sont actifs",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "modulesIntro": "Choisissez ce qu'AnKi fait pour vous. Un module désactivé garde vos données.",
+  "@modulesIntro": {
+    "description": "Phrase d'introduction de l'écran des modules"
+  },
+  "modulesLoading": "Chargement des modules",
+  "@modulesLoading": {
+    "description": "Lu par TalkBack tant que les modules de l'utilisateur ne sont pas connus"
+  },
+  "modulesErrorTitle": "Modules indisponibles",
+  "@modulesErrorTitle": {
+    "description": "Titre de l'écran des modules quand le profil n'a pas pu être lu"
+  },
+  "moduleAlwaysOn": "Toujours actif",
+  "@moduleAlwaysOn": {
+    "description": "À la place de l'interrupteur, pour un module qu'on ne peut pas désactiver"
+  },
+  "moduleEraseData": "Effacer les données {module}…",
+  "@moduleEraseData": {
+    "description": "Bouton sous un module : ouvre la confirmation de l'effacement de ses données",
+    "placeholders": {
+      "module": {
+        "type": "String",
+        "example": "Livres"
+      }
+    }
+  },
+  "moduleEraseTitle": "Effacer les données {module} ?",
+  "@moduleEraseTitle": {
+    "description": "Titre du dialogue d'effacement des données d'un module",
+    "placeholders": {
+      "module": {
+        "type": "String",
+        "example": "Livres"
+      }
+    }
+  },
+  "moduleEraseConfirmation": "Tout ce que vous avez enregistré dans {module} sera effacé de votre compte, sur tous vos appareils. C'est définitif.",
+  "@moduleEraseConfirmation": {
+    "description": "Texte du dialogue d'effacement des données d'un module : la conséquence",
+    "placeholders": {
+      "module": {
+        "type": "String",
+        "example": "Livres"
+      }
+    }
+  },
+  "moduleErase": "Effacer",
+  "@moduleErase": {
+    "description": "Bouton qui confirme l'effacement des données d'un module"
+  },
+  "moduleEraseInProgress": "Effacement en cours…",
+  "@moduleEraseInProgress": {
+    "description": "Lu par TalkBack pendant l'effacement des données d'un module"
+  },
+  "moduleErased": "Données {module} effacées",
+  "@moduleErased": {
+    "description": "Snackbar : les données d'un module ont été effacées",
+    "placeholders": {
+      "module": {
+        "type": "String",
+        "example": "Livres"
+      }
+    }
+  },
+  "moduleEraseError": "Les données {module} n'ont pas pu être effacées. Vérifiez votre connexion et réessayez.",
+  "@moduleEraseError": {
+    "description": "Snackbar : l'effacement des données d'un module a échoué (hors ligne)",
+    "placeholders": {
+      "module": {
+        "type": "String",
+        "example": "Livres"
+      }
+    }
+  },
+  "moduleDisabledNotice": "Le module {module} est désactivé",
+  "@moduleDisabledNotice": {
+    "description": "Snackbar : un lien ou une notification menait vers un module désactivé",
+    "placeholders": {
+      "module": {
+        "type": "String",
+        "example": "Livres"
+      }
+    }
+  },
+  "moduleEnable": "Activer",
+  "@moduleEnable": {
+    "description": "Action de la snackbar d'un module désactivé : l'active et l'ouvre"
   },
   "clearSearch": "Effacer la recherche",
   "@clearSearch": {

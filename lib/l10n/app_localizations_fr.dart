@@ -436,10 +436,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get toneTeal => 'Sarcelle';
 
   @override
-  String get tabBirthdays => 'Anniversaires';
+  String get moduleBirthdays => 'Anniversaires';
 
   @override
-  String get tabScanner => 'Scanner';
+  String get moduleBooks => 'Livres';
 
   @override
   String get moduleBirthdaysDescription =>
@@ -448,6 +448,72 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get moduleBooksDescription =>
       'Vos séries : le dernier tome, le prochain et sa date de sortie';
+
+  @override
+  String get modules => 'Modules';
+
+  @override
+  String modulesActiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count actifs',
+      one: '1 actif',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get modulesIntro =>
+      'Choisissez ce qu\'AnKi fait pour vous. Un module désactivé garde vos données.';
+
+  @override
+  String get modulesLoading => 'Chargement des modules';
+
+  @override
+  String get modulesErrorTitle => 'Modules indisponibles';
+
+  @override
+  String get moduleAlwaysOn => 'Toujours actif';
+
+  @override
+  String moduleEraseData(String module) {
+    return 'Effacer les données $module…';
+  }
+
+  @override
+  String moduleEraseTitle(String module) {
+    return 'Effacer les données $module ?';
+  }
+
+  @override
+  String moduleEraseConfirmation(String module) {
+    return 'Tout ce que vous avez enregistré dans $module sera effacé de votre compte, sur tous vos appareils. C\'est définitif.';
+  }
+
+  @override
+  String get moduleErase => 'Effacer';
+
+  @override
+  String get moduleEraseInProgress => 'Effacement en cours…';
+
+  @override
+  String moduleErased(String module) {
+    return 'Données $module effacées';
+  }
+
+  @override
+  String moduleEraseError(String module) {
+    return 'Les données $module n\'ont pas pu être effacées. Vérifiez votre connexion et réessayez.';
+  }
+
+  @override
+  String moduleDisabledNotice(String module) {
+    return 'Le module $module est désactivé';
+  }
+
+  @override
+  String get moduleEnable => 'Activer';
 
   @override
   String get clearSearch => 'Effacer la recherche';

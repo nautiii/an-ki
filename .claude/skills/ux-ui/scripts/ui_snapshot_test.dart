@@ -176,11 +176,14 @@ List<Birthday> sampleBirthdays() {
   ];
 }
 
-/// Overrides Riverpod complets : utilisateur connecté, catégories, anniversaires.
+/// Overrides Riverpod complets : utilisateur connecté, catégories, anniversaires,
+/// et ses choix de modules ([modules] : `{'books': true}` pour la barre et
+/// l'onglet Livres ; sans choix, Anniversaires seul, sans barre).
 List<Override> sampleOverrides({
   List<Birthday>? birthdays,
   bool isLoading = false,
   List<BirthdayCategory>? categories,
+  Map<String, bool> modules = const {},
 }) {
   final cats = categories ?? sampleCategories;
   return [
@@ -196,6 +199,7 @@ List<Override> sampleOverrides({
           surname: 'Durand',
           pseudo: 'Camille',
           locale: 'fr',
+          moduleChoices: modules,
         ),
       ),
     ),

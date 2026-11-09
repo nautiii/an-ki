@@ -1,6 +1,13 @@
+import 'dart:async';
+
 import 'package:an_ki/app/bootstrap/app_initializer.dart';
 import 'package:an_ki/app/bootstrap/reminder_prompt.dart';
+import 'package:an_ki/app/modules/app_module.dart';
+import 'package:an_ki/app/modules/module_activation.dart';
+import 'package:an_ki/app/modules/module_redirect_notice.dart';
 import 'package:an_ki/app/modules/module_registry.dart';
+import 'package:an_ki/app/modules/modules_screen.dart';
+import 'package:an_ki/app/modules/modules_tile.dart';
 import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
@@ -23,7 +30,8 @@ const String _startup = '/';
 
 /// Routeur de l'application : chaque chemin d'[AppRoutes] vers son écran, les
 /// onglets des modules ([appModulesProvider]), et les redirections qui suivent
-/// l'accès ([authAccessProvider]).
+/// l'accès ([authAccessProvider]) puis les modules actifs
+/// ([activeModulesProvider], [moduleRedirect]).
 ///
 /// Vit dans la couche `app/` (composition root) : il a le droit de dépendre
 /// des features, contrairement à `core/`. Créé une seule fois : un changement
@@ -36,10 +44,39 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     (_, next) => access.value = next,
     fireImmediately: true,
   );
+  // Les modules actifs, lus à chaque navigation. Le routeur ne se réévalue
+  // que lorsque l'activation devient connue (profil chargé) : un chemin
+  // ouvert en attendant est alors redirigé s'il le faut. Un module désactivé
+  // ensuite, la coquille quitte elle-même son onglet ; une réévaluation
+  // remplacerait la pile et fermerait l'écran Modules ouvert par-dessus.
+  List<AppModule>? active;
+  final activationKnown = ValueNotifier<bool>(false);
+  ref.listen(activeModulesProvider, (_, next) {
+    active = next;
+    activationKnown.value = next != null;
+  }, fireImmediately: true);
   final router = GoRouter(
     initialLocation: AppRoutes.birthdays,
-    refreshListenable: access,
-    redirect: (_, state) => accessRedirect(access.value, state.matchedLocation),
+    refreshListenable: Listenable.merge([access, activationKnown]),
+    redirect: (_, state) {
+      final location = state.matchedLocation;
+      final byAccess = accessRedirect(access.value, location);
+      if (byAccess != null || access.value != AuthAccess.granted) {
+        return byAccess;
+      }
+      final byModule = moduleRedirect(modules, active, location);
+      if (byModule == null) return null;
+      // Noté après coup : une redirection peut tomber pendant la
+      // construction des widgets, où aucun provider ne doit changer.
+      scheduleMicrotask(() {
+        if (ref.mounted) {
+          ref
+              .read(moduleRedirectNoticeProvider.notifier)
+              .record(byModule.module);
+        }
+      });
+      return byModule.location;
+    },
     routes: [
       GoRoute(path: _startup, builder: (_, _) => const _StartupScreen()),
       GoRoute(
@@ -59,8 +96,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, _, shell) => AppInitializer(
           child: ReminderPrompt(child: MainShell(navigationShell: shell)),
         ),
-        navigatorContainerBuilder: (_, shell, branches) =>
-            ShellBranches(currentIndex: shell.currentIndex, children: branches),
+        navigatorContainerBuilder: (_, shell, branches) => ModuleBranches(
+          currentIndex: shell.currentIndex,
+          children: branches,
+        ),
         // Une branche par module du registre, dans son ordre : l'index d'une
         // branche est la place de son module dans le registre.
         branches: [for (final module in modules) module.buildBranch()],
@@ -68,6 +107,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.settings,
         builder: (_, _) => const _SettingsPage(),
+        // Segment de AppRoutes.modules.
+        routes: [
+          GoRoute(path: 'modules', builder: (_, _) => const ModulesScreen()),
+        ],
       ),
       GoRoute(
         path: AppRoutes.search,
@@ -91,6 +134,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   ref.onDispose(() {
     router.dispose();
     access.dispose();
+    activationKnown.dispose();
   });
   return router;
 });
@@ -116,15 +160,16 @@ String? accessRedirect(AuthAccess? access, String location) {
   };
 }
 
-/// Réglages, avec la section de chaque module actif entre les préférences et
-/// la sécurité.
+/// Réglages : la ligne « Modules » sous les préférences, puis la section de
+/// chaque module qui tourne, avant la sécurité.
 class _SettingsPage extends ConsumerWidget {
   const _SettingsPage();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => SettingsScreen(
+    modulesTile: const ModulesTile(),
     moduleSections: [
-      for (final module in ref.watch(activeModulesProvider))
+      for (final module in ref.watch(runningModulesProvider))
         ?module.settingsSection,
     ],
   );

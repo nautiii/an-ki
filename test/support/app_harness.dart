@@ -92,6 +92,16 @@ const testProfile = UserProfile(
   locale: 'fr',
 );
 
+/// [testProfile] avec le module Livres activé : la barre du bas et ses deux
+/// onglets.
+const booksOnProfile = UserProfile(
+  id: 'fake-uid',
+  name: 'Camille',
+  surname: 'Durand',
+  locale: 'fr',
+  moduleChoices: {'books': true},
+);
+
 extension AppTesterExt on WidgetTester {
   /// L'app entière, routeur compris, sur un écran de la taille du harnais
   /// (800×1200) : la session de [auth], l'empreinte de [biometrics], des
@@ -99,9 +109,14 @@ extension AppTesterExt on WidgetTester {
   /// notifications, un partage, un répertoire et des réglages d'appareil
   /// simulés ([notifications], [share], [contacts], [deviceSettings]).
   /// [overrides] s'ajoutent à ceux du harnais, pour des providers qu'il ne
-  /// remplace pas déjà (le registre des modules, par exemple).
+  /// remplace pas déjà (le registre des modules, par exemple). [profile] est
+  /// le profil stocké du compte (par défaut [testProfile]) : ses choix de
+  /// modules décident des onglets. [users] remplace le dépôt de profils
+  /// (un profil qui tarde, par exemple).
   Future<void> pumpApp({
     required FakeAuthRepository auth,
+    UserProfile profile = testProfile,
+    UserRepository? users,
     FakeBiometricService? biometrics,
     List<Birthday> birthdays = const [],
     SilentNotificationService? notifications,
@@ -148,7 +163,7 @@ extension AppTesterExt on WidgetTester {
             deviceSettings ?? FakeDeviceSettings(),
           ),
           userRepositoryProvider.overrideWithValue(
-            RecordingUserRepository(stored: testProfile),
+            users ?? RecordingUserRepository(stored: profile),
           ),
           birthdayRepositoryProvider.overrideWithValue(
             RecordingBirthdayRepository(initial: birthdays),
