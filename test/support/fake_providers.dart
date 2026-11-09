@@ -65,11 +65,19 @@ class FakeUserRepository extends Fake implements UserRepository {
   }) async {}
 
   @override
+  Future<void> setModuleEnabled(
+    String uid,
+    String moduleId, {
+    required bool enabled,
+  }) async {}
+
+  @override
   Future<void> deleteUser(String uid) async {}
 }
 
 /// [user] après une mise à jour partielle, comme Firestore fusionne les
-/// champs écrits : un argument null laisse le champ tel quel.
+/// champs écrits : un argument null laisse le champ tel quel, et [modules]
+/// s'ajoute aux choix déjà enregistrés.
 UserProfile _merged(
   UserProfile user, {
   String? name,
@@ -77,6 +85,7 @@ UserProfile _merged(
   String? pseudo,
   ThemePreference? theme,
   String? locale,
+  Map<String, bool> modules = const {},
 }) => UserProfile(
   id: user.id,
   name: name ?? user.name,
@@ -85,6 +94,7 @@ UserProfile _merged(
   theme: theme ?? user.theme,
   locale: locale ?? user.locale,
   biometricToken: user.biometricToken,
+  moduleChoices: {...user.moduleChoices, ...modules},
 );
 
 /// Dépôt de profils en mémoire : [watchUser] reflète chaque écriture, comme
@@ -154,6 +164,18 @@ class RecordingUserRepository extends FakeUserRepository {
   }) async {
     _maybeFail();
     final user = _merged(_stored!, name: name, surname: surname);
+    updated.add(user);
+    _emit(user);
+  }
+
+  @override
+  Future<void> setModuleEnabled(
+    String uid,
+    String moduleId, {
+    required bool enabled,
+  }) async {
+    _maybeFail();
+    final user = _merged(_stored!, modules: {moduleId: enabled});
     updated.add(user);
     _emit(user);
   }

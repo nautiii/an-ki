@@ -414,6 +414,93 @@ void main() {
       expect((await db.collection('user').doc(_guest).get()).exists, isTrue);
     });
   });
+
+  group('modules', () {
+    Future<Map<String, dynamic>?> targetModules() async =>
+        (await db.collection('user').doc(_target).get()).data()?['modules']
+            as Map<String, dynamic>?;
+
+    test('the guest turned on are turned on for the account, never one '
+        'turned off', () async {
+      await db.collection('user').doc(_guest).set({
+        'name': '',
+        'modules': {'books': true, 'gifts': false},
+      });
+      await db.collection('user').doc(_target).set({
+        'name': 'Léa',
+        'modules': {'gifts': true, 'films': false},
+      });
+      final container = makeContainer();
+
+      expect(
+        await container.read(guestMergeProvider.notifier).merge(),
+        isNotNull,
+      );
+      await pumpEventQueue();
+
+      expect(await targetModules(), {
+        'books': true,
+        'gifts': true,
+        'films': false,
+      });
+    });
+
+    test('follow even when the move stops halfway', () async {
+      await db.collection('user').doc(_guest).set({
+        'name': '',
+        'modules': {'books': true},
+      });
+      await db.collection('user').doc(_target).set({'name': 'Léa'});
+      final container = makeContainer(
+        books: _FragileBooks(
+          db,
+          takeOverError: FirebaseException(
+            plugin: 'cloud_firestore',
+            code: 'permission-denied',
+          ),
+        ),
+      );
+
+      await container.read(guestMergeProvider.notifier).merge();
+      await pumpEventQueue();
+
+      expect(
+        container.read(guestMergeProvider).error,
+        GuestMergeFailure.incomplete,
+      );
+      expect(await targetModules(), {'books': true});
+    });
+
+    test('a guest without a choice changes none', () async {
+      await db.collection('user').doc(_target).set({
+        'name': 'Léa',
+        'modules': {'books': false},
+      });
+
+      await makeContainer().read(guestMergeProvider.notifier).merge();
+      await pumpEventQueue();
+
+      expect(await targetModules(), {'books': false});
+    });
+
+    test('an account without a profile still opens, data moved', () async {
+      await db.collection('user').doc(_guest).set({
+        'name': '',
+        'modules': {'books': true},
+      });
+      final container = makeContainer();
+
+      expect(
+        await container.read(guestMergeProvider.notifier).merge(),
+        isNotNull,
+      );
+      await pumpEventQueue();
+
+      expect(container.read(guestMergeProvider), isA<AsyncData<void>>());
+      expect((await book('k1'))?['uid'], _target);
+      expect((await db.collection('user').doc(_target).get()).exists, isFalse);
+    });
+  });
 }
 
 /// Compte Google ouvert après un regard sur les données, une fois l'invité

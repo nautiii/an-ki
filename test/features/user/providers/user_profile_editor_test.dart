@@ -45,11 +45,53 @@ void main() {
     expect(container.read(userProfileEditorProvider), isA<AsyncData<void>>());
   });
 
+  test('turns a module on, then off, keeping the other choices', () async {
+    final repo = RecordingUserRepository(
+      stored: const UserProfile(
+        id: 'user-1',
+        name: 'Quentin',
+        surname: 'Maillard',
+        moduleChoices: {'gifts': false},
+      ),
+    );
+    final container = await makeContainer(repo);
+    final editor = container.read(userProfileEditorProvider.notifier);
+
+    await editor.setModuleEnabled('books', enabled: true);
+    expect(repo.stored?.moduleChoices, {'gifts': false, 'books': true});
+    // Le profil suit, comme le cache de Firestore.
+    await pumpEventQueue();
+    expect(
+      container.read(userProfileProvider).value?.moduleChoices['books'],
+      isTrue,
+    );
+
+    await editor.setModuleEnabled('books', enabled: false);
+    expect(repo.stored?.moduleChoices, {'gifts': false, 'books': false});
+    expect(container.read(userProfileEditorProvider), isA<AsyncData<void>>());
+  });
+
+  test('publishes a failed module choice as an AsyncError', () async {
+    final repo = RecordingUserRepository(
+      stored: _user,
+      failure: Exception('permission denied'),
+    );
+    final container = await makeContainer(repo);
+
+    await container
+        .read(userProfileEditorProvider.notifier)
+        .setModuleEnabled('books', enabled: true);
+
+    expect(container.read(userProfileEditorProvider).hasError, isTrue);
+  });
+
   test('does nothing while there is no profile', () async {
     final repo = RecordingUserRepository();
     final container = await makeContainer(repo);
 
-    await container.read(userProfileEditorProvider.notifier).setLocale('en');
+    final editor = container.read(userProfileEditorProvider.notifier);
+    await editor.setLocale('en');
+    await editor.setModuleEnabled('books', enabled: true);
 
     expect(repo.updated, isEmpty);
   });
