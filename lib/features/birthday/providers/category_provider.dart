@@ -1,8 +1,8 @@
+import 'package:an_ki/core/providers/pending_ids.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
-import 'package:an_ki/features/birthday/providers/pending_ids.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Catégories partagées : les prédéfinies (Famille, Amis, Travail, Autres).
@@ -20,7 +20,7 @@ final ownCategoriesProvider = StreamProvider<List<BirthdayCategory>>((ref) {
 /// Groupes supprimés mais encore rattrapables : masqués partout (puces,
 /// filtres, page Groupes ; [PendingIds]).
 final pendingGroupRemovalsProvider = NotifierProvider<PendingIds, Set<String>>(
-  PendingIds.new,
+  () => PendingIds(currentUidProvider),
 );
 
 /// [categories] sans les groupes en cours de retrait.

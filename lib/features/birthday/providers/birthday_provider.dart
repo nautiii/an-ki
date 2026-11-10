@@ -1,4 +1,5 @@
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/providers/pending_ids.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/agenda.dart';
@@ -9,7 +10,6 @@ import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
-import 'package:an_ki/features/birthday/providers/pending_ids.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Anniversaires de l'utilisateur courant, en temps réel ; liste vide hors
@@ -33,7 +33,7 @@ final birthdaysLoadingProvider = Provider<bool>((ref) {
 /// Anniversaires supprimés mais encore rattrapables : masqués partout
 /// ([PendingIds]).
 final pendingDeletionsProvider = NotifierProvider<PendingIds, Set<String>>(
-  PendingIds.new,
+  () => PendingIds(currentUidProvider),
 );
 
 /// Liste courante des anniversaires, sans ceux en cours de suppression :
