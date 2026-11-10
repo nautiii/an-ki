@@ -390,6 +390,108 @@ void main() {
       ]);
     });
 
+    test('deletes a series and its volumes, nothing else', () async {
+      await repository.createSeries('u1', _series('s1'), createdAt: _added);
+      await repository.createSeries(
+        'u1',
+        _series('s2', name: 'Naruto', keys: ['naruto']),
+        createdAt: _added,
+      );
+      await repository.createSeries('u2', _series('s1'), createdAt: _added);
+      await repository.saveScannedVolume(
+        'u1',
+        _volume('a', seriesId: 's1', number: 1),
+      );
+      await repository.saveScannedVolume(
+        'u1',
+        _volume('b', seriesId: 's1', number: 1000),
+      );
+      await repository.saveScannedVolume(
+        'u1',
+        _volume('c', seriesId: 's2', number: 1),
+      );
+      await repository.saveScannedVolume('u1', _volume('d'));
+      await repository.saveScannedVolume(
+        'u2',
+        _volume('e', seriesId: 's1', number: 1),
+      );
+
+      await repository.deleteSeries('u1', 's1');
+
+      expect((await seriesOf('u1').doc('s1').get()).exists, isFalse);
+      expect((await seriesOf('u1').doc('s2').get()).exists, isTrue);
+      final left = await repository.fetchShelf('u1');
+      expect({for (final v in left.volumes) v.id}, {'c', 'd'});
+      // Un autre compte garde sa série du même id et son tome.
+      expect((await seriesOf('u2').doc('s1').get()).exists, isTrue);
+      expect((await volumesOf('u2').doc('e').get()).exists, isTrue);
+    });
+
+    test('volumes without a valid number are detached, not deleted', () async {
+      await repository.createSeries('u1', _series('s1'), createdAt: _added);
+      await repository.saveScannedVolume(
+        'u1',
+        _volume('ok', seriesId: 's1', number: 3),
+      );
+      await repository.saveScannedVolume('u1', _volume('none', seriesId: 's1'));
+      await repository.saveScannedVolume(
+        'u1',
+        _volume('zero', seriesId: 's1', number: 0),
+      );
+      await repository.saveScannedVolume(
+        'u1',
+        _volume('big', seriesId: 's1', number: 1001),
+      );
+
+      await repository.deleteSeries('u1', 's1');
+
+      expect((await seriesOf('u1').doc('s1').get()).exists, isFalse);
+      expect((await volumesOf('u1').doc('ok').get()).exists, isFalse);
+      for (final id in ['none', 'zero', 'big']) {
+        final data = (await volumesOf('u1').doc(id).get()).data()!;
+        expect(data.containsKey('seriesId'), isFalse, reason: id);
+        expect(data.containsKey('number'), isFalse, reason: id);
+        expect(data['title'], 'One Piece');
+      }
+    });
+
+    test('a number stored as a whole double is shelved, so deleted', () async {
+      // Ancien document ou saisie à la console : 3.0 se lit 3, comme ailleurs.
+      await repository.createSeries('u1', _series('s1'), createdAt: _added);
+      await volumesOf('u1')
+          .doc('dbl')
+          .set({'seriesId': 's1', 'number': 3.0, 'title': 'T3'});
+
+      await repository.deleteSeries('u1', 's1');
+
+      expect((await volumesOf('u1').doc('dbl').get()).exists, isFalse);
+    });
+
+    test('deleting an empty series just removes it', () async {
+      await repository.createSeries('u1', _series('s1'), createdAt: _added);
+
+      await repository.deleteSeries('u1', 's1');
+
+      expect((await seriesOf('u1').doc('s1').get()).exists, isFalse);
+    });
+
+    test('a refused series deletion is a denied failure', () async {
+      await repository.createSeries('u1', _series('s1'), createdAt: _added);
+      whenCalling(Invocation.method(#delete, null))
+          .on(seriesOf('u1').doc('s1'))
+          .thenThrow(
+            FirebaseException(
+              plugin: 'cloud_firestore',
+              code: 'permission-denied',
+            ),
+          );
+
+      await expectLater(
+        repository.deleteSeries('u1', 's1'),
+        throwsA(ShelfFailure.denied),
+      );
+    });
+
     test('marks complete, sets and clears the next volume', () async {
       await repository.createSeries('u1', _series('s1'), createdAt: _added);
 
@@ -421,6 +523,14 @@ void main() {
       data = (await seriesOf('u1').doc('s1').get()).data()!;
       expect(data.containsKey('next'), isFalse);
       expect(data['complete'], isFalse);
+    });
+  });
+
+  group('watchFromCache', () {
+    test('says the answer does not come from the cache', () async {
+      await seriesOf('u1').doc('s1').set({'name': 'One Piece'});
+
+      expect(await repository.watchFromCache('u1').first, isFalse);
     });
   });
 

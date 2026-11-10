@@ -144,8 +144,12 @@ class ShelfEditor extends AsyncNotifier<void> {
         ),
       );
 
-  Future<void> removeVolume(String volumeId) =>
-      _write((repository, uid) => repository.deleteVolume(uid, volumeId));
+  /// Retire le tome [volumeId]. [uid] : voir [_write] (écriture différée par
+  /// « Annuler »).
+  Future<void> removeVolume(String volumeId, {String? uid}) => _write(
+    (repository, uid) => repository.deleteVolume(uid, volumeId),
+    startedBy: uid,
+  );
 
   /// Crée la série [name] et renvoie son id aussitôt (hors ligne compris) ;
   /// null pour un nom vide ou hors session.
@@ -189,6 +193,7 @@ class ShelfEditor extends AsyncNotifier<void> {
   Future<void> mergeSeries({
     required String sourceId,
     required String targetId,
+    String? uid,
   }) {
     final source = _series().where((s) => s.id == sourceId).firstOrNull;
     return _write(
@@ -198,12 +203,24 @@ class ShelfEditor extends AsyncNotifier<void> {
         targetId: targetId,
         keys: source == null ? const [] : keysOf(source),
       ),
+      startedBy: uid,
     );
   }
 
-  Future<void> setComplete(String seriesId, {required bool complete}) => _write(
+  /// Supprime la série [seriesId] avec tous ses tomes.
+  Future<void> deleteSeries(String seriesId, {String? uid}) => _write(
+    (repository, uid) => repository.deleteSeries(uid, seriesId),
+    startedBy: uid,
+  );
+
+  Future<void> setComplete(
+    String seriesId, {
+    required bool complete,
+    String? uid,
+  }) => _write(
     (repository, uid) =>
         repository.setSeriesComplete(uid, seriesId, complete: complete),
+    startedBy: uid,
   );
 
   /// Ce qu'on sait du prochain tome de [seriesId] ; null l'efface.
@@ -332,11 +349,17 @@ class ShelfEditor extends AsyncNotifier<void> {
     );
   }
 
+  /// Écrit [write] pour le compte connecté. [startedBy] : le compte connecté
+  /// quand l'action a commencé ; une écriture différée (« Annuler ») est
+  /// abandonnée si le compte a changé entre-temps, comme la suppression d'un
+  /// anniversaire : un tome a pour id son ISBN, l'autre compte pourrait en
+  /// avoir un du même nom.
   Future<void> _write(
-    Future<void> Function(BookshelfRepository repository, String uid) write,
-  ) async {
+    Future<void> Function(BookshelfRepository repository, String uid) write, {
+    String? startedBy,
+  }) async {
     final uid = ref.read(currentUidProvider);
-    if (uid == null) return;
+    if (uid == null || (startedBy != null && startedBy != uid)) return;
     final repository = ref.read(bookshelfRepositoryProvider);
     state = const AsyncLoading();
     final result = await AsyncValue.guard(() => write(repository, uid));
