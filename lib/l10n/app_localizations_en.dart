@@ -443,12 +443,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addBirthday => 'Add a birthday';
 
   @override
-  String get viewAgenda => 'Agenda';
-
-  @override
-  String get viewCalendar => 'Calendar';
-
-  @override
   String get agendaSoon => 'Next 7 days';
 
   @override

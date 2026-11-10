@@ -8,19 +8,16 @@ import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/features/birthday/providers/guest_backup_provider.dart';
-import 'package:an_ki/features/birthday/providers/home_view_provider.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_list.dart';
 import 'package:an_ki/features/birthday/widgets/belated_wish.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/home_app_bar.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// Accueil : qui est le prochain, puis l'agenda par mois (ou le calendrier).
+/// Accueil : qui est le prochain, puis l'agenda par mois.
 ///
 /// Une seule surface qui défile sous la barre d'app épinglée et sous la barre
 /// de navigation flottante, dont le padding du bas réserve la place.
@@ -63,7 +60,6 @@ class HomeScreen extends ConsumerWidget {
     final hasBirthdays = ref.watch(
       birthdaysListProvider.select((birthdays) => birthdays.isNotEmpty),
     );
-    final view = ref.watch(homeViewProvider);
     final backupCount = ref.watch(guestBackupOfferProvider);
 
     return Scaffold(
@@ -99,35 +95,22 @@ class HomeScreen extends ConsumerWidget {
                     // « qui est le prochain ».
                     const BelatedWishes(),
                     const SizedBox(height: AppSpacing.md),
-                    _ViewSwitch(view: view),
                   ],
                 ),
               ),
             ),
-            if (view == HomeView.agenda) ...[
-              const AgendaSliver(),
-              // Invité dont l'agenda vaut la peine d'être gardé : la
-              // sauvegarde, après le dernier mois, jamais en travers.
-              if ((backupCount, guestBackup) case (final count?, final card?))
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.gutter,
-                    AppSpacing.lg,
-                    AppSpacing.gutter,
-                    0,
-                  ),
-                  sliver: SliverToBoxAdapter(child: card(count)),
-                ),
-            ] else
-              // Marges réduites : des cases d'au moins 48 dp dès 360 dp.
-              const SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  AppSpacing.sm,
-                  AppSpacing.md,
-                  AppSpacing.sm,
+            const AgendaSliver(),
+            // Invité dont l'agenda vaut la peine d'être gardé : la
+            // sauvegarde, après le dernier mois, jamais en travers.
+            if ((backupCount, guestBackup) case (final count?, final card?))
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.gutter,
+                  AppSpacing.lg,
+                  AppSpacing.gutter,
                   0,
                 ),
-                sliver: SliverToBoxAdapter(child: BirthdayCalendar()),
+                sliver: SliverToBoxAdapter(child: card(count)),
               ),
           ],
           // Place de la barre de navigation flottante, puis une respiration.
@@ -137,40 +120,6 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Bascule Agenda | Calendrier, libellée plutôt qu'une icône seule.
-class _ViewSwitch extends ConsumerWidget {
-  const _ViewSwitch({required this.view});
-
-  final HomeView view;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      width: double.infinity,
-      child: SegmentedButton<HomeView>(
-        showSelectedIcon: false,
-        segments: [
-          ButtonSegment(
-            value: HomeView.agenda,
-            icon: const Icon(Icons.view_agenda_rounded),
-            label: Text(context.l10n.viewAgenda),
-          ),
-          ButtonSegment(
-            value: HomeView.calendar,
-            icon: const Icon(Icons.calendar_month_rounded),
-            label: Text(context.l10n.viewCalendar),
-          ),
-        ],
-        selected: {view},
-        onSelectionChanged: (selection) {
-          HapticFeedback.selectionClick();
-          ref.read(homeViewProvider.notifier).show(selection.single);
-        },
       ),
     );
   }
@@ -225,7 +174,8 @@ class _FirstRun extends StatelessWidget {
   }
 }
 
-/// Squelette de l'accueil, à la forme du héros, de la bascule et des lignes.
+/// Squelette de l'accueil, à la forme du héros, d'un en-tête de section et
+/// des lignes.
 class _HomeSkeleton extends StatelessWidget {
   const _HomeSkeleton();
 
@@ -237,9 +187,12 @@ class _HomeSkeleton extends StatelessWidget {
           height: NextBirthdayCard.skeletonHeight,
           radius: AppRadii.lg,
         ),
-        const SizedBox(height: AppSpacing.md),
-        const SkeletonBox(height: 40, radius: AppRadii.xl),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.xl),
+        const Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: SkeletonBox(width: 120, height: 20),
+        ),
+        const SizedBox(height: AppSpacing.xs),
         for (var i = 0; i < 4; i++) ...[
           const SkeletonBox(height: 72, radius: AppRadii.lg),
           const SizedBox(height: AppSpacing.xs),

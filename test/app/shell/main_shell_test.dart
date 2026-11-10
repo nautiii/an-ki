@@ -4,7 +4,6 @@ import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/book_scanner/screens/book_scanner_screen.dart';
 import 'package:flutter/material.dart';
@@ -100,9 +99,7 @@ void main() {
   testWidgets('a hidden tab stays mounted with its state', (tester) async {
     await mockNetworkImages(() async {
       await pumpSignedIn(tester);
-      await tester.tap(find.text('Calendrier'));
-      await tester.pumpAndSettle();
-      expect(find.byType(BirthdayCalendar), findsOneWidget);
+      final home = tester.element(find.byType(HomeScreen));
 
       await tester.tap(barIcon(Icons.qr_code_scanner_rounded));
       await tester.pumpAndSettle();
@@ -112,8 +109,8 @@ void main() {
       await tester.tap(barIcon(Icons.cake_outlined));
       await tester.pumpAndSettle();
 
-      expect(find.byType(HomeScreen), findsOneWidget);
-      expect(find.byType(BirthdayCalendar), findsOneWidget);
+      // Le même élément : l'onglet n'a pas été remonté, son état est intact.
+      expect(tester.element(find.byType(HomeScreen)), same(home));
     });
   });
 

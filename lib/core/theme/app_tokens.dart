@@ -27,7 +27,7 @@ abstract final class AppRadii {
   /// Badges, compte à rebours dans une tuile.
   static const double xs = 8;
 
-  /// Cellules de calendrier, vignettes, infobulles.
+  /// Vignettes, infobulles, squelettes.
   static const double sm = 12;
 
   /// Conteneurs internes, champs, cadres d'image.

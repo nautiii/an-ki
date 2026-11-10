@@ -20,7 +20,7 @@ problem, say so and propose the better structure — with a brief — instead of
 AnKi's three jobs, by frequency (`AGENTS.md`): **see who's next** (daily, in under 2 s), **act on
 it** (wish, find a gift), **capture** (add or import in under 10 s).
 
-Everything else (groups, calendar, settings, scanner) serves these. Judge every decision by them.
+Everything else (groups, search, settings, scanner) serves these. Judge every decision by them.
 
 ## Principles — and why
 
@@ -145,7 +145,7 @@ flutter test build/ui_snapshots/_src/palette_audit_test.dart
 ```
 
 - Edit the SCÈNES section of the copied `ui_snapshot_test.dart`: screen, sample data, `act`
-  interaction. Its header lists ready recipes (calendar, loading, settings, auth, search, scroll);
+  interaction. Its header lists ready recipes (tab, loading, settings, auth, search, scroll);
   realistic data is built in (6 people from today to +280 days, 3 groups, user « Camille »).
   Second pass after your changes: same command with `UI_SNAPSHOT_LABEL=after`.
 - Prototypes: another file can `import 'ui_snapshot_test.dart';` and call `runUiSnapshots([...])`

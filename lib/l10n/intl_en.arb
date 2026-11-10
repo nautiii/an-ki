@@ -136,8 +136,6 @@
   "tabScanner": "Scanner",
   "clearSearch": "Clear search",
   "addBirthday": "Add a birthday",
-  "viewAgenda": "Agenda",
-  "viewCalendar": "Calendar",
   "agendaSoon": "Next 7 days",
   "agendaLine": "{age, plural, other{{date} · turns {age}}}",
   "countdownDays": "{days, plural, =0{Today} =1{Tomorrow} other{In {days} days}}",

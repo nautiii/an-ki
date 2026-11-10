@@ -4,7 +4,7 @@ Living list of what to improve, from a full audit with the snapshot tool (light,
 360×640) and the palette audit. The current UI is a **draft, not a constraint**: the "big bets"
 below deliberately question structure, not just polish.
 
-Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, calendar, loading,
+Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, loading,
 scanner, settings, auth). Shipped items are gone (git history holds them); device checks still
 owed are in architecture `migration.md` §1.
 

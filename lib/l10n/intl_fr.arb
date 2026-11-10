@@ -410,14 +410,6 @@
   "@addBirthday": {
     "description": "Bouton ou infobulle d'ajout d'un anniversaire"
   },
-  "viewAgenda": "Agenda",
-  "@viewAgenda": {
-    "description": "Segment de l'accueil : liste des anniversaires par période"
-  },
-  "viewCalendar": "Calendrier",
-  "@viewCalendar": {
-    "description": "Segment de l'accueil : vue calendrier"
-  },
   "agendaSoon": "Dans les 7 jours",
   "@agendaSoon": {
     "description": "En-tête de la première section de l'agenda"

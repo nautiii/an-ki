@@ -71,7 +71,7 @@ class WishActions extends ConsumerWidget {
 /// « ✓ Souhaité » en menthe (accent de succès). Sur la page de la personne,
 /// haute comme une cible tactile : elle prend la place des boutons sans
 /// faire sauter la page. [dense] dans une phrase ou une ligne (héros du
-/// jour J, feuille du jour du calendrier), à la hauteur du texte.
+/// jour J), à la hauteur du texte.
 class WishedPill extends StatelessWidget {
   const WishedPill({super.key, this.dense = false});
 

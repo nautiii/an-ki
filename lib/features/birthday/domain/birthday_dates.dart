@@ -43,23 +43,10 @@ extension BirthDateDates on BirthDate {
     if (year == null) return null;
     return nextOccurrence(today).year - year;
   }
-
-  /// Âge en années révolues à [today] ; l'anniversaire compte dès son jour.
-  /// Null quand l'année de naissance est inconnue.
-  int? ageOn(DateTime today) {
-    final year = this.year;
-    if (year == null) return null;
-    final hadBirthday =
-        today.month > month || (today.month == month && today.day >= day);
-    return today.year - year - (hadBirthday ? 0 : 1);
-  }
 }
 
 /// Les mêmes règles, lues depuis un anniversaire.
 extension BirthdayDates on Birthday {
-  /// Voir [BirthDateDates.occurrenceIn].
-  DateTime occurrenceIn(int year) => date.occurrenceIn(year);
-
   /// Voir [BirthDateDates.nextOccurrence].
   DateTime nextOccurrence(DateTime today) => date.nextOccurrence(today);
 
@@ -71,9 +58,6 @@ extension BirthdayDates on Birthday {
 
   /// Voir [BirthDateDates.turningAge].
   int? turningAge(DateTime today) => date.turningAge(today);
-
-  /// Voir [BirthDateDates.ageOn].
-  int? ageOn(DateTime today) => date.ageOn(today);
 }
 
 /// Règles de dates sur une liste d'anniversaires.

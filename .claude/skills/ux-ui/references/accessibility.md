@@ -62,8 +62,7 @@ haptics · 6. Focus & forms · 7. Testing
   row above the name, `next_birthday.dart`, `agenda_tile.dart`).
 - Clamp only tiny decorative labels (badges) with
   `MediaQuery.withClampedTextScaling(maxScaleFactor: 1.3, child: …)`; never body text or buttons.
-  Two deliberate exceptions: the calendar grid (numbers stay in their cells, like Material's date
-  picker) and the nav-pill labels (ux D20).
+  One deliberate exception: the nav-pill labels (ux D20).
 - Screens must scroll when content can exceed the viewport.
 - Verify with the snapshot variants `light-text200` and `compact-360x640`.
 

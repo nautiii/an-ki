@@ -162,7 +162,7 @@ polish, unusual on Android — a quiet signature).
 | Token | Radius | Use |
 |-------|--------|-----|
 | `AppRadii.xs` | 8 | Small badges, countdown chips inside tiles |
-| `AppRadii.sm` | 12 | Calendar cells, thumbnails, tooltips |
+| `AppRadii.sm` | 12 | Thumbnails, tooltips, skeletons |
 | `AppRadii.md` | 16 | Inner containers, image frames, date field |
 | `AppRadii.lg` | 24 | Cards, list tiles, hero, dialogs |
 | `AppRadii.xl` | 32 | Bottom-sheet top corners, nav pill |
@@ -178,7 +178,7 @@ lg 24 · xl 32 · xxl 48`.
 - Layout (screen gutters, gaps between blocks, sections): multiples of 8 — 8, 16, 24, 32, 48.
 - Inside a component (icon ↔ label, chip padding, list-row rhythm): 4, 8, 12 allowed.
 - Never 2, 6, 10, 14, 20 (except a 1–2 dp optical nudge, commented).
-- Screen gutter **24** (*ma*: calm needs air). Dense grids (calendar) may use 16.
+- Screen gutter **24** (*ma*: calm needs air). Dense grids may use 16.
 - Section gap 24–32; card-to-card 12; content above the floating nav pill: pad by
   `MediaQuery.paddingOf(context).bottom` (the shell's `extendBody` puts the pill in it), never a
   constant.
