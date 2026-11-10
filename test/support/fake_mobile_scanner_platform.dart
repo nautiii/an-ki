@@ -14,9 +14,15 @@ class FakeMobileScannerPlatform extends MobileScannerPlatform {
   int startCalls = 0;
   int stopCalls = 0;
 
+  /// When set, every [start] fails with this error code (a refused camera
+  /// permission, for instance), as the real plugin reports it.
+  MobileScannerErrorCode? startError;
+
   /// Installs this fake as the active platform implementation.
-  static FakeMobileScannerPlatform install() {
-    final fake = FakeMobileScannerPlatform();
+  static FakeMobileScannerPlatform install({
+    MobileScannerErrorCode? startError,
+  }) {
+    final fake = FakeMobileScannerPlatform()..startError = startError;
     MobileScannerPlatform.instance = fake;
     return fake;
   }
@@ -36,6 +42,9 @@ class FakeMobileScannerPlatform extends MobileScannerPlatform {
   @override
   Future<MobileScannerViewAttributes> start(StartOptions startOptions) async {
     startCalls++;
+    if (startError case final code?) {
+      throw MobileScannerException(errorCode: code);
+    }
     return const MobileScannerViewAttributes(
       cameraDirection: CameraFacing.back,
       currentTorchMode: TorchState.off,

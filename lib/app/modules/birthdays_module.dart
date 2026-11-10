@@ -22,7 +22,7 @@ final birthdaysModule = AppModule(
   name: (l10n) => l10n.moduleBirthdays,
   description: (l10n) => l10n.moduleBirthdaysDescription,
   rootPath: AppRoutes.birthdays,
-  buildBranch: () => StatefulShellBranch(
+  buildBranch: (_) => StatefulShellBranch(
     routes: [
       GoRoute(
         path: AppRoutes.birthdays,

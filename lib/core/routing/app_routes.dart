@@ -19,7 +19,24 @@ abstract final class AppRoutes {
 
   /// Onglets de l'app connectée.
   static const String birthdays = '/birthdays';
-  static const String scanner = '/scanner';
+
+  /// L'étagère, racine de l'onglet Livres ; les pages du module vivent sous
+  /// ce chemin, que la redirection des modules reconnaît.
+  static const String books = '/books';
+
+  /// Scanner d'ISBN, poussé par-dessus l'onglet (`context.push`) : la caméra
+  /// ne tourne que tant qu'il est ouvert.
+  static const String booksScan = '/books/scan';
+
+  /// Tomes « à classer », poussés par-dessus l'onglet.
+  static const String booksInbox = '/books/inbox';
+
+  /// Page d'une série, poussée par-dessus l'onglet : le motif de la route ;
+  /// [series] donne le chemin d'une série.
+  static const String seriesPattern = '/books/series/:id';
+
+  static String series(String seriesId) =>
+      '/books/series/${Uri.encodeComponent(seriesId)}';
 
   /// Réglages, ouverts par-dessus un onglet (`context.push`).
   static const String settings = '/settings';

@@ -28,7 +28,7 @@ AppModule probeModule({
     name: (_) => name,
     description: (_) => 'Un module de test',
     rootPath: root,
-    buildBranch: () => StatefulShellBranch(
+    buildBranch: (_) => StatefulShellBranch(
       routes: [
         GoRoute(
           path: root,

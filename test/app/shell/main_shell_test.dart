@@ -9,7 +9,7 @@ import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
-import 'package:an_ki/features/books/screens/book_scanner_screen.dart';
+import 'package:an_ki/features/books/screens/shelf_screen.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/providers/user_profile_editor.dart';
 import 'package:flutter/material.dart';
@@ -60,9 +60,9 @@ void main() {
       await tester.tap(barIcon(Icons.auto_stories_outlined));
       await tester.pumpAndSettle();
 
-      expect(find.byType(BookScannerScreen), findsOneWidget);
+      expect(find.byType(ShelfScreen), findsOneWidget);
       expect(find.byType(HomeScreen), findsNothing);
-      expect(tester.appRouter.state.matchedLocation, AppRoutes.scanner);
+      expect(tester.appRouter.state.matchedLocation, AppRoutes.books);
     });
   });
 
@@ -137,7 +137,7 @@ void main() {
       final fade = tester.widget<FadeTransition>(
         find
             .ancestor(
-              of: find.byType(BookScannerScreen),
+              of: find.byType(ShelfScreen),
               matching: find.byType(FadeTransition),
             )
             .first,
@@ -250,7 +250,7 @@ void main() {
         );
         await tester.tap(barIcon(Icons.auto_stories_outlined));
         await tester.pumpAndSettle();
-        expect(find.byType(BookScannerScreen), findsOneWidget);
+        expect(find.byType(ShelfScreen), findsOneWidget);
       });
     });
 
@@ -261,17 +261,11 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(barIcon(Icons.cake_outlined));
         await tester.pumpAndSettle();
-        expect(
-          find.byType(BookScannerScreen, skipOffstage: false),
-          findsOneWidget,
-        );
+        expect(find.byType(ShelfScreen, skipOffstage: false), findsOneWidget);
 
         await setBooks(tester, enabled: false);
 
-        expect(
-          find.byType(BookScannerScreen, skipOffstage: false),
-          findsNothing,
-        );
+        expect(find.byType(ShelfScreen, skipOffstage: false), findsNothing);
         expect(find.byType(BottomBar), findsNothing);
         expect(find.byType(HomeScreen), findsOneWidget);
       });
@@ -289,10 +283,7 @@ void main() {
 
         expect(tester.appRouter.state.matchedLocation, AppRoutes.birthdays);
         expect(find.byType(HomeScreen), findsOneWidget);
-        expect(
-          find.byType(BookScannerScreen, skipOffstage: false),
-          findsNothing,
-        );
+        expect(find.byType(ShelfScreen, skipOffstage: false), findsNothing);
         // La coquille l'a quitté d'elle-même : rien à annoncer.
         expect(find.byType(SnackBar), findsNothing);
       });
@@ -314,10 +305,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.appRouter.state.matchedLocation, AppRoutes.birthdays);
         expect(find.byType(HomeScreen), findsOneWidget);
-        expect(
-          find.byType(BookScannerScreen, skipOffstage: false),
-          findsNothing,
-        );
+        expect(find.byType(ShelfScreen, skipOffstage: false), findsNothing);
       });
     });
 
@@ -332,8 +320,8 @@ void main() {
         await tester.tap(barIcon(Icons.auto_stories_outlined));
         await tester.pumpAndSettle();
 
-        expect(tester.appRouter.state.matchedLocation, AppRoutes.scanner);
-        expect(find.byType(BookScannerScreen), findsOneWidget);
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.books);
+        expect(find.byType(ShelfScreen), findsOneWidget);
       });
     });
   });

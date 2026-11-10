@@ -1,20 +1,13 @@
-import 'package:an_ki/core/common/skeleton_box.dart';
-import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/book_metadata.dart';
-import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/domain/volume_identification.dart';
-import 'package:an_ki/features/books/providers/book_scanner_provider.dart';
-import 'package:an_ki/features/books/providers/legacy_import.dart';
 import 'package:an_ki/features/books/providers/volume_lookup.dart';
 import 'package:an_ki/features/books/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/books/widgets/book_info_sheet.dart';
-import 'package:an_ki/features/user/domain/user_profile.dart';
-import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -25,166 +18,13 @@ import '../../../support/test_harness.dart';
 /// ISBN-13 lu sur un code-barres de livre.
 const _isbn = '9780451524935';
 
-Volume _volume({String id = '1', String? imageUrl}) => Volume(
-  id: id,
-  isbn: _isbn,
-  title: '1984',
-  authors: const ['George Orwell'],
-  imageUrl: imageUrl,
-  lookup: LookupState.found,
-  addedAt: DateTime(2026, 11, 9),
-);
-
 /// Ce que les catalogues savent de « 1984 ».
 IdentifiedVolume _identified(String isbn) => IdentifiedVolume(
   isbn: isbn,
   metadata: const BookMetadata(title: '1984', authors: ['George Orwell']),
 );
 
-/// Profil chargé : la barre salue par le prénom.
-const _profile = UserProfile(
-  id: 'fake-uid',
-  name: 'Camille',
-  surname: 'Durand',
-  locale: 'fr',
-);
-
 void main() {
-  group('BookScannerScreen rendering', () {
-    Future<void> pumpScreen(
-      WidgetTester tester,
-      AsyncValue<List<Volume>> volumes,
-    ) => tester.pumpHarness(
-      const BookScannerScreen(),
-      overrides: [
-        scannedVolumesProvider.overrideWithValue(volumes),
-        legacyImportProvider.overrideWithValue(const AsyncData(null)),
-        userProfileProvider.overrideWithValue(const AsyncData(_profile)),
-      ],
-    );
-
-    testWidgets('shows the title and empty state', (tester) async {
-      await pumpScreen(tester, const AsyncData([]));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Scanner de livres'), findsOneWidget);
-      expect(find.text("Aucun livre pour l'instant"), findsOneWidget);
-      // Pas de puces qui auraient l'air de filtrer sans rien filtrer.
-      expect(find.byType(Chip), findsNothing);
-      expect(
-        find.text(
-          "Scannez le code-barres d'un livre pour garder une idée de cadeau.",
-        ),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('shows a skeleton while loading', (tester) async {
-      await pumpScreen(tester, const AsyncLoading());
-      await tester.pump();
-
-      expect(find.byType(SkeletonBox), findsWidgets);
-      expect(find.text("Aucun livre pour l'instant"), findsNothing);
-    });
-
-    testWidgets('the settings button opens the settings route', (tester) async {
-      await tester.pumpHarness(
-        const BookScannerScreen(),
-        overrides: [
-          scannedVolumesProvider.overrideWithValue(const AsyncData([])),
-          legacyImportProvider.overrideWithValue(const AsyncData(null)),
-          userProfileProvider.overrideWithValue(const AsyncData(_profile)),
-        ],
-        routes: {AppRoutes.settings: (_) => const Text('Settings route')},
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byTooltip('Paramètres'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Settings route'), findsOneWidget);
-    });
-
-    testWidgets('greets in a pinned app bar, like the home', (tester) async {
-      await pumpScreen(tester, const AsyncData([]));
-      await tester.pumpAndSettle();
-
-      expect(
-        find.descendant(
-          of: find.byType(AppBar),
-          matching: find.textContaining('Camille'),
-        ),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('displays saved books in a carousel', (tester) async {
-      await pumpScreen(tester, AsyncData([_volume()]));
-      await tester.pumpAndSettle();
-
-      expect(find.text('1984'), findsOneWidget);
-      // Le carrousel garde sa hauteur au lieu de s'étirer sur l'onglet.
-      expect(tester.getSize(find.byType(PageView)).height, 180);
-    });
-
-    testWidgets('grows the carousel with large text', (tester) async {
-      tester.platformDispatcher.textScaleFactorTestValue = 2;
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-      await pumpScreen(tester, AsyncData([_volume()]));
-      await tester.pumpAndSettle();
-
-      expect(tester.getSize(find.byType(PageView)).height, 360);
-    });
-
-    testWidgets('grows the carousel with Android 14 non-linear scaling', (
-      tester,
-    ) async {
-      await tester.pumpHarness(
-        Builder(
-          builder: (context) => MediaQuery(
-            data: MediaQuery.of(context)
-                .copyWith(textScaler: const _NonLinearScaler()),
-            child: const BookScannerScreen(),
-          ),
-        ),
-        overrides: [
-          scannedVolumesProvider.overrideWithValue(AsyncData([_volume()])),
-          legacyImportProvider.overrideWithValue(const AsyncData(null)),
-          userProfileProvider.overrideWithValue(const AsyncData(_profile)),
-        ],
-      );
-      await tester.pumpAndSettle();
-
-      expect(tester.getSize(find.byType(PageView)).height, 360);
-    });
-
-    testWidgets('scrolls to a whole card on a compact phone at 200 %', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(360, 640);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-      tester.platformDispatcher.textScaleFactorTestValue = 2;
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-      await pumpScreen(tester, AsyncData([_volume()]));
-      await tester.pumpAndSettle();
-
-      // Aucun débordement, et la carte garde toute sa hauteur.
-      expect(tester.takeException(), isNull);
-      expect(tester.getSize(find.byType(PageView)).height, 360);
-    });
-
-    testWidgets('labels and sizes its app bar buttons', (tester) async {
-      final semantics = tester.ensureSemantics();
-      await pumpScreen(tester, const AsyncData([]));
-      await tester.pumpAndSettle();
-
-      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
-      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-      semantics.dispose();
-    });
-  });
-
   group('BookScannerScreen scan flow (real providers + fake camera)', () {
     late FakeMobileScannerPlatform platform;
 
@@ -200,7 +40,6 @@ void main() {
         bookshelfRepositoryProvider.overrideWithValue(repo),
         volumeLookupProvider.overrideWithValue(lookup),
         currentUidProvider.overrideWithValue('fake-uid'),
-        userProfileProvider.overrideWithValue(const AsyncData(_profile)),
       ],
     );
 
@@ -216,6 +55,17 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       }
     }
+
+    testWidgets('shows its title and the hint', (tester) async {
+      await pumpScreen(
+        tester,
+        RecordingBookshelfRepository(),
+        RecordingVolumeLookup(),
+      );
+      await tester.pump();
+
+      expect(find.text('Scanner un livre'), findsOneWidget);
+    });
 
     testWidgets('a successful scan opens the sheet and saves the book', (
       tester,
@@ -242,24 +92,6 @@ void main() {
       expect(find.byType(BookInfoSheet), findsNothing);
     });
 
-    testWidgets('the carousel shows a volume added through the sheet', (
-      tester,
-    ) async {
-      final repo = RecordingBookshelfRepository();
-      await pumpScreen(tester, repo, RecordingVolumeLookup(found: _identified));
-      await tester.pump();
-      expect(find.byType(PageView), findsNothing);
-
-      detect(tester, _isbn);
-      await settleScan(tester);
-      await tester.tap(find.text('Ajouter'));
-      await settleScan(tester);
-
-      expect(find.byType(BookInfoSheet), findsNothing);
-      expect(find.byType(PageView), findsOneWidget);
-      expect(find.text('1984'), findsOneWidget);
-    });
-
     testWidgets('closing the sheet without adding resumes scanning', (
       tester,
     ) async {
@@ -280,23 +112,6 @@ void main() {
       expect(repo.savedVolumes, isEmpty);
       expect(platform.startCalls, greaterThan(startsBefore));
       expect(find.byType(CircularProgressIndicator), findsNothing);
-    });
-
-    testWidgets('a failed save is announced by the screen', (tester) async {
-      final repo = RecordingBookshelfRepository(failure: Exception('denied'));
-      await pumpScreen(tester, repo, RecordingVolumeLookup(found: _identified));
-      await tester.pump();
-
-      detect(tester, _isbn);
-      await settleScan(tester);
-      await tester.tap(find.text('Ajouter'));
-      await settleScan(tester);
-
-      expect(
-        find.text("Quelque chose s'est mal passé. Réessayez dans un instant."),
-        findsOneWidget,
-      );
-      await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
     testWidgets('ignores a code that is not a book ISBN', (tester) async {
@@ -390,21 +205,147 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
   });
-}
 
-/// Grand texte à la manière d'Android 14+ : le petit texte double, le grand
-/// grandit à peine.
-class _NonLinearScaler extends TextScaler {
-  const _NonLinearScaler();
+  group('BookScannerScreen camera errors', () {
+    Future<FakeContactsService> pumpWithError(
+      WidgetTester tester,
+      FakeMobileScannerPlatform platform,
+    ) async {
+      final contacts = FakeContactsService();
+      await tester.pumpHarness(
+        const BookScannerScreen(),
+        overrides: [
+          bookshelfRepositoryProvider.overrideWithValue(
+            RecordingBookshelfRepository(),
+          ),
+          currentUidProvider.overrideWithValue('fake-uid'),
+          contactsServiceProvider.overrideWithValue(contacts),
+        ],
+      );
+      await tester.pump();
+      await tester.pump();
+      return contacts;
+    }
 
-  @override
-  double scale(double fontSize) =>
-      fontSize <= 24 ? fontSize * 2 : fontSize + 24;
+    testWidgets('a refused permission shows our own copy', (tester) async {
+      final platform = FakeMobileScannerPlatform.install(
+        startError: MobileScannerErrorCode.permissionDenied,
+      );
+      await pumpWithError(tester, platform);
 
-  @override
-  double get textScaleFactor => 2;
+      expect(find.text("AnKi n'a pas accès à la caméra"), findsOneWidget);
+      expect(find.text('Camera permission denied.'), findsNothing);
+      expect(find.text('Autoriser la caméra'), findsOneWidget);
+      expect(find.text('Ouvrir les réglages'), findsOneWidget);
+    });
 
-  @override
-  TextScaler clamp({double minScaleFactor = 0, double maxScaleFactor = 2}) =>
-      this;
+    testWidgets('"Autoriser la caméra" starts the camera again', (
+      tester,
+    ) async {
+      final platform = FakeMobileScannerPlatform.install(
+        startError: MobileScannerErrorCode.permissionDenied,
+      );
+      await pumpWithError(tester, platform);
+      final startsBefore = platform.startCalls;
+
+      await tester.tap(find.text('Autoriser la caméra'));
+      await tester.pump();
+
+      expect(platform.startCalls, greaterThan(startsBefore));
+    });
+
+    testWidgets('"Ouvrir les réglages" opens the app settings', (tester) async {
+      final platform = FakeMobileScannerPlatform.install(
+        startError: MobileScannerErrorCode.permissionDenied,
+      );
+      final contacts = await pumpWithError(tester, platform);
+
+      await tester.tap(find.text('Ouvrir les réglages'));
+      await tester.pump();
+
+      expect(contacts.settingsOpened, 1);
+    });
+
+    testWidgets(
+      'touching "Autoriser la caméra" twice in a row throws nothing',
+      (tester) async {
+        final platform = FakeMobileScannerPlatform.install(
+          startError: MobileScannerErrorCode.permissionDenied,
+        );
+        await pumpWithError(tester, platform);
+
+        await tester.tap(find.text('Autoriser la caméra'));
+        await tester.tap(find.text('Autoriser la caméra'));
+        await tester.pump();
+        await tester.pump();
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets('touching "Réessayer" twice in a row throws nothing', (
+      tester,
+    ) async {
+      final other = FakeMobileScannerPlatform.install(
+        startError: MobileScannerErrorCode.genericError,
+      );
+      await pumpWithError(tester, other);
+      await tester.tap(find.text('Réessayer'));
+      await tester.tap(find.text('Réessayer'));
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('on resume with the permission denied, starts again', (
+      tester,
+    ) async {
+      final platform = FakeMobileScannerPlatform.install(
+        startError: MobileScannerErrorCode.permissionDenied,
+      );
+      await pumpWithError(tester, platform);
+      final startsBefore = platform.startCalls;
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      await tester.pump();
+
+      expect(platform.startCalls, greaterThan(startsBefore));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('on resume with another error, does not start again', (
+      tester,
+    ) async {
+      final platform = FakeMobileScannerPlatform.install(
+        startError: MobileScannerErrorCode.genericError,
+      );
+      await pumpWithError(tester, platform);
+      final startsBefore = platform.startCalls;
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+
+      expect(platform.startCalls, startsBefore);
+    });
+
+    testWidgets('another start error says the camera is unavailable', (
+      tester,
+    ) async {
+      final platform = FakeMobileScannerPlatform.install(
+        startError: MobileScannerErrorCode.genericError,
+      );
+      await pumpWithError(tester, platform);
+
+      expect(find.text('Caméra indisponible'), findsOneWidget);
+      expect(find.text('Réessayer'), findsOneWidget);
+      expect(find.text('Ouvrir les réglages'), findsNothing);
+
+      final startsBefore = platform.startCalls;
+      await tester.tap(find.text('Réessayer'));
+      await tester.pump();
+      expect(platform.startCalls, greaterThan(startsBefore));
+    });
+  });
 }

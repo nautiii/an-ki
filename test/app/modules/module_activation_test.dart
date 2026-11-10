@@ -19,7 +19,7 @@ final _gifts = AppModule(
   name: (_) => 'Cadeaux',
   description: (_) => 'Des idées',
   rootPath: '/gifts',
-  buildBranch: () => StatefulShellBranch(
+  buildBranch: (_) => StatefulShellBranch(
     routes: [GoRoute(path: '/gifts', builder: (_, _) => const SizedBox())],
   ),
 );
@@ -61,9 +61,7 @@ void main() {
     final all = [birthdaysModule, booksModule, probe];
 
     test('sends a path of an inactive module to the first active root', () {
-      final redirect = moduleRedirect(all, [
-        birthdaysModule,
-      ], AppRoutes.scanner);
+      final redirect = moduleRedirect(all, [birthdaysModule], AppRoutes.books);
 
       expect(redirect?.location, AppRoutes.birthdays);
       expect(redirect?.module, booksModule);
@@ -82,7 +80,7 @@ void main() {
         moduleRedirect(
           [booksModule, probe],
           [probe],
-          AppRoutes.scanner,
+          AppRoutes.books,
         )?.location,
         probeRoot,
       );
@@ -91,17 +89,17 @@ void main() {
     test('leaves a path of an active module or of no module alone', () {
       final active = [birthdaysModule, booksModule];
 
-      expect(moduleRedirect(all, active, AppRoutes.scanner), isNull);
+      expect(moduleRedirect(all, active, AppRoutes.books), isNull);
       expect(moduleRedirect(all, active, AppRoutes.settings), isNull);
       expect(moduleRedirect(all, active, AppRoutes.person('1')), isNull);
     });
 
     test('waits while the activation is unknown', () {
-      expect(moduleRedirect(all, null, AppRoutes.scanner), isNull);
+      expect(moduleRedirect(all, null, AppRoutes.books), isNull);
     });
 
     test('has nowhere to go without an active module', () {
-      expect(moduleRedirect(all, const [], AppRoutes.scanner), isNull);
+      expect(moduleRedirect(all, const [], AppRoutes.books), isNull);
     });
   });
 }

@@ -117,6 +117,17 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
   Modules (`/settings/modules`, a switch per module, « Toujours actif », « Effacer les données
   Livres… »), no bar with one module, the redirect snackbar; the tab already reads « Livres »
   with a book icon, over the old scanner until step 7.
+  Step 7 built on 2026-11-10 (A to Z list kept: 62/65 on the rubric against 44 for sections by
+  status): `/books` shelf (app bar « Livres », scan action, settings avatar; search; « À classer
+  (n) »; rows with cover or initials, S6 last volume, « Prochain : tome N · … » from
+  `nextVolumeStatus`, « Il vous manque … », one TalkBack sentence); `/books/series/:id` (header,
+  « Prochain » card with source and check date, holes as chips, number grid, menu: rename,
+  merge and delete with Annuler, mark complete or ongoing with Annuler; unknown id message);
+  the volume sheet (classify, remove with Annuler); `/books/inbox`; `/books/scan` pushed on the
+  root navigator, single scan as before, its own camera-denied and camera-unavailable states;
+  first run (moon, « Scanner un livre »; « Ajouter une série à la main » hidden until step 8),
+  skeleton, error with retry, offline banner after 3 s on the cache only. The carousel and
+  `scannedVolumesProvider` are gone.
   6. `FEAT(books): series and volumes`: domain, repositories (Firestore, BnF, Google), rules,
      emulator tests and deployment, eraser and guest transfer, legacy import;
   7. `FEAT(books): shelf and series pages`: shelf, series page, volume sheet, « À classer », the
