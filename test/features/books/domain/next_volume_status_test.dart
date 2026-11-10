@@ -220,4 +220,26 @@ void main() {
       );
     });
   });
+
+  group('upcomingVolumeNumber', () {
+    test('a complete series has no upcoming volume', () {
+      expect(upcomingVolumeNumber(entry(complete: true, next: info())), isNull);
+    });
+
+    test('takes the volume a source named when it is not owned', () {
+      expect(upcomingVolumeNumber(entry(next: info(number: 110))), 110);
+    });
+
+    test('an info on an owned volume is stale: last owned + 1', () {
+      expect(upcomingVolumeNumber(entry(next: info(number: 50))), 109);
+    });
+
+    test('without info it is the last owned + 1', () {
+      expect(upcomingVolumeNumber(entry()), 109);
+    });
+
+    test('an empty series starts at 1', () {
+      expect(upcomingVolumeNumber(entry(ownedUpTo: 0)), 1);
+    });
+  });
 }

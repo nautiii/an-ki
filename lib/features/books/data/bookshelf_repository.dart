@@ -8,6 +8,7 @@ import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/shelf_failure.dart';
 import 'package:an_ki/features/books/domain/shelf_takeover.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
+import 'package:an_ki/features/books/domain/volume_number.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -60,6 +61,16 @@ class BookshelfRepository {
       _volumes(uid)
           .snapshots()
           .map((snapshot) => snapshot.docs.map(_volumeFromDoc).toList())
+          .transform(_translateErrors());
+
+  /// Vrai tant que les séries de [uid] ne viennent que du cache local : hors
+  /// ligne, ou serveur pas encore joint. Suit les changements de
+  /// métadonnées : il repasse à faux dès que le serveur répond.
+  Stream<bool> watchFromCache(String uid) =>
+      _series(uid)
+          .snapshots(includeMetadataChanges: true)
+          .map((snapshot) => snapshot.metadata.isFromCache)
+          .distinct()
           .transform(_translateErrors());
 
   /// Séries et tomes de [uid], lus sur le serveur (import, reprise) : hors
@@ -186,6 +197,34 @@ class BookshelfRepository {
     ];
     await _firestore.writeInBatches(operations, (batch, write) => write(batch));
   });
+
+  /// Supprime la série [seriesId] et ses tomes rangés, dans un même lot
+  /// (au-delà de 500 opérations, plusieurs), la série en dernier. Un tome qui
+  /// la porte sans numéro valable (l'étagère le montre « à classer ») est
+  /// détaché, pas effacé. Les tomes sont lus du cache hors ligne, du serveur
+  /// sinon.
+  Future<void> deleteSeries(String uid, String seriesId) => _guard(() async {
+    final volumes = await _volumes(uid)
+        .where('seriesId', isEqualTo: seriesId)
+        .get();
+    final operations = <void Function(WriteBatch)>[
+      for (final doc in volumes.docs)
+        if (_isShelved(_int(doc.data()['number'])))
+          (batch) => batch.delete(doc.reference)
+        else
+          (batch) => batch.update(doc.reference, {
+            'seriesId': FieldValue.delete(),
+            'number': FieldValue.delete(),
+          }),
+      (batch) => batch.delete(_series(uid).doc(seriesId)),
+    ];
+    await _firestore.writeInBatches(operations, (batch, write) => write(batch));
+  });
+
+  /// Vrai pour un numéro que l'étagère range dans sa série (`shelfOf`).
+  /// Lu comme `_volumeFromDoc` le lit (`3.0` compte pour 3).
+  static bool _isShelved(int? number) =>
+      number != null && number >= 1 && number <= maxVolumeNumber;
 
   /// Marque la série [seriesId] terminée ([complete]) ou non.
   Future<void> setSeriesComplete(

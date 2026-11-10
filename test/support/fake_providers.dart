@@ -17,6 +17,7 @@ import 'package:an_ki/features/books/domain/legacy_import.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/domain/volume_identification.dart';
+import 'package:an_ki/features/books/domain/volume_number.dart';
 import 'package:an_ki/features/books/providers/volume_lookup.dart';
 import 'package:an_ki/features/reminders/data/reminder_preferences_repository.dart';
 import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
@@ -494,6 +495,9 @@ class FakeBookshelfRepository extends Fake implements BookshelfRepository {
   Stream<List<Volume>> watchVolumes(String uid) => Stream.value(const []);
 
   @override
+  Stream<bool> watchFromCache(String uid) => Stream.value(false);
+
+  @override
   Future<List<LegacyBook>> fetchLegacyBooks(String uid) async => const [];
 
   @override
@@ -548,6 +552,22 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
     if (failure case final error?) throw error;
     apply();
     _changes.add(null);
+  }
+
+  final _fromCache = StreamController<bool>.broadcast();
+  var _offline = false;
+
+  /// Simule la perte ([value] vrai) ou le retour du réseau : [watchFromCache]
+  /// le dit aussitôt.
+  set offline(bool value) {
+    _offline = value;
+    _fromCache.add(value);
+  }
+
+  @override
+  Stream<bool> watchFromCache(String uid) async* {
+    yield _offline;
+    yield* _fromCache.stream;
   }
 
   @override
@@ -616,6 +636,31 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
   @override
   Future<void> deleteVolume(String uid, String volumeId) =>
       _write(() => _volumes.remove(volumeId));
+
+  @override
+  Future<void> deleteSeries(String uid, String seriesId) => _write(() {
+    // Comme Firestore : les tomes rangés partent, ceux sans numéro valable
+    // sont détachés.
+    for (final volume in volumes.where((v) => v.seriesId == seriesId)) {
+      final number = volume.number;
+      if (number != null && number >= 1 && number <= maxVolumeNumber) {
+        _volumes.remove(volume.id);
+      } else {
+        _volumes[volume.id] = Volume(
+          id: volume.id,
+          isbn: volume.isbn,
+          title: volume.title,
+          authors: volume.authors,
+          imageUrl: volume.imageUrl,
+          publisher: volume.publisher,
+          publishedDate: volume.publishedDate,
+          lookup: volume.lookup,
+          addedAt: volume.addedAt,
+        );
+      }
+    }
+    _series.remove(seriesId);
+  });
 
   @override
   Future<void> renameSeries(

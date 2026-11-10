@@ -41,3 +41,14 @@ NextVolumeStatus nextVolumeStatus(ShelfEntry entry, DateTime today) {
       ? NextVolumeStatus.announced
       : NextVolumeStatus.released;
 }
+
+/// Numéro du prochain tome de [entry], celui dont [nextVolumeStatus] parle :
+/// le tome qu'une source a renseigné s'il n'est pas déjà possédé, sinon le
+/// suivant du dernier possédé (1 pour une série vide) ; null pour une série
+/// close.
+int? upcomingVolumeNumber(ShelfEntry entry) {
+  if (entry.series.complete) return null;
+  final info = entry.series.next;
+  if (info != null && !entry.owned.contains(info.number)) return info.number;
+  return (entry.last ?? 0) + 1;
+}

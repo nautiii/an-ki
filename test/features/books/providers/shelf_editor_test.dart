@@ -491,6 +491,104 @@ void main() {
       expect(shelf.volumes, isEmpty);
     });
 
+    test('deletes a series with its volumes', () async {
+      final container = makeContainer();
+      await settle(container);
+
+      await editorOf(container).deleteSeries('s2');
+
+      expect(shelf.series.map((s) => s.id), ['s1']);
+      expect(shelf.volumes, isEmpty);
+    });
+
+    test('a failed series deletion is published as an error', () async {
+      shelf = RecordingBookshelfRepository(
+        series: const [onePiece],
+        failure: ShelfFailure.denied,
+      );
+      final container = makeContainer();
+      await settle(container);
+
+      await editorOf(container).deleteSeries('s1');
+
+      expect(container.read(shelfEditorProvider).error, ShelfFailure.denied);
+    });
+
+    test(
+      'detaches the volumes of a deleted series that have no number',
+      () async {
+        shelf = RecordingBookshelfRepository(
+          series: const [onePiece],
+          volumes: [
+            Volume(
+              id: 'n',
+              seriesId: 's1',
+              number: 2,
+              title: 'T2',
+              authors: const [],
+              lookup: LookupState.found,
+              addedAt: _now,
+            ),
+            Volume(
+              id: 'x',
+              seriesId: 's1',
+              title: 'Sans numéro',
+              authors: const [],
+              lookup: LookupState.found,
+              addedAt: _now,
+            ),
+          ],
+        );
+        final container = makeContainer();
+        await settle(container);
+
+        await editorOf(container).deleteSeries('s1');
+
+        expect(shelf.volumes.map((v) => v.id), ['x']);
+        expect(shelf.volumes.single.seriesId, isNull);
+      },
+    );
+
+    test('an action started by another account writes nothing', () async {
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      await editor.deleteSeries('s1', uid: 'other');
+      await editor.removeVolume('v1', uid: 'other');
+      await editor.mergeSeries(sourceId: 's2', targetId: 's1', uid: 'other');
+      await editor.setComplete('s1', complete: true, uid: 'other');
+
+      expect(shelf.series.map((s) => s.id), ['s1', 's2']);
+      expect(shelf.volumes.single.seriesId, 's2');
+      expect(shelf.series.first.complete, isFalse);
+    });
+
+    test('an action started by the current account is written', () async {
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      await editor.setComplete('s1', complete: true, uid: 'u1');
+      await editor.removeVolume('v1', uid: 'u1');
+      await editor.mergeSeries(sourceId: 's2', targetId: 's1', uid: 'u1');
+      await editor.deleteSeries('s1', uid: 'u1');
+
+      expect(shelf.series, isEmpty);
+      expect(shelf.volumes, isEmpty);
+    });
+
+    test('signed out, an action started earlier writes nothing', () async {
+      final container = makeContainer(uid: null);
+      await settle(container);
+
+      await editorOf(container).deleteSeries('s1', uid: 'u1');
+      await editorOf(container).removeVolume('v1', uid: 'u1');
+
+      expect(shelf.series, hasLength(2));
+      expect(shelf.volumes, hasLength(1));
+    });
+
     test('creates a series and returns its id at once', () async {
       final container = makeContainer();
       await settle(container);
