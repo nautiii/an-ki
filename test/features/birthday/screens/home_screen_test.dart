@@ -9,6 +9,7 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
+import 'package:an_ki/features/birthday/widgets/agenda_list.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_tile.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
@@ -252,6 +253,25 @@ void main() {
     expect(
       tester.getBottomLeft(find.text('Hier')).dy,
       lessThan(tester.getTopLeft(find.text('Dans les 7 jours')).dy),
+    );
+  });
+
+  testWidgets('leaves the gap under the hero to the first section header', (
+    tester,
+  ) async {
+    await tester.pumpHarness(
+      const HomeScreen(),
+      overrides: overrides(birthdays: agenda),
+    );
+    await tester.pumpAndSettle();
+
+    // Sa marge haute fait l'écart, comme entre deux mois : rien en plus.
+    expect(
+      tester.getTopLeft(find.byType(AgendaSectionHeader).first).dy,
+      moreOrLessEquals(
+        tester.getBottomLeft(find.byType(NextBirthdayCard)).dy,
+        epsilon: 0.5,
+      ),
     );
   });
 

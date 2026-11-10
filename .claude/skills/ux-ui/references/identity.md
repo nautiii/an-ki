@@ -179,6 +179,8 @@ lg 24 · xl 32 · xxl 48`.
 - Inside a component (icon ↔ label, chip padding, list-row rhythm): 4, 8, 12 allowed.
 - Never 2, 6, 10, 14, 20 (except a 1–2 dp optical nudge, commented).
 - Screen gutter **24** (*ma*: calm needs air). Dense grids may use 16.
+- Agenda: month headers are list subheaders; their own top margin (16) is the gap, under the
+  hero as between two months, with no extra `SizedBox` (exception to the section gap below).
 - Section gap 24–32; card-to-card 12; content above the floating nav pill: pad by
   `MediaQuery.paddingOf(context).bottom` (the shell's `extendBody` puts the pill in it), never a
   constant.

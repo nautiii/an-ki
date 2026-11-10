@@ -94,7 +94,6 @@ class HomeScreen extends ConsumerWidget {
                     // Hier encore à souhaiter : sous le héros, qui reste
                     // « qui est le prochain ».
                     const BelatedWishes(),
-                    const SizedBox(height: AppSpacing.md),
                   ],
                 ),
               ),
@@ -187,7 +186,7 @@ class _HomeSkeleton extends StatelessWidget {
           height: NextBirthdayCard.skeletonHeight,
           radius: AppRadii.lg,
         ),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.md),
         const Align(
           alignment: AlignmentDirectional.centerStart,
           child: SkeletonBox(width: 120, height: 20),
