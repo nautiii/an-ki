@@ -51,7 +51,7 @@ test/                         # mirrors lib/ file by file
 ```
 
 Every folder is optional until it has a file: a feature with no screen has no `screens/`. Start
-flat inside a layer; group by sub-concept (`widgets/calendar/`) once a layer folder passes ~10
+flat inside a layer; group by sub-concept (`widgets/agenda/`) once a layer folder passes ~10
 files.
 
 ## 2. Zones

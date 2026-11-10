@@ -75,7 +75,7 @@ void main() {
   group('occurrenceIn', () {
     test('is the same day and month in the given year', () {
       expect(
-        _born(DateTime(1990, 10, 14)).occurrenceIn(2027),
+        _born(DateTime(1990, 10, 14)).date.occurrenceIn(2027),
         DateTime(2027, 10, 14),
       );
     });
@@ -83,8 +83,8 @@ void main() {
     test('moves a 29 February birthday to 1 March in common years', () {
       final leapling = _born(DateTime(2000, 2, 29));
 
-      expect(leapling.occurrenceIn(2027), DateTime(2027, 3)); // 1er mars
-      expect(leapling.occurrenceIn(2028), DateTime(2028, 2, 29));
+      expect(leapling.date.occurrenceIn(2027), DateTime(2027, 3)); // 1er mars
+      expect(leapling.date.occurrenceIn(2028), DateTime(2028, 2, 29));
     });
   });
 
@@ -136,26 +136,6 @@ void main() {
     });
   });
 
-  group('ageOn', () {
-    test('counts the birthday from its day', () {
-      expect(_born(DateTime(1990, 6, 15)).ageOn(today), 36);
-    });
-
-    test('is one less until the birthday of the year', () {
-      expect(_born(DateTime(1990, 6, 16)).ageOn(today), 35);
-      expect(_born(DateTime(1990, 12)).ageOn(today), 35);
-    });
-
-    test('is complete once the birthday has passed', () {
-      expect(_born(DateTime(1990, 6, 14)).ageOn(today), 36);
-      expect(_born(DateTime(1990)).ageOn(today), 36);
-    });
-
-    test('is unknown without a birth year', () {
-      expect(_bornOn(6, 14).ageOn(today), isNull);
-    });
-  });
-
   group('sortedByNext', () {
     test('orders from the closest to the furthest birthday', () {
       final passed = _born(DateTime(1990, 6), id: 'passed');
@@ -198,7 +178,6 @@ void main() {
       expect(date.nextOccurrence(today), DateTime(2026, 6, 20));
       expect(date.daysUntilNext(today), 5);
       expect(date.turningAge(today), 36);
-      expect(date.ageOn(today), 35);
       expect(const BirthDate(month: 6, day: 20).turningAge(today), isNull);
     });
   });

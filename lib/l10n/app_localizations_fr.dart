@@ -448,12 +448,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get addBirthday => 'Ajouter un anniversaire';
 
   @override
-  String get viewAgenda => 'Agenda';
-
-  @override
-  String get viewCalendar => 'Calendrier';
-
-  @override
   String get agendaSoon => 'Dans les 7 jours';
 
   @override

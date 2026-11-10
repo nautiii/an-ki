@@ -10,7 +10,7 @@ a better pattern, score it with the rubric in SKILL.md and explain the choice.
 - C. Capture a birthday (core flow)
 - D. Edit, delete, quick actions
 - E. Search & filters
-- F. Calendar
+- F. Calendar (removed)
 - G. Empty, loading, error, offline states
 - H. Onboarding, auth, permissions
 - I. Reminders & retention (ethical)
@@ -91,7 +91,7 @@ the name, « Suivant », four digits, « OK ».
    name is empty or already a group's; the new group arrives ticked (shipped 2026-10-24).
 4. CTA enabled as soon as name + day/month are valid; keyboard « OK » saves; `lightImpact` on
    save. Editing reuses the sheet, prefilled (« 15/10 » for a yearless birthday).
-- Without a year no age is shown anywhere (agenda line, hero, calendar day sheet): never an
+- Without a year no age is shown anywhere (agenda line, hero, person page): never an
   invented one.
 - Bulk path: **import from contacts** is the fastest value. Shipped in step 5.2: the empty home
   is the invite (« Choisir dans mes contacts » first, a line on what AnKi reads), and
@@ -128,17 +128,11 @@ the name, « Suivant », four digits, « OK ».
   create-from-search): zero dead ends.
 - If the list grows (100+), upgrade to `SearchAnchor` with recent searches.
 
-## F. Calendar
+## F. Calendar (removed)
 
-- Month grid **aligned on weekdays** with a header row of narrow weekday names, first day from
-  `MaterialLocalizations.of(context).firstDayOfWeekIndex` (Monday in FR). Today = ring; days with
-  birthdays = dot(s) or count badge using category tones (≥ 3:1) + `Semantics` label
-  « 9 octobre, 2 anniversaires ».
-- Swipe between months, « Aujourd'hui » chip when away from the current month, tap a day →
-  bottom sheet with that day's people.
-- Refs: Google Calendar month view, Apple Calendar.
-- Avoid: grids that start on the 1st regardless of weekday (the grid follows the locale's first
-  weekday), color-only markers.
+The month grid and its Agenda | Calendrier switch were removed on 2026-11-10: the home keeps
+only the agenda by month (§B), which already answers "who's next" and reads a whole year.
+Don't bring a month grid back without a user job it serves better than the agenda.
 
 ## G. Empty, loading, error, offline
 

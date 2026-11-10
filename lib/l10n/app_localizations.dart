@@ -824,18 +824,6 @@ abstract class AppLocalizations {
   /// **'Ajouter un anniversaire'**
   String get addBirthday;
 
-  /// Segment de l'accueil : liste des anniversaires par période
-  ///
-  /// In fr, this message translates to:
-  /// **'Agenda'**
-  String get viewAgenda;
-
-  /// Segment de l'accueil : vue calendrier
-  ///
-  /// In fr, this message translates to:
-  /// **'Calendrier'**
-  String get viewCalendar;
-
   /// En-tête de la première section de l'agenda
   ///
   /// In fr, this message translates to:

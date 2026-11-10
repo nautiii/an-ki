@@ -10,7 +10,6 @@ import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_tile.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_calendar.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -211,16 +210,6 @@ void main() {
 
       expect(backupCard, findsNothing);
     });
-
-    testWidgets('leaves the calendar alone', (tester) async {
-      await tester.pumpHarness(home, overrides: guestOverrides(agenda));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Calendrier'));
-      await tester.pumpAndSettle();
-
-      expect(backupCard, findsNothing);
-    });
   });
 
   testWidgets('lists the agenda by period, the hero aside', (tester) async {
@@ -245,7 +234,7 @@ void main() {
     expect(find.byType(AgendaTile, skipOffstage: false), findsNWidgets(4));
   });
 
-  testWidgets('recalls yesterday between the hero and the views', (
+  testWidgets('recalls yesterday between the hero and the agenda', (
     tester,
   ) async {
     final yesterday = onDay(-1, id: 'y');
@@ -262,7 +251,7 @@ void main() {
     );
     expect(
       tester.getBottomLeft(find.text('Hier')).dy,
-      lessThan(tester.getTopLeft(find.text('Agenda')).dy),
+      lessThan(tester.getTopLeft(find.text('Dans les 7 jours')).dy),
     );
   });
 
@@ -293,24 +282,6 @@ void main() {
       isSemantics(isHeader: true),
     );
     semantics.dispose();
-  });
-
-  testWidgets('switches between the agenda and the calendar', (tester) async {
-    await tester.pumpHarness(
-      const HomeScreen(),
-      overrides: overrides(birthdays: agenda),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Calendrier'));
-    await tester.pumpAndSettle();
-    expect(find.byType(BirthdayCalendar), findsOneWidget);
-    expect(find.text('Dans les 7 jours'), findsNothing);
-
-    await tester.tap(find.text('Agenda'));
-    await tester.pumpAndSettle();
-    expect(find.byType(BirthdayCalendar), findsNothing);
-    expect(find.text('Dans les 7 jours'), findsOneWidget);
   });
 
   testWidgets('the app bar opens the search, the form and the settings', (

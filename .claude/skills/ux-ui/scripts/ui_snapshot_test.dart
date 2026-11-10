@@ -58,7 +58,6 @@ import '../../../test/support/network_image_mock.dart';
 // Recettes (ajouter l'import de l'écran) :
 //   onglet      → build: () => const AppAt(AppRoutes.scanner),  // l'app routée, barre comprise
 //                 prepare: () => FakeMobileScannerPlatform.install()   // ../../../test/support/fake_mobile_scanner_platform.dart
-//   calendrier  → act: (t) => t.tap(find.byIcon(Icons.calendar_month_rounded))
 //   chargement  → overrides: sampleOverrides(isLoading: true)
 //   paramètres  → build: () => const SettingsScreen(),   // features/settings/screens/
 //                 prepare: () => FakeBiometricChannels().install()   // ../../../test/support/platform_mocks.dart

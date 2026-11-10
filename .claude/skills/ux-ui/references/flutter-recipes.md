@@ -85,7 +85,7 @@ Gmail pattern, shipped in step 2: the person disappears at once, a snackbar offe
 happens only when the snackbar closes without undo.
 
 - `pendingDeletionsProvider` (`birthday_provider.dart`): a session-scoped set of hidden ids;
-  `birthdaysListProvider` leaves them out, so the hero, the agenda, the calendar and the search
+  `birthdaysListProvider` leaves them out, so the hero, the agenda and the search
   all hide the person at once.
 - `deleteWithUndo(context, birthday)` (`widgets/birthday_deletion.dart`): hides, shows the
   snackbar (`persist: false`, 5 s, 10 s with TalkBack), then on any close but the action calls
