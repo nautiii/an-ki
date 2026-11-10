@@ -26,7 +26,10 @@ architecture skill, `references/patterns.md` §12.
   running module mounted and cross-fades the current one, so a tab keeps its scroll and state; a
   disabled module's branch is unmounted (screens and subscriptions released) and reopens at its
   root. The bar shows the running modules (`runningModulesProvider`); one module, no bar. A page
-  pushed from a tab (`/settings`, `/search`) is a top-level route that covers the tabs.
+  pushed from a tab (`/settings`, `/search`) is a top-level route that covers the tabs; a
+  module's own page that covers them stays under its `rootPath`, a sub-route of the branch with
+  `parentNavigatorKey` set to the root key `buildBranch` receives (`/books/scan`,
+  `/books/inbox`, `/books/series/:id`), so `moduleRedirect` still gates it.
 - Modules gate their paths: after `accessRedirect`, the pure `moduleRedirect` sends a location
   under an inactive module's `rootPath` to the first active module's root, and the shell says
   « Le module Livres est désactivé · Activer » (`moduleRedirectNoticeProvider`). While the profile

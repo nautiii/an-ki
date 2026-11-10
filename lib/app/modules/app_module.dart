@@ -36,8 +36,13 @@ class const AppModule({
 
   /// Construit la branche de son onglet. Une fonction plutôt qu'une branche :
   /// une `StatefulShellBranch` porte la clé de son navigateur, qui ne doit
-  /// servir qu'à un seul routeur (chaque `ProviderScope` crée le sien).
-  required final StatefulShellBranch Function() buildBranch,
+  /// servir qu'à un seul routeur (chaque `ProviderScope` crée le sien). Elle
+  /// reçoit la clé du navigateur racine de ce routeur : une page du module
+  /// qui doit couvrir les onglets la prend pour `parentNavigatorKey`.
+  required final StatefulShellBranch Function(
+    GlobalKey<NavigatorState> rootNavigatorKey,
+  )
+  buildBranch,
 
   /// Sa section des Réglages, posée par `app/` entre les préférences et la
   /// sécurité ; null s'il n'en a pas.

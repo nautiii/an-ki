@@ -611,11 +611,6 @@
   "@contactsPrivacy": {
     "description": "Sous l'invitation à importer : ce que lit AnKi dans le répertoire"
   },
-  "noBooksMessage": "Scannez le code-barres d'un livre pour garder une idée de cadeau.",
-  "@noBooksMessage": {
-    "description": "Message de la liste de livres vide"
-  },
-  "bookScannerTitle": "Scanner de livres",
   "bookTitle": "Titre",
   "bookUntitled": "Titre inconnu",
   "@bookUntitled": {
@@ -631,7 +626,6 @@
     }
   },
   "bookNotFound": "Livre non trouvé",
-  "noBooksYet": "Aucun livre pour l'instant",
   "deleteAccount": "Supprimer mon compte",
   "deleteAccountTitle": "Suppression du compte",
   "deleteAccountConfirmation": "Êtes-vous sûr de vouloir supprimer votre compte\u00a0? Cette action est irréversible et supprimera toutes vos données.",
@@ -978,5 +972,584 @@
   "@remindersOffHidden": {
     "description": "Snackbar après avoir masqué la carte : où retrouver les rappels"
   },
-  "remindersBlocked": "Bloqués dans les réglages du téléphone."
+  "remindersBlocked": "Bloqués dans les réglages du téléphone.",
+  "scanBook": "Scanner un livre",
+  "@scanBook": {
+    "description": "Action de l'étagère (icône et état vide) et titre du scanner : ouvre la caméra"
+  },
+  "shelfSearchHint": "Rechercher une série",
+  "@shelfSearchHint": {
+    "description": "Indication du champ de recherche de l'étagère"
+  },
+  "shelfNoResults": "Aucune série pour «\u00a0{query}\u00a0»",
+  "@shelfNoResults": {
+    "description": "Étagère : la recherche ne trouve aucune série",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "shelfInbox": "À classer ({count})",
+  "@shelfInbox": {
+    "description": "Carte de l'étagère et titre de la page : tomes sans série ni numéro",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shelfInboxHint": "{count, plural, =1{Un tome attend sa série} other{{count} tomes attendent leur série}}",
+  "@shelfInboxHint": {
+    "description": "Sous-titre de la carte « À classer » de l'étagère",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shelfEmptyTitle": "Votre étagère vous attend",
+  "@shelfEmptyTitle": {
+    "description": "Étagère vide (premier lancement) : titre"
+  },
+  "shelfEmptyMessage": "Scannez vos livres\u00a0: AnKi retient le dernier tome de chaque série et ceux qu'il vous manque.",
+  "@shelfEmptyMessage": {
+    "description": "Étagère vide (premier lancement) : pourquoi scanner"
+  },
+  "shelfErrorTitle": "Étagère indisponible",
+  "@shelfErrorTitle": {
+    "description": "Étagère : la lecture a échoué (suivi du message réseau et de « Réessayer »)"
+  },
+  "shelfLoading": "Chargement de l'étagère",
+  "@shelfLoading": {
+    "description": "Lu par TalkBack sur le squelette de l'étagère"
+  },
+  "shelfOffline": "Hors ligne · dates non actualisées",
+  "@shelfOffline": {
+    "description": "Bandeau discret des pages Livres hors ligne"
+  },
+  "seriesComplete": "Série terminée",
+  "@seriesComplete": {
+    "description": "Ligne d'une série close (étagère et page de la série)"
+  },
+  "seriesNextOn": "Prochain\u00a0: tome {number} · {date}",
+  "@seriesNextOn": {
+    "description": "Ligne d'une série : prochain tome et sa date de sortie (« 3 décembre », « décembre 2026 »)",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "seriesNextReleased": "Prochain\u00a0: tome {number} · paru",
+  "@seriesNextReleased": {
+    "description": "Ligne d'une série : le prochain tome est sorti",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "seriesNextUnknown": "Prochain\u00a0: tome {number} · date inconnue",
+  "@seriesNextUnknown": {
+    "description": "Ligne d'une série : aucune source ne connaît la date du prochain tome (jamais « non annoncé »)",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "seriesHoles": "Il vous manque {numbers}",
+  "@seriesHoles": {
+    "description": "Trous d'une série : numéros séparés par des virgules (« 13, 14 »)",
+    "placeholders": {
+      "numbers": {
+        "type": "String"
+      }
+    }
+  },
+  "seriesHolesMore": "{count, plural, =1{Il vous manque {numbers} et 1 autre} other{Il vous manque {numbers} et {count} autres}}",
+  "@seriesHolesMore": {
+    "description": "Trous d'une série, au-delà de cinq : les premiers, puis combien d'autres",
+    "placeholders": {
+      "numbers": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "numberListLast": "{head} et {last}",
+  "@numberListLast": {
+    "description": "Fin d'une liste de numéros lue par TalkBack (« 13, 14 et 15 »)",
+    "placeholders": {
+      "head": {
+        "type": "String"
+      },
+      "last": {
+        "type": "String"
+      }
+    }
+  },
+  "a11ySeriesLast": "dernier tome {number}",
+  "@a11ySeriesLast": {
+    "description": "TalkBack, ligne d'une série : le dernier tome possédé",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "a11ySeriesEmpty": "aucun tome",
+  "@a11ySeriesEmpty": {
+    "description": "TalkBack, ligne d'une série sans tome possédé"
+  },
+  "a11yNextAnnounced": "prochain tome {number}, sortie le {date}",
+  "@a11yNextAnnounced": {
+    "description": "TalkBack : le prochain tome a une date au jour",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "a11yNextAnnouncedMonth": "prochain tome {number}, sortie en {month}",
+  "@a11yNextAnnouncedMonth": {
+    "description": "TalkBack : le prochain tome a une date au mois (« décembre 2026 »)",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "a11yNextReleased": "prochain tome {number}, paru",
+  "@a11yNextReleased": {
+    "description": "TalkBack : le prochain tome est sorti",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "a11yNextUnknown": "prochain tome {number}, date inconnue",
+  "@a11yNextUnknown": {
+    "description": "TalkBack : la date du prochain tome est inconnue",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "a11yNextComplete": "série terminée",
+  "@a11yNextComplete": {
+    "description": "TalkBack : la série est close"
+  },
+  "a11ySeriesHoles": "{count, plural, =1{il vous manque le tome {numbers}} other{il vous manque les tomes {numbers}}}",
+  "@a11ySeriesHoles": {
+    "description": "TalkBack : les tomes manquants (« 13 et 14 »)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "numbers": {
+        "type": "String"
+      }
+    }
+  },
+  "nextCardTitle": "Prochain",
+  "@nextCardTitle": {
+    "description": "Page d'une série : titre de la carte du prochain tome"
+  },
+  "nextCardReleased": "Tome {number} paru · vous ne l'avez pas",
+  "@nextCardReleased": {
+    "description": "Carte « Prochain » : le tome est sorti",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "nextCardAnnounced": "Tome {number} · sortie le {date}",
+  "@nextCardAnnounced": {
+    "description": "Carte « Prochain » : date au jour",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "nextCardAnnouncedMonth": "Tome {number} · sortie en {month}",
+  "@nextCardAnnouncedMonth": {
+    "description": "Carte « Prochain » : date au mois",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "nextCardUnknown": "Tome {number} · date inconnue",
+  "@nextCardUnknown": {
+    "description": "Carte « Prochain » : aucune source ne connaît la date",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "nextCardComplete": "Série terminée\u00a0: rien à attendre",
+  "@nextCardComplete": {
+    "description": "Carte « Prochain » d'une série close"
+  },
+  "nextSourceBnf": "selon la BnF",
+  "@nextSourceBnf": {
+    "description": "Carte « Prochain » : la source est la Bibliothèque nationale de France"
+  },
+  "nextSourceGoogleBooks": "selon Google Books",
+  "@nextSourceGoogleBooks": {
+    "description": "Carte « Prochain » : la source est Google Books"
+  },
+  "nextSourceUser": "date saisie par vous",
+  "@nextSourceUser": {
+    "description": "Carte « Prochain » : l'utilisateur a saisi la date"
+  },
+  "nextSourceChecked": "{source} · vérifié le {date}",
+  "@nextSourceChecked": {
+    "description": "Carte « Prochain » : la source et quand elle a été consultée (« 8 nov. »)",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "seriesHolesTitle": "Il vous manque",
+  "@seriesHolesTitle": {
+    "description": "Page d'une série : titre des tomes manquants (puces)"
+  },
+  "seriesHoleChip": "Tome {number}",
+  "@seriesHoleChip": {
+    "description": "Puce d'un tome manquant ; aussi le titre d'un tome sans titre",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "seriesVolumesTitle": "Vos tomes",
+  "@seriesVolumesTitle": {
+    "description": "Page d'une série : titre de la grille des numéros"
+  },
+  "seriesVolumeOwned": "Tome {number}, possédé",
+  "@seriesVolumeOwned": {
+    "description": "TalkBack, case de la grille : tome possédé",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "seriesVolumeMissing": "Tome {number}, manquant",
+  "@seriesVolumeMissing": {
+    "description": "TalkBack, case de la grille : tome manquant",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "seriesNoVolume": "Aucun tome de cette série pour l'instant.",
+  "@seriesNoVolume": {
+    "description": "Page d'une série sans tome possédé, à la place de la grille"
+  },
+  "seriesMenu": "Options de la série",
+  "@seriesMenu": {
+    "description": "Infobulle du menu de la page d'une série"
+  },
+  "seriesRename": "Renommer",
+  "@seriesRename": {
+    "description": "Menu d'une série, et bouton du dialogue de renommage"
+  },
+  "seriesMerge": "Fusionner avec une autre série",
+  "@seriesMerge": {
+    "description": "Menu d'une série : ses tomes rejoignent une autre série"
+  },
+  "seriesMarkComplete": "Marquer comme terminée",
+  "@seriesMarkComplete": {
+    "description": "Menu d'une série en cours"
+  },
+  "seriesMarkOngoing": "Marquer comme en cours",
+  "@seriesMarkOngoing": {
+    "description": "Menu d'une série close"
+  },
+  "seriesDelete": "Supprimer la série",
+  "@seriesDelete": {
+    "description": "Menu d'une série : la série et ses tomes, avec Annuler"
+  },
+  "seriesRenameTitle": "Renommer la série",
+  "@seriesRenameTitle": {
+    "description": "Titre du dialogue de renommage d'une série"
+  },
+  "seriesNameLabel": "Nom de la série",
+  "@seriesNameLabel": {
+    "description": "Libellé du champ nom d'une série"
+  },
+  "seriesNameRequired": "Donnez un nom à la série",
+  "@seriesNameRequired": {
+    "description": "Erreur du champ nom d'une série resté vide"
+  },
+  "seriesMergeTitle": "Fusionner {name} avec…",
+  "@seriesMergeTitle": {
+    "description": "Titre de la feuille de fusion : choisir la série qui reçoit les tomes",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "seriesMergeHint": "Ses tomes rejoignent la série choisie, qui garde son nom.",
+  "@seriesMergeHint": {
+    "description": "Feuille de fusion : ce qui va se passer"
+  },
+  "seriesMerged": "{source} fusionnée dans {target}",
+  "@seriesMerged": {
+    "description": "Snackbar après une fusion, avec Annuler",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "seriesMarkedComplete": "{name} marquée terminée",
+  "@seriesMarkedComplete": {
+    "description": "Snackbar après « Marquer comme terminée », avec Annuler",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "seriesMarkedOngoing": "{name} de nouveau en cours",
+  "@seriesMarkedOngoing": {
+    "description": "Snackbar après « Marquer comme en cours », avec Annuler",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "seriesDeleted": "{count, plural, =0{{name} supprimée} =1{{name} supprimée, avec son tome} other{{name} supprimée, avec ses {count} tomes}}",
+  "@seriesDeleted": {
+    "description": "Snackbar après la suppression d'une série, avec Annuler",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "seriesMissingTitle": "Série introuvable",
+  "@seriesMissingTitle": {
+    "description": "Page d'une série inconnue (supprimée, fusionnée, autre compte) : titre"
+  },
+  "seriesMissingMessage": "Elle a peut-être été supprimée ou fusionnée avec une autre.",
+  "@seriesMissingMessage": {
+    "description": "Page d'une série inconnue : explication"
+  },
+  "seriesBackToShelf": "Retour à l'étagère",
+  "@seriesBackToShelf": {
+    "description": "Page d'une série inconnue : action"
+  },
+  "seriesErrorTitle": "Série indisponible",
+  "@seriesErrorTitle": {
+    "description": "Page d'une série : la lecture a échoué"
+  },
+  "shelfWriteError": "La modification n'a pas pu être enregistrée. Vérifiez votre connexion et réessayez.",
+  "@shelfWriteError": {
+    "description": "Snackbar : une écriture sur l'étagère a échoué"
+  },
+  "volumeIsbn": "ISBN {isbn}",
+  "@volumeIsbn": {
+    "description": "Feuille d'un tome, ligne À classer : son ISBN",
+    "placeholders": {
+      "isbn": {
+        "type": "String"
+      }
+    }
+  },
+  "volumePublished": "Paru le {date}",
+  "@volumePublished": {
+    "description": "Feuille d'un tome : date de parution au jour",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "volumePublishedIn": "Paru en {period}",
+  "@volumePublishedIn": {
+    "description": "Feuille d'un tome : date de parution au mois ou à l'année (« juin 2013 », « 2013 »)",
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "volumeInSeries": "{series} · tome {number}",
+  "@volumeInSeries": {
+    "description": "Feuille d'un tome rangé : sa série et son numéro",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "volumePending": "Infos à compléter",
+  "@volumePending": {
+    "description": "Tome scanné hors ligne, pas encore cherché dans les catalogues"
+  },
+  "volumeNotFound": "Inconnu des catalogues",
+  "@volumeNotFound": {
+    "description": "Tome qu'aucun catalogue ne connaît"
+  },
+  "volumeClassify": "Changer de série ou de numéro",
+  "@volumeClassify": {
+    "description": "Feuille d'un tome rangé : ouvre le classement"
+  },
+  "volumeSort": "Classer",
+  "@volumeSort": {
+    "description": "Feuille d'un tome à classer : ouvre le classement"
+  },
+  "volumeRemove": "Retirer de la collection",
+  "@volumeRemove": {
+    "description": "Feuille d'un tome : le retire, avec Annuler"
+  },
+  "volumeRemoved": "{title} retiré de la collection",
+  "@volumeRemoved": {
+    "description": "Snackbar après le retrait d'un tome, avec Annuler",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "classifyTitle": "Classer ce tome",
+  "@classifyTitle": {
+    "description": "Titre de la feuille de classement d'un tome"
+  },
+  "classifySeries": "Série",
+  "@classifySeries": {
+    "description": "Feuille de classement : titre de la liste des séries"
+  },
+  "classifyNewSeries": "Nouvelle série",
+  "@classifyNewSeries": {
+    "description": "Feuille de classement : choix d'une série à créer"
+  },
+  "classifyNumberLabel": "Numéro du tome",
+  "@classifyNumberLabel": {
+    "description": "Feuille de classement : champ du numéro"
+  },
+  "classifyNumberError": "Un numéro entre 1 et {max}",
+  "@classifyNumberError": {
+    "description": "Feuille de classement : numéro invalide",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "classifySave": "Ranger",
+  "@classifySave": {
+    "description": "Feuille de classement : enregistre la série et le numéro"
+  },
+  "inboxEmptyTitle": "Tout est rangé",
+  "@inboxEmptyTitle": {
+    "description": "Page À classer vide : titre"
+  },
+  "inboxEmptyMessage": "Chaque tome a trouvé sa série.",
+  "@inboxEmptyMessage": {
+    "description": "Page À classer vide : message"
+  },
+  "scanHint": "Visez le code-barres au dos du livre",
+  "@scanHint": {
+    "description": "Scanner : consigne sous le viseur"
+  },
+  "cameraDeniedTitle": "AnKi n'a pas accès à la caméra",
+  "@cameraDeniedTitle": {
+    "description": "Scanner : la permission caméra est refusée (titre)"
+  },
+  "cameraDeniedMessage": "Autorisez la caméra pour scanner le code-barres de vos livres. Si elle reste bloquée, ouvrez les réglages de l'app.",
+  "@cameraDeniedMessage": {
+    "description": "Scanner : la permission caméra est refusée (comment faire)"
+  },
+  "cameraAllow": "Autoriser la caméra",
+  "@cameraAllow": {
+    "description": "Scanner : redemande la permission caméra"
+  },
+  "cameraUnavailableTitle": "Caméra indisponible",
+  "@cameraUnavailableTitle": {
+    "description": "Scanner : la caméra n'a pas démarré (autre erreur que la permission)"
+  },
+  "cameraUnavailableMessage": "La caméra n'a pas pu démarrer. Fermez les autres apps qui l'utilisent et réessayez.",
+  "@cameraUnavailableMessage": {
+    "description": "Scanner : la caméra n'a pas démarré (comment faire)"
+  },
+  "seriesVolumeOwnedEditions": "Tome {number}, possédé en {count} éditions",
+  "@seriesVolumeOwnedEditions": {
+    "description": "TalkBack, case de la grille : un numéro possédé en plusieurs éditions",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "volumeEditionsTitle": "Tome {number}\u00a0: quelle édition\u00a0?",
+  "@volumeEditionsTitle": {
+    "description": "Titre de la feuille qui choisit l'édition d'un numéro possédé plusieurs fois",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "a11ySeriesHolesMore": "il vous manque les tomes {numbers} et {count} autres",
+  "@a11ySeriesHolesMore": {
+    "description": "TalkBack : les cinq premiers tomes manquants, puis combien d'autres",
+    "placeholders": {
+      "numbers": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

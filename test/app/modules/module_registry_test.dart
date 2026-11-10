@@ -35,7 +35,7 @@ void main() {
       ['birthdays', 'books'],
     );
     expect(birthdaysModule.rootPath, AppRoutes.birthdays);
-    expect(booksModule.rootPath, AppRoutes.scanner);
+    expect(booksModule.rootPath, AppRoutes.books);
   });
 
   test('each module has its own id and its own root path', () {
@@ -61,7 +61,9 @@ void main() {
 
   test('every page of a tab sits under its module root', () {
     for (final module in appModules) {
-      final paths = _paths(module.buildBranch().routes).toList();
+      final paths = _paths(
+        module.buildBranch(GlobalKey<NavigatorState>()).routes,
+      ).toList();
       expect(paths.first, module.rootPath, reason: module.id);
       for (final path in paths) {
         expect(
@@ -77,8 +79,8 @@ void main() {
     // La clé du navigateur d'une branche ne sert qu'à un routeur.
     for (final module in appModules) {
       expect(
-        module.buildBranch().navigatorKey,
-        isNot(module.buildBranch().navigatorKey),
+        module.buildBranch(GlobalKey<NavigatorState>()).navigatorKey,
+        isNot(module.buildBranch(GlobalKey<NavigatorState>()).navigatorKey),
         reason: module.id,
       );
     }

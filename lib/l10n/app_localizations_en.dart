@@ -611,12 +611,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get contactsPrivacy => 'AnKi only reads names and birthdays.';
 
   @override
-  String get noBooksMessage => 'Scan a book\'s barcode to keep a gift idea.';
-
-  @override
-  String get bookScannerTitle => 'Book Scanner';
-
-  @override
   String get bookTitle => 'Title';
 
   @override
@@ -629,9 +623,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookNotFound => 'Book not found';
-
-  @override
-  String get noBooksYet => 'No books yet';
 
   @override
   String get deleteAccount => 'Delete my account';
@@ -1209,4 +1200,373 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get remindersBlocked => 'Blocked in your phone\'s settings.';
+
+  @override
+  String get scanBook => 'Scan a book';
+
+  @override
+  String get shelfSearchHint => 'Search a series';
+
+  @override
+  String shelfNoResults(String query) {
+    return 'No series matching “$query”';
+  }
+
+  @override
+  String shelfInbox(int count) {
+    return 'To sort ($count)';
+  }
+
+  @override
+  String shelfInboxHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count volumes are waiting for their series',
+      one: 'One volume is waiting for its series',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shelfEmptyTitle => 'Your shelf is waiting';
+
+  @override
+  String get shelfEmptyMessage =>
+      'Scan your books: AnKi keeps track of the last volume of each series and the ones you\'re missing.';
+
+  @override
+  String get shelfErrorTitle => 'Shelf unavailable';
+
+  @override
+  String get shelfLoading => 'Loading your shelf';
+
+  @override
+  String get shelfOffline => 'Offline · dates not refreshed';
+
+  @override
+  String get seriesComplete => 'Series complete';
+
+  @override
+  String seriesNextOn(int number, String date) {
+    return 'Next: volume $number · $date';
+  }
+
+  @override
+  String seriesNextReleased(int number) {
+    return 'Next: volume $number · out now';
+  }
+
+  @override
+  String seriesNextUnknown(int number) {
+    return 'Next: volume $number · date unknown';
+  }
+
+  @override
+  String seriesHoles(String numbers) {
+    return 'You\'re missing $numbers';
+  }
+
+  @override
+  String seriesHolesMore(String numbers, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You\'re missing $numbers and $count more',
+      one: 'You\'re missing $numbers and 1 more',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String numberListLast(String head, String last) {
+    return '$head and $last';
+  }
+
+  @override
+  String a11ySeriesLast(int number) {
+    return 'last volume $number';
+  }
+
+  @override
+  String get a11ySeriesEmpty => 'no volume yet';
+
+  @override
+  String a11yNextAnnounced(int number, String date) {
+    return 'next volume $number, out on $date';
+  }
+
+  @override
+  String a11yNextAnnouncedMonth(int number, String month) {
+    return 'next volume $number, out in $month';
+  }
+
+  @override
+  String a11yNextReleased(int number) {
+    return 'next volume $number, out now';
+  }
+
+  @override
+  String a11yNextUnknown(int number) {
+    return 'next volume $number, date unknown';
+  }
+
+  @override
+  String get a11yNextComplete => 'series complete';
+
+  @override
+  String a11ySeriesHoles(int count, String numbers) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'you\'re missing volumes $numbers',
+      one: 'you\'re missing volume $numbers',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nextCardTitle => 'Next';
+
+  @override
+  String nextCardReleased(int number) {
+    return 'Volume $number is out · you don\'t have it';
+  }
+
+  @override
+  String nextCardAnnounced(int number, String date) {
+    return 'Volume $number · out on $date';
+  }
+
+  @override
+  String nextCardAnnouncedMonth(int number, String month) {
+    return 'Volume $number · out in $month';
+  }
+
+  @override
+  String nextCardUnknown(int number) {
+    return 'Volume $number · date unknown';
+  }
+
+  @override
+  String get nextCardComplete => 'Series complete: nothing to wait for';
+
+  @override
+  String get nextSourceBnf => 'according to the BnF';
+
+  @override
+  String get nextSourceGoogleBooks => 'according to Google Books';
+
+  @override
+  String get nextSourceUser => 'date entered by you';
+
+  @override
+  String nextSourceChecked(String source, String date) {
+    return '$source · checked $date';
+  }
+
+  @override
+  String get seriesHolesTitle => 'You\'re missing';
+
+  @override
+  String seriesHoleChip(int number) {
+    return 'Volume $number';
+  }
+
+  @override
+  String get seriesVolumesTitle => 'Your volumes';
+
+  @override
+  String seriesVolumeOwned(int number) {
+    return 'Volume $number, owned';
+  }
+
+  @override
+  String seriesVolumeMissing(int number) {
+    return 'Volume $number, missing';
+  }
+
+  @override
+  String get seriesNoVolume => 'No volume of this series yet.';
+
+  @override
+  String get seriesMenu => 'Series options';
+
+  @override
+  String get seriesRename => 'Rename';
+
+  @override
+  String get seriesMerge => 'Merge with another series';
+
+  @override
+  String get seriesMarkComplete => 'Mark as complete';
+
+  @override
+  String get seriesMarkOngoing => 'Mark as ongoing';
+
+  @override
+  String get seriesDelete => 'Delete series';
+
+  @override
+  String get seriesRenameTitle => 'Rename series';
+
+  @override
+  String get seriesNameLabel => 'Series name';
+
+  @override
+  String get seriesNameRequired => 'Give the series a name';
+
+  @override
+  String seriesMergeTitle(String name) {
+    return 'Merge $name with…';
+  }
+
+  @override
+  String get seriesMergeHint =>
+      'Its volumes join the series you pick, which keeps its name.';
+
+  @override
+  String seriesMerged(String source, String target) {
+    return '$source merged into $target';
+  }
+
+  @override
+  String seriesMarkedComplete(String name) {
+    return '$name marked complete';
+  }
+
+  @override
+  String seriesMarkedOngoing(String name) {
+    return '$name ongoing again';
+  }
+
+  @override
+  String seriesDeleted(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$name deleted, with its $count volumes',
+      one: '$name deleted, with its volume',
+      zero: '$name deleted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get seriesMissingTitle => 'Series not found';
+
+  @override
+  String get seriesMissingMessage =>
+      'It may have been deleted or merged into another one.';
+
+  @override
+  String get seriesBackToShelf => 'Back to the shelf';
+
+  @override
+  String get seriesErrorTitle => 'Series unavailable';
+
+  @override
+  String get shelfWriteError =>
+      'The change couldn\'t be saved. Check your connection and try again.';
+
+  @override
+  String volumeIsbn(String isbn) {
+    return 'ISBN $isbn';
+  }
+
+  @override
+  String volumePublished(String date) {
+    return 'Published on $date';
+  }
+
+  @override
+  String volumePublishedIn(String period) {
+    return 'Published in $period';
+  }
+
+  @override
+  String volumeInSeries(String series, int number) {
+    return '$series · volume $number';
+  }
+
+  @override
+  String get volumePending => 'Details to complete';
+
+  @override
+  String get volumeNotFound => 'Not in the catalogues';
+
+  @override
+  String get volumeClassify => 'Change series or number';
+
+  @override
+  String get volumeSort => 'Sort';
+
+  @override
+  String get volumeRemove => 'Remove from collection';
+
+  @override
+  String volumeRemoved(String title) {
+    return '$title removed from your collection';
+  }
+
+  @override
+  String get classifyTitle => 'Sort this volume';
+
+  @override
+  String get classifySeries => 'Series';
+
+  @override
+  String get classifyNewSeries => 'New series';
+
+  @override
+  String get classifyNumberLabel => 'Volume number';
+
+  @override
+  String classifyNumberError(int max) {
+    return 'A number between 1 and $max';
+  }
+
+  @override
+  String get classifySave => 'Shelve';
+
+  @override
+  String get inboxEmptyTitle => 'Everything is sorted';
+
+  @override
+  String get inboxEmptyMessage => 'Every volume has found its series.';
+
+  @override
+  String get scanHint => 'Point at the barcode on the back of the book';
+
+  @override
+  String get cameraDeniedTitle => 'AnKi can\'t use the camera';
+
+  @override
+  String get cameraDeniedMessage =>
+      'Allow the camera to scan your books\' barcodes. If it stays blocked, open the app settings.';
+
+  @override
+  String get cameraAllow => 'Allow the camera';
+
+  @override
+  String get cameraUnavailableTitle => 'Camera unavailable';
+
+  @override
+  String get cameraUnavailableMessage =>
+      'The camera couldn\'t start. Close other apps using it and try again.';
+
+  @override
+  String seriesVolumeOwnedEditions(int number, int count) {
+    return 'Volume $number, owned in $count editions';
+  }
+
+  @override
+  String volumeEditionsTitle(int number) {
+    return 'Volume $number: which edition?';
+  }
+
+  @override
+  String a11ySeriesHolesMore(String numbers, int count) {
+    return 'you\'re missing volumes $numbers and $count more';
+  }
 }

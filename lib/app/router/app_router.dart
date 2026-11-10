@@ -55,7 +55,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     active = next;
     activationKnown.value = next != null;
   }, fireImmediately: true);
+  // Navigateur racine : les pages poussées au-dessus des onglets (réglages,
+  // une personne, les pages de Livres) y vivent.
+  final rootNavigatorKey = GlobalKey<NavigatorState>();
   final router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.birthdays,
     refreshListenable: Listenable.merge([access, activationKnown]),
     redirect: (_, state) {
@@ -102,7 +106,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
         // Une branche par module du registre, dans son ordre : l'index d'une
         // branche est la place de son module dans le registre.
-        branches: [for (final module in modules) module.buildBranch()],
+        branches: [
+          for (final module in modules) module.buildBranch(rootNavigatorKey),
+        ],
       ),
       GoRoute(
         path: AppRoutes.settings,

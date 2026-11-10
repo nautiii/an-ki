@@ -22,6 +22,9 @@ import 'package:an_ki/features/birthday/screens/groups_screen.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/screens/person_screen.dart';
 import 'package:an_ki/features/books/screens/book_scanner_screen.dart';
+import 'package:an_ki/features/books/screens/series_screen.dart';
+import 'package:an_ki/features/books/screens/shelf_inbox_screen.dart';
+import 'package:an_ki/features/books/screens/shelf_screen.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_off_card.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/settings/widgets/guest_backup_card.dart';
@@ -79,7 +82,7 @@ void main() {
       expect(accessRedirect(granted, AppRoutes.auth), AppRoutes.birthdays);
       expect(accessRedirect(granted, AppRoutes.login), AppRoutes.birthdays);
       expect(accessRedirect(granted, AppRoutes.birthdays), isNull);
-      expect(accessRedirect(granted, AppRoutes.scanner), isNull);
+      expect(accessRedirect(granted, AppRoutes.books), isNull);
       expect(accessRedirect(granted, AppRoutes.settings), isNull);
     });
   });
@@ -101,9 +104,9 @@ void main() {
             .guestBackup;
         expect(guestBackup?.call(3), isA<GuestBackupCard>());
 
-        tester.appRouter.go(AppRoutes.scanner);
+        tester.appRouter.go(AppRoutes.books);
         await tester.pumpAndSettle();
-        expect(find.byType(BookScannerScreen), findsOneWidget);
+        expect(find.byType(ShelfScreen), findsOneWidget);
 
         unawaited(tester.appRouter.push(AppRoutes.search));
         await tester.pumpAndSettle();
@@ -127,7 +130,7 @@ void main() {
         );
         await tester.tap(find.byTooltip('Retour'));
         await tester.pumpAndSettle();
-        expect(find.byType(BookScannerScreen), findsOneWidget);
+        expect(find.byType(ShelfScreen), findsOneWidget);
 
         unawaited(tester.appRouter.push(AppRoutes.settings));
         await tester.pumpAndSettle();
@@ -136,21 +139,21 @@ void main() {
         // Les réglages s'ouvrent par-dessus l'onglet, qui reste en place.
         await tester.tap(find.byType(BackButton));
         await tester.pumpAndSettle();
-        expect(find.byType(BookScannerScreen), findsOneWidget);
+        expect(find.byType(ShelfScreen), findsOneWidget);
 
         unawaited(tester.appRouter.push(AppRoutes.contactImport));
         await tester.pumpAndSettle();
         expect(find.byType(ContactImportScreen), findsOneWidget);
         await tester.tap(find.byType(CloseButton));
         await tester.pumpAndSettle();
-        expect(find.byType(BookScannerScreen), findsOneWidget);
+        expect(find.byType(ShelfScreen), findsOneWidget);
 
         unawaited(tester.appRouter.push(AppRoutes.groups));
         await tester.pumpAndSettle();
         expect(find.byType(GroupsScreen), findsOneWidget);
         await tester.tap(find.byType(BackButton));
         await tester.pumpAndSettle();
-        expect(find.byType(BookScannerScreen), findsOneWidget);
+        expect(find.byType(ShelfScreen), findsOneWidget);
       });
     });
 
@@ -180,7 +183,7 @@ void main() {
           for (final branch in shell.branches)
             (branch.routes.first as GoRoute).path,
         ],
-        [AppRoutes.birthdays, AppRoutes.scanner, probeRoot],
+        [AppRoutes.birthdays, AppRoutes.books, probeRoot],
       );
     });
 
@@ -349,6 +352,70 @@ void main() {
     });
   });
 
+  group('books routes', () {
+    setUp(FakeMobileScannerPlatform.install);
+
+    Future<void> openShelf(WidgetTester tester) async {
+      await tester.pumpApp(
+        auth: FakeAuthRepository(user: MockUser()),
+        profile: booksOnProfile,
+      );
+      await tester.settleApp();
+      tester.appRouter.go(AppRoutes.books);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('/books shows the shelf with the tab bar', (tester) async {
+      await mockNetworkImages(() async {
+        await openShelf(tester);
+
+        expect(find.byType(ShelfScreen), findsOneWidget);
+        expect(find.byType(BottomBar), findsOneWidget);
+      });
+    });
+
+    for (final (name, path, screen) in [
+      ('a series page', AppRoutes.series('x'), SeriesScreen),
+      ('the inbox', AppRoutes.booksInbox, ShelfInboxScreen),
+      ('the scanner', AppRoutes.booksScan, BookScannerScreen),
+    ]) {
+      testWidgets('$name opens above the tabs and back returns to the shelf', (
+        tester,
+      ) async {
+        await mockNetworkImages(() async {
+          await openShelf(tester);
+
+          unawaited(tester.appRouter.push(path));
+          await tester.pumpAndSettle();
+          expect(find.byType(screen), findsOneWidget);
+          expect(find.byType(BottomBar), findsNothing);
+
+          tester.appRouter.pop();
+          await tester.pumpAndSettle();
+          expect(find.byType(screen), findsNothing);
+          expect(find.byType(ShelfScreen), findsOneWidget);
+          expect(find.byType(BottomBar), findsOneWidget);
+        });
+      });
+    }
+
+    testWidgets('with Books off, a series path lands on Birthdays', (
+      tester,
+    ) async {
+      await mockNetworkImages(() async {
+        await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
+        await tester.settleApp();
+
+        tester.appRouter.go(AppRoutes.series('x'));
+        await tester.pumpAndSettle();
+
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.birthdays);
+        expect(find.byType(SeriesScreen), findsNothing);
+        expect(find.text('Le module Livres est désactivé'), findsOneWidget);
+      });
+    });
+  });
+
   group('modules', () {
     setUp(FakeMobileScannerPlatform.install);
 
@@ -358,18 +425,18 @@ void main() {
         await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
         await tester.settleApp();
 
-        tester.appRouter.go(AppRoutes.scanner);
+        tester.appRouter.go(AppRoutes.books);
         await tester.pumpAndSettle();
 
         expect(tester.appRouter.state.matchedLocation, AppRoutes.birthdays);
-        expect(find.byType(BookScannerScreen), findsNothing);
+        expect(find.byType(ShelfScreen), findsNothing);
         expect(find.text('Le module Livres est désactivé'), findsOneWidget);
 
         await tester.tap(find.text('Activer'));
         await tester.pumpAndSettle();
 
-        expect(tester.appRouter.state.matchedLocation, AppRoutes.scanner);
-        expect(find.byType(BookScannerScreen), findsOneWidget);
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.books);
+        expect(find.byType(ShelfScreen), findsOneWidget);
         expect(find.byType(BottomBar), findsOneWidget);
       });
     });
@@ -384,12 +451,12 @@ void main() {
         );
         await tester.settleApp();
 
-        tester.appRouter.go(AppRoutes.scanner);
+        tester.appRouter.go(AppRoutes.books);
         await tester.pumpAndSettle();
         // Pas encore de verdict : le chemin reste, rien de Livres ne se
         // montre en attendant.
-        expect(tester.appRouter.state.matchedLocation, AppRoutes.scanner);
-        expect(find.byType(BookScannerScreen), findsNothing);
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.books);
+        expect(find.byType(ShelfScreen), findsNothing);
         expect(find.byType(HomeScreen), findsOneWidget);
 
         profiles.emit(testProfile);
@@ -409,14 +476,14 @@ void main() {
           users: profiles,
         );
         await tester.settleApp();
-        tester.appRouter.go(AppRoutes.scanner);
+        tester.appRouter.go(AppRoutes.books);
         await tester.pumpAndSettle();
 
         profiles.emit(booksOnProfile);
         await tester.pumpAndSettle();
 
-        expect(tester.appRouter.state.matchedLocation, AppRoutes.scanner);
-        expect(find.byType(BookScannerScreen), findsOneWidget);
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.books);
+        expect(find.byType(ShelfScreen), findsOneWidget);
         expect(find.byType(SnackBar), findsNothing);
       });
     });
@@ -426,7 +493,7 @@ void main() {
       await mockNetworkImages(() async {
         await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
         await tester.settleApp();
-        tester.appRouter.go(AppRoutes.scanner);
+        tester.appRouter.go(AppRoutes.books);
         await tester.pumpAndSettle();
         unawaited(tester.appRouter.push(AppRoutes.settings));
         await tester.pumpAndSettle();

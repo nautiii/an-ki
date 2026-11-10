@@ -253,7 +253,8 @@ knows every feature (D1); a registry there adds a file per module and nothing to
 - `AppModule` (`app/modules/app_module.dart`): `id`, `alwaysOn`, `enabledByDefault`, icons,
   `name`/`description` from `AppLocalizations`, `rootPath`, `buildBranch` (a function: a
   `StatefulShellBranch` owns its navigator key, which serves one router only, and every
-  `ProviderScope` builds its own), an optional `settingsSection` (a `Widget`), `effects` and
+  `ProviderScope` builds its own; it receives the router's root navigator key, the
+  `parentNavigatorKey` of a module page that covers the tabs, such as `/books/scan`), an optional `settingsSection` (a `Widget`), `effects` and
   optional `ModuleData` (erase, guest transfer). The registry `appModules`
   (`module_registry.dart`, read through `appModulesProvider`) fixes the tab order; a registry
   test fails past 4 tabs. The shell maps each visible tab to its branch index (`shellTabs`).

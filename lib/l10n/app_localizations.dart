@@ -1040,18 +1040,6 @@ abstract class AppLocalizations {
   /// **'AnKi ne lit que les noms et les dates d\'anniversaire.'**
   String get contactsPrivacy;
 
-  /// Message de la liste de livres vide
-  ///
-  /// In fr, this message translates to:
-  /// **'Scannez le code-barres d\'un livre pour garder une idée de cadeau.'**
-  String get noBooksMessage;
-
-  /// No description provided for @bookScannerTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Scanner de livres'**
-  String get bookScannerTitle;
-
   /// No description provided for @bookTitle.
   ///
   /// In fr, this message translates to:
@@ -1075,12 +1063,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Livre non trouvé'**
   String get bookNotFound;
-
-  /// No description provided for @noBooksYet.
-  ///
-  /// In fr, this message translates to:
-  /// **'Aucun livre pour l\'instant'**
-  String get noBooksYet;
 
   /// No description provided for @deleteAccount.
   ///
@@ -1867,6 +1849,534 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Bloqués dans les réglages du téléphone.'**
   String get remindersBlocked;
+
+  /// Action de l'étagère (icône et état vide) et titre du scanner : ouvre la caméra
+  ///
+  /// In fr, this message translates to:
+  /// **'Scanner un livre'**
+  String get scanBook;
+
+  /// Indication du champ de recherche de l'étagère
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher une série'**
+  String get shelfSearchHint;
+
+  /// Étagère : la recherche ne trouve aucune série
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune série pour « {query} »'**
+  String shelfNoResults(String query);
+
+  /// Carte de l'étagère et titre de la page : tomes sans série ni numéro
+  ///
+  /// In fr, this message translates to:
+  /// **'À classer ({count})'**
+  String shelfInbox(int count);
+
+  /// Sous-titre de la carte « À classer » de l'étagère
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Un tome attend sa série} other{{count} tomes attendent leur série}}'**
+  String shelfInboxHint(int count);
+
+  /// Étagère vide (premier lancement) : titre
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre étagère vous attend'**
+  String get shelfEmptyTitle;
+
+  /// Étagère vide (premier lancement) : pourquoi scanner
+  ///
+  /// In fr, this message translates to:
+  /// **'Scannez vos livres : AnKi retient le dernier tome de chaque série et ceux qu\'il vous manque.'**
+  String get shelfEmptyMessage;
+
+  /// Étagère : la lecture a échoué (suivi du message réseau et de « Réessayer »)
+  ///
+  /// In fr, this message translates to:
+  /// **'Étagère indisponible'**
+  String get shelfErrorTitle;
+
+  /// Lu par TalkBack sur le squelette de l'étagère
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement de l\'étagère'**
+  String get shelfLoading;
+
+  /// Bandeau discret des pages Livres hors ligne
+  ///
+  /// In fr, this message translates to:
+  /// **'Hors ligne · dates non actualisées'**
+  String get shelfOffline;
+
+  /// Ligne d'une série close (étagère et page de la série)
+  ///
+  /// In fr, this message translates to:
+  /// **'Série terminée'**
+  String get seriesComplete;
+
+  /// Ligne d'une série : prochain tome et sa date de sortie (« 3 décembre », « décembre 2026 »)
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochain : tome {number} · {date}'**
+  String seriesNextOn(int number, String date);
+
+  /// Ligne d'une série : le prochain tome est sorti
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochain : tome {number} · paru'**
+  String seriesNextReleased(int number);
+
+  /// Ligne d'une série : aucune source ne connaît la date du prochain tome (jamais « non annoncé »)
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochain : tome {number} · date inconnue'**
+  String seriesNextUnknown(int number);
+
+  /// Trous d'une série : numéros séparés par des virgules (« 13, 14 »)
+  ///
+  /// In fr, this message translates to:
+  /// **'Il vous manque {numbers}'**
+  String seriesHoles(String numbers);
+
+  /// Trous d'une série, au-delà de cinq : les premiers, puis combien d'autres
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Il vous manque {numbers} et 1 autre} other{Il vous manque {numbers} et {count} autres}}'**
+  String seriesHolesMore(String numbers, int count);
+
+  /// Fin d'une liste de numéros lue par TalkBack (« 13, 14 et 15 »)
+  ///
+  /// In fr, this message translates to:
+  /// **'{head} et {last}'**
+  String numberListLast(String head, String last);
+
+  /// TalkBack, ligne d'une série : le dernier tome possédé
+  ///
+  /// In fr, this message translates to:
+  /// **'dernier tome {number}'**
+  String a11ySeriesLast(int number);
+
+  /// TalkBack, ligne d'une série sans tome possédé
+  ///
+  /// In fr, this message translates to:
+  /// **'aucun tome'**
+  String get a11ySeriesEmpty;
+
+  /// TalkBack : le prochain tome a une date au jour
+  ///
+  /// In fr, this message translates to:
+  /// **'prochain tome {number}, sortie le {date}'**
+  String a11yNextAnnounced(int number, String date);
+
+  /// TalkBack : le prochain tome a une date au mois (« décembre 2026 »)
+  ///
+  /// In fr, this message translates to:
+  /// **'prochain tome {number}, sortie en {month}'**
+  String a11yNextAnnouncedMonth(int number, String month);
+
+  /// TalkBack : le prochain tome est sorti
+  ///
+  /// In fr, this message translates to:
+  /// **'prochain tome {number}, paru'**
+  String a11yNextReleased(int number);
+
+  /// TalkBack : la date du prochain tome est inconnue
+  ///
+  /// In fr, this message translates to:
+  /// **'prochain tome {number}, date inconnue'**
+  String a11yNextUnknown(int number);
+
+  /// TalkBack : la série est close
+  ///
+  /// In fr, this message translates to:
+  /// **'série terminée'**
+  String get a11yNextComplete;
+
+  /// TalkBack : les tomes manquants (« 13 et 14 »)
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{il vous manque le tome {numbers}} other{il vous manque les tomes {numbers}}}'**
+  String a11ySeriesHoles(int count, String numbers);
+
+  /// Page d'une série : titre de la carte du prochain tome
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochain'**
+  String get nextCardTitle;
+
+  /// Carte « Prochain » : le tome est sorti
+  ///
+  /// In fr, this message translates to:
+  /// **'Tome {number} paru · vous ne l\'avez pas'**
+  String nextCardReleased(int number);
+
+  /// Carte « Prochain » : date au jour
+  ///
+  /// In fr, this message translates to:
+  /// **'Tome {number} · sortie le {date}'**
+  String nextCardAnnounced(int number, String date);
+
+  /// Carte « Prochain » : date au mois
+  ///
+  /// In fr, this message translates to:
+  /// **'Tome {number} · sortie en {month}'**
+  String nextCardAnnouncedMonth(int number, String month);
+
+  /// Carte « Prochain » : aucune source ne connaît la date
+  ///
+  /// In fr, this message translates to:
+  /// **'Tome {number} · date inconnue'**
+  String nextCardUnknown(int number);
+
+  /// Carte « Prochain » d'une série close
+  ///
+  /// In fr, this message translates to:
+  /// **'Série terminée : rien à attendre'**
+  String get nextCardComplete;
+
+  /// Carte « Prochain » : la source est la Bibliothèque nationale de France
+  ///
+  /// In fr, this message translates to:
+  /// **'selon la BnF'**
+  String get nextSourceBnf;
+
+  /// Carte « Prochain » : la source est Google Books
+  ///
+  /// In fr, this message translates to:
+  /// **'selon Google Books'**
+  String get nextSourceGoogleBooks;
+
+  /// Carte « Prochain » : l'utilisateur a saisi la date
+  ///
+  /// In fr, this message translates to:
+  /// **'date saisie par vous'**
+  String get nextSourceUser;
+
+  /// Carte « Prochain » : la source et quand elle a été consultée (« 8 nov. »)
+  ///
+  /// In fr, this message translates to:
+  /// **'{source} · vérifié le {date}'**
+  String nextSourceChecked(String source, String date);
+
+  /// Page d'une série : titre des tomes manquants (puces)
+  ///
+  /// In fr, this message translates to:
+  /// **'Il vous manque'**
+  String get seriesHolesTitle;
+
+  /// Puce d'un tome manquant ; aussi le titre d'un tome sans titre
+  ///
+  /// In fr, this message translates to:
+  /// **'Tome {number}'**
+  String seriesHoleChip(int number);
+
+  /// Page d'une série : titre de la grille des numéros
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos tomes'**
+  String get seriesVolumesTitle;
+
+  /// TalkBack, case de la grille : tome possédé
+  ///
+  /// In fr, this message translates to:
+  /// **'Tome {number}, possédé'**
+  String seriesVolumeOwned(int number);
+
+  /// TalkBack, case de la grille : tome manquant
+  ///
+  /// In fr, this message translates to:
+  /// **'Tome {number}, manquant'**
+  String seriesVolumeMissing(int number);
+
+  /// Page d'une série sans tome possédé, à la place de la grille
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun tome de cette série pour l\'instant.'**
+  String get seriesNoVolume;
+
+  /// Infobulle du menu de la page d'une série
+  ///
+  /// In fr, this message translates to:
+  /// **'Options de la série'**
+  String get seriesMenu;
+
+  /// Menu d'une série, et bouton du dialogue de renommage
+  ///
+  /// In fr, this message translates to:
+  /// **'Renommer'**
+  String get seriesRename;
+
+  /// Menu d'une série : ses tomes rejoignent une autre série
+  ///
+  /// In fr, this message translates to:
+  /// **'Fusionner avec une autre série'**
+  String get seriesMerge;
+
+  /// Menu d'une série en cours
+  ///
+  /// In fr, this message translates to:
+  /// **'Marquer comme terminée'**
+  String get seriesMarkComplete;
+
+  /// Menu d'une série close
+  ///
+  /// In fr, this message translates to:
+  /// **'Marquer comme en cours'**
+  String get seriesMarkOngoing;
+
+  /// Menu d'une série : la série et ses tomes, avec Annuler
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la série'**
+  String get seriesDelete;
+
+  /// Titre du dialogue de renommage d'une série
+  ///
+  /// In fr, this message translates to:
+  /// **'Renommer la série'**
+  String get seriesRenameTitle;
+
+  /// Libellé du champ nom d'une série
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom de la série'**
+  String get seriesNameLabel;
+
+  /// Erreur du champ nom d'une série resté vide
+  ///
+  /// In fr, this message translates to:
+  /// **'Donnez un nom à la série'**
+  String get seriesNameRequired;
+
+  /// Titre de la feuille de fusion : choisir la série qui reçoit les tomes
+  ///
+  /// In fr, this message translates to:
+  /// **'Fusionner {name} avec…'**
+  String seriesMergeTitle(String name);
+
+  /// Feuille de fusion : ce qui va se passer
+  ///
+  /// In fr, this message translates to:
+  /// **'Ses tomes rejoignent la série choisie, qui garde son nom.'**
+  String get seriesMergeHint;
+
+  /// Snackbar après une fusion, avec Annuler
+  ///
+  /// In fr, this message translates to:
+  /// **'{source} fusionnée dans {target}'**
+  String seriesMerged(String source, String target);
+
+  /// Snackbar après « Marquer comme terminée », avec Annuler
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} marquée terminée'**
+  String seriesMarkedComplete(String name);
+
+  /// Snackbar après « Marquer comme en cours », avec Annuler
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} de nouveau en cours'**
+  String seriesMarkedOngoing(String name);
+
+  /// Snackbar après la suppression d'une série, avec Annuler
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{{name} supprimée} =1{{name} supprimée, avec son tome} other{{name} supprimée, avec ses {count} tomes}}'**
+  String seriesDeleted(String name, int count);
+
+  /// Page d'une série inconnue (supprimée, fusionnée, autre compte) : titre
+  ///
+  /// In fr, this message translates to:
+  /// **'Série introuvable'**
+  String get seriesMissingTitle;
+
+  /// Page d'une série inconnue : explication
+  ///
+  /// In fr, this message translates to:
+  /// **'Elle a peut-être été supprimée ou fusionnée avec une autre.'**
+  String get seriesMissingMessage;
+
+  /// Page d'une série inconnue : action
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à l\'étagère'**
+  String get seriesBackToShelf;
+
+  /// Page d'une série : la lecture a échoué
+  ///
+  /// In fr, this message translates to:
+  /// **'Série indisponible'**
+  String get seriesErrorTitle;
+
+  /// Snackbar : une écriture sur l'étagère a échoué
+  ///
+  /// In fr, this message translates to:
+  /// **'La modification n\'a pas pu être enregistrée. Vérifiez votre connexion et réessayez.'**
+  String get shelfWriteError;
+
+  /// Feuille d'un tome, ligne À classer : son ISBN
+  ///
+  /// In fr, this message translates to:
+  /// **'ISBN {isbn}'**
+  String volumeIsbn(String isbn);
+
+  /// Feuille d'un tome : date de parution au jour
+  ///
+  /// In fr, this message translates to:
+  /// **'Paru le {date}'**
+  String volumePublished(String date);
+
+  /// Feuille d'un tome : date de parution au mois ou à l'année (« juin 2013 », « 2013 »)
+  ///
+  /// In fr, this message translates to:
+  /// **'Paru en {period}'**
+  String volumePublishedIn(String period);
+
+  /// Feuille d'un tome rangé : sa série et son numéro
+  ///
+  /// In fr, this message translates to:
+  /// **'{series} · tome {number}'**
+  String volumeInSeries(String series, int number);
+
+  /// Tome scanné hors ligne, pas encore cherché dans les catalogues
+  ///
+  /// In fr, this message translates to:
+  /// **'Infos à compléter'**
+  String get volumePending;
+
+  /// Tome qu'aucun catalogue ne connaît
+  ///
+  /// In fr, this message translates to:
+  /// **'Inconnu des catalogues'**
+  String get volumeNotFound;
+
+  /// Feuille d'un tome rangé : ouvre le classement
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer de série ou de numéro'**
+  String get volumeClassify;
+
+  /// Feuille d'un tome à classer : ouvre le classement
+  ///
+  /// In fr, this message translates to:
+  /// **'Classer'**
+  String get volumeSort;
+
+  /// Feuille d'un tome : le retire, avec Annuler
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer de la collection'**
+  String get volumeRemove;
+
+  /// Snackbar après le retrait d'un tome, avec Annuler
+  ///
+  /// In fr, this message translates to:
+  /// **'{title} retiré de la collection'**
+  String volumeRemoved(String title);
+
+  /// Titre de la feuille de classement d'un tome
+  ///
+  /// In fr, this message translates to:
+  /// **'Classer ce tome'**
+  String get classifyTitle;
+
+  /// Feuille de classement : titre de la liste des séries
+  ///
+  /// In fr, this message translates to:
+  /// **'Série'**
+  String get classifySeries;
+
+  /// Feuille de classement : choix d'une série à créer
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle série'**
+  String get classifyNewSeries;
+
+  /// Feuille de classement : champ du numéro
+  ///
+  /// In fr, this message translates to:
+  /// **'Numéro du tome'**
+  String get classifyNumberLabel;
+
+  /// Feuille de classement : numéro invalide
+  ///
+  /// In fr, this message translates to:
+  /// **'Un numéro entre 1 et {max}'**
+  String classifyNumberError(int max);
+
+  /// Feuille de classement : enregistre la série et le numéro
+  ///
+  /// In fr, this message translates to:
+  /// **'Ranger'**
+  String get classifySave;
+
+  /// Page À classer vide : titre
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout est rangé'**
+  String get inboxEmptyTitle;
+
+  /// Page À classer vide : message
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque tome a trouvé sa série.'**
+  String get inboxEmptyMessage;
+
+  /// Scanner : consigne sous le viseur
+  ///
+  /// In fr, this message translates to:
+  /// **'Visez le code-barres au dos du livre'**
+  String get scanHint;
+
+  /// Scanner : la permission caméra est refusée (titre)
+  ///
+  /// In fr, this message translates to:
+  /// **'AnKi n\'a pas accès à la caméra'**
+  String get cameraDeniedTitle;
+
+  /// Scanner : la permission caméra est refusée (comment faire)
+  ///
+  /// In fr, this message translates to:
+  /// **'Autorisez la caméra pour scanner le code-barres de vos livres. Si elle reste bloquée, ouvrez les réglages de l\'app.'**
+  String get cameraDeniedMessage;
+
+  /// Scanner : redemande la permission caméra
+  ///
+  /// In fr, this message translates to:
+  /// **'Autoriser la caméra'**
+  String get cameraAllow;
+
+  /// Scanner : la caméra n'a pas démarré (autre erreur que la permission)
+  ///
+  /// In fr, this message translates to:
+  /// **'Caméra indisponible'**
+  String get cameraUnavailableTitle;
+
+  /// Scanner : la caméra n'a pas démarré (comment faire)
+  ///
+  /// In fr, this message translates to:
+  /// **'La caméra n\'a pas pu démarrer. Fermez les autres apps qui l\'utilisent et réessayez.'**
+  String get cameraUnavailableMessage;
+
+  /// TalkBack, case de la grille : un numéro possédé en plusieurs éditions
+  ///
+  /// In fr, this message translates to:
+  /// **'Tome {number}, possédé en {count} éditions'**
+  String seriesVolumeOwnedEditions(int number, int count);
+
+  /// Titre de la feuille qui choisit l'édition d'un numéro possédé plusieurs fois
+  ///
+  /// In fr, this message translates to:
+  /// **'Tome {number} : quelle édition ?'**
+  String volumeEditionsTitle(int number);
+
+  /// TalkBack : les cinq premiers tomes manquants, puis combien d'autres
+  ///
+  /// In fr, this message translates to:
+  /// **'il vous manque les tomes {numbers} et {count} autres'**
+  String a11ySeriesHolesMore(String numbers, int count);
 }
 
 class _AppLocalizationsDelegate

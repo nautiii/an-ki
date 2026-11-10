@@ -33,7 +33,9 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
-import 'package:an_ki/features/books/providers/book_scanner_provider.dart';
+import 'package:an_ki/features/books/domain/release_date.dart';
+import 'package:an_ki/features/books/domain/series.dart';
+import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/providers/legacy_import.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -57,7 +59,7 @@ import '../../../test/support/network_image_mock.dart';
 // UiVariant.compact (360×640) pour traquer les débordements.
 //
 // Recettes (ajouter l'import de l'écran) :
-//   onglet      → build: () => const AppAt(AppRoutes.scanner),  // l'app routée, barre comprise
+//   onglet      → build: () => const AppAt(AppRoutes.books),  // l'app routée, barre comprise
 //                 prepare: () => FakeMobileScannerPlatform.install()   // ../../../test/support/fake_mobile_scanner_platform.dart
 //   chargement  → overrides: sampleOverrides(isLoading: true)
 //   paramètres  → build: () => const SettingsScreen(),   // features/settings/screens/
@@ -177,14 +179,132 @@ List<Birthday> sampleBirthdays() {
   ];
 }
 
+/// Étagère d'exemple : six séries (trous, prochain tome daté au jour, au mois,
+/// paru, inconnu, séries closes), plus deux tomes « à classer ».
+({List<Series> series, List<Volume> volumes}) sampleShelf() {
+  final added = DateTime(2026, 1, 1);
+  final checked = DateTime.now().subtract(const Duration(days: 2));
+  final nextYear = DateTime.now().year + 1;
+  final volumes = <Volume>[];
+  Series series(
+    String id,
+    String name, {
+    required int last,
+    List<int> missing = const [],
+    bool complete = false,
+    NextVolumeInfo? next,
+  }) {
+    for (var n = 1; n <= last; n++) {
+      if (missing.contains(n)) continue;
+      volumes.add(
+        Volume(
+          id: '$id-$n',
+          seriesId: id,
+          number: n,
+          isbn: '978274931${(1000 + n).toString().substring(1)}$n',
+          title: '$name $n',
+          authors: const ['Auteur'],
+          publisher: 'Éditeur',
+          publishedDate: '2013-06-28',
+          lookup: LookupState.found,
+          addedAt: added.add(Duration(days: n)),
+        ),
+      );
+    }
+    return Series(
+      id: id,
+      name: name,
+      keys: [id],
+      complete: complete,
+      next: next,
+    );
+  }
+
+  final all = [
+    series(
+      'one-piece',
+      'One Piece',
+      last: 108,
+      missing: [13, 14],
+      next: NextVolumeInfo(
+        number: 109,
+        status: ReleaseStatus.announced,
+        date: ReleaseDate(year: DateTime.now().year, month: 12, day: 3),
+        source: ReleaseSource.googleBooks,
+        checkedAt: checked,
+      ),
+    ),
+    series(
+      'blacksad',
+      'Blacksad',
+      last: 6,
+      next: NextVolumeInfo(
+        number: 7,
+        status: ReleaseStatus.released,
+        source: ReleaseSource.bnf,
+        checkedAt: checked,
+      ),
+    ),
+    series('spy', 'Spy x Family', last: 12),
+    series(
+      'asterix',
+      'Astérix',
+      last: 40,
+      next: NextVolumeInfo(
+        number: 41,
+        status: ReleaseStatus.announced,
+        date: ReleaseDate(year: nextYear, month: 10),
+        source: ReleaseSource.user,
+        checkedAt: checked,
+      ),
+    ),
+    series('snk', "L'Attaque des Titans", last: 34, complete: true),
+    series(
+      'fma',
+      'Fullmetal Alchemist',
+      last: 27,
+      missing: [20],
+      complete: true,
+    ),
+  ];
+  volumes
+    ..add(
+      Volume(
+        id: '9782070612758',
+        isbn: '9782070612758',
+        title: 'Le Petit Prince',
+        authors: const ['Antoine de Saint-Exupéry'],
+        publishedDate: '2007',
+        lookup: LookupState.found,
+        addedAt: DateTime(2026, 11, 2),
+      ),
+    )
+    ..add(
+      Volume(
+        id: '9782344001943',
+        isbn: '9782344001943',
+        title: '',
+        authors: const [],
+        lookup: LookupState.pending,
+        addedAt: DateTime(2026, 11, 3),
+      ),
+    );
+  return (series: all, volumes: volumes);
+}
+
 /// Overrides Riverpod complets : utilisateur connecté, catégories, anniversaires,
 /// et ses choix de modules ([modules] : `{'books': true}` pour la barre et
-/// l'onglet Livres ; sans choix, Anniversaires seul, sans barre).
+/// l'onglet Livres ; sans choix, Anniversaires seul, sans barre). L'étagère :
+/// [series] et [volumes] (vide par défaut, `sampleShelf()` pour l'exemple),
+/// [offline] pour le bandeau hors ligne (attendre 3 s dans `act`).
 List<Override> sampleOverrides({
   List<Birthday>? birthdays,
   bool isLoading = false,
   List<BirthdayCategory>? categories,
   Map<String, bool> modules = const {},
+  List<Series>? series,
+  List<Volume>? volumes,
+  bool offline = false,
 }) {
   final cats = categories ?? sampleCategories;
   return [
@@ -209,14 +329,18 @@ List<Override> sampleOverrides({
           ? const AsyncLoading()
           : AsyncData(birthdays ?? sampleBirthdays()),
     ),
-    scannedVolumesProvider.overrideWithValue(const AsyncData([])),
     legacyImportProvider.overrideWithValue(const AsyncData(null)),
     categoryRepositoryProvider.overrideWithValue(
       RecordingCategoryRepository(cats),
     ),
     userRepositoryProvider.overrideWithValue(FakeUserRepository()),
     birthdayRepositoryProvider.overrideWithValue(FakeBirthdayRepository()),
-    bookshelfRepositoryProvider.overrideWithValue(FakeBookshelfRepository()),
+    bookshelfRepositoryProvider.overrideWithValue(
+      RecordingBookshelfRepository(
+        series: series ?? const [],
+        volumes: volumes ?? const [],
+      )..offline = offline,
+    ),
   ];
 }
 

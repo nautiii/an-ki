@@ -35,7 +35,7 @@ else: a signature seen everywhere stops being one.
 | S3 | **Orbit countdown** *(`lib/core/common/orbit_countdown.dart`)* | Around the number of the hero before the day and of the person page header (the coming age, else the days), and of every agenda row (the days left) | A small moon travels a thin orbit: the arc covers the last 29 days and closes on the day in blossom (mint once wished), around the age on the person header, else around a cake (a check once wished). The drawing is mute: the number and its row text carry the meaning, TalkBack reads « Dans 12 jours » / « Aura 34 ans ». On gradients pass `trackColor: onHero` at 25 % and `arcColor: onHero`. Not on the J-0 hero (big age instead). The text next to it never repeats the orbit's number (no « Dans 12 jours » under « 12 jours »). The only S3 form in the app. |
 | S4 | **Blossom celebration** *(`features/birthday/widgets/blossom_rain.dart`)* | Hero on the birthday itself (J-0) | Soft falling lotus/plum petals ≤ 2.5 s (2.4 s), once per person per day, `mediumImpact`. Skipped when reduce-motion is on. Never generic confetti. Tones `AnKiColors.petals`. |
 | S5 | **Floating glass pill navigation** | Main tabs (`core/common/bottom_bar.dart`) | Blurred translucent pill, radius 32, content scrolls beneath. Labels must stay available to TalkBack. |
-| S6 | **Big tabular numerals** | Countdown, age, counts | Outfit w800, `FontFeature.tabularFigures()`, letter-spacing −1. One per card: the orbit's number, or the J-0 hero's age (`displaySmall`). |
+| S6 | **Big tabular numerals** | Countdown, age, counts, a series' last volume | Outfit w800, `FontFeature.tabularFigures()`, letter-spacing −1. One per card: the orbit's number, the J-0 hero's age (`displaySmall`), or the last owned volume of a shelf row (`headlineMedium`) and of the series page header (`displaySmall`), `LastVolumeNumber` in `features/books/widgets/series_tile.dart`. |
 
 ## 3. Color
 
@@ -142,8 +142,8 @@ hyphen.
 | labelMedium | Metadata (dates, countdown badges) | 500–600 |
 
 Rules:
-- **Minimum 12 sp** for any text (the one exception left: `labelSmall`, 11 sp, for the published
-  date in `book_card.dart`).
+- **Minimum 12 sp** for any text, no exception left (the 11 sp published date went with
+  `BookCard`, 2026-11-10).
 - Sentence case. No ALL-CAPS overlines (hard to read, louder than "calm"); if an overline is
   needed: labelMedium, sentence case, `onSurfaceVariant` or 85 % on gradients.
 - Tabular figures for anything that counts or aligns: `FontFeature.tabularFigures()`.

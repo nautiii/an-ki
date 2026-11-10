@@ -600,7 +600,7 @@ test('streams the ideas of the signed-in user', () async {
   unmounts the `ProviderScope` before checking timers, which disposes the provider and cancels
   its timer. Pin the day only when an assertion depends on it.
 - An `autoDispose` controller with optimistic writes needs an always-mounted screen (home,
-  scanner, settings) that `ref.listen`s it: that keeps it alive and announces late failures. A
+  the books shelf, settings) that `ref.listen`s it: that keeps it alive and announces late failures. A
   failure contradicting the snackbar on screen replaces it (`hideCurrentSnackBar`) instead of
   queuing behind it.
 - `riverpod_lint` (analyzer plugin) reports in the IDE and with `dart analyze`; `flutter analyze`

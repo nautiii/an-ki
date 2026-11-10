@@ -22,6 +22,20 @@ Delete each line once done:
   to the same account; a guest who turned Livres on and opens an existing Google account
   (B5.5) finds Livres on there; « Effacer les données Livres… » on a test account only, once
   online (`books` gone in the console) and once in airplane mode (refused, nothing erased).
+- Livres step 7, shelf and series pages (2026-11-10, branch `claude/books-shelf-c8be56`), once
+  the step 6 rules are deployed (before, every read of the shelf is refused and the tab shows
+  « Étagère indisponible »): on the phone, Livres on, an account with legacy `books` → the
+  shelf lists their series A to Z (cover, else initials; the last volume in big digits;
+  « Prochain : tome N · date inconnue »; « Il vous manque … » where volumes are missing) and
+  « À classer (n) » for the volumes without a series; search « pi » finds One Piece; a series
+  page (header, « Prochain » card, holes as chips, grid: owned filled, missing outlined; a tap on
+  an owned number opens its sheet); rename, merge, mark complete, delete (each « Annuler »
+  restores; without it the console shows the write after ~5 s); a volume's sheet → « Changer
+  de série ou de numéro » moves it, « Retirer de la collection » with « Annuler »; the inbox
+  classifies a volume into a new series. A real scan from `/books/scan` (« Ajouter » → the
+  volume on the shelf), the camera refused then granted from « Ouvrir les réglages ». Airplane
+  mode: the shelf still reads from the cache and the « Hors ligne · dates non actualisées »
+  banner appears after ~3 s. TalkBack on a row reads « One Piece, dernier tome 108, … ».
 - Livres step 6, series and volumes in Firestore (2026-11-09, branch
   `claude/books-firestore-ce51f6`). **The `bookSeries` and `bookVolumes` rules are proved in the
   emulator but not deployed**: deploy them (firebase Workflow D) once the chain is on `main`,

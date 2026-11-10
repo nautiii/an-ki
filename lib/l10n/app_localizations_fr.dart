@@ -618,13 +618,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'AnKi ne lit que les noms et les dates d\'anniversaire.';
 
   @override
-  String get noBooksMessage =>
-      'Scannez le code-barres d\'un livre pour garder une idée de cadeau.';
-
-  @override
-  String get bookScannerTitle => 'Scanner de livres';
-
-  @override
   String get bookTitle => 'Titre';
 
   @override
@@ -637,9 +630,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get bookNotFound => 'Livre non trouvé';
-
-  @override
-  String get noBooksYet => 'Aucun livre pour l\'instant';
 
   @override
   String get deleteAccount => 'Supprimer mon compte';
@@ -1228,4 +1218,373 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get remindersBlocked => 'Bloqués dans les réglages du téléphone.';
+
+  @override
+  String get scanBook => 'Scanner un livre';
+
+  @override
+  String get shelfSearchHint => 'Rechercher une série';
+
+  @override
+  String shelfNoResults(String query) {
+    return 'Aucune série pour « $query »';
+  }
+
+  @override
+  String shelfInbox(int count) {
+    return 'À classer ($count)';
+  }
+
+  @override
+  String shelfInboxHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tomes attendent leur série',
+      one: 'Un tome attend sa série',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shelfEmptyTitle => 'Votre étagère vous attend';
+
+  @override
+  String get shelfEmptyMessage =>
+      'Scannez vos livres : AnKi retient le dernier tome de chaque série et ceux qu\'il vous manque.';
+
+  @override
+  String get shelfErrorTitle => 'Étagère indisponible';
+
+  @override
+  String get shelfLoading => 'Chargement de l\'étagère';
+
+  @override
+  String get shelfOffline => 'Hors ligne · dates non actualisées';
+
+  @override
+  String get seriesComplete => 'Série terminée';
+
+  @override
+  String seriesNextOn(int number, String date) {
+    return 'Prochain : tome $number · $date';
+  }
+
+  @override
+  String seriesNextReleased(int number) {
+    return 'Prochain : tome $number · paru';
+  }
+
+  @override
+  String seriesNextUnknown(int number) {
+    return 'Prochain : tome $number · date inconnue';
+  }
+
+  @override
+  String seriesHoles(String numbers) {
+    return 'Il vous manque $numbers';
+  }
+
+  @override
+  String seriesHolesMore(String numbers, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Il vous manque $numbers et $count autres',
+      one: 'Il vous manque $numbers et 1 autre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String numberListLast(String head, String last) {
+    return '$head et $last';
+  }
+
+  @override
+  String a11ySeriesLast(int number) {
+    return 'dernier tome $number';
+  }
+
+  @override
+  String get a11ySeriesEmpty => 'aucun tome';
+
+  @override
+  String a11yNextAnnounced(int number, String date) {
+    return 'prochain tome $number, sortie le $date';
+  }
+
+  @override
+  String a11yNextAnnouncedMonth(int number, String month) {
+    return 'prochain tome $number, sortie en $month';
+  }
+
+  @override
+  String a11yNextReleased(int number) {
+    return 'prochain tome $number, paru';
+  }
+
+  @override
+  String a11yNextUnknown(int number) {
+    return 'prochain tome $number, date inconnue';
+  }
+
+  @override
+  String get a11yNextComplete => 'série terminée';
+
+  @override
+  String a11ySeriesHoles(int count, String numbers) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'il vous manque les tomes $numbers',
+      one: 'il vous manque le tome $numbers',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nextCardTitle => 'Prochain';
+
+  @override
+  String nextCardReleased(int number) {
+    return 'Tome $number paru · vous ne l\'avez pas';
+  }
+
+  @override
+  String nextCardAnnounced(int number, String date) {
+    return 'Tome $number · sortie le $date';
+  }
+
+  @override
+  String nextCardAnnouncedMonth(int number, String month) {
+    return 'Tome $number · sortie en $month';
+  }
+
+  @override
+  String nextCardUnknown(int number) {
+    return 'Tome $number · date inconnue';
+  }
+
+  @override
+  String get nextCardComplete => 'Série terminée : rien à attendre';
+
+  @override
+  String get nextSourceBnf => 'selon la BnF';
+
+  @override
+  String get nextSourceGoogleBooks => 'selon Google Books';
+
+  @override
+  String get nextSourceUser => 'date saisie par vous';
+
+  @override
+  String nextSourceChecked(String source, String date) {
+    return '$source · vérifié le $date';
+  }
+
+  @override
+  String get seriesHolesTitle => 'Il vous manque';
+
+  @override
+  String seriesHoleChip(int number) {
+    return 'Tome $number';
+  }
+
+  @override
+  String get seriesVolumesTitle => 'Vos tomes';
+
+  @override
+  String seriesVolumeOwned(int number) {
+    return 'Tome $number, possédé';
+  }
+
+  @override
+  String seriesVolumeMissing(int number) {
+    return 'Tome $number, manquant';
+  }
+
+  @override
+  String get seriesNoVolume => 'Aucun tome de cette série pour l\'instant.';
+
+  @override
+  String get seriesMenu => 'Options de la série';
+
+  @override
+  String get seriesRename => 'Renommer';
+
+  @override
+  String get seriesMerge => 'Fusionner avec une autre série';
+
+  @override
+  String get seriesMarkComplete => 'Marquer comme terminée';
+
+  @override
+  String get seriesMarkOngoing => 'Marquer comme en cours';
+
+  @override
+  String get seriesDelete => 'Supprimer la série';
+
+  @override
+  String get seriesRenameTitle => 'Renommer la série';
+
+  @override
+  String get seriesNameLabel => 'Nom de la série';
+
+  @override
+  String get seriesNameRequired => 'Donnez un nom à la série';
+
+  @override
+  String seriesMergeTitle(String name) {
+    return 'Fusionner $name avec…';
+  }
+
+  @override
+  String get seriesMergeHint =>
+      'Ses tomes rejoignent la série choisie, qui garde son nom.';
+
+  @override
+  String seriesMerged(String source, String target) {
+    return '$source fusionnée dans $target';
+  }
+
+  @override
+  String seriesMarkedComplete(String name) {
+    return '$name marquée terminée';
+  }
+
+  @override
+  String seriesMarkedOngoing(String name) {
+    return '$name de nouveau en cours';
+  }
+
+  @override
+  String seriesDeleted(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$name supprimée, avec ses $count tomes',
+      one: '$name supprimée, avec son tome',
+      zero: '$name supprimée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get seriesMissingTitle => 'Série introuvable';
+
+  @override
+  String get seriesMissingMessage =>
+      'Elle a peut-être été supprimée ou fusionnée avec une autre.';
+
+  @override
+  String get seriesBackToShelf => 'Retour à l\'étagère';
+
+  @override
+  String get seriesErrorTitle => 'Série indisponible';
+
+  @override
+  String get shelfWriteError =>
+      'La modification n\'a pas pu être enregistrée. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String volumeIsbn(String isbn) {
+    return 'ISBN $isbn';
+  }
+
+  @override
+  String volumePublished(String date) {
+    return 'Paru le $date';
+  }
+
+  @override
+  String volumePublishedIn(String period) {
+    return 'Paru en $period';
+  }
+
+  @override
+  String volumeInSeries(String series, int number) {
+    return '$series · tome $number';
+  }
+
+  @override
+  String get volumePending => 'Infos à compléter';
+
+  @override
+  String get volumeNotFound => 'Inconnu des catalogues';
+
+  @override
+  String get volumeClassify => 'Changer de série ou de numéro';
+
+  @override
+  String get volumeSort => 'Classer';
+
+  @override
+  String get volumeRemove => 'Retirer de la collection';
+
+  @override
+  String volumeRemoved(String title) {
+    return '$title retiré de la collection';
+  }
+
+  @override
+  String get classifyTitle => 'Classer ce tome';
+
+  @override
+  String get classifySeries => 'Série';
+
+  @override
+  String get classifyNewSeries => 'Nouvelle série';
+
+  @override
+  String get classifyNumberLabel => 'Numéro du tome';
+
+  @override
+  String classifyNumberError(int max) {
+    return 'Un numéro entre 1 et $max';
+  }
+
+  @override
+  String get classifySave => 'Ranger';
+
+  @override
+  String get inboxEmptyTitle => 'Tout est rangé';
+
+  @override
+  String get inboxEmptyMessage => 'Chaque tome a trouvé sa série.';
+
+  @override
+  String get scanHint => 'Visez le code-barres au dos du livre';
+
+  @override
+  String get cameraDeniedTitle => 'AnKi n\'a pas accès à la caméra';
+
+  @override
+  String get cameraDeniedMessage =>
+      'Autorisez la caméra pour scanner le code-barres de vos livres. Si elle reste bloquée, ouvrez les réglages de l\'app.';
+
+  @override
+  String get cameraAllow => 'Autoriser la caméra';
+
+  @override
+  String get cameraUnavailableTitle => 'Caméra indisponible';
+
+  @override
+  String get cameraUnavailableMessage =>
+      'La caméra n\'a pas pu démarrer. Fermez les autres apps qui l\'utilisent et réessayez.';
+
+  @override
+  String seriesVolumeOwnedEditions(int number, int count) {
+    return 'Tome $number, possédé en $count éditions';
+  }
+
+  @override
+  String volumeEditionsTitle(int number) {
+    return 'Tome $number : quelle édition ?';
+  }
+
+  @override
+  String a11ySeriesHolesMore(String numbers, int count) {
+    return 'il vous manque les tomes $numbers et $count autres';
+  }
 }
