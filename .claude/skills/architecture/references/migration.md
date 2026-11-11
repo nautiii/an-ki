@@ -22,6 +22,24 @@ Delete each line once done:
   to the same account; a guest who turned Livres on and opens an existing Google account
   (B5.5) finds Livres on there; « Effacer les données Livres… » on a test account only, once
   online (`books` gone in the console) and once in airplane mode (refused, nothing erased).
+- Livres step 8, burst scanning and corrections (2026-11-11, branch `claude/books-burst-21d5db`),
+  once the step 6 rules are deployed. Seen on the emulator with the rules refused: the scanner
+  page, « Saisir un ISBN » and its inline error, a typed ISBN stacking as « ISBN … · infos à
+  compléter » (online and in airplane mode), the « Ajouter une série » sheet and its range
+  error, « Terminé », dark and 200 %. **Never seen: a real barcode** (the emulator's camera
+  can't present one). On the phone: scan five volumes in a row without closing the page (one
+  light vibration and one row each, newest first: « ✓ One Piece · tome 108 »); hold a book in
+  front of the camera (one row only); scan an owned volume (« Déjà dans votre collection ·
+  One Piece 107 », no vibration, one notice even for a pile); the torch; a row opens its sheet,
+  « Introuvable · Classer » the classification. Airplane mode: scan two volumes (« infos à
+  compléter »), back online, open Livres → they are completed (series and number) or « à
+  classer », nothing marked « introuvable ». « Ajouter une série à la main » from the empty
+  shelf and the app bar: « One Piece », « 1-12, 15 », « Série terminée » → the series page with
+  13 volumes, holes 13 and 14, complete; the same name again joins it. Corrections on a real
+  shelf: move and renumber a volume, remove with « Annuler » (also from the burst, then rescan),
+  rename, merge with « Annuler », mark complete, delete with « Annuler ». Not observed on the
+  emulator: the « Déjà dans votre collection » notice (2 s, maybe missed by the screenshot) and
+  any write-refused snackbar.
 - Livres step 7, shelf and series pages (2026-11-10, branch `claude/books-shelf-c8be56`), once
   the step 6 rules are deployed (before, every read of the shelf is refused and the tab shows
   « Étagère indisponible »): on the phone, Livres on, an account with legacy `books` → the
