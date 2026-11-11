@@ -314,6 +314,13 @@ volume out four days earlier; the volumes of One Piece dated 2026 carry the year
 Books may hold pre-order dates but wasn't measurable (the shared quota was exhausted without a
 key).
 
+Measured 2026-11-11: a BnF record can come before the release, from the metadata a publisher
+deposits, with the day (One Piece 113: record of 16 Sept., « 23/09/2026 »; Blue Lock 35, record
+of 4 Nov.). So the BnF also says « annoncé » when that date is still to come; a record without
+one still means « paru ». Searched by title words (`bib.title all "One Piece 109"`, which also
+covers the collection field 225); the record is accepted only when the series rule finds the
+same series key and number, on the record or on its title alone.
+
 **Rejected.**
 - *Open Library*: 404 on the four manga ISBNs tested.
 - *AniList, MangaUpdates, MangaDex, Jikan*: no French edition.
