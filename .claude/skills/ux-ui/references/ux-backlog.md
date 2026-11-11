@@ -125,9 +125,21 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
   merge and delete with Annuler, mark complete or ongoing with Annuler; unknown id message);
   the volume sheet (classify, remove with Annuler); `/books/inbox`; `/books/scan` pushed on the
   root navigator, single scan as before, its own camera-denied and camera-unavailable states;
-  first run (moon, « Scanner un livre »; « Ajouter une série à la main » hidden until step 8),
+  first run (moon, « Scanner un livre »; « Ajouter une série à la main » since step 8),
   skeleton, error with retry, offline banner after 3 s on the cache only. The carousel and
   `scannedVolumesProvider` are gone.
+  Step 8 built on 2026-11-11: `/books/scan` in burst (the camera stays on; a code re-read in
+  the same burst is ignored; an owned ISBN shows « Déjà dans votre collection · One Piece 107 »
+  without vibrating; each new volume stacks newest first: « ✓ One Piece · tome 108 », « ISBN …
+  · infos à compléter », « <titre> · à classer », « Introuvable · Classer »; a tap opens its
+  sheet, or the classify sheet for « Introuvable »; `lightImpact` and a 300 ms check, none under
+  reduce motion; torch, « Saisir un ISBN » sheet checked by `normalizeIsbn`, « Terminé »). A
+  low-confidence guess stays « à classer »: attaching it with a « vérifier » hint would put a
+  wrong number into a series' last volume and gaps, the job people open the shelf for, and the
+  row already says « à classer ». « Ajouter une série » sheet (name with the existing series as
+  chips, joins a series of the same key, « J'ai les tomes » with typed errors, « Série
+  terminée »), from the first run and an app-bar button, then the series page. Pending volumes
+  are completed when a Livres page opens and on resume. The single-scan sheet is gone.
   6. `FEAT(books): series and volumes`: domain, repositories (Firestore, BnF, Google), rules,
      emulator tests and deployment, eraser and guest transfer, legacy import;
   7. `FEAT(books): shelf and series pages`: shelf, series page, volume sheet, « À classer », the
