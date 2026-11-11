@@ -4,6 +4,7 @@ import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bnf_catalog.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
+import 'package:an_ki/features/books/data/google_books_catalog.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/book_metadata.dart';
 import 'package:an_ki/features/books/domain/next_volume_status.dart';
@@ -13,17 +14,18 @@ import 'package:an_ki/features/books/domain/shelf.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Vérifie à la BnF ce qu'on sait du prochain tome des séries (D14) et le
-/// garde sur la série (`next`), pour qu'il se lise hors ligne.
+/// Vérifie à la BnF, puis chez Google Books quand la BnF ne date pas le tome
+/// ([needsGoogleCheck]), ce qu'on sait du prochain tome des séries (D14) et
+/// le garde sur la série (`next`), pour qu'il se lise hors ligne.
 ///
 /// - [checkStale] : à l'ouverture de l'étagère, en silence, les séries dues
 ///   ([entriesToCheck]) ; la première erreur de réseau arrête la passe.
 /// - [checkSeries] : « tirer pour actualiser » sur une série ; l'état publie
 ///   `AsyncLoading`, puis `AsyncData` ou `AsyncError` ([BookFailure] pour la
-///   recherche, `ShelfFailure` pour l'écriture).
+///   recherche BnF, `ShelfFailure` pour l'écriture).
 ///
-/// Pas de Google Books ici : la mesure de l'étape 9 décide s'il dira
-/// « à paraître ».
+/// Google Books ne fait que compléter : son échec (quota, réseau) laisse ce
+/// que dit la BnF s'écrire, sans erreur publiée.
 class ReleaseCheck extends AsyncNotifier<void> {
   /// Vrai pendant une passe de [checkStale].
   bool _checking = false;
@@ -63,6 +65,8 @@ class ReleaseCheck extends AsyncNotifier<void> {
       final shelf = ref.read(shelfProvider).value;
       if (shelf == null) return;
       final now = ref.read(clockProvider)();
+      // Google en échec (quota, souvent) n'est plus interrogé de la passe.
+      var googleDown = false;
       final due = entriesToCheck([
         for (final entry in shelf.entries)
           if (!_checked.contains(entry.series.id)) entry,
@@ -79,7 +83,13 @@ class ReleaseCheck extends AsyncNotifier<void> {
           return;
         }
         if (!ref.mounted || ref.read(currentUidProvider) != uid) return;
-        _checked.add(entry.series.id);
+        final googleNeeded = needsGoogleCheck(entry, number, records, now);
+        List<BookMetadata>? google;
+        if (googleNeeded && !googleDown) {
+          google = await _searchGoogle(entry.series.name, number);
+          googleDown = google == null;
+          if (!ref.mounted || ref.read(currentUidProvider) != uid) return;
+        }
         // L'étagère a pu bouger pendant la recherche (une date saisie, un
         // tome scanné, une série fusionnée ou supprimée) : rien n'est écrit
         // sur ce qui a changé.
@@ -87,9 +97,27 @@ class ReleaseCheck extends AsyncNotifier<void> {
         if (fresh == null ||
             upcomingVolumeNumber(fresh) != number ||
             fresh.series.next != entry.series.next) {
+          _checked.add(entry.series.id);
           continue;
         }
-        if (checkedRelease(fresh, number, records, now) case final info?) {
+        final info = checkedRelease(
+          fresh,
+          number,
+          records,
+          now,
+          google: google,
+        );
+        // Google n'a pu répondre : une réponse sans date n'est pas écrite,
+        // elle repousserait d'une semaine ce que Google aurait pu dire. La
+        // série sera revue à la prochaine passe.
+        if (googleNeeded &&
+            google == null &&
+            (info == null ||
+                (info.date == null && info.status != ReleaseStatus.released))) {
+          continue;
+        }
+        _checked.add(entry.series.id);
+        if (info != null) {
           unawaited(_quietly(_write(uid, entry.series.id, info)));
         }
       }
@@ -119,6 +147,10 @@ class ReleaseCheck extends AsyncNotifier<void> {
     }
     if (!ref.mounted || ref.read(currentUidProvider) != uid) return;
     final now = ref.read(clockProvider)();
+    final google = needsGoogleCheck(entry, number, records, now)
+        ? await _searchGoogle(entry.series.name, number)
+        : null;
+    if (!ref.mounted || ref.read(currentUidProvider) != uid) return;
     // L'étagère a pu bouger pendant la recherche (un tome scanné).
     final fresh = _entry(seriesId);
     if (fresh == null || upcomingVolumeNumber(fresh) != number) {
@@ -127,7 +159,8 @@ class ReleaseCheck extends AsyncNotifier<void> {
     }
     _checked.add(seriesId);
     state = const AsyncData(null);
-    if (checkedRelease(fresh, number, records, now) case final info?) {
+    if (checkedRelease(fresh, number, records, now, google: google)
+        case final info?) {
       // Pas attendue : hors ligne, l'écriture ne se résout qu'au retour du
       // réseau. Un refus s'affiche quand il arrive.
       unawaited(
@@ -147,6 +180,18 @@ class ReleaseCheck extends AsyncNotifier<void> {
       ?.entries
       .where((entry) => entry.series.id == seriesId)
       .firstOrNull;
+
+  /// Volumes de Google Books pour ce tome ; null quand Google n'a pu
+  /// répondre (quota, réseau, réponse illisible).
+  Future<List<BookMetadata>?> _searchGoogle(String name, int number) async {
+    try {
+      return await ref
+          .read(googleBooksCatalogProvider)
+          .searchVolume(name, number);
+    } on BookFailure {
+      return null;
+    }
+  }
 
   Future<void> _write(String uid, String seriesId, NextVolumeInfo info) =>
       ref.read(bookshelfRepositoryProvider).setNextVolume(uid, seriesId, info);

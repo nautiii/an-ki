@@ -1,6 +1,7 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bnf_catalog.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
+import 'package:an_ki/features/books/data/google_books_catalog.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/book_metadata.dart';
 import 'package:an_ki/features/books/domain/series.dart';
@@ -71,6 +72,9 @@ void main() {
         bookshelfRepositoryProvider.overrideWithValue(repository),
         volumeLookupProvider.overrideWithValue(lookup),
         bnfCatalogProvider.overrideWithValue(bnf),
+        googleBooksCatalogProvider.overrideWithValue(
+          RecordingGoogleBooksCatalog(),
+        ),
         currentUidProvider.overrideWithValue('fake-uid'),
       ],
     );

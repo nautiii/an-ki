@@ -51,15 +51,7 @@ class GoogleBooksCatalog {
       source: 'Google Books',
     );
 
-    switch (response.statusCode) {
-      case 200:
-        break;
-      case 429:
-        throw BookFailure.quotaExceeded;
-      default:
-        debugPrint('Google Books HTTP ${response.statusCode}');
-        throw BookFailure.unavailable;
-    }
+    _ensureOk(response);
 
     try {
       return switch (json.decode(response.body)) {
@@ -76,7 +68,77 @@ class GoogleBooksCatalog {
       Error.throwWithStackTrace(BookFailure.unavailable, stack);
     }
   }
+
+  /// Éditions françaises dont le titre contient [seriesName], avec [number]
+  /// parmi les mots cherchés (« One Piece 114 ») : de quoi lire la date
+  /// qu'un éditeur annonce avant la sortie, que la BnF n'a pas encore (D14).
+  /// Vide quand Google n'a rien, ou pour un nom sans lettre ni chiffre (aucun
+  /// appel alors).
+  ///
+  /// `langRestrict` ne suffit pas : Google rend aussi d'autres langues, que
+  /// seul le champ `language` écarte. Le reste n'est pas filtré : à
+  /// l'appelant de vérifier la série et le numéro (`guessVolume`). Mêmes
+  /// échecs que [fetchByIsbn].
+  Future<List<BookMetadata>> searchVolume(String seriesName, int number) async {
+    // Des mots seulement : la valeur entre entre guillemets dans `intitle:`.
+    final words = seriesName.replaceAll(_notWord, ' ').trim();
+    if (words.isEmpty || number < 1) return const [];
+    final url = Uri.https('www.googleapis.com', '/books/v1/volumes', {
+      'q': 'intitle:"$words" $number',
+      'langRestrict': 'fr',
+      'printType': 'books',
+      'maxResults': '$_searchedVolumes',
+      'key': _apiKey,
+    });
+    final response = await getFromCatalog(
+      _httpClient,
+      url,
+      source: 'Google Books',
+    );
+
+    _ensureOk(response);
+
+    try {
+      return switch (json.decode(response.body)) {
+        {'items': final List<dynamic> items} => [
+          for (final item in items.cast<Map<String, dynamic>>())
+            if ((item['volumeInfo'] as Map<String, dynamic>?)?['language'] ==
+                'fr')
+              _metadataFromVolume(item),
+        ],
+        // Aucun résultat : `totalItems` à 0, sans `items`.
+        final Map<String, dynamic> body when !body.containsKey('items') =>
+          const <BookMetadata>[],
+        _ => throw const FormatException('unexpected volumes shape'),
+      };
+    } catch (e, stack) {
+      // JSON invalide ou champ d'un autre type que prévu.
+      debugPrint('Google Books unreadable: $e');
+      Error.throwWithStackTrace(BookFailure.unavailable, stack);
+    }
+  }
 }
+
+/// Lève l'échec que dit le code HTTP de [response] : [BookFailure.quotaExceeded]
+/// pour 429, [BookFailure.unavailable] pour tout autre code que 200.
+void _ensureOk(http.Response response) {
+  switch (response.statusCode) {
+    case 200:
+      return;
+    case 429:
+      throw BookFailure.quotaExceeded;
+    default:
+      debugPrint('Google Books HTTP ${response.statusCode}');
+      throw BookFailure.unavailable;
+  }
+}
+
+/// Volumes lus par [GoogleBooksCatalog.searchVolume] : la mesure de l'étape 9
+/// trouvait le bon tome parmi les huit premiers.
+const _searchedVolumes = 20;
+
+/// Ce qui n'est ni une lettre ni un chiffre.
+final _notWord = RegExp(r'[^\p{L}\p{N}]+', unicode: true);
 
 /// Volume Google Books (`items[n]`) → métadonnées ; sans titre, le titre reste
 /// vide et l'UI le formule.

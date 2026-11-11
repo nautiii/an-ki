@@ -4,6 +4,7 @@ import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bnf_catalog.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
+import 'package:an_ki/features/books/data/google_books_catalog.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/book_metadata.dart';
 import 'package:an_ki/features/books/domain/release_date.dart';
@@ -71,6 +72,8 @@ void main() {
     BookshelfRepository repository, {
     String id = 's1',
     List<Object> extra = const [],
+    BnfCatalog? bnf,
+    GoogleBooksCatalog? google,
     Map<String, WidgetBuilder>? routes,
   }) async {
     await tester.pumpHarness(
@@ -79,6 +82,11 @@ void main() {
         bookshelfRepositoryProvider.overrideWithValue(repository),
         currentUidProvider.overrideWithValue('fake-uid'),
         todayProvider.overrideWithValue(DateTime(2026, 11, 8)),
+        // Aucun catalogue réel : « tirer pour actualiser » les interroge.
+        bnfCatalogProvider.overrideWithValue(bnf ?? RecordingBnfCatalog()),
+        googleBooksCatalogProvider.overrideWithValue(
+          google ?? RecordingGoogleBooksCatalog(),
+        ),
         ...extra,
       ],
       routes: routes,
@@ -190,8 +198,8 @@ void main() {
       await pumpSeries(
         tester,
         repository,
+        bnf: bnf,
         extra: [
-          bnfCatalogProvider.overrideWithValue(bnf),
           clockProvider.overrideWithValue(() => DateTime(2026, 11, 8, 9)),
         ],
       );
@@ -208,13 +216,56 @@ void main() {
       expect(find.text('selon la BnF · vérifié le 8 nov.'), findsOneWidget);
     });
 
-    testWidgets('a failed check says so and keeps the page', (tester) async {
-      final bnf = RecordingBnfCatalog()..failure = BookFailure.network;
+    testWidgets('a date only Google Books knows is shown as its', (
+      tester,
+    ) async {
+      final repository = RecordingBookshelfRepository(
+        series: [
+          const Series(
+            id: 's1',
+            name: 'One Piece',
+            keys: ['one piece'],
+            complete: false,
+          ),
+        ],
+        volumes: [_volume(1), _volume(2), _volume(4)],
+      );
+      final google = RecordingGoogleBooksCatalog({
+        ('One Piece', 5): [
+          const BookMetadata(
+            title: 'One Piece - Tome 5',
+            authors: [],
+            publishedDate: '2026-12-02',
+          ),
+        ],
+      });
       await pumpSeries(
         tester,
-        filled(),
-        extra: [bnfCatalogProvider.overrideWithValue(bnf)],
+        repository,
+        google: google,
+        extra: [
+          clockProvider.overrideWithValue(() => DateTime(2026, 11, 8, 9)),
+        ],
       );
+
+      await tester.fling(
+        find.byType(CustomScrollView),
+        const Offset(0, 400),
+        1000,
+      );
+      await tester.pumpAndSettle();
+
+      expect(google.asked, [('One Piece', 5)]);
+      expect(find.text('Tome 5 · sortie le 2 décembre'), findsOneWidget);
+      expect(
+        find.text('selon Google Books · vérifié le 8 nov.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a failed check says so and keeps the page', (tester) async {
+      final bnf = RecordingBnfCatalog()..failure = BookFailure.network;
+      await pumpSeries(tester, filled(), bnf: bnf);
 
       await tester.fling(
         find.byType(CustomScrollView),
