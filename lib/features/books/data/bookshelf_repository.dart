@@ -140,6 +140,41 @@ class BookshelfRepository {
   Future<void> deleteVolume(String uid, String volumeId) =>
       _guard(() => _volumes(uid).doc(volumeId).delete());
 
+  /// Id d'un tome ajouté à la main (sans ISBN), tiré côté client.
+  String newVolumeId(String uid) => _volumes(uid).doc().id;
+
+  /// Écrit les tomes ajoutés à la main [volumes] (ids tirés par
+  /// [newVolumeId]) : la série neuve [withSeries] d'abord, puis les tomes,
+  /// puis la marque « terminée » de [completeSeriesId], par lots
+  /// (`writeInBatches`). Le premier lot porte la série ; au-delà de 500
+  /// opérations, les lots partent ensemble, sans ordre garanti (les règles
+  /// les acceptent ou les refusent tous, pour un même compte).
+  Future<void> addManualVolumes(
+    String uid,
+    List<Volume> volumes, {
+    ({Series series, DateTime createdAt})? withSeries,
+    String? completeSeriesId,
+  }) => _guard(() {
+    final operations = <void Function(WriteBatch)>[
+      if (withSeries case (:final series, :final createdAt))
+        (batch) => batch.set(
+          _series(uid).doc(series.id),
+          _seriesToMap(series, createdAt: createdAt),
+        ),
+      for (final volume in volumes)
+        (batch) =>
+            batch.set(_volumes(uid).doc(volume.id), _volumeToMap(volume)),
+      if (completeSeriesId != null)
+        (batch) => batch.update(_series(uid).doc(completeSeriesId), {
+          'complete': true,
+        }),
+    ];
+    return _firestore.writeInBatches(
+      operations,
+      (batch, write) => write(batch),
+    );
+  });
+
   // --- Séries ---
 
   /// Id d'une nouvelle série de [uid], tiré côté client : utilisable hors

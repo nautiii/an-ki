@@ -11,6 +11,7 @@ import 'package:an_ki/features/books/widgets/classify_sheet.dart';
 import 'package:an_ki/features/books/widgets/series_cover.dart';
 import 'package:an_ki/features/books/widgets/shelf_display.dart';
 import 'package:an_ki/features/books/widgets/volume_sheet.dart';
+import 'package:an_ki/features/books/widgets/pending_completer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -84,13 +85,15 @@ class ShelfInboxScreen extends ConsumerWidget {
       ),
     };
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          shelf.hasValue ? l10n.shelfInbox(volumes.length) : l10n.volumeSort,
+    return PendingCompleter(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            shelf.hasValue ? l10n.shelfInbox(volumes.length) : l10n.volumeSort,
+          ),
         ),
+        body: SafeArea(top: false, child: body),
       ),
-      body: SafeArea(top: false, child: body),
     );
   }
 }

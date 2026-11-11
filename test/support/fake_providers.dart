@@ -638,6 +638,35 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
       _write(() => _volumes.remove(volumeId));
 
   @override
+  String newVolumeId(String uid) => 'volume-${_nextId++}';
+
+  @override
+  Future<void> addManualVolumes(
+    String uid,
+    List<Volume> volumes, {
+    ({Series series, DateTime createdAt})? withSeries,
+    String? completeSeriesId,
+  }) => _write(() {
+    if (withSeries case (:final series, createdAt: _)) {
+      createdSeries.add(series);
+      _series[series.id] = series;
+    }
+    for (final volume in volumes) {
+      _volumes[volume.id] = volume;
+    }
+    if (completeSeriesId != null) {
+      final series = _series[completeSeriesId]!;
+      _series[completeSeriesId] = Series(
+        id: series.id,
+        name: series.name,
+        keys: series.keys,
+        complete: true,
+        next: series.next,
+      );
+    }
+  });
+
+  @override
   Future<void> deleteSeries(String uid, String seriesId) => _write(() {
     // Comme Firestore : les tomes rangés partent, ceux sans numéro valable
     // sont détachés.

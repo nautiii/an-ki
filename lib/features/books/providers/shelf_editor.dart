@@ -103,19 +103,29 @@ class ShelfEditor extends AsyncNotifier<void> {
 
   /// Complète les tomes en attente (scannés hors ligne) : une recherche par
   /// tome, dans l'ordre ; la première erreur de réseau ou de quota arrête la
-  /// passe sans rien marquer introuvable. Une seule passe à la fois.
+  /// passe sans rien marquer introuvable. Une seule passe à la fois. Attend
+  /// la première lecture des tomes (un écran qui s'ouvre l'appelle aussitôt) ;
+  /// une étagère illisible ne lance rien.
   Future<void> completePending() async {
     final uid = ref.read(currentUidProvider);
     if (uid == null || _completing) return;
-    final pending = [
-      for (final volume in _volumes())
-        if (volume.lookup == LookupState.pending && volume.isbn != null) volume,
-    ];
-    if (pending.isEmpty) return;
     _completing = true;
     final writes = <Future<AsyncValue<void>>>[];
-    state = const AsyncLoading();
     try {
+      final List<Volume> volumes;
+      try {
+        volumes = await ref.read(bookVolumesProvider.future);
+      } on Object {
+        return;
+      }
+      if (!ref.mounted) return;
+      final pending = [
+        for (final volume in volumes)
+          if (volume.lookup == LookupState.pending && volume.isbn != null)
+            volume,
+      ];
+      if (pending.isEmpty) return;
+      state = const AsyncLoading();
       for (final volume in pending) {
         final result = await _lookedUp(uid, volume);
         if (!ref.mounted) return;
@@ -128,6 +138,75 @@ class ShelfEditor extends AsyncNotifier<void> {
       _completing = false;
     }
     await _settle(writes);
+  }
+
+  /// Ajoute à la main la série [name] avec les tomes [numbers] (une
+  /// collection déjà là, sans la scanner) et renvoie son id aussitôt (hors
+  /// ligne compris) ; null pour un nom vide ou hors session.
+  ///
+  /// Un nom dont la clé existe rejoint cette série (un ancien nom compris) ;
+  /// les numéros qu'elle possède déjà ne sont pas doublés. [complete] la
+  /// marque terminée ; décoché, il ne rouvre pas une série terminée.
+  String? addSeriesByHand(
+    String name,
+    List<int> numbers, {
+    required bool complete,
+  }) {
+    final uid = ref.read(currentUidProvider);
+    final trimmed = name.trim();
+    final key = seriesKey(trimmed);
+    if (uid == null || key.isEmpty) return null;
+    final repository = ref.read(bookshelfRepositoryProvider);
+    // Une série dont la suppression attend « Annuler » ne compte plus : ses
+    // tomes partiraient avec elle.
+    final hidden = ref.read(pendingSeriesRemovalsProvider);
+    final existing = findSeriesByKey([
+      for (final series in _series())
+        if (!hidden.contains(series.id)) series,
+    ], key);
+    final target =
+        existing ??
+        Series(
+          id: repository.newSeriesId(uid),
+          name: trimmed,
+          keys: [key],
+          complete: complete,
+        );
+    if (existing == null) _createdSeries[key] = target;
+    final owned = {
+      for (final volume in _volumes())
+        if (volume.seriesId == target.id) ?volume.number,
+    };
+    final now = ref.read(clockProvider)();
+    final volumes = [
+      for (final number in numbers)
+        if (!owned.contains(number))
+          Volume(
+            id: repository.newVolumeId(uid),
+            seriesId: target.id,
+            number: number,
+            title: '',
+            authors: const [],
+            // Rien à chercher sans ISBN : le tome est complet tel quel.
+            lookup: LookupState.found,
+            addedAt: now,
+          ),
+    ];
+    unawaited(
+      _write(
+        (repository, uid) => repository.addManualVolumes(
+          uid,
+          volumes,
+          withSeries: existing == null
+              ? (series: target, createdAt: now)
+              : null,
+          completeSeriesId: existing != null && complete && !existing.complete
+              ? existing.id
+              : null,
+        ),
+      ),
+    );
+    return target.id;
   }
 
   // --- Corrections ---

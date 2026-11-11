@@ -428,6 +428,204 @@ void main() {
       );
       expect(shelf.createdSeries, isEmpty);
     });
+
+    test('waits for the first read of the volumes', () async {
+      shelf = RecordingBookshelfRepository(volumes: [_pending(_isbn)]);
+      final container = makeContainer();
+
+      // Sans `settle` : les tomes ne sont pas encore lus.
+      await editorOf(container).completePending();
+
+      expect(lookup.lookedUp, [_isbn]);
+      expect(shelf.volumes.single.lookup, LookupState.found);
+    });
+
+    test('an unreadable shelf starts nothing, state unchanged', () async {
+      shelf = _UnreadableVolumes();
+      final container = makeContainer();
+      final before = container.read(shelfEditorProvider);
+
+      await editorOf(container).completePending();
+
+      expect(lookup.lookedUp, isEmpty);
+      expect(container.read(shelfEditorProvider), before);
+      expect(container.read(shelfEditorProvider).isLoading, isFalse);
+    });
+  });
+
+  group('addSeriesByHand', () {
+    const onePiece = Series(
+      id: 's1',
+      name: 'One Piece',
+      keys: ['one piece', 'op'],
+      complete: false,
+    );
+
+    Volume owned(String id, int number) => Volume(
+      id: id,
+      seriesId: 's1',
+      number: number,
+      title: '',
+      authors: const [],
+      lookup: LookupState.found,
+      addedAt: _now,
+    );
+
+    test('a series waiting for « Annuler » is not joined', () async {
+      shelf = RecordingBookshelfRepository(series: [onePiece]);
+      final container = makeContainer();
+      await settle(container);
+      container.read(pendingSeriesRemovalsProvider.notifier).hide('s1');
+
+      final id = editorOf(container)
+          .addSeriesByHand('One Piece', [1], complete: false);
+      await pumpEventQueue();
+
+      expect(id, isNot('s1'));
+      expect(shelf.createdSeries.single.name, 'One Piece');
+      expect(shelf.volumes.single.seriesId, id);
+    });
+
+    test('creates a series named as typed, one volume per number', () async {
+      final container = makeContainer();
+      await settle(container);
+
+      final id = editorOf(container)
+          .addSeriesByHand('  Blacksad ', [1, 2, 5], complete: false);
+      await pumpEventQueue();
+
+      expect(id, 'series-0');
+      expect(
+        shelf.createdSeries.single,
+        const Series(
+          id: 'series-0',
+          name: 'Blacksad',
+          keys: ['blacksad'],
+          complete: false,
+        ),
+      );
+      expect(shelf.volumes.map((v) => v.number), [1, 2, 5]);
+      expect(shelf.volumes.every((v) => v.seriesId == 'series-0'), isTrue);
+      expect(
+        shelf.volumes.every(
+          (v) =>
+              v.lookup == LookupState.found &&
+              v.isbn == null &&
+              v.addedAt == _now,
+        ),
+        isTrue,
+      );
+    });
+
+    test('a name with the key of a series joins it', () async {
+      shelf = RecordingBookshelfRepository(series: const [onePiece]);
+      final container = makeContainer();
+      await settle(container);
+
+      final id = editorOf(container)
+          .addSeriesByHand('one piece', [3], complete: false);
+      await pumpEventQueue();
+
+      expect(id, 's1');
+      expect(shelf.createdSeries, isEmpty);
+      expect(shelf.series, hasLength(1));
+      expect(shelf.volumes.single.seriesId, 's1');
+    });
+
+    test('an old key of a series joins it too', () async {
+      shelf = RecordingBookshelfRepository(series: const [onePiece]);
+      final container = makeContainer();
+      await settle(container);
+
+      final id = editorOf(container)
+          .addSeriesByHand('OP', [3], complete: false);
+      await pumpEventQueue();
+
+      expect(id, 's1');
+      expect(shelf.createdSeries, isEmpty);
+    });
+
+    test('numbers the series already owns are skipped', () async {
+      shelf = RecordingBookshelfRepository(
+        series: const [onePiece],
+        volumes: [owned('a', 1), owned('b', 2)],
+      );
+      final container = makeContainer();
+      await settle(container);
+
+      editorOf(container)
+          .addSeriesByHand('One Piece', [1, 2, 3], complete: false);
+      await pumpEventQueue();
+
+      expect(shelf.volumes.map((v) => v.number).toSet(), {1, 2, 3});
+      expect(shelf.volumes, hasLength(3));
+    });
+
+    test('complete creates a complete series', () async {
+      final container = makeContainer();
+      await settle(container);
+
+      editorOf(container).addSeriesByHand('Blacksad', [1], complete: true);
+      await pumpEventQueue();
+
+      expect(shelf.createdSeries.single.complete, isTrue);
+    });
+
+    test('complete marks an existing series complete', () async {
+      shelf = RecordingBookshelfRepository(series: const [onePiece]);
+      final container = makeContainer();
+      await settle(container);
+
+      editorOf(container).addSeriesByHand('One Piece', [1], complete: true);
+      await pumpEventQueue();
+
+      expect(shelf.series.single.complete, isTrue);
+    });
+
+    test('not complete never reopens a complete series', () async {
+      shelf = RecordingBookshelfRepository(
+        series: const [
+          Series(
+            id: 's1',
+            name: 'One Piece',
+            keys: ['one piece'],
+            complete: true,
+          ),
+        ],
+      );
+      final container = makeContainer();
+      await settle(container);
+
+      editorOf(container).addSeriesByHand('One Piece', [1], complete: false);
+      await pumpEventQueue();
+
+      expect(shelf.series.single.complete, isTrue);
+      expect(shelf.volumes, hasLength(1));
+    });
+
+    test('an empty name writes nothing', () async {
+      final container = makeContainer();
+      await settle(container);
+
+      final id = editorOf(container).addSeriesByHand('  ', [1], complete: true);
+      await pumpEventQueue();
+
+      expect(id, isNull);
+      expect(shelf.createdSeries, isEmpty);
+      expect(shelf.volumes, isEmpty);
+    });
+
+    test('signed out, nothing is written', () async {
+      final container = makeContainer(uid: null);
+
+      final id = editorOf(container)
+          .addSeriesByHand('Blacksad', [1], complete: false);
+      await pumpEventQueue();
+
+      expect(id, isNull);
+      expect(shelf.createdSeries, isEmpty);
+      expect(shelf.volumes, isEmpty);
+    });
   });
 
   group('corrections', () {
@@ -693,4 +891,11 @@ class _GatedLookup extends Fake implements VolumeLookup {
     calls++;
     return _answer();
   }
+}
+
+/// Étagère dont le flux des tomes est refusé.
+class _UnreadableVolumes extends RecordingBookshelfRepository {
+  @override
+  Stream<List<Volume>> watchVolumes(String uid) =>
+      Stream.error(ShelfFailure.denied);
 }

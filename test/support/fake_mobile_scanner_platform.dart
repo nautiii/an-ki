@@ -14,6 +14,9 @@ class FakeMobileScannerPlatform extends MobileScannerPlatform {
   int startCalls = 0;
   int stopCalls = 0;
 
+  /// Appuis sur la lampe transmis à la caméra.
+  int torchToggles = 0;
+
   /// When set, every [start] fails with this error code (a refused camera
   /// permission, for instance), as the real plugin reports it.
   MobileScannerErrorCode? startError;
@@ -82,5 +85,5 @@ class FakeMobileScannerPlatform extends MobileScannerPlatform {
   Future<void> setFocusPoint(Offset position) async {}
 
   @override
-  Future<void> toggleTorch() async {}
+  Future<void> toggleTorch() async => torchToggles++;
 }

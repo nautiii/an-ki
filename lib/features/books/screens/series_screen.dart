@@ -16,6 +16,7 @@ import 'package:an_ki/features/books/widgets/series_cover.dart';
 import 'package:an_ki/features/books/widgets/series_tile.dart';
 import 'package:an_ki/features/books/widgets/shelf_display.dart';
 import 'package:an_ki/features/books/widgets/volume_grid.dart';
+import 'package:an_ki/features/books/widgets/pending_completer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -77,19 +78,21 @@ class SeriesScreen extends ConsumerWidget {
       _ => const _LoadingHeader(),
     };
 
-    return Scaffold(
-      appBar: AppBar(
-        // Le nom de la série reste lisible au défilement, et pour TalkBack.
-        title: switch (entry.value) {
-          final value? => Text(value.series.name),
-          null => null,
-        },
-        actions: [
-          if (entry.value case final value?) SeriesMenu(entry: value),
-          const SizedBox(width: AppSpacing.xs),
-        ],
+    return PendingCompleter(
+      child: Scaffold(
+        appBar: AppBar(
+          // Le nom de la série reste lisible au défilement, et pour TalkBack.
+          title: switch (entry.value) {
+            final value? => Text(value.series.name),
+            null => null,
+          },
+          actions: [
+            if (entry.value case final value?) SeriesMenu(entry: value),
+            const SizedBox(width: AppSpacing.xs),
+          ],
+        ),
+        body: SafeArea(top: false, child: body),
       ),
-      body: SafeArea(top: false, child: body),
     );
   }
 }

@@ -624,14 +624,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get bookUntitled => 'Titre inconnu';
 
   @override
-  String isbnLabel(String isbn) {
-    return 'ISBN : $isbn';
-  }
-
-  @override
-  String get bookNotFound => 'Livre non trouvé';
-
-  @override
   String get deleteAccount => 'Supprimer mon compte';
 
   @override
@@ -1071,10 +1063,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get deleteAccountError =>
       'Le compte n\'a pas pu être supprimé. Vérifiez votre connexion et réessayez.';
-
-  @override
-  String get errorQuotaExceeded =>
-      'Limite de recherche atteinte. Veuillez réessayer plus tard.';
 
   @override
   String get notificationChannelName => 'Anniversaires';
@@ -1586,5 +1574,110 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String a11ySeriesHolesMore(String numbers, int count) {
     return 'il vous manque les tomes $numbers et $count autres';
+  }
+
+  @override
+  String burstAdded(String series, int number) {
+    return '$series · tome $number';
+  }
+
+  @override
+  String burstPending(String isbn) {
+    return 'ISBN $isbn · infos à compléter';
+  }
+
+  @override
+  String burstUnclassified(String title) {
+    return '$title · à classer';
+  }
+
+  @override
+  String get burstNotFound => 'Introuvable · Classer';
+
+  @override
+  String burstAlreadyOwned(String volume) {
+    return 'Déjà dans votre collection · $volume';
+  }
+
+  @override
+  String burstCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tomes ajoutés',
+      one: '1 tome ajouté',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get scanDone => 'Terminé';
+
+  @override
+  String get torchOn => 'Allumer la lampe';
+
+  @override
+  String get torchOff => 'Éteindre la lampe';
+
+  @override
+  String get isbnEntryTitle => 'Saisir un ISBN';
+
+  @override
+  String get isbnEntryLabel => 'ISBN';
+
+  @override
+  String get isbnEntryHint => '978-2-344-05956-2';
+
+  @override
+  String get isbnEntryHelper =>
+      '10 ou 13 chiffres, au dos du livre près du code-barres';
+
+  @override
+  String get isbnEntryEmpty => 'Saisissez l\'ISBN du livre';
+
+  @override
+  String get isbnEntryInvalid =>
+      'Cet ISBN n\'existe pas : vérifiez les chiffres';
+
+  @override
+  String get addSeriesTitle => 'Ajouter une série';
+
+  @override
+  String get addSeriesByHand => 'Ajouter une série à la main';
+
+  @override
+  String addSeriesJoins(String name) {
+    return 'Ajoutés à votre série « $name »';
+  }
+
+  @override
+  String get addSeriesVolumesLabel => 'J\'ai les tomes';
+
+  @override
+  String get addSeriesVolumesHint => '1-12, 15';
+
+  @override
+  String get addSeriesVolumesHelper =>
+      'Des numéros et des plages, séparés par des virgules';
+
+  @override
+  String get addSeriesComplete => 'Série terminée';
+
+  @override
+  String get addSeriesCompleteHint => 'Plus aucun tome ne paraîtra';
+
+  @override
+  String get rangesEmpty => 'Indiquez au moins un tome';
+
+  @override
+  String get rangesMalformed => 'Des numéros à partir de 1, comme 1-12, 15';
+
+  @override
+  String get rangesInverted =>
+      'Une plage va du plus petit au plus grand : 1-12';
+
+  @override
+  String rangesTooLarge(int max) {
+    return 'Un numéro jusqu\'à $max';
   }
 }

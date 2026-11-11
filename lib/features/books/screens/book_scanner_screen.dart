@@ -4,20 +4,27 @@ import 'package:an_ki/core/common/anki_empty_state.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
-import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/isbn.dart';
-import 'package:an_ki/features/books/domain/volume_identification.dart';
-import 'package:an_ki/features/books/providers/isbn_lookup.dart';
-import 'package:an_ki/features/books/widgets/book_info_sheet.dart';
+import 'package:an_ki/features/books/providers/burst_scan.dart';
+import 'package:an_ki/features/books/providers/shelf_view.dart';
+import 'package:an_ki/features/books/widgets/burst_list.dart';
+import 'package:an_ki/features/books/widgets/classify_sheet.dart';
+import 'package:an_ki/features/books/widgets/isbn_entry_sheet.dart';
+import 'package:an_ki/features/books/widgets/pending_completer.dart';
+import 'package:an_ki/features/books/widgets/volume_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-/// Scanner d'ISBN, page poussée au-dessus de l'onglet Livres : la caméra ne
-/// tourne que tant qu'elle est ouverte. Un livre à la fois : le code lu, la
-/// fiche du livre s'ouvre, « Ajouter » l'écrit sur l'étagère, la lecture
-/// reprend à la fermeture de la fiche.
+/// Scanner d'ISBN en rafale, page poussée au-dessus de l'onglet Livres : la
+/// caméra ne tourne que tant qu'elle est ouverte, et reste ouverte d'un livre
+/// à l'autre. Chaque nouveau tome est écrit aussitôt (hors ligne compris) et
+/// s'empile en bas, le plus récent en haut ; une vibration légère et une
+/// coche le confirment. Un tome déjà possédé le dit, sans vibrer.
 ///
+/// Replis : la lampe, « Saisir un ISBN » ; « Terminé » revient à l'étagère.
 /// Caméra refusée ou indisponible : un état à nous, traduit, avec de quoi la
 /// rouvrir, à la place du message anglais du paquet.
 class BookScannerScreen extends ConsumerStatefulWidget {
@@ -27,12 +34,17 @@ class BookScannerScreen extends ConsumerStatefulWidget {
   ConsumerState<BookScannerScreen> createState() => _BookScannerScreenState();
 }
 
+/// Durée de « Déjà dans votre collection » : le temps de lire, pas plus.
+const _ownedNoticeDuration = Duration(seconds: 2);
+
 class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
+  /// « Déjà dans votre collection » affiché ou en file ; null sinon.
+  ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? _ownedNotice;
+
   /// Les livres portent un EAN-13 : la caméra ne lit que ce format.
   final MobileScannerController controller = MobileScannerController(
     formats: const [BarcodeFormat.ean13],
   );
-  bool _isProcessing = false;
 
   /// Au retour des réglages du téléphone, la caméra refusée est réessayée :
   /// le paquet ne le fait pas de lui-même.
@@ -69,107 +81,147 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
   }
 
   void _onDetect(BarcodeCapture capture) {
-    if (_isProcessing) return;
-
     // Un code qui n'est pas un ISBN (produit, QR) est ignoré, sans message :
     // la caméra le relirait en boucle.
-    final isbn = capture.barcodes
-        .map((barcode) => barcode.rawValue)
-        .nonNulls
-        .where(isBookIsbn)
-        .firstOrNull;
-    if (isbn == null) return;
-
-    setState(() => _isProcessing = true);
-    unawaited(_processIsbn(isbn));
-  }
-
-  Future<void> _processIsbn(String isbn) async {
-    await controller.stop();
-    if (!mounted) return;
-
-    try {
-      final volume = await ref.read(isbnLookupProvider.notifier).lookUp(isbn);
-      if (!mounted) return;
-      if (volume != null) {
-        unawaited(_showBookInfo(volume));
-      } else {
-        _showMessage(context.l10n.bookNotFound);
-        unawaited(_resetScanning());
-      }
-    } catch (error) {
-      if (!mounted) return;
-      _showMessage(switch (error) {
-        BookFailure.quotaExceeded => context.l10n.errorQuotaExceeded,
-        BookFailure.network => context.l10n.errorNetwork,
-        _ => context.l10n.errorUnknown,
-      });
-      unawaited(_resetScanning());
+    final burst = ref.read(burstScanProvider.notifier);
+    for (final code in capture.barcodes.map((b) => b.rawValue).nonNulls) {
+      if (isBookIsbn(code)) _handle(burst.scan(code));
     }
   }
 
-  Future<void> _resetScanning() async {
-    await _startCamera();
-    if (mounted) setState(() => _isProcessing = false);
+  Future<void> _typeIsbn() async {
+    final isbn = await IsbnEntrySheet.show(context);
+    if (isbn == null || !mounted) return;
+    _handle(ref.read(burstScanProvider.notifier).scan(isbn, typed: true));
   }
 
-  /// Le scan reprend à la fermeture de la fiche, livre ajouté ou non
-  /// (glissée vers le bas, toucher hors de la feuille, retour).
-  Future<void> _showBookInfo(IdentifiedVolume volume) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => BookInfoSheet(volume: volume),
-    );
-    if (mounted) await _resetScanning();
+  /// Vibre pour un ajout ; dit « déjà dans votre collection » sans vibrer.
+  /// Un code relu ou illisible ne dit rien : la caméra le relit en boucle.
+  void _handle(ScanResult result) {
+    switch (result) {
+      case (outcome: ScanOutcome.added, row: _):
+        unawaited(HapticFeedback.lightImpact());
+      case (outcome: ScanOutcome.alreadyOwned, row: final row?):
+        // Un seul à la fois, bref : une pile de tomes possédés ne fait pas
+        // défiler des messages en retard sur la caméra. Sans masquer la
+        // snackbar en cours : ce peut être l'« Annuler » d'un retrait.
+        if (_ownedNotice != null) return;
+        final notice = ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: _ownedNoticeDuration,
+            content: Text(context.l10n.burstAlreadyOwned(ownedVolumeText(row))),
+          ),
+        );
+        _ownedNotice = notice;
+        unawaited(
+          notice.closed.then((_) {
+            if (_ownedNotice == notice) _ownedNotice = null;
+          }),
+        );
+      case _:
+        break;
+    }
   }
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+  /// Correction d'un tome de la rafale : « Introuvable » s'ouvre sur son
+  /// classement, les autres sur leur feuille (classer, retirer).
+  void _open(BurstRow row) {
+    if (row.status == BurstRowStatus.notFound) {
+      final volume = ref.read(volumeByIdProvider(row.isbn)).value;
+      if (volume != null) {
+        unawaited(ClassifySheet.show(context, volume));
+        return;
+      }
+    }
+    unawaited(VolumeSheet.show(context, row.isbn));
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final l10n = context.l10n;
-    // Un ajout qui échoue plus tard est annoncé par l'étagère, ouverte
-    // dessous (elle écoute l'éditeur).
-    final isLooking = ref.watch(
-      isbnLookupProvider.select((state) => state.isLoading),
-    );
+    final colorScheme = Theme.of(context).colorScheme;
+    final rows = ref.watch(burstRowsProvider);
+    final height = MediaQuery.sizeOf(context).height;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.scanBook)),
-      body: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.gutter,
-            AppSpacing.xs,
-            AppSpacing.gutter,
-            AppSpacing.lg,
-          ),
-          child: ClipRSuperellipse(
-            borderRadius: const BorderRadius.all(Radius.circular(AppRadii.lg)),
-            child: MobileScanner(
-              controller: controller,
-              onDetect: _onDetect,
-              errorBuilder: (context, error) => _CameraError(
-                denied:
-                    error.errorCode == MobileScannerErrorCode.permissionDenied,
-                onRetry: () => unawaited(_startCamera()),
-                onOpenSettings: () => unawaited(
-                  ref.read(contactsServiceProvider).openAppSettings(),
+    return PendingCompleter(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.scanBook),
+          actions: [
+            _TorchButton(controller: controller),
+            const SizedBox(width: AppSpacing.xs),
+          ],
+        ),
+        body: SafeArea(
+          top: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.gutter,
+                    AppSpacing.xs,
+                    AppSpacing.gutter,
+                    0,
+                  ),
+                  child: ClipRSuperellipse(
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(AppRadii.lg),
+                    ),
+                    child: MobileScanner(
+                      controller: controller,
+                      onDetect: _onDetect,
+                      errorBuilder: (context, error) => _CameraError(
+                        denied:
+                            error.errorCode ==
+                            MobileScannerErrorCode.permissionDenied,
+                        onRetry: () => unawaited(_startCamera()),
+                        onOpenSettings: () => unawaited(
+                          ref.read(contactsServiceProvider).openAppSettings(),
+                        ),
+                      ),
+                      overlayBuilder: (context, _) => _Viewfinder(
+                        hint: l10n.scanHint,
+                        colorScheme: colorScheme,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              overlayBuilder: (context, _) => _Viewfinder(
-                busy: _isProcessing || isLooking,
-                hint: l10n.scanHint,
-                colorScheme: colorScheme,
+              if (rows.isNotEmpty)
+                // La caméra garde la plus grande part : la liste défile.
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: height * 0.4),
+                  child: BurstList(rows: rows, onOpen: _open),
+                ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.gutter,
+                  AppSpacing.sm,
+                  AppSpacing.gutter,
+                  AppSpacing.md,
+                ),
+                // Côte à côte, ou l'un sous l'autre à 200 %.
+                child: OverflowBar(
+                  alignment: MainAxisAlignment.spaceBetween,
+                  overflowAlignment: OverflowBarAlignment.end,
+                  overflowSpacing: AppSpacing.xs,
+                  spacing: AppSpacing.sm,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => unawaited(_typeIsbn()),
+                      icon: const Icon(Icons.keyboard_rounded),
+                      label: Text(l10n.isbnEntryTitle),
+                    ),
+                    FilledButton(
+                      onPressed: () => context.pop(),
+                      child: Text(l10n.scanDone),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -177,16 +229,40 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
   }
 }
 
+/// La lampe, quand le téléphone en a une.
+class _TorchButton extends StatelessWidget {
+  const _TorchButton({required this.controller});
+
+  final MobileScannerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return ValueListenableBuilder<MobileScannerState>(
+      valueListenable: controller,
+      builder: (context, state, _) {
+        final torch = state.torchState;
+        if (!state.isRunning || torch == TorchState.unavailable) {
+          return const SizedBox.shrink();
+        }
+        final on = torch == TorchState.on;
+        return IconButton(
+          onPressed: () => unawaited(controller.toggleTorch()),
+          isSelected: on,
+          tooltip: on ? l10n.torchOff : l10n.torchOn,
+          icon: const Icon(Icons.flashlight_on_outlined),
+          selectedIcon: const Icon(Icons.flashlight_on_rounded),
+        );
+      },
+    );
+  }
+}
+
 /// Viseur clair sur l'image de la caméra, quel que soit le thème (les rôles
 /// « fixed » ne changent pas en sombre), et la consigne dessous.
 class _Viewfinder extends StatelessWidget {
-  const _Viewfinder({
-    required this.busy,
-    required this.hint,
-    required this.colorScheme,
-  });
+  const _Viewfinder({required this.hint, required this.colorScheme});
 
-  final bool busy;
   final String hint;
   final ColorScheme colorScheme;
 
@@ -231,13 +307,6 @@ class _Viewfinder extends StatelessWidget {
             ),
           ),
         ),
-        if (busy)
-          ColoredBox(
-            color: colorScheme.scrim.withValues(alpha: 0.45),
-            child: Center(
-              child: CircularProgressIndicator(color: colorScheme.primaryFixed),
-            ),
-          ),
       ],
     );
   }

@@ -136,4 +136,35 @@ void main() {
       ),
     );
   });
+
+  test('a volume added by hand is skipped when the target owns its number', () {
+    Volume byHand(String id, String seriesId, int number) => Volume(
+      id: id,
+      seriesId: seriesId,
+      number: number,
+      title: '',
+      authors: const [],
+      lookup: LookupState.found,
+      addedAt: DateTime(2026, 11, 8),
+    );
+    final marked = MarkedShelf(
+      guestUid: 'guest',
+      series: [
+        _series('g1', 'One Piece', ['one piece']),
+      ],
+      volumes: [byHand('m1', 'g1', 1), byHand('m2', 'g1', 2)],
+      legacyBookIds: const [],
+    );
+
+    final plan = planShelfTakeOver(
+      marked,
+      targetSeries: [
+        _series('t1', 'One Piece', ['one piece']),
+      ],
+      targetVolumes: [byHand('x1', 't1', 1)],
+    );
+
+    // Le tome 1 existe déjà dans la série cible : seul le 2 est copié.
+    expect(plan.volumesToCopy, [byHand('m2', 't1', 2)]);
+  });
 }

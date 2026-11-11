@@ -124,11 +124,20 @@ ShelfTakeOverPlan planShelfTakeOver(
 
   final ownedIds = {for (final volume in targetVolumes) volume.id};
   final ownedIsbns = {for (final volume in targetVolumes) ?volume.isbn};
+  // Un tome ajouté à la main n'a pas d'ISBN : il est reconnu par sa série et
+  // son numéro (« One Piece 1-50 » saisi des deux côtés ne double rien).
+  final ownedNumbers = {
+    for (final volume in targetVolumes)
+      if (volume.seriesId != null && volume.number != null)
+        (volume.seriesId, volume.number),
+  };
   final volumesToCopy = [
-    for (final volume in marked.volumes)
+    for (final volume in marked.volumes.map((v) => _moved(v, seriesMap)))
       if (!ownedIds.contains(volume.id) &&
-          (volume.isbn == null || !ownedIsbns.contains(volume.isbn)))
-        _moved(volume, seriesMap),
+          (volume.isbn == null
+              ? !ownedNumbers.contains((volume.seriesId, volume.number))
+              : !ownedIsbns.contains(volume.isbn)))
+        volume,
   ];
 
   return ShelfTakeOverPlan(
