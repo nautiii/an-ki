@@ -1,4 +1,5 @@
 import 'package:an_ki/features/books/domain/book_metadata.dart';
+import 'package:an_ki/features/books/domain/series_key.dart';
 import 'package:an_ki/features/books/domain/volume_number.dart';
 
 /// Série et numéro trouvés pour un livre.
@@ -49,7 +50,11 @@ enum GuessConfidence {
 ///    chiffres arabes ou, après « tome » ou « vol », romains. Le nom est ce qui
 ///    précède le repère (« Blacksad, tome 7 : … » → « Blacksad ») ; le repère
 ///    en tête (« Tome 12 - One Piece ») donne le nom qui suit. Avec une série
-///    structurée mais sans numéro, le numéro se cherche dans le titre.
+///    structurée mais sans numéro, le numéro se cherche dans le titre, et la
+///    série du titre l'emporte quand son nom est contenu, en mots entiers,
+///    dans celui de la collection (« Shonen One Piece » + « One Piece - Tome
+///    113 »). Une collection plus courte que le titre (« Tintin » pour « Les
+///    Aventures de Tintin ») reste la série.
 /// 3. « Édition originale » est retirée ; « Perfect Edition », « Deluxe »,
 ///    « Colossale », « Intégrale » restent dans le nom.
 /// 4. Un coffret, un hors-série, plusieurs tomes (« Tomes 1 à 3 »), un décimal
@@ -81,14 +86,19 @@ VolumeGuess? guessVolume(BookMetadata record) {
 
   final inTitle = _findMarked(title);
   if (inTitle != null) {
-    if (structuredName != null) {
+    final before = _seriesName(inTitle.before);
+    // Une collection sans numéro (« Shonen One Piece ») ne l'emporte pas sur
+    // la série du titre (« One Piece - Tome 113 ») quand le nom du titre est
+    // contenu, en mots entiers, dans celui de la collection ; sinon le titre
+    // est celui du tome (« Astérix - Astérix chez les Belges - n° 24 »).
+    if (structuredName != null &&
+        !(before != null && _containsWords(structuredName, before))) {
       return VolumeGuess(
         seriesName: structuredName,
         number: inTitle.number,
         confidence: inTitle.confidence,
       );
     }
-    final before = _seriesName(inTitle.before);
     if (before != null) {
       return VolumeGuess(
         seriesName: before,
@@ -284,6 +294,11 @@ String? _seriesName(String text) {
   final folded = name.toLowerCase().replaceAll(RegExp(r"['’]"), '');
   return _articles.contains(folded) ? null : name;
 }
+
+/// Vrai si les mots de [inner] se suivent dans [outer] (« One Piece » dans
+/// « Shonen One Piece »), casse, accents et ponctuation ignorés.
+bool _containsWords(String outer, String inner) =>
+    ' ${seriesKey(outer)} '.contains(' ${seriesKey(inner)} ');
 
 /// Vrai si [text] contient une lettre ou un chiffre.
 bool _hasWord(String text) => _word.hasMatch(text);
