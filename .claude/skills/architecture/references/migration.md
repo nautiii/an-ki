@@ -29,7 +29,9 @@ Delete each line once done:
   … ») and one without (« date inconnue », « rien à la BnF · vérifié le … »); pull down on a
   series; « Ajouter la date » (a day, then « Je ne connais que le mois »), « Modifier la date »,
   « Effacer la date »; airplane mode: a pull says « Pas de connexion… », the shelf opens without
-  any message. Google Books « à paraître » isn't built: run `measure_google_books.dart` first.
+  any message. Google Books: a series whose next volume Google dates ahead of the BnF (One
+  Piece 114, Sakamoto Days 24 at the time of writing) reads « Tome N · sortie le … », « selon
+  Google Books · vérifié le … ».
 - Livres step 8, burst scanning and corrections (2026-11-11, branch `claude/books-burst-21d5db`),
   once the step 6 rules are deployed. Seen on the emulator with the rules refused: the scanner
   page, « Saisir un ISBN » and its inline error, a typed ISBN stacking as « ISBN … · infos à

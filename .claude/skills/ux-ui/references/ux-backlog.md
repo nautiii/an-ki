@@ -140,8 +140,7 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
   chips, joins a series of the same key, « J'ai les tomes » with typed errors, « Série
   terminée »), from the first run and an app-bar button, then the series page. Pending volumes
   are completed when a Livres page opens and on resume. The single-scan sheet is gone.
-  Step 9 built on 2026-11-11, without Google Books (its measurement waits for the maintainer's
-  key): the BnF is searched by title (« One Piece 109 ») and a record of that volume in that
+  Step 9 built on 2026-11-11: the BnF is searched by title (« One Piece 109 ») and a record of that volume in that
   series means « paru », or « annoncé » when the record carries a day or month still to come
   (publishers deposit metadata about a week ahead: One Piece 113, record of 16 Sept., dated
   23/09/2026); no record = « date inconnue » with « rien à la BnF · vérifié le … ». Checked when
@@ -150,6 +149,10 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
   a series (a record dated to the day or month replaces even a typed date; a failure says so in a snackbar). « Ajouter
   la date » / « Modifier la date » on the « Prochain » card opens a sheet (calendar, « Je ne
   connais que le mois », « Effacer la date »), shown « date saisie par vous le … ».
+  Google Books « à paraître » added the same day after the measurement (D14: 3 of 13 series
+  dated to the day by the French publisher before the BnF): asked only when the BnF has no
+  record, French editions, a day or month still to come, « selon Google Books · vérifié le … »;
+  never « paru », never over a typed date.
   6. `FEAT(books): series and volumes`: domain, repositories (Firestore, BnF, Google), rules,
      emulator tests and deployment, eraser and guest transfer, legacy import;
   7. `FEAT(books): shelf and series pages`: shelf, series page, volume sheet, « À classer », the
@@ -157,8 +160,8 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
   8. `FEAT(books): burst scanning and corrections`: burst, duplicate guard, ISBN entry, offline
      queue and completion, manual add by ranges, move/renumber/remove/rename/merge/complete;
   9. `FEAT(books): next volume release`: BnF « paru » (and « annoncé » from a publisher's
-     deposit), manual entry, cache and refresh; Google « à paraître » only if the measurement
-     (`measure_google_books.dart`, the maintainer's key) justifies it, as its own commit;
+     deposit), manual entry, cache and refresh; Google « à paraître » as its own commit, the
+     measurement having justified it (D14);
   10. `FEAT(app): discover the books module`: the discovery card.
 - **Verification**: tests at every layer, rules in the emulator (step 6), snapshots (steps 7 to 10),
   `device-runner` (dark, 200 %, airplane mode). A real scan needs the phone's camera: the emulator
