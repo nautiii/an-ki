@@ -95,6 +95,55 @@ void main() {
       );
     });
 
+    test('an unnumbered collection does not beat the series of the title', () {
+      // Notice BnF réelle : le 225 « Shonen One Piece » n'a pas de numéro.
+      expect(
+        guessVolume(
+          record(
+            'One Piece - Édition originale - Tome 113',
+            seriesTitle: 'Shonen One Piece',
+          ),
+        ),
+        const VolumeGuess(
+          seriesName: 'One Piece',
+          number: 113,
+          confidence: medium,
+        ),
+      );
+      // Casse et tiret ignorés.
+      expect(
+        guessVolume(
+          record('One Piece - Tome 113', seriesTitle: 'SHONEN ONE-PIECE'),
+        )!.seriesName,
+        'One Piece',
+      );
+    });
+
+    test('a collection shorter than the title name stays the series', () {
+      // Le texte avant le repère contient aussi le titre du tome.
+      expect(
+        guessVolume(
+          record(
+            'Astérix - Astérix chez les Belges - n° 24',
+            seriesTitle: 'Astérix',
+          ),
+        )!.seriesName,
+        'Astérix',
+      );
+      expect(
+        guessVolume(
+          record('Blacksad - Amarillo, tome 4', seriesTitle: 'Blacksad'),
+        )!.seriesName,
+        'Blacksad',
+      );
+      // Pas de rapprochement au milieu d'un mot.
+      expect(
+        guessVolume(record('Ange, tome 3', seriesTitle: 'Les Anges gardiens'))!
+            .seriesName,
+        'Les Anges gardiens',
+      );
+    });
+
     test('a series without a number and a title without one is not sure', () {
       expect(
         guessVolume(record('Un mois à Tokyo', seriesTitle: 'Short stories')),

@@ -229,9 +229,10 @@ _Match? _matchOf(ShelfEntry entry, int number, List<BookMetadata> records) {
       guess.number == number &&
       keys.contains(seriesKey(guess.seriesName));
   for (final record in records) {
-    // La collection d'une notice n'est pas toujours la série : « One Piece -
-    // Édition originale - Tome 113 » est rangé sous « Shonen One Piece ». Le
-    // titre seul est donc lu aussi.
+    // La collection d'une notice n'est pas toujours la série, et une étagère
+    // peut garder une série devinée avant la correction de `guessVolume`
+    // (« Shonen One Piece » pour « One Piece - Tome 113 »). Le titre seul est
+    // donc lu aussi.
     if (!matches(guessVolume(record)) &&
         !matches(guessVolume(_titleOnly(record)))) {
       continue;
