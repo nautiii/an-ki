@@ -326,6 +326,101 @@ void main() {
     });
   });
 
+  group('searchVolume', () {
+    Map<String, Object> item(String title, String language, {String? date}) => {
+      'volumeInfo': {
+        'title': title,
+        'language': language,
+        'publishedDate': ?date,
+      },
+    };
+
+    test('searches the title words and the number, in French books', () async {
+      late Uri sent;
+      final catalog = catalogReturning((request) {
+        sent = request.url;
+        return json200({'totalItems': 0});
+      });
+
+      expect(await catalog.searchVolume('Kaiju n° 8 "x"', 17), isEmpty);
+
+      expect(sent.host, 'www.googleapis.com');
+      expect(sent.path, '/books/v1/volumes');
+      expect(sent.queryParameters, {
+        'q': 'intitle:"Kaiju n 8 x" 17',
+        'langRestrict': 'fr',
+        'printType': 'books',
+        'maxResults': '20',
+        'key': 'test-key',
+      });
+    });
+
+    test('nothing to search: no call', () async {
+      var calls = 0;
+      final catalog = catalogReturning((_) {
+        calls++;
+        return json200({'totalItems': 0});
+      });
+
+      expect(await catalog.searchVolume(' -- ', 3), isEmpty);
+      expect(await catalog.searchVolume('One Piece', 0), isEmpty);
+      expect(calls, 0);
+    });
+
+    test('keeps the French editions only, as Google gives them', () async {
+      final catalog = catalogReturning(
+        (_) => json200({
+          'totalItems': 3,
+          'items': [
+            item(
+              'One Piece - Édition originale - Tome 114',
+              'fr',
+              date: '2026-12-02',
+            ),
+            item('One Piece, Vol. 114', 'en', date: '2027-03-02'),
+            {
+              'volumeInfo': <String, Object>{'title': 'Sans langue'},
+            },
+            item('One Piece 114', 'de'),
+          ],
+        }),
+      );
+
+      expect(await catalog.searchVolume('One Piece', 114), [
+        const BookMetadata(
+          title: 'One Piece - Édition originale - Tome 114',
+          authors: [],
+          publishedDate: '2026-12-02',
+        ),
+      ]);
+    });
+
+    test('failures: quota, other errors, unreadable bodies', () async {
+      Future<Object?> failureOf(http.Response response) async {
+        try {
+          await catalogReturning((_) => response)
+              .searchVolume('One Piece', 114);
+          return null;
+        } on BookFailure catch (failure) {
+          return failure;
+        }
+      }
+
+      expect(
+        await failureOf(http.Response('', 429)),
+        BookFailure.quotaExceeded,
+      );
+      expect(await failureOf(http.Response('', 503)), BookFailure.unavailable);
+      for (final body in ['not json', '[]', '{"items": 3}', '{"items": [1]}']) {
+        expect(
+          await failureOf(http.Response(body, 200)),
+          BookFailure.unavailable,
+          reason: body,
+        );
+      }
+    });
+  });
+
   test('the provider reads the key from the app config', () async {
     late Uri sent;
     final container = ProviderContainer.test(

@@ -4,6 +4,7 @@ import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bnf_catalog.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
+import 'package:an_ki/features/books/data/google_books_catalog.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/book_metadata.dart';
 import 'package:an_ki/features/books/domain/release_date.dart';
@@ -48,6 +49,7 @@ BookMetadata _record(String series, int number, {String? date}) => BookMetadata(
 void main() {
   late RecordingBookshelfRepository shelf;
   late RecordingBnfCatalog bnf;
+  late RecordingGoogleBooksCatalog google;
 
   ProviderContainer makeContainer({String? uid = 'u1', Override? session}) {
     final container = ProviderContainer.test(
@@ -55,6 +57,7 @@ void main() {
       overrides: [
         bookshelfRepositoryProvider.overrideWithValue(shelf),
         bnfCatalogProvider.overrideWithValue(bnf),
+        googleBooksCatalogProvider.overrideWithValue(google),
         session ?? currentUidProvider.overrideWithValue(uid),
         clockProvider.overrideWithValue(() => _now),
       ],
@@ -77,6 +80,7 @@ void main() {
     bnf = RecordingBnfCatalog({
       ('One Piece', 109): [_record('One Piece', 109, date: '2026-12-03')],
     });
+    google = RecordingGoogleBooksCatalog();
   });
 
   group('checkStale', () {
@@ -113,6 +117,73 @@ void main() {
       // Rien n'a été demandé : l'état reste au repos.
       expect(container.read(releaseCheckProvider), const AsyncData<void>(null));
     });
+
+    test(
+      'asks Google what the BnF does not date, for a date to come',
+      () async {
+        google = RecordingGoogleBooksCatalog({
+          ('Blue Lock', 36): [
+            const BookMetadata(
+              title: 'Blue Lock - Tome 36',
+              authors: [],
+              publishedDate: '2026-12-15',
+            ),
+          ],
+        });
+        final container = makeContainer();
+
+        await checkOf(container).checkStale();
+        await flush();
+
+        // One Piece est daté par la BnF : Google n'est pas interrogé.
+        expect(google.asked, [('Blue Lock', 36)]);
+        expect(
+          shelf.series.firstWhere((s) => s.id == 'bl').next,
+          NextVolumeInfo(
+            number: 36,
+            status: ReleaseStatus.announced,
+            date: const ReleaseDate(year: 2026, month: 12, day: 15),
+            source: ReleaseSource.googleBooks,
+            checkedAt: _now,
+          ),
+        );
+      },
+    );
+
+    test(
+      'Google failing: nothing undated written, Google asked again next pass',
+      () async {
+        shelf = RecordingBookshelfRepository(
+          series: [_series('bl', 'Blue Lock'), _series('fr', 'Frieren')],
+          volumes: [_volume('bl', 35), _volume('fr', 15)],
+        );
+        google.failure = BookFailure.quotaExceeded;
+        final container = makeContainer();
+
+        await checkOf(container).checkStale();
+        await flush();
+
+        expect(bnf.asked, hasLength(2));
+        // Le quota tombé, Google n'est plus interrogé de la passe.
+        expect(google.asked, hasLength(1));
+        // « Rien à la BnF » repousserait la vérification d'une semaine.
+        expect(shelf.series.every((s) => s.next == null), isTrue);
+        expect(
+          container.read(releaseCheckProvider),
+          const AsyncData<void>(null),
+        );
+
+        google.failure = null;
+        await checkOf(container).checkStale();
+        await flush();
+
+        expect(google.asked, hasLength(3));
+        expect(
+          shelf.series.map((s) => s.next?.status),
+          everyElement(ReleaseStatus.unknown),
+        );
+      },
+    );
 
     test('skips a series checked this week, or by the user', () async {
       shelf = RecordingBookshelfRepository(
@@ -209,6 +280,63 @@ void main() {
       expect(shelf.series.firstWhere((s) => s.id == 'bl').next, isNotNull);
     });
 
+    test('waiting for Google: a date entered meanwhile stays', () async {
+      final gate = Completer<void>();
+      google = RecordingGoogleBooksCatalog({
+        ('Blue Lock', 36): [
+          const BookMetadata(
+            title: 'Blue Lock - Tome 36',
+            authors: [],
+            publishedDate: '2026-12-15',
+          ),
+        ],
+      })..gate = gate.future;
+      final container = makeContainer();
+
+      final pass = checkOf(container).checkStale();
+      await flush();
+      final entered = NextVolumeInfo(
+        number: 36,
+        status: ReleaseStatus.announced,
+        date: const ReleaseDate(year: 2027, month: 1),
+        source: ReleaseSource.user,
+        checkedAt: _now,
+      );
+      await shelf.setNextVolume('u1', 'bl', entered);
+      await flush();
+      gate.complete();
+      await pass;
+      await flush();
+
+      expect(google.asked, [('Blue Lock', 36)]);
+      expect(shelf.series.firstWhere((s) => s.id == 'bl').next, entered);
+    });
+
+    test(
+      'waiting for Google: another account signed in, nothing written',
+      () async {
+        final gate = Completer<void>();
+        google.gate = gate.future;
+        final container = makeContainer(
+          session: currentUidProvider.overrideWith(
+            (ref) => ref.watch(_uidProvider),
+          ),
+        );
+
+        final pass = checkOf(container).checkStale();
+        await flush();
+        await flush();
+        expect(google.asked, [('Blue Lock', 36)]);
+        container.read(_uidProvider.notifier).set('u2');
+        gate.complete();
+        await pass;
+        await flush();
+
+        // One Piece, écrit avant le changement de compte, reste ; rien après.
+        expect(shelf.series.firstWhere((s) => s.id == 'bl').next, isNull);
+      },
+    );
+
     test('another account signed in meanwhile: nothing written', () async {
       final gate = Completer<void>();
       bnf.gate = gate.future;
@@ -301,6 +429,47 @@ void main() {
       expect(shelf.series.every((s) => s.next == null), isTrue);
       expect(container.read(releaseCheckProvider).hasError, isFalse);
     });
+
+    test('a Google failure is not published: the BnF answered', () async {
+      google.failure = BookFailure.network;
+      final container = makeContainer();
+      await container.read(releaseCheckProvider.future);
+
+      await checkOf(container).checkSeries('bl');
+      await flush();
+
+      expect(google.asked, [('Blue Lock', 36)]);
+      expect(
+        shelf.series.firstWhere((s) => s.id == 'bl').next!.status,
+        ReleaseStatus.unknown,
+      );
+      expect(container.read(releaseCheckProvider), const AsyncData<void>(null));
+    });
+
+    test(
+      'waiting for Google: another account signed in, nothing published',
+      () async {
+        final gate = Completer<void>();
+        google.gate = gate.future;
+        final container = makeContainer(
+          session: currentUidProvider.overrideWith(
+            (ref) => ref.watch(_uidProvider),
+          ),
+        );
+        await container.read(releaseCheckProvider.future);
+
+        final check = checkOf(container).checkSeries('bl');
+        await flush();
+        expect(google.asked, [('Blue Lock', 36)]);
+        container.read(_uidProvider.notifier).set('u2');
+        gate.complete();
+        await check;
+        await flush();
+
+        expect(shelf.series.firstWhere((s) => s.id == 'bl').next, isNull);
+        expect(container.read(releaseCheckProvider).hasError, isFalse);
+      },
+    );
 
     test('publishes a catalog failure', () async {
       bnf.failure = BookFailure.network;

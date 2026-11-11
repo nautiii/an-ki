@@ -373,6 +373,290 @@ void main() {
     });
   });
 
+  group('needsGoogleCheck', () {
+    test('when the BnF has no record, or a year to come only', () {
+      expect(needsGoogleCheck(entry(), 109, const [], now), isTrue);
+      expect(
+        needsGoogleCheck(entry(), 109, [record(publishedDate: '2027')], now),
+        isTrue,
+      );
+    });
+
+    test('never when the BnF dates or releases it, or the user entered it', () {
+      expect(
+        needsGoogleCheck(entry(), 109, [
+          record(publishedDate: '2026-12-03'),
+        ], now),
+        isFalse,
+      );
+      expect(needsGoogleCheck(entry(), 109, [record()], now), isFalse);
+      final entered = info(
+        source: ReleaseSource.user,
+        status: ReleaseStatus.announced,
+        date: const ReleaseDate(year: 2026, month: 12),
+      );
+      expect(
+        needsGoogleCheck(entry(next: entered), 109, const [], now),
+        isFalse,
+      );
+    });
+
+    test(
+      'never over a BnF date or « paru » already known, nor a past Google date',
+      () {
+        for (final known in [
+          info(
+            status: ReleaseStatus.announced,
+            date: const ReleaseDate(year: 2026, month: 12, day: 3),
+          ),
+          info(status: ReleaseStatus.released),
+          info(
+            source: ReleaseSource.googleBooks,
+            status: ReleaseStatus.announced,
+            date: const ReleaseDate(year: 2026, month: 11, day: 2),
+          ),
+        ]) {
+          expect(
+            needsGoogleCheck(entry(next: known), 109, const [], now),
+            isFalse,
+            reason: '$known',
+          );
+        }
+        // Une date Google à venir se revérifie.
+        expect(
+          needsGoogleCheck(
+            entry(
+              next: info(
+                source: ReleaseSource.googleBooks,
+                status: ReleaseStatus.announced,
+                date: const ReleaseDate(year: 2026, month: 12, day: 2),
+              ),
+            ),
+            109,
+            const [],
+            now,
+          ),
+          isTrue,
+        );
+      },
+    );
+  });
+
+  group('checkedRelease with Google Books', () {
+    /// Volume Google : le titre seul, comme Google le donne.
+    BookMetadata volume(
+      String? date, {
+      String title = 'One Piece - Édition originale - Tome 109',
+    }) => BookMetadata(title: title, authors: const [], publishedDate: date);
+
+    test('a day to come: announced, by Google Books', () {
+      expect(
+        checkedRelease(
+          entry(),
+          109,
+          const [],
+          now,
+          google: [volume('2027-01-06'), volume('2026-12-02')],
+        ),
+        NextVolumeInfo(
+          number: 109,
+          status: ReleaseStatus.announced,
+          date: const ReleaseDate(year: 2026, month: 12, day: 2),
+          source: ReleaseSource.googleBooks,
+          checkedAt: now,
+        ),
+      );
+    });
+
+    test('a past date, a year only, a chapter, another volume: nothing', () {
+      expect(
+        checkedRelease(
+          entry(),
+          109,
+          const [],
+          now,
+          google: [
+            volume('2026-04-17'),
+            volume('2027'),
+            volume(
+              '2026-12-02',
+              title: 'One Piece édition originale - Chapitre 109',
+            ),
+            volume('2026-12-02', title: 'One Piece - Tome 110'),
+          ],
+        ),
+        NextVolumeInfo(
+          number: 109,
+          status: ReleaseStatus.unknown,
+          source: ReleaseSource.bnf,
+          checkedAt: now,
+        ),
+      );
+    });
+
+    test('this month, or today: announced', () {
+      for (final date in ['2026-11', '2026-11-11']) {
+        expect(
+          checkedRelease(
+            entry(),
+            109,
+            const [],
+            now,
+            google: [volume(date)],
+          )!.status,
+          ReleaseStatus.announced,
+          reason: date,
+        );
+      }
+    });
+
+    test('a BnF date known before wins, even when the BnF is silent today', () {
+      final seen = info(
+        status: ReleaseStatus.announced,
+        date: const ReleaseDate(year: 2026, month: 12, day: 3),
+      );
+
+      expect(
+        checkedRelease(
+          entry(next: seen),
+          109,
+          const [],
+          now,
+          google: [volume('2026-12-02')],
+        ),
+        NextVolumeInfo(
+          number: 109,
+          status: ReleaseStatus.announced,
+          date: const ReleaseDate(year: 2026, month: 12, day: 3),
+          source: ReleaseSource.bnf,
+          checkedAt: now,
+        ),
+      );
+    });
+
+    test('a dated BnF record wins', () {
+      expect(
+        checkedRelease(
+          entry(),
+          109,
+          [record(publishedDate: '2026-12-05')],
+          now,
+          google: [volume('2026-12-02')],
+        )!.source,
+        ReleaseSource.bnf,
+      );
+    });
+
+    test('dates a BnF announcement of a year to come', () {
+      expect(
+        checkedRelease(
+          entry(),
+          109,
+          [record(publishedDate: '2027')],
+          now,
+          google: [volume('2027-01-06')],
+        )!.date,
+        const ReleaseDate(year: 2027, month: 1, day: 6),
+      );
+      // Une date Google d'une autre année que celle de la BnF : écartée.
+      expect(
+        checkedRelease(
+          entry(),
+          109,
+          [record(publishedDate: '2027')],
+          now,
+          google: [volume('2026-12-02')],
+        )!.date,
+        isNull,
+      );
+    });
+
+    test('never replaces a date the user entered', () {
+      final entered = info(
+        source: ReleaseSource.user,
+        status: ReleaseStatus.announced,
+        date: const ReleaseDate(year: 2026, month: 12),
+      );
+
+      expect(
+        checkedRelease(
+          entry(next: entered),
+          109,
+          const [],
+          now,
+          google: [volume('2026-12-02')],
+        ),
+        isNull,
+      );
+    });
+
+    test('a Google date already known: kept while Google is down', () {
+      final known = info(
+        source: ReleaseSource.googleBooks,
+        status: ReleaseStatus.announced,
+        date: const ReleaseDate(year: 2026, month: 12, day: 2),
+      );
+
+      // Google n'a pu répondre : ni la BnF muette ni une année ne l'effacent,
+      // et sa date de vérification ne bouge pas.
+      expect(checkedRelease(entry(next: known), 109, const [], now), isNull);
+      expect(
+        checkedRelease(entry(next: known), 109, [
+          record(publishedDate: '2027'),
+        ], now),
+        isNull,
+      );
+      // Google ne l'a plus : rien n'est su.
+      expect(
+        checkedRelease(
+          entry(next: known),
+          109,
+          const [],
+          now,
+          google: const [],
+        )!.status,
+        ReleaseStatus.unknown,
+      );
+      // Passée, elle reste : le tome devrait être sorti.
+      final passed = info(
+        source: ReleaseSource.googleBooks,
+        status: ReleaseStatus.announced,
+        date: const ReleaseDate(year: 2026, month: 11, day: 2),
+      );
+      expect(
+        checkedRelease(
+          entry(next: passed),
+          109,
+          const [],
+          now,
+          google: [volume('2026-11-02')],
+        ),
+        isNull,
+      );
+      // Google ne l'a plus, la BnF annonce une année : annoncé sans date.
+      expect(
+        checkedRelease(
+          entry(next: known),
+          109,
+          [record(publishedDate: '2027')],
+          now,
+          google: const [],
+        ),
+        NextVolumeInfo(
+          number: 109,
+          status: ReleaseStatus.announced,
+          source: ReleaseSource.bnf,
+          checkedAt: now,
+        ),
+      );
+      // La BnF le dit paru : paru.
+      expect(
+        checkedRelease(entry(next: known), 109, [record()], now)!.status,
+        ReleaseStatus.released,
+      );
+    });
+  });
+
   group('enteredDateOf', () {
     test('the date the user entered for the next volume only', () {
       const date = ReleaseDate(year: 2026, month: 12);

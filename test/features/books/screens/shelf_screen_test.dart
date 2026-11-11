@@ -2,7 +2,9 @@ import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/books/data/bnf_catalog.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
+import 'package:an_ki/features/books/data/google_books_catalog.dart';
 import 'package:an_ki/features/books/domain/legacy_import.dart';
 import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/domain/series.dart';
@@ -75,6 +77,9 @@ void main() {
     currentUidProvider.overrideWithValue('fake-uid'),
     todayProvider.overrideWithValue(DateTime(2026, 11, 8)),
     userProfileProvider.overrideWithValue(const AsyncData(_profile)),
+    // Aucun catalogue réel : l'étagère vérifie les sorties à l'ouverture.
+    bnfCatalogProvider.overrideWithValue(RecordingBnfCatalog()),
+    googleBooksCatalogProvider.overrideWithValue(RecordingGoogleBooksCatalog()),
   ];
 
   RecordingBookshelfRepository filled() => RecordingBookshelfRepository(
