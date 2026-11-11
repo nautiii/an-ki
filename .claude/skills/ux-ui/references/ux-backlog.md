@@ -153,6 +153,15 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
   dated to the day by the French publisher before the BnF): asked only when the BnF has no
   record, French editions, a day or month still to come, « selon Google Books · vérifié le … »;
   never « paru », never over a typed date.
+  Step 10 built on 2026-11-11: « Nouveau · Livres » card (the module's name and icon read from
+  the registry, « Suivez vos séries : le dernier tome acheté, le prochain et sa date de sortie. »),
+  a tonal card, not the hero, in `app/modules/module_discovery.dart`, reaching the home through
+  the `HomeScreen.discovery` slot, after the agenda and below the guest backup card. Shown only
+  while the loaded profile has no `modules.books` choice and Livres is off, never with an empty
+  agenda. « Essayer » enables the module and opens `/books` once the activation lands (the card
+  stays, buttons disabled, until then; a refused write frees it); « Plus tard » writes
+  `books: false`, so it never returns on any device. The lot is complete, apart from the rules
+  deploy (step 6) and the phone checks (`migration.md` §1).
   6. `FEAT(books): series and volumes`: domain, repositories (Firestore, BnF, Google), rules,
      emulator tests and deployment, eraser and guest transfer, legacy import;
   7. `FEAT(books): shelf and series pages`: shelf, series page, volume sheet, « À classer », the

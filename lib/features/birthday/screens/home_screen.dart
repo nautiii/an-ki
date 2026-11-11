@@ -22,7 +22,7 @@ import 'package:go_router/go_router.dart';
 /// Une seule surface qui défile sous la barre d'app épinglée et sous la barre
 /// de navigation flottante, dont le padding du bas réserve la place.
 class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key, this.notice, this.guestBackup});
+  const HomeScreen({super.key, this.notice, this.guestBackup, this.discovery});
 
   /// Avis d'une autre feature au-dessus du héros, dès que l'agenda a des
   /// anniversaires (les rappels désactivés) ; `app/router` le fournit, pour
@@ -34,6 +34,12 @@ class HomeScreen extends ConsumerWidget {
   /// anniversaires ([guestBackupOfferProvider]) ; `app/router` la fournit
   /// (`settings`, qui orchestre l'ouverture d'un compte avec eux).
   final Widget Function(int count)? guestBackup;
+
+  /// Carte de découverte d'un module, après l'agenda et la sauvegarde ;
+  /// `app/modules` la fournit, pour que `birthday` ne connaisse pas les
+  /// modules. Elle dit elle-même si elle a quelque chose à montrer et porte
+  /// l'écart qui la précède.
+  final Widget? discovery;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -110,6 +116,15 @@ class HomeScreen extends ConsumerWidget {
                   0,
                 ),
                 sliver: SliverToBoxAdapter(child: card(count)),
+              ),
+            // Carte d'une autre feature (un module à découvrir), après la
+            // sauvegarde : jamais au-dessus du héros ni au premier lancement.
+            if (discovery case final card?)
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.gutter,
+                ),
+                sliver: SliverToBoxAdapter(child: card),
               ),
           ],
           // Place de la barre de navigation flottante, puis une respiration.

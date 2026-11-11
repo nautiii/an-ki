@@ -824,6 +824,30 @@ abstract class AppLocalizations {
   /// **'Vos séries : le dernier tome, le prochain et sa date de sortie'**
   String get moduleBooksDescription;
 
+  /// Titre de la carte qui présente un module à découvrir, en fin d'agenda
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau · {name}'**
+  String moduleDiscoveryTitle(String name);
+
+  /// Message de la carte qui présente le module Livres
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivez vos séries : le dernier tome acheté, le prochain et sa date de sortie.'**
+  String get moduleBooksDiscoveryMessage;
+
+  /// Bouton de la carte de découverte d'un module : la masque pour de bon, le module reste dans les réglages
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus tard'**
+  String get moduleDiscoveryLater;
+
+  /// Bouton de la carte de découverte d'un module : l'active et l'ouvre
+  ///
+  /// In fr, this message translates to:
+  /// **'Essayer'**
+  String get moduleDiscoveryTry;
+
   /// Titre de l'écran des modules, et de sa ligne dans les réglages
   ///
   /// In fr, this message translates to:
