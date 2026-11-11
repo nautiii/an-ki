@@ -81,6 +81,7 @@ class ShelfScreen extends ConsumerWidget {
 
     // Les tomes scannés hors ligne se complètent à l'ouverture de Livres.
     return PendingCompleter(
+      checkReleases: true,
       child: Scaffold(
         body: CustomScrollView(
           slivers: [

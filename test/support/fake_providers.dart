@@ -12,7 +12,10 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
+import 'package:an_ki/features/books/data/bnf_catalog.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
+import 'package:an_ki/features/books/domain/book_failure.dart';
+import 'package:an_ki/features/books/domain/book_metadata.dart';
 import 'package:an_ki/features/books/domain/legacy_import.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
@@ -1186,5 +1189,31 @@ class RecordingReminderPreferencesRepository extends Fake
     saved.add(preferences);
     _stored = preferences;
     _changes.add(preferences);
+  }
+}
+
+/// Catalogue BnF dont les recherches de tome ([searchVolume]) répondent par
+/// (série, numéro) ; il retient chaque question.
+class RecordingBnfCatalog extends Fake implements BnfCatalog {
+  RecordingBnfCatalog([this.answers = const {}]);
+
+  /// Notices rendues pour (nom de série, numéro) ; aucune sinon.
+  final Map<(String, int), List<BookMetadata>> answers;
+
+  /// Les recherches reçues, dans l'ordre.
+  final asked = <(String, int)>[];
+
+  /// Levé par chaque recherche quand il est défini.
+  BookFailure? failure;
+
+  /// Retient chaque réponse jusqu'à ce qu'il se termine.
+  Future<void>? gate;
+
+  @override
+  Future<List<BookMetadata>> searchVolume(String seriesName, int number) async {
+    asked.add((seriesName, number));
+    if (gate case final gate?) await gate;
+    if (failure case final failure?) throw failure;
+    return answers[(seriesName, number)] ?? const [];
   }
 }

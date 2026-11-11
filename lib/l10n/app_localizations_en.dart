@@ -1346,12 +1346,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextSourceGoogleBooks => 'according to Google Books';
 
   @override
-  String get nextSourceUser => 'date entered by you';
-
-  @override
   String nextSourceChecked(String source, String date) {
     return '$source · checked $date';
   }
+
+  @override
+  String nextSourceEntered(String date) {
+    return 'date you entered on $date';
+  }
+
+  @override
+  String nextSourceNothing(String date) {
+    return 'nothing at the BnF · checked $date';
+  }
+
+  @override
+  String get nextDateAdd => 'Add the date';
+
+  @override
+  String get nextDateEdit => 'Change the date';
+
+  @override
+  String get nextRefreshError =>
+      'Couldn\'t refresh right now. Try again later.';
+
+  @override
+  String releaseSheetTitle(int number) {
+    return 'Volume $number release';
+  }
+
+  @override
+  String get releaseSheetHelper =>
+      'Seen on a poster or the publisher\'s website, for instance.';
+
+  @override
+  String get releaseSheetPick => 'Pick a date';
+
+  @override
+  String get releaseSheetMonthOnly => 'I only know the month';
+
+  @override
+  String get releaseSheetClear => 'Clear the date';
 
   @override
   String get seriesHolesTitle => 'You\'re missing';

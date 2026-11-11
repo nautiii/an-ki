@@ -1,7 +1,9 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/books/data/bnf_catalog.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/book_metadata.dart';
+import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/domain/volume_guess.dart';
 import 'package:an_ki/features/books/domain/volume_identification.dart';
@@ -37,20 +39,38 @@ final _pending = Volume(
 void main() {
   late RecordingBookshelfRepository repository;
 
+  late RecordingBnfCatalog bnf;
+
   Future<void> mount(
     WidgetTester tester,
     RecordingVolumeLookup lookup, {
     bool tickers = true,
+    bool checkReleases = false,
   }) async {
-    repository = RecordingBookshelfRepository(volumes: [_pending]);
+    repository = RecordingBookshelfRepository(
+      series: [
+        const Series(
+          id: 's1',
+          name: 'One Piece',
+          keys: ['one piece'],
+          complete: false,
+        ),
+      ],
+      volumes: [_pending],
+    );
+    bnf = RecordingBnfCatalog();
     await tester.pumpHarness(
       TickerMode(
         enabled: tickers,
-        child: const PendingCompleter(child: Text('Contenu')),
+        child: PendingCompleter(
+          checkReleases: checkReleases,
+          child: const Text('Contenu'),
+        ),
       ),
       overrides: [
         bookshelfRepositoryProvider.overrideWithValue(repository),
         volumeLookupProvider.overrideWithValue(lookup),
+        bnfCatalogProvider.overrideWithValue(bnf),
         currentUidProvider.overrideWithValue('fake-uid'),
       ],
     );
@@ -110,5 +130,26 @@ void main() {
     await mount(tester, lookup);
 
     expect(repository.volumes.single.lookup, LookupState.pending);
+  });
+
+  testWidgets('only the shelf checks the release dates', (tester) async {
+    final lookup = RecordingVolumeLookup(failure: BookFailure.network);
+
+    await mount(tester, lookup);
+    expect(bnf.asked, isEmpty);
+  });
+
+  testWidgets('the shelf checks the release dates on opening and resume', (
+    tester,
+  ) async {
+    final lookup = RecordingVolumeLookup(failure: BookFailure.network);
+    await mount(tester, lookup, checkReleases: true);
+    // Une série sans tome : son prochain est le 1.
+    expect(bnf.asked, [('One Piece', 1)]);
+
+    await resume(tester);
+
+    // Vérifiée une fois par session : la reprise ne la redemande pas.
+    expect(bnf.asked, [('One Piece', 1)]);
   });
 }

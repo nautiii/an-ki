@@ -864,6 +864,31 @@ void main() {
       expect(series.next, isNull);
     });
 
+    test('enters a release date by hand, then clears it', () async {
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      await editor.enterReleaseDate(
+        's1',
+        109,
+        const ReleaseDate(year: 2026, month: 12, day: 3),
+      );
+      expect(
+        shelf.series.firstWhere((s) => s.id == 's1').next,
+        NextVolumeInfo(
+          number: 109,
+          status: ReleaseStatus.announced,
+          date: const ReleaseDate(year: 2026, month: 12, day: 3),
+          source: ReleaseSource.user,
+          checkedAt: _now,
+        ),
+      );
+
+      await editor.enterReleaseDate('s1', 109, null);
+      expect(shelf.series.firstWhere((s) => s.id == 's1').next, isNull);
+    });
+
     test('a failed correction is published as an error', () async {
       shelf = RecordingBookshelfRepository(
         volumes: [volume],

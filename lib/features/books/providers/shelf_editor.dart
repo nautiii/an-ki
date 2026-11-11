@@ -5,6 +5,8 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/isbn.dart';
+import 'package:an_ki/features/books/domain/release_check.dart';
+import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/series_key.dart';
 import 'package:an_ki/features/books/domain/shelf_failure.dart';
@@ -305,6 +307,20 @@ class ShelfEditor extends AsyncNotifier<void> {
   /// Ce qu'on sait du prochain tome de [seriesId] ; null l'efface.
   Future<void> setNext(String seriesId, NextVolumeInfo? next) => _write(
     (repository, uid) => repository.setNextVolume(uid, seriesId, next),
+  );
+
+  /// La date de sortie [date] du tome [number] de [seriesId], saisie par
+  /// l'utilisateur (« date saisie par vous ») ; null l'efface, et la BnF
+  /// sera de nouveau interrogée à la prochaine ouverture de l'étagère.
+  Future<void> enterReleaseDate(
+    String seriesId,
+    int number,
+    ReleaseDate? date,
+  ) => setNext(
+    seriesId,
+    date == null
+        ? null
+        : enteredRelease(number, date, ref.read(clockProvider)()),
   );
 
   // --- Interne ---

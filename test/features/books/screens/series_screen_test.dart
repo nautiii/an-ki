@@ -2,7 +2,10 @@ import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/books/data/bnf_catalog.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
+import 'package:an_ki/features/books/domain/book_failure.dart';
+import 'package:an_ki/features/books/domain/book_metadata.dart';
 import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/shelf_failure.dart';
@@ -11,6 +14,7 @@ import 'package:an_ki/features/books/providers/shelf_offline.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
 import 'package:an_ki/features/books/screens/series_screen.dart';
 import 'package:an_ki/features/books/widgets/offline_banner.dart';
+import 'package:an_ki/features/books/widgets/release_date_sheet.dart';
 import 'package:an_ki/features/books/widgets/volume_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -96,6 +100,150 @@ void main() {
     expect(find.widgetWithText(Chip, 'Tome 3'), findsOneWidget);
     expect(find.text('Vos tomes'), findsOneWidget);
     expect(find.text('4'), findsWidgets);
+  });
+
+  group('release date', () {
+    testWidgets('« Ajouter la date » opens the sheet for the next volume', (
+      tester,
+    ) async {
+      await pumpSeries(tester, filled());
+
+      await tester.tap(find.text('Ajouter la date'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ReleaseDateSheet), findsOneWidget);
+      expect(find.text('Sortie du tome 5'), findsOneWidget);
+    });
+
+    testWidgets('a date the user entered can be changed or cleared', (
+      tester,
+    ) async {
+      final repository = RecordingBookshelfRepository(
+        series: [
+          Series(
+            id: 's1',
+            name: 'One Piece',
+            keys: const ['one piece'],
+            complete: false,
+            next: NextVolumeInfo(
+              number: 5,
+              status: ReleaseStatus.announced,
+              date: const ReleaseDate(year: 2026, month: 12, day: 3),
+              source: ReleaseSource.user,
+              checkedAt: DateTime(2026, 11, 7),
+            ),
+          ),
+        ],
+        volumes: [_volume(1), _volume(2), _volume(4)],
+      );
+      await pumpSeries(tester, repository);
+
+      expect(find.text('date saisie par vous le 7 nov.'), findsOneWidget);
+      await tester.tap(find.text('Modifier la date'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Effacer la date'));
+      await tester.pumpAndSettle();
+
+      expect(repository.series.single.next, isNull);
+      expect(find.text('Tome 5 · date inconnue'), findsOneWidget);
+      expect(find.text('Ajouter la date'), findsOneWidget);
+    });
+
+    testWidgets('a closed series offers no date', (tester) async {
+      final repository = RecordingBookshelfRepository(
+        series: [
+          const Series(id: 's1', name: 'Fini', keys: ['fini'], complete: true),
+        ],
+        volumes: [_volume(1)],
+      );
+      await pumpSeries(tester, repository);
+
+      expect(find.text('Série terminée : rien à attendre'), findsOneWidget);
+      expect(find.text('Ajouter la date'), findsNothing);
+    });
+
+    testWidgets('pulling down checks the BnF and shows what it says', (
+      tester,
+    ) async {
+      final repository = RecordingBookshelfRepository(
+        series: [
+          const Series(
+            id: 's1',
+            name: 'One Piece',
+            keys: ['one piece'],
+            complete: false,
+          ),
+        ],
+        volumes: [_volume(1), _volume(2), _volume(4)],
+      );
+      final bnf = RecordingBnfCatalog({
+        ('One Piece', 5): [
+          const BookMetadata(
+            title: 'One Piece',
+            authors: [],
+            seriesTitle: 'One Piece',
+            seriesNumber: 5,
+            publishedDate: '2026',
+          ),
+        ],
+      });
+      await pumpSeries(
+        tester,
+        repository,
+        extra: [
+          bnfCatalogProvider.overrideWithValue(bnf),
+          clockProvider.overrideWithValue(() => DateTime(2026, 11, 8, 9)),
+        ],
+      );
+
+      await tester.fling(
+        find.byType(CustomScrollView),
+        const Offset(0, 400),
+        1000,
+      );
+      await tester.pumpAndSettle();
+
+      expect(bnf.asked, [('One Piece', 5)]);
+      expect(find.text("Tome 5 paru · vous ne l'avez pas"), findsOneWidget);
+      expect(find.text('selon la BnF · vérifié le 8 nov.'), findsOneWidget);
+    });
+
+    testWidgets('a failed check says so and keeps the page', (tester) async {
+      final bnf = RecordingBnfCatalog()..failure = BookFailure.network;
+      await pumpSeries(
+        tester,
+        filled(),
+        extra: [bnfCatalogProvider.overrideWithValue(bnf)],
+      );
+
+      await tester.fling(
+        find.byType(CustomScrollView),
+        const Offset(0, 400),
+        1000,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Pas de connexion. Vérifiez votre réseau et réessayez.'),
+        findsOneWidget,
+      );
+      expect(find.text('Tome 5 · sortie le 3 décembre'), findsOneWidget);
+
+      bnf.failure = BookFailure.unavailable;
+      await tester.fling(
+        find.byType(CustomScrollView),
+        const Offset(0, 400),
+        1000,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Actualisation impossible pour le moment. Réessayez plus tard.',
+        ),
+        findsOneWidget,
+      );
+    });
   });
 
   testWidgets('an empty series says it has no volume', (tester) async {

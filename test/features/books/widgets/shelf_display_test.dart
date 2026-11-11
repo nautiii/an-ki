@@ -316,12 +316,53 @@ void main() {
       );
     });
 
-    testWidgets('names each source', (tester) async {
+    testWidgets('names Google Books and the user entry', (tester) async {
+      await french(tester);
+      const date = ReleaseDate(year: 2026, month: 12, day: 3);
+
+      expect(
+        words.nextSource(
+          _entry(
+            next: _info(date: date, source: ReleaseSource.googleBooks),
+          ),
+          _today,
+        ),
+        'selon Google Books · vérifié le 8 nov.',
+      );
+      expect(
+        words.nextSource(
+          _entry(
+            next: _info(date: date, source: ReleaseSource.user),
+          ),
+          _today,
+        ),
+        'date saisie par vous le 8 nov.',
+      );
+    });
+
+    testWidgets('says when the BnF had no record', (tester) async {
       await french(tester);
 
-      expect(words.source(ReleaseSource.bnf), 'selon la BnF');
-      expect(words.source(ReleaseSource.googleBooks), 'selon Google Books');
-      expect(words.source(ReleaseSource.user), 'date saisie par vous');
+      expect(
+        words.nextSource(
+          _entry(next: _info(status: ReleaseStatus.unknown)),
+          _today,
+        ),
+        'rien à la BnF · vérifié le 8 nov.',
+      );
+      // Saisie par l'utilisateur sans date : rien à dire.
+      expect(
+        words.nextSource(
+          _entry(
+            next: _info(
+              status: ReleaseStatus.unknown,
+              source: ReleaseSource.user,
+            ),
+          ),
+          _today,
+        ),
+        isNull,
+      );
     });
 
     testWidgets('is null without info, for stale info or an unknown date', (

@@ -535,6 +535,105 @@ void main() {
     });
   });
 
+  group('publication date', () {
+    Future<String?> dateOf(String d) async => (await catalogAnswering(
+      sruWith(field('200', {'a': 'Titre'}) + field('214', {'d': d}, ind2: '0')),
+    ).fetchByIsbn(_isbn))!.publishedDate;
+
+    test('keeps the day and month a publisher deposited', () async {
+      expect(await dateOf('23/09/2026'), '2026-09-23');
+      expect(await dateOf('3/9/2026'), '2026-09-03');
+      expect(await dateOf('09/2026'), '2026-09');
+    });
+
+    test('an impossible day keeps the year only', () async {
+      expect(await dateOf('31/02/2026'), '2026');
+      expect(await dateOf('12/13/2026'), '2026');
+    });
+  });
+
+  group('searchVolume', () {
+    test('asks for the series name and number in titles', () async {
+      late Uri sent;
+      final catalog = catalogReturning((request) {
+        sent = request.url;
+        return xml(fixture('bnf_no_record.xml'));
+      });
+
+      expect(await catalog.searchVolume('One Piece', 113), isEmpty);
+      expect(sent.host, 'catalogue.bnf.fr');
+      expect(sent.path, '/api/SRU');
+      expect(sent.queryParameters['query'], 'bib.title all "One Piece 113"');
+      expect(sent.queryParameters['recordSchema'], 'unimarcxchange');
+      expect(sent.queryParameters['maximumRecords'], '20');
+    });
+
+    test('keeps words only: no CQL quote, mask or escape', () async {
+      late Uri sent;
+      final catalog = catalogReturning((request) {
+        sent = request.url;
+        return xml(fixture('bnf_no_record.xml'));
+      });
+
+      await catalog.searchVolume(r'Kaiju n° 8 "x"* \ ?^', 17);
+
+      expect(sent.queryParameters['query'], 'bib.title all "Kaiju n 8 x 17"');
+    });
+
+    test('a name without a word, or no volume, asks nothing', () async {
+      var calls = 0;
+      final catalog = catalogReturning((_) {
+        calls++;
+        return xml(fixture('bnf_no_record.xml'));
+      });
+
+      expect(await catalog.searchVolume(' "*" ', 3), isEmpty);
+      expect(await catalog.searchVolume('One Piece', 0), isEmpty);
+      expect(calls, 0);
+    });
+
+    test('reads every record of a real answer, ISBN or not', () async {
+      final records = await catalogAnswering(
+        fixture('bnf_search_one_piece_113.xml'),
+      ).searchVolume('One Piece', 113);
+
+      // Le coffret, l'édition originale (métadonnées de l'éditeur, datées au
+      // jour), et une notice sans rapport que la recherche ramène aussi.
+      expect(records, hasLength(3));
+      final original = records.singleWhere(
+        (r) => r.title.contains('Édition originale'),
+      );
+      expect(original.title, 'One Piece - Édition originale - Tome 113');
+      expect(original.publishedDate, '2026-09-23');
+    });
+
+    test('an unreadable answer or an HTTP error is unavailable', () async {
+      Future<Object?> failure(BnfCatalog catalog) async {
+        try {
+          await catalog.searchVolume('One Piece', 113);
+        } on BookFailure catch (e) {
+          return e;
+        }
+        return null;
+      }
+
+      expect(
+        await failure(catalogAnswering('<html/>')),
+        BookFailure.unavailable,
+      );
+      expect(
+        await failure(catalogReturning((_) => http.Response('', 503))),
+        BookFailure.unavailable,
+      );
+      expect(
+        await failure(
+          catalogReturning((_) => throw http.ClientException('offline')),
+        ),
+        BookFailure.network,
+      );
+    });
+  });
+
   test('the provider builds the catalog on the shared HTTP client', () async {
     var calls = 0;
     final container = ProviderContainer.test(

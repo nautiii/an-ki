@@ -5,12 +5,16 @@ import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
+import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/next_volume_status.dart';
+import 'package:an_ki/features/books/domain/release_check.dart';
 import 'package:an_ki/features/books/domain/shelf.dart';
+import 'package:an_ki/features/books/providers/release_check.dart';
 import 'package:an_ki/features/books/providers/shelf_offline.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
 import 'package:an_ki/features/books/providers/shelf_view.dart';
 import 'package:an_ki/features/books/widgets/offline_banner.dart';
+import 'package:an_ki/features/books/widgets/release_date_sheet.dart';
 import 'package:an_ki/features/books/widgets/series_actions.dart';
 import 'package:an_ki/features/books/widgets/series_cover.dart';
 import 'package:an_ki/features/books/widgets/series_tile.dart';
@@ -27,6 +31,7 @@ import 'package:go_router/go_router.dart';
 ///
 /// Un id inconnu (série supprimée, fusionnée, d'un autre compte) a son propre
 /// message ; une série qui disparaît pendant qu'on la regarde ferme la page.
+/// Tirer vers le bas vérifie le prochain tome à la BnF (`ReleaseCheck`).
 class SeriesScreen extends ConsumerWidget {
   const SeriesScreen({super.key, required this.seriesId});
 
@@ -48,6 +53,19 @@ class SeriesScreen extends ConsumerWidget {
       if (navigator.canPop()) navigator.pop();
     });
     final offline = ref.watch(shelfOfflineProvider);
+    // « Tirer pour actualiser » : un échec se dit en bas, la page reste.
+    ref.listen(releaseCheckProvider, (_, next) {
+      if (next is! AsyncError) return;
+      final l10n = context.l10n;
+      final message = switch (next.error) {
+        BookFailure.network => l10n.errorNetwork,
+        BookFailure() => l10n.nextRefreshError,
+        _ => l10n.shelfWriteError,
+      };
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    });
 
     final Widget body = switch (entry) {
       AsyncValue(hasError: true, :final error) => _Message(
@@ -113,54 +131,62 @@ class _SeriesDetails extends ConsumerWidget {
       Localizations.localeOf(context).languageCode,
     );
 
-    return CustomScrollView(
-      slivers: [
-        if (offline) const SliverToBoxAdapter(child: OfflineBanner()),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.gutter,
-            AppSpacing.xs,
-            AppSpacing.gutter,
-            0,
-          ),
-          sliver: SliverList.list(
-            children: [
-              _Header(entry: entry, today: today, words: words),
-              const SizedBox(height: AppSpacing.lg),
-              _NextCard(entry: entry, today: today, words: words),
-              if (entry.holes.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.lg),
-                _SectionTitle(l10n.seriesHolesTitle),
-                const SizedBox(height: AppSpacing.xs),
-                Wrap(
-                  spacing: AppSpacing.xs,
-                  runSpacing: AppSpacing.xs,
-                  children: [
-                    for (final hole in entry.holes)
-                      Chip(label: Text(l10n.seriesHoleChip(hole))),
-                  ],
-                ),
-              ],
-              const SizedBox(height: AppSpacing.lg),
-              _SectionTitle(l10n.seriesVolumesTitle),
-              const SizedBox(height: AppSpacing.xs),
-              if (entry.last == null)
-                Text(
-                  l10n.seriesNoVolume,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-            ],
-          ),
-        ),
-        if (entry.last != null)
+    return RefreshIndicator(
+      onRefresh: () =>
+          ref.read(releaseCheckProvider.notifier).checkSeries(entry.series.id),
+      child: CustomScrollView(
+        // Tirable même quand la page tient dans l'écran.
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          if (offline) const SliverToBoxAdapter(child: OfflineBanner()),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
-            sliver: VolumeGrid(entry: entry),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.gutter,
+              AppSpacing.xs,
+              AppSpacing.gutter,
+              0,
+            ),
+            sliver: SliverList.list(
+              children: [
+                _Header(entry: entry, today: today, words: words),
+                const SizedBox(height: AppSpacing.lg),
+                _NextCard(entry: entry, today: today, words: words),
+                if (entry.holes.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  _SectionTitle(l10n.seriesHolesTitle),
+                  const SizedBox(height: AppSpacing.xs),
+                  Wrap(
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
+                    children: [
+                      for (final hole in entry.holes)
+                        Chip(label: Text(l10n.seriesHoleChip(hole))),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.lg),
+                _SectionTitle(l10n.seriesVolumesTitle),
+                const SizedBox(height: AppSpacing.xs),
+                if (entry.last == null)
+                  Text(
+                    l10n.seriesNoVolume,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
           ),
-        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
-      ],
+          if (entry.last != null)
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.gutter,
+              ),
+              sliver: VolumeGrid(entry: entry),
+            ),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
+        ],
+      ),
     );
   }
 }
@@ -225,7 +251,8 @@ class _Header extends StatelessWidget {
 }
 
 /// « Prochain » : le statut du prochain tome, puis sa source et la date de
-/// vérification quand une source a répondu.
+/// vérification quand une source a répondu ; « Ajouter la date » (ou
+/// « Modifier la date » pour une date saisie) tant que la série est ouverte.
 class _NextCard extends StatelessWidget {
   const _NextCard({
     required this.entry,
@@ -250,47 +277,82 @@ class _NextCard extends StatelessWidget {
       NextVolumeStatus.unknown => Icons.help_outline_rounded,
     };
 
-    return Card(
-      margin: EdgeInsets.zero,
-      color: colorScheme.surfaceContainerHigh,
-      child: MergeSemantics(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: colorScheme.primary),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+    final card = MergeSemantics(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: colorScheme.primary),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.l10n.nextCardTitle,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    words.nextCard(entry, today),
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  if (source != null) ...[
+                    const SizedBox(height: AppSpacing.xxs),
                     Text(
-                      context.l10n.nextCardTitle,
-                      style: theme.textTheme.labelLarge?.copyWith(
+                      source,
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      words.nextCard(entry, today),
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    if (source != null) ...[
-                      const SizedBox(height: AppSpacing.xxs),
-                      Text(
-                        source,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
                   ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    final number = upcomingVolumeNumber(entry);
+    final open = number != null && status != NextVolumeStatus.complete;
+    final entered = open ? enteredDateOf(entry) : null;
+    return Card(
+      margin: EdgeInsets.zero,
+      color: colorScheme.surfaceContainerHigh,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          card,
+          if (open)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xs,
+                0,
+                AppSpacing.xs,
+                AppSpacing.xs,
+              ),
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: TextButton.icon(
+                  onPressed: () => ReleaseDateSheet.show(
+                    context,
+                    seriesId: entry.series.id,
+                    number: number,
+                    current: entered,
+                  ),
+                  icon: const Icon(Icons.edit_calendar_rounded),
+                  label: Text(
+                    entered == null
+                        ? context.l10n.nextDateAdd
+                        : context.l10n.nextDateEdit,
+                  ),
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
   }

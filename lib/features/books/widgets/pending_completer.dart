@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:an_ki/features/books/providers/release_check.dart';
 import 'package:an_ki/features/books/providers/shelf_editor.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,10 +12,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// Plusieurs pages ouvertes l'une sur l'autre ne lancent qu'une passe :
 /// l'éditeur n'en mène qu'une à la fois.
+///
+/// Avec [checkReleases] (l'étagère), il vérifie aussi, au même moment, le
+/// prochain tome des séries dues (`ReleaseCheck.checkStale`).
 class PendingCompleter extends ConsumerStatefulWidget {
-  const PendingCompleter({super.key, required this.child});
+  const PendingCompleter({
+    super.key,
+    required this.child,
+    this.checkReleases = false,
+  });
 
   final Widget child;
+
+  /// Vrai sur l'étagère : vérifier aussi les dates de sortie.
+  final bool checkReleases;
 
   @override
   ConsumerState<PendingCompleter> createState() => _PendingCompleterState();
@@ -28,6 +39,7 @@ class _PendingCompleterState extends ConsumerState<PendingCompleter> {
     super.initState();
     // Garde l'éditeur (autoDispose) en vie pendant la passe.
     ref.listenManual(shelfEditorProvider, (_, _) {});
+    if (widget.checkReleases) ref.listenManual(releaseCheckProvider, (_, _) {});
     _lifecycle = AppLifecycleListener(
       onResume: () {
         // Un onglet caché (une autre branche affichée) ne compte pas.
@@ -39,8 +51,12 @@ class _PendingCompleterState extends ConsumerState<PendingCompleter> {
     });
   }
 
-  void _complete() =>
-      unawaited(ref.read(shelfEditorProvider.notifier).completePending());
+  void _complete() {
+    unawaited(ref.read(shelfEditorProvider.notifier).completePending());
+    if (widget.checkReleases) {
+      unawaited(ref.read(releaseCheckProvider.notifier).checkStale());
+    }
+  }
 
   @override
   void dispose() {

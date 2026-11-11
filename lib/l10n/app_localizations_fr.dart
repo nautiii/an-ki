@@ -1364,12 +1364,47 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nextSourceGoogleBooks => 'selon Google Books';
 
   @override
-  String get nextSourceUser => 'date saisie par vous';
-
-  @override
   String nextSourceChecked(String source, String date) {
     return '$source · vérifié le $date';
   }
+
+  @override
+  String nextSourceEntered(String date) {
+    return 'date saisie par vous le $date';
+  }
+
+  @override
+  String nextSourceNothing(String date) {
+    return 'rien à la BnF · vérifié le $date';
+  }
+
+  @override
+  String get nextDateAdd => 'Ajouter la date';
+
+  @override
+  String get nextDateEdit => 'Modifier la date';
+
+  @override
+  String get nextRefreshError =>
+      'Actualisation impossible pour le moment. Réessayez plus tard.';
+
+  @override
+  String releaseSheetTitle(int number) {
+    return 'Sortie du tome $number';
+  }
+
+  @override
+  String get releaseSheetHelper =>
+      'Vue sur une affiche ou le site de l\'éditeur, par exemple.';
+
+  @override
+  String get releaseSheetPick => 'Choisir une date';
+
+  @override
+  String get releaseSheetMonthOnly => 'Je ne connais que le mois';
+
+  @override
+  String get releaseSheetClear => 'Effacer la date';
 
   @override
   String get seriesHolesTitle => 'Il vous manque';
