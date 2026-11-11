@@ -22,6 +22,14 @@ Delete each line once done:
   to the same account; a guest who turned Livres on and opens an existing Google account
   (B5.5) finds Livres on there; « Effacer les données Livres… » on a test account only, once
   online (`books` gone in the console) and once in airplane mode (refused, nothing erased).
+- Livres step 9, next volume release (2026-11-11, branch `claude/books-release-c62e6a`), once
+  the step 6 rules are deployed (before, every check's write is refused, silently on opening,
+  with a snackbar after a pull). On the phone, online: open Livres with a series whose next
+  volume has a BnF record (« Tome N paru · vous ne l'avez pas », « selon la BnF · vérifié le
+  … ») and one without (« date inconnue », « rien à la BnF · vérifié le … »); pull down on a
+  series; « Ajouter la date » (a day, then « Je ne connais que le mois »), « Modifier la date »,
+  « Effacer la date »; airplane mode: a pull says « Pas de connexion… », the shelf opens without
+  any message. Google Books « à paraître » isn't built: run `measure_google_books.dart` first.
 - Livres step 8, burst scanning and corrections (2026-11-11, branch `claude/books-burst-21d5db`),
   once the step 6 rules are deployed. Seen on the emulator with the rules refused: the scanner
   page, « Saisir un ISBN » and its inline error, a typed ISBN stacking as « ISBN … · infos à
