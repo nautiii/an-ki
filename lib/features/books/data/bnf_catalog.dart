@@ -5,6 +5,7 @@ import 'package:an_ki/features/books/data/catalog_request.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/book_metadata.dart';
 import 'package:an_ki/features/books/domain/isbn.dart';
+import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/domain/volume_number.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,7 +60,51 @@ class BnfCatalog {
       Error.throwWithStackTrace(BookFailure.unavailable, stack);
     }
   }
+
+  /// Notices dont le titre contient [seriesName] et [number] (« One Piece
+  /// 109 ») : de quoi savoir si ce tome est paru, ou quand il paraîtra quand
+  /// l'éditeur a déposé ses métadonnées avant la sortie. Vide quand la BnF
+  /// n'a rien, ou pour un nom sans lettre ni chiffre (aucun appel alors).
+  ///
+  /// Les notices ne sont pas filtrées : à l'appelant de vérifier la série et
+  /// le numéro (`guessVolume`), car la recherche porte sur des mots. Mêmes
+  /// échecs que [fetchByIsbn].
+  Future<List<BookMetadata>> searchVolume(String seriesName, int number) async {
+    // Des mots seulement : la valeur entre dans une chaîne CQL entre
+    // guillemets, où `"`, `\`, `*`, `?` et `^` ont un sens.
+    final words = seriesName.replaceAll(_notWord, ' ').trim();
+    if (words.isEmpty || number < 1) return const [];
+    final url = Uri.https('catalogue.bnf.fr', '/api/SRU', {
+      'version': '1.2',
+      'operation': 'searchRetrieve',
+      'query': 'bib.title all "$words $number"',
+      'recordSchema': 'unimarcxchange',
+      'maximumRecords': '$_searchedRecords',
+    });
+    final response = await getFromCatalog(_httpClient, url, source: 'BnF');
+    if (response.statusCode != 200) {
+      debugPrint('BnF HTTP ${response.statusCode}');
+      throw BookFailure.unavailable;
+    }
+
+    try {
+      return _recordsFromResponse(utf8.decode(response.bodyBytes))
+          .map((record) => _metadataFromRecord(record, null))
+          .nonNulls
+          .toList();
+    } catch (e, stack) {
+      debugPrint('BnF unreadable: $e');
+      Error.throwWithStackTrace(BookFailure.unavailable, stack);
+    }
+  }
 }
+
+/// Notices lues par [BnfCatalog.searchVolume] : un nom courant (« Naruto 1 »)
+/// en ramène des dizaines, éditions spéciales et dérivés compris.
+const _searchedRecords = 20;
+
+/// Ce qui n'est ni une lettre ni un chiffre.
+final _notWord = RegExp(r'[^\p{L}\p{N}]+', unicode: true);
 
 const _marcNamespace = 'info:lc/xmlns/marcxchange-v2';
 
@@ -67,17 +112,7 @@ const _marcNamespace = 'info:lc/xmlns/marcxchange-v2';
 /// null sans notice. La BnF cherche aussi dans d'autres champs : la bonne
 /// notice n'est pas toujours la première.
 BookMetadata? _metadataFromResponse(String body, String isbn) {
-  final root = XmlDocument.parse(body).rootElement;
-  if (root.name.local != 'searchRetrieveResponse') {
-    throw const FormatException('not an SRU response');
-  }
-  final records = root.findAllElements('record', namespaceUri: _marcNamespace);
-  // Un diagnostic accompagné de notices n'est pas fatal.
-  if (records.isEmpty &&
-      root.findAllElements('diagnostics', namespaceUri: '*').isNotEmpty) {
-    throw const FormatException('SRU diagnostic');
-  }
-  for (final record in records) {
+  for (final record in _recordsFromResponse(body)) {
     if (_metadataFromRecord(record, isbn) case final metadata?) {
       return metadata;
     }
@@ -85,9 +120,25 @@ BookMetadata? _metadataFromResponse(String body, String isbn) {
   return null;
 }
 
-/// Notice UNIMARC → métadonnées ; null si elle n'a pas de titre ou si elle est
-/// celle d'un autre ISBN.
-BookMetadata? _metadataFromRecord(XmlElement record, String isbn) {
+/// Notices UNIMARC d'une réponse SRU ; lève [FormatException] pour une
+/// réponse qui n'en est pas une, ou un diagnostic sans notice (un diagnostic
+/// accompagné de notices n'est pas fatal).
+Iterable<XmlElement> _recordsFromResponse(String body) {
+  final root = XmlDocument.parse(body).rootElement;
+  if (root.name.local != 'searchRetrieveResponse') {
+    throw const FormatException('not an SRU response');
+  }
+  final records = root.findAllElements('record', namespaceUri: _marcNamespace);
+  if (records.isEmpty &&
+      root.findAllElements('diagnostics', namespaceUri: '*').isNotEmpty) {
+    throw const FormatException('SRU diagnostic');
+  }
+  return records;
+}
+
+/// Notice UNIMARC → métadonnées ; null si elle n'a pas de titre, ou si elle
+/// est celle d'un autre ISBN que [isbn] (quand il est donné).
+BookMetadata? _metadataFromRecord(XmlElement record, String? isbn) {
   final fields = [
     for (final field in record.findElements(
       'datafield',
@@ -106,7 +157,9 @@ BookMetadata? _metadataFromRecord(XmlElement record, String isbn) {
     for (final field in [...tagged('010'), ...tagged('073')])
       ..._isbnsOf(field),
   };
-  if (noticeIsbns.isNotEmpty && !noticeIsbns.contains(isbn)) return null;
+  if (isbn != null && noticeIsbns.isNotEmpty && !noticeIsbns.contains(isbn)) {
+    return null;
+  }
 
   // 200 : $a titre, $e complément du titre ; $h et $i quand le titre est celui
   // d'une partie (« $a Blacksad $h 7 $i Alors, tout tombe »).
@@ -148,7 +201,7 @@ BookMetadata? _metadataFromRecord(XmlElement record, String isbn) {
     subtitle: titleField.first('e'),
     authors: authors.toSet().toList(),
     publisher: publication?.first('c'),
-    publishedDate: _year(publication?.first('d')),
+    publishedDate: _publicationDate(publication?.first('d')),
     seriesTitle: series?.name,
     seriesNumber: series?.number,
   );
@@ -195,9 +248,27 @@ _DataField? _publicationField(List<_DataField> f214, List<_DataField> f210) {
   return null;
 }
 
-/// Premier millésime de quatre chiffres (« DL 2018 » → `2018`).
-String? _year(String? text) =>
-    text == null ? null : RegExp(r'\d{4}').firstMatch(text)?.group(0);
+/// Date d'édition au format ISO : `2026-09-23` pour « 23/09/2026 » (les
+/// métadonnées qu'un éditeur dépose avant la sortie), `2026-09` pour
+/// « 09/2026 », sinon le premier millésime de quatre chiffres (« DL 2018 » →
+/// `2018`). Un jour ou un mois impossible ne garde que l'année.
+String? _publicationDate(String? text) {
+  if (text == null) return null;
+  if (_dayMonthYear.firstMatch(text) case final match?) {
+    final day = match.group(1);
+    final month = match.group(2)!.padLeft(2, '0');
+    final year = match.group(3)!;
+    final iso = day == null
+        ? '$year-$month'
+        : '$year-$month-${day.padLeft(2, '0')}';
+    if (ReleaseDate.tryParse(iso) != null) return iso;
+    return year;
+  }
+  return RegExp(r'\d{4}').firstMatch(text)?.group(0);
+}
+
+/// « 23/09/2026 », « 3/9/2026 », « 09/2026 » ; le jour est facultatif.
+final _dayMonthYear = RegExp(r'(?<!\d)(?:(\d{1,2})/)?(\d{1,2})/(\d{4})(?!\d)');
 
 /// Fonctions qui ne sont pas celles d'un auteur : traducteur, préfacier,
 /// postfacier.

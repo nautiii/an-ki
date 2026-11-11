@@ -2030,17 +2030,71 @@ abstract class AppLocalizations {
   /// **'selon Google Books'**
   String get nextSourceGoogleBooks;
 
-  /// Carte « Prochain » : l'utilisateur a saisi la date
-  ///
-  /// In fr, this message translates to:
-  /// **'date saisie par vous'**
-  String get nextSourceUser;
-
   /// Carte « Prochain » : la source et quand elle a été consultée (« 8 nov. »)
   ///
   /// In fr, this message translates to:
   /// **'{source} · vérifié le {date}'**
   String nextSourceChecked(String source, String date);
+
+  /// Carte « Prochain » : l'utilisateur a saisi la date, et quand (« 8 nov. »)
+  ///
+  /// In fr, this message translates to:
+  /// **'date saisie par vous le {date}'**
+  String nextSourceEntered(String date);
+
+  /// Carte « Prochain » : la BnF n'a pas de notice du prochain tome, vérifié tel jour (« 8 nov. »)
+  ///
+  /// In fr, this message translates to:
+  /// **'rien à la BnF · vérifié le {date}'**
+  String nextSourceNothing(String date);
+
+  /// Carte « Prochain » : bouton pour saisir la date de sortie
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter la date'**
+  String get nextDateAdd;
+
+  /// Carte « Prochain » : bouton pour changer une date saisie
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la date'**
+  String get nextDateEdit;
+
+  /// Page d'une série : la BnF n'a pas répondu à « tirer pour actualiser »
+  ///
+  /// In fr, this message translates to:
+  /// **'Actualisation impossible pour le moment. Réessayez plus tard.'**
+  String get nextRefreshError;
+
+  /// Feuille de saisie de la date de sortie : titre
+  ///
+  /// In fr, this message translates to:
+  /// **'Sortie du tome {number}'**
+  String releaseSheetTitle(int number);
+
+  /// Feuille de saisie de la date de sortie : d'où vient la date
+  ///
+  /// In fr, this message translates to:
+  /// **'Vue sur une affiche ou le site de l\'éditeur, par exemple.'**
+  String get releaseSheetHelper;
+
+  /// Feuille de saisie de la date de sortie : bouton qui ouvre le calendrier, avant tout choix
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir une date'**
+  String get releaseSheetPick;
+
+  /// Feuille de saisie de la date de sortie : garder le mois seul
+  ///
+  /// In fr, this message translates to:
+  /// **'Je ne connais que le mois'**
+  String get releaseSheetMonthOnly;
+
+  /// Feuille de saisie de la date de sortie : retirer la date saisie
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer la date'**
+  String get releaseSheetClear;
 
   /// Page d'une série : titre des tomes manquants (puces)
   ///

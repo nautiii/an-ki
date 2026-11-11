@@ -1213,10 +1213,6 @@
   "@nextSourceGoogleBooks": {
     "description": "Carte « Prochain » : la source est Google Books"
   },
-  "nextSourceUser": "date saisie par vous",
-  "@nextSourceUser": {
-    "description": "Carte « Prochain » : l'utilisateur a saisi la date"
-  },
   "nextSourceChecked": "{source} · vérifié le {date}",
   "@nextSourceChecked": {
     "description": "Carte « Prochain » : la source et quand elle a été consultée (« 8 nov. »)",
@@ -1228,6 +1224,61 @@
         "type": "String"
       }
     }
+  },
+  "nextSourceEntered": "date saisie par vous le {date}",
+  "@nextSourceEntered": {
+    "description": "Carte « Prochain » : l'utilisateur a saisi la date, et quand (« 8 nov. »)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "nextSourceNothing": "rien à la BnF · vérifié le {date}",
+  "@nextSourceNothing": {
+    "description": "Carte « Prochain » : la BnF n'a pas de notice du prochain tome, vérifié tel jour (« 8 nov. »)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "nextDateAdd": "Ajouter la date",
+  "@nextDateAdd": {
+    "description": "Carte « Prochain » : bouton pour saisir la date de sortie"
+  },
+  "nextDateEdit": "Modifier la date",
+  "@nextDateEdit": {
+    "description": "Carte « Prochain » : bouton pour changer une date saisie"
+  },
+  "nextRefreshError": "Actualisation impossible pour le moment. Réessayez plus tard.",
+  "@nextRefreshError": {
+    "description": "Page d'une série : la BnF n'a pas répondu à « tirer pour actualiser »"
+  },
+  "releaseSheetTitle": "Sortie du tome {number}",
+  "@releaseSheetTitle": {
+    "description": "Feuille de saisie de la date de sortie : titre",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "releaseSheetHelper": "Vue sur une affiche ou le site de l'éditeur, par exemple.",
+  "@releaseSheetHelper": {
+    "description": "Feuille de saisie de la date de sortie : d'où vient la date"
+  },
+  "releaseSheetPick": "Choisir une date",
+  "@releaseSheetPick": {
+    "description": "Feuille de saisie de la date de sortie : bouton qui ouvre le calendrier, avant tout choix"
+  },
+  "releaseSheetMonthOnly": "Je ne connais que le mois",
+  "@releaseSheetMonthOnly": {
+    "description": "Feuille de saisie de la date de sortie : garder le mois seul"
+  },
+  "releaseSheetClear": "Effacer la date",
+  "@releaseSheetClear": {
+    "description": "Feuille de saisie de la date de sortie : retirer la date saisie"
   },
   "seriesHolesTitle": "Il vous manque",
   "@seriesHolesTitle": {

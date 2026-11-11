@@ -72,20 +72,32 @@ class ShelfWords {
     };
   }
 
-  /// D'où vient l'information du prochain tome, et quand elle a été
-  /// vérifiée (« selon la BnF · vérifié le 8 nov. ») ; null quand personne
-  /// n'a cherché, ou pour une information périmée ou une série close.
+  /// D'où vient l'information du prochain tome, et quand : « selon la BnF ·
+  /// vérifié le 8 nov. », « date saisie par vous le 8 nov. », ou « Rien à la
+  /// BnF · vérifié le 8 nov. » quand elle n'a pas de notice. Null quand
+  /// personne n'a cherché, pour une information périmée ou une série close.
   String? nextSource(ShelfEntry entry, DateTime today) {
     final info = entry.series.next;
-    if (info == null ||
-        upcomingVolumeNumber(entry) != info.number ||
-        nextVolumeStatus(entry, today) == NextVolumeStatus.unknown) {
+    if (info == null || upcomingVolumeNumber(entry) != info.number) {
       return null;
     }
-    return l10n.nextSourceChecked(
-      source(info.source),
-      DateFormat.MMMd(locale).format(info.checkedAt),
-    );
+    final status = nextVolumeStatus(entry, today);
+    if (status == NextVolumeStatus.complete) return null;
+    final checked = DateFormat.MMMd(locale).format(info.checkedAt);
+    if (status == NextVolumeStatus.unknown) {
+      return info.source == ReleaseSource.bnf &&
+              info.status == ReleaseStatus.unknown
+          ? l10n.nextSourceNothing(checked)
+          : null;
+    }
+    return switch (info.source) {
+      ReleaseSource.user => l10n.nextSourceEntered(checked),
+      ReleaseSource.bnf => l10n.nextSourceChecked(l10n.nextSourceBnf, checked),
+      ReleaseSource.googleBooks => l10n.nextSourceChecked(
+        l10n.nextSourceGoogleBooks,
+        checked,
+      ),
+    };
   }
 
   String _announced(
@@ -190,11 +202,4 @@ class ShelfWords {
   /// problème de réseau).
   String loadError(Object? error) =>
       error == ShelfFailure.offline ? l10n.errorNetwork : l10n.errorUnknown;
-
-  /// D'où vient l'information sur le prochain tome.
-  String source(ReleaseSource source) => switch (source) {
-    ReleaseSource.bnf => l10n.nextSourceBnf,
-    ReleaseSource.googleBooks => l10n.nextSourceGoogleBooks,
-    ReleaseSource.user => l10n.nextSourceUser,
-  };
 }
