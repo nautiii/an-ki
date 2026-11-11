@@ -321,6 +321,19 @@ one still means « paru ». Searched by title words (`bib.title all "One Piece 1
 covers the collection field 225); the record is accepted only when the series rule finds the
 same series key and number, on the record or on its title alone.
 
+Measured 2026-11-11 with the maintainer's key (`intitle:"<series>" <n>`, `langRestrict=fr`, 26
+volumes of 13 series, the first ones absent from the BnF): Google Books gives the French
+publisher's date, to the day and still to come, for 3 of them (One Piece 114, Glénat, 2 Dec.;
+Spy x Family 17, Kurokawa, 12 Nov.; Sakamoto Days 24, Glénat, 6 Jan. 2027), the very case the
+BnF's one-week head start misses. It is noisy: `langRestrict` still returns German, English and
+Japanese editions (only the `language` field filters them), Glénat's digital « Chapitre N »
+share the number, and past dates can be wrong (Kingdom 76 and 77 both « 2026-04-17 »); six
+series found nothing (« n° », short titles). So Google is used, only for « à paraître »: asked
+when the BnF has no record of the volume (or only a year to come), French editions only, the
+series rule on the title, a day or month not yet past; never « paru », never over a date the
+user entered or a BnF date or « paru » (the BnF wins). When Google fails (quota), nothing
+undated is written: the series is checked again at the next opening.
+
 **Rejected.**
 - *Open Library*: 404 on the four manga ISBNs tested.
 - *AniList, MangaUpdates, MangaDex, Jikan*: no French edition.
@@ -337,8 +350,8 @@ Searches leave from the phone (its IP reaches the BnF in France and Google in th
 no account data); a privacy policy is needed before any publication. Sources checked 2026-11-08.
 
 **Revisit when** a source offers French upcoming dates openly (a publisher or a bookseller API),
-the Google Books measurement shows usable pre-order dates, or the app is published (privacy
-policy, terms).
+Google Books stops giving French dates or its dates prove wrong in use, or the app is published
+(privacy policy, terms).
 
 ---
 
