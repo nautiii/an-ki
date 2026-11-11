@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:an_ki/app/modules/app_module.dart';
 import 'package:an_ki/app/modules/module_erase_dialog.dart';
+import 'package:an_ki/app/modules/module_icon.dart';
 import 'package:an_ki/app/modules/module_registry.dart';
 import 'package:an_ki/core/common/anki_empty_state.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
@@ -152,7 +153,7 @@ class _ModuleRow extends ConsumerWidget {
         color: theme.colorScheme.onSurfaceVariant,
       ),
     );
-    final icon = _ModuleIcon(icon: module.selectedIcon);
+    final icon = ModuleIcon(icon: module.selectedIcon);
     final enabled = this.enabled;
     final canSave = ref.watch(
       userProfileProvider.select((profile) => profile.value != null),
@@ -221,7 +222,7 @@ class _ModuleRow extends ConsumerWidget {
             // Le texte du bouton (marge interne de 12) aligné sur celui de la
             // ligne : 16 + icône + 16.
             padding: const EdgeInsetsDirectional.only(
-              start: AppSpacing.md + _ModuleIcon.size + AppSpacing.xxs,
+              start: AppSpacing.md + ModuleIcon.size + AppSpacing.xxs,
               end: AppSpacing.md,
               bottom: AppSpacing.xs,
             ),
@@ -237,34 +238,6 @@ class _ModuleRow extends ConsumerWidget {
             ),
           ),
       ],
-    );
-  }
-}
-
-/// Icône d'un module dans son conteneur tonal, décorative : le nom suit.
-class _ModuleIcon extends StatelessWidget {
-  const _ModuleIcon({required this.icon});
-
-  static const double size = 40;
-
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return ExcludeSemantics(
-      child: DecoratedBox(
-        decoration: ShapeDecoration(
-          color: colorScheme.secondaryContainer,
-          shape: RoundedSuperellipseBorder(
-            borderRadius: BorderRadius.circular(AppRadii.sm),
-          ),
-        ),
-        child: SizedBox.square(
-          dimension: size,
-          child: Icon(icon, color: colorScheme.onSecondaryContainer),
-        ),
-      ),
     );
   }
 }

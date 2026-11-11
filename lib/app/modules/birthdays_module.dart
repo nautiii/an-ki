@@ -1,5 +1,6 @@
 import 'package:an_ki/app/modules/app_module.dart';
 import 'package:an_ki/app/modules/birthdays_settings_section.dart';
+import 'package:an_ki/app/modules/module_discovery.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
@@ -27,10 +28,11 @@ final birthdaysModule = AppModule(
       GoRoute(
         path: AppRoutes.birthdays,
         // Les rappels coupés se disent en haut de l'accueil, la sauvegarde
-        // d'un invité en fin d'agenda.
+        // d'un invité en fin d'agenda, puis la découverte d'un module.
         builder: (_, _) => HomeScreen(
           notice: const RemindersOffCard(),
           guestBackup: (count) => GuestBackupCard(count: count),
+          discovery: const ModuleDiscoveryCard(),
         ),
       ),
     ],

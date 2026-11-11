@@ -22,6 +22,13 @@ Delete each line once done:
   to the same account; a guest who turned Livres on and opens an existing Google account
   (B5.5) finds Livres on there; « Effacer les données Livres… » on a test account only, once
   online (`books` gone in the console) and once in airplane mode (refused, nothing erased).
+- Livres step 10, discovery card (2026-11-11, branch `claude/books-discovery-480fbc`), on the
+  maintainer's phone with their real account, Livres never chosen: after the agenda, below the
+  guest backup card when both show, « Nouveau · Livres » appears (never above the hero, never
+  with an empty agenda); « Plus tard » hides it, and it stays hidden after a restart and on a
+  second device; with the choice cleared in the console, « Essayer » turns Livres on and opens
+  the shelf (« Étagère indisponible » until the step 6 rules are deployed); TalkBack reads the
+  title as a heading, then the message and both buttons.
 - Livres step 9, next volume release (2026-11-11, branch `claude/books-release-c62e6a`), once
   the step 6 rules are deployed (before, every check's write is refused, silently on opening,
   with a snackbar after a pull). On the phone, online: open Livres with a series whose next

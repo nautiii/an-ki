@@ -450,6 +450,21 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vos séries : le dernier tome, le prochain et sa date de sortie';
 
   @override
+  String moduleDiscoveryTitle(String name) {
+    return 'Nouveau · $name';
+  }
+
+  @override
+  String get moduleBooksDiscoveryMessage =>
+      'Suivez vos séries : le dernier tome acheté, le prochain et sa date de sortie.';
+
+  @override
+  String get moduleDiscoveryLater => 'Plus tard';
+
+  @override
+  String get moduleDiscoveryTry => 'Essayer';
+
+  @override
   String get modules => 'Modules';
 
   @override

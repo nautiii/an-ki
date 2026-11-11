@@ -410,6 +410,27 @@
   "@moduleBooksDescription": {
     "description": "Description du module Livres, sous son nom (écran des modules)"
   },
+  "moduleDiscoveryTitle": "Nouveau · {name}",
+  "@moduleDiscoveryTitle": {
+    "description": "Titre de la carte qui présente un module à découvrir, en fin d'agenda",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moduleBooksDiscoveryMessage": "Suivez vos séries : le dernier tome acheté, le prochain et sa date de sortie.",
+  "@moduleBooksDiscoveryMessage": {
+    "description": "Message de la carte qui présente le module Livres"
+  },
+  "moduleDiscoveryLater": "Plus tard",
+  "@moduleDiscoveryLater": {
+    "description": "Bouton de la carte de découverte d'un module : la masque pour de bon, le module reste dans les réglages"
+  },
+  "moduleDiscoveryTry": "Essayer",
+  "@moduleDiscoveryTry": {
+    "description": "Bouton de la carte de découverte d'un module : l'active et l'ouvre"
+  },
   "modules": "Modules",
   "@modules": {
     "description": "Titre de l'écran des modules, et de sa ligne dans les réglages"
