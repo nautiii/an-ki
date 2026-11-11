@@ -17,6 +17,8 @@ import 'package:an_ki/features/books/widgets/offline_banner.dart';
 import 'package:an_ki/features/books/widgets/series_tile.dart';
 import 'package:an_ki/features/books/widgets/shelf_display.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
+import 'package:an_ki/features/books/widgets/pending_completer.dart';
+import 'package:an_ki/features/books/widgets/add_series_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -77,15 +79,18 @@ class ShelfScreen extends ConsumerWidget {
       _ => [const _ShelfSkeleton()],
     };
 
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          const _ShelfAppBar(),
-          // Hors ligne avec une étagère lue du cache ; une erreur se dit seule.
-          if (offline && !shelf.hasError)
-            const SliverToBoxAdapter(child: OfflineBanner()),
-          ...content,
-        ],
+    // Les tomes scannés hors ligne se complètent à l'ouverture de Livres.
+    return PendingCompleter(
+      child: Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            const _ShelfAppBar(),
+            // Hors ligne avec une étagère lue du cache ; une erreur se dit seule.
+            if (offline && !shelf.hasError)
+              const SliverToBoxAdapter(child: OfflineBanner()),
+            ...content,
+          ],
+        ),
       ),
     );
   }
@@ -106,6 +111,11 @@ class _ShelfAppBar extends ConsumerWidget {
       titleSpacing: AppSpacing.gutter,
       title: Text(l10n.moduleBooks),
       actions: [
+        IconButton(
+          onPressed: () => unawaited(addSeriesByHand(context)),
+          tooltip: l10n.addSeriesByHand,
+          icon: const Icon(Icons.library_add_rounded),
+        ),
         IconButton.filledTonal(
           onPressed: () => unawaited(context.push(AppRoutes.booksScan)),
           tooltip: l10n.scanBook,
@@ -265,7 +275,8 @@ class _InboxCard extends StatelessWidget {
   }
 }
 
-/// Premier lancement : la lune et « Scanner un livre ».
+/// Premier lancement : la lune, « Scanner un livre » et « Ajouter une
+/// série à la main ».
 class _FirstRun extends StatelessWidget {
   const _FirstRun();
 
@@ -279,8 +290,17 @@ class _FirstRun extends StatelessWidget {
       primaryLabel: l10n.scanBook,
       primaryIcon: Icons.qr_code_scanner_rounded,
       onPrimary: () => unawaited(context.push(AppRoutes.booksScan)),
+      secondaryLabel: l10n.addSeriesByHand,
+      onSecondary: () => unawaited(addSeriesByHand(context)),
     );
   }
+}
+
+/// Ouvre « Ajouter une série », puis la série ajoutée.
+Future<void> addSeriesByHand(BuildContext context) async {
+  final id = await AddSeriesSheet.show(context);
+  if (id == null || !context.mounted) return;
+  await context.push(AppRoutes.series(id));
 }
 
 /// L'étagère n'a pas pu être lue : quoi, comment, et « Réessayer ».

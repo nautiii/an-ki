@@ -616,16 +616,6 @@
   "@bookUntitled": {
     "description": "Titre d'un livre que Google Books connaît sans titre"
   },
-  "isbnLabel": "ISBN : {isbn}",
-  "@isbnLabel": {
-    "description": "Numéro ISBN d'un livre scanné",
-    "placeholders": {
-      "isbn": {
-        "type": "String"
-      }
-    }
-  },
-  "bookNotFound": "Livre non trouvé",
   "deleteAccount": "Supprimer mon compte",
   "deleteAccountTitle": "Suppression du compte",
   "deleteAccountConfirmation": "Êtes-vous sûr de vouloir supprimer votre compte\u00a0? Cette action est irréversible et supprimera toutes vos données.",
@@ -867,7 +857,6 @@
   "errorGoogleAccountInUse": "Ce compte Google a déjà son agenda AnKi. Choisissez-en un autre pour sauvegarder vos anniversaires.",
   "errorSignOut": "La déconnexion n'a pas abouti. Réessayez.",
   "deleteAccountError": "Le compte n'a pas pu être supprimé. Vérifiez votre connexion et réessayez.",
-  "errorQuotaExceeded": "Limite de recherche atteinte. Veuillez réessayer plus tard.",
   "notificationChannelName": "Anniversaires",
   "notificationChannelDescription": "Rappels d'anniversaire du jour",
   "notificationReminderTitle": "🎉 {fullName}",
@@ -1548,6 +1537,152 @@
         "type": "String"
       },
       "count": {
+        "type": "int"
+      }
+    }
+  },
+  "burstAdded": "{series} · tome {number}",
+  "@burstAdded": {
+    "description": "Ligne de la rafale : tome rangé dans sa série (« One Piece · tome 108 »)",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "burstPending": "ISBN {isbn} · infos à compléter",
+  "@burstPending": {
+    "description": "Ligne de la rafale : tome écrit hors ligne ou en cours de recherche",
+    "placeholders": {
+      "isbn": {
+        "type": "String"
+      }
+    }
+  },
+  "burstUnclassified": "{title} · à classer",
+  "@burstUnclassified": {
+    "description": "Ligne de la rafale : tome trouvé sans série sûre",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "burstNotFound": "Introuvable · Classer",
+  "@burstNotFound": {
+    "description": "Ligne de la rafale : aucun catalogue ne connaît l'ISBN ; toucher pour le classer"
+  },
+  "burstAlreadyOwned": "Déjà dans votre collection · {volume}",
+  "@burstAlreadyOwned": {
+    "description": "Message quand on scanne un tome déjà possédé (« One Piece 108 »)",
+    "placeholders": {
+      "volume": {
+        "type": "String"
+      }
+    }
+  },
+  "burstCount": "{count, plural, =1{1 tome ajouté} other{{count} tomes ajoutés}}",
+  "@burstCount": {
+    "description": "Titre de la liste de la rafale, annoncé par TalkBack",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanDone": "Terminé",
+  "@scanDone": {
+    "description": "Bouton qui ferme le scanner en rafale"
+  },
+  "torchOn": "Allumer la lampe",
+  "@torchOn": {
+    "description": "Infobulle du bouton lampe éteinte"
+  },
+  "torchOff": "Éteindre la lampe",
+  "@torchOff": {
+    "description": "Infobulle du bouton lampe allumée"
+  },
+  "isbnEntryTitle": "Saisir un ISBN",
+  "@isbnEntryTitle": {
+    "description": "Bouton et titre de la saisie manuelle d'un ISBN"
+  },
+  "isbnEntryLabel": "ISBN",
+  "@isbnEntryLabel": {
+    "description": "Libellé du champ ISBN"
+  },
+  "isbnEntryHint": "978-2-344-05956-2",
+  "@isbnEntryHint": {
+    "description": "Exemple dans le champ ISBN"
+  },
+  "isbnEntryHelper": "10 ou 13 chiffres, au dos du livre près du code-barres",
+  "@isbnEntryHelper": {
+    "description": "Aide sous le champ ISBN"
+  },
+  "isbnEntryEmpty": "Saisissez l'ISBN du livre",
+  "@isbnEntryEmpty": {
+    "description": "Erreur : champ ISBN vide"
+  },
+  "isbnEntryInvalid": "Cet ISBN n'existe pas\u00a0: vérifiez les chiffres",
+  "@isbnEntryInvalid": {
+    "description": "Erreur : ISBN mal formé ou clé de contrôle fausse"
+  },
+  "addSeriesTitle": "Ajouter une série",
+  "@addSeriesTitle": {
+    "description": "Titre de la feuille d'ajout manuel d'une série"
+  },
+  "addSeriesByHand": "Ajouter une série à la main",
+  "@addSeriesByHand": {
+    "description": "Action secondaire de l'étagère vide et infobulle du bouton de l'étagère"
+  },
+  "addSeriesJoins": "Ajoutés à votre série «\u00a0{name}\u00a0»",
+  "@addSeriesJoins": {
+    "description": "Aide sous le nom : la série existe déjà, les tomes la rejoignent",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addSeriesVolumesLabel": "J'ai les tomes",
+  "@addSeriesVolumesLabel": {
+    "description": "Libellé du champ des numéros possédés"
+  },
+  "addSeriesVolumesHint": "1-12, 15",
+  "@addSeriesVolumesHint": {
+    "description": "Exemple dans le champ des numéros possédés"
+  },
+  "addSeriesVolumesHelper": "Des numéros et des plages, séparés par des virgules",
+  "@addSeriesVolumesHelper": {
+    "description": "Aide sous le champ des numéros possédés"
+  },
+  "addSeriesComplete": "Série terminée",
+  "@addSeriesComplete": {
+    "description": "Interrupteur : la série ne paraîtra plus"
+  },
+  "addSeriesCompleteHint": "Plus aucun tome ne paraîtra",
+  "@addSeriesCompleteHint": {
+    "description": "Aide de l'interrupteur Série terminée"
+  },
+  "rangesEmpty": "Indiquez au moins un tome",
+  "@rangesEmpty": {
+    "description": "Erreur : aucun numéro de tome saisi"
+  },
+  "rangesMalformed": "Des numéros à partir de 1, comme 1-12, 15",
+  "@rangesMalformed": {
+    "description": "Erreur : un morceau n'est ni un numéro ni une plage"
+  },
+  "rangesInverted": "Une plage va du plus petit au plus grand\u00a0: 1-12",
+  "@rangesInverted": {
+    "description": "Erreur : plage à l'envers (12-1)"
+  },
+  "rangesTooLarge": "Un numéro jusqu'à {max}",
+  "@rangesTooLarge": {
+    "description": "Erreur : numéro trop grand",
+    "placeholders": {
+      "max": {
         "type": "int"
       }
     }

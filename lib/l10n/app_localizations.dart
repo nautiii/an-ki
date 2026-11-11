@@ -1052,18 +1052,6 @@ abstract class AppLocalizations {
   /// **'Titre inconnu'**
   String get bookUntitled;
 
-  /// Numéro ISBN d'un livre scanné
-  ///
-  /// In fr, this message translates to:
-  /// **'ISBN : {isbn}'**
-  String isbnLabel(String isbn);
-
-  /// No description provided for @bookNotFound.
-  ///
-  /// In fr, this message translates to:
-  /// **'Livre non trouvé'**
-  String get bookNotFound;
-
   /// No description provided for @deleteAccount.
   ///
   /// In fr, this message translates to:
@@ -1639,12 +1627,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Le compte n\'a pas pu être supprimé. Vérifiez votre connexion et réessayez.'**
   String get deleteAccountError;
-
-  /// No description provided for @errorQuotaExceeded.
-  ///
-  /// In fr, this message translates to:
-  /// **'Limite de recherche atteinte. Veuillez réessayer plus tard.'**
-  String get errorQuotaExceeded;
 
   /// No description provided for @notificationChannelName.
   ///
@@ -2377,6 +2359,168 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'il vous manque les tomes {numbers} et {count} autres'**
   String a11ySeriesHolesMore(String numbers, int count);
+
+  /// Ligne de la rafale : tome rangé dans sa série (« One Piece · tome 108 »)
+  ///
+  /// In fr, this message translates to:
+  /// **'{series} · tome {number}'**
+  String burstAdded(String series, int number);
+
+  /// Ligne de la rafale : tome écrit hors ligne ou en cours de recherche
+  ///
+  /// In fr, this message translates to:
+  /// **'ISBN {isbn} · infos à compléter'**
+  String burstPending(String isbn);
+
+  /// Ligne de la rafale : tome trouvé sans série sûre
+  ///
+  /// In fr, this message translates to:
+  /// **'{title} · à classer'**
+  String burstUnclassified(String title);
+
+  /// Ligne de la rafale : aucun catalogue ne connaît l'ISBN ; toucher pour le classer
+  ///
+  /// In fr, this message translates to:
+  /// **'Introuvable · Classer'**
+  String get burstNotFound;
+
+  /// Message quand on scanne un tome déjà possédé (« One Piece 108 »)
+  ///
+  /// In fr, this message translates to:
+  /// **'Déjà dans votre collection · {volume}'**
+  String burstAlreadyOwned(String volume);
+
+  /// Titre de la liste de la rafale, annoncé par TalkBack
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 tome ajouté} other{{count} tomes ajoutés}}'**
+  String burstCount(int count);
+
+  /// Bouton qui ferme le scanner en rafale
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get scanDone;
+
+  /// Infobulle du bouton lampe éteinte
+  ///
+  /// In fr, this message translates to:
+  /// **'Allumer la lampe'**
+  String get torchOn;
+
+  /// Infobulle du bouton lampe allumée
+  ///
+  /// In fr, this message translates to:
+  /// **'Éteindre la lampe'**
+  String get torchOff;
+
+  /// Bouton et titre de la saisie manuelle d'un ISBN
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisir un ISBN'**
+  String get isbnEntryTitle;
+
+  /// Libellé du champ ISBN
+  ///
+  /// In fr, this message translates to:
+  /// **'ISBN'**
+  String get isbnEntryLabel;
+
+  /// Exemple dans le champ ISBN
+  ///
+  /// In fr, this message translates to:
+  /// **'978-2-344-05956-2'**
+  String get isbnEntryHint;
+
+  /// Aide sous le champ ISBN
+  ///
+  /// In fr, this message translates to:
+  /// **'10 ou 13 chiffres, au dos du livre près du code-barres'**
+  String get isbnEntryHelper;
+
+  /// Erreur : champ ISBN vide
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez l\'ISBN du livre'**
+  String get isbnEntryEmpty;
+
+  /// Erreur : ISBN mal formé ou clé de contrôle fausse
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet ISBN n\'existe pas : vérifiez les chiffres'**
+  String get isbnEntryInvalid;
+
+  /// Titre de la feuille d'ajout manuel d'une série
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une série'**
+  String get addSeriesTitle;
+
+  /// Action secondaire de l'étagère vide et infobulle du bouton de l'étagère
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une série à la main'**
+  String get addSeriesByHand;
+
+  /// Aide sous le nom : la série existe déjà, les tomes la rejoignent
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutés à votre série « {name} »'**
+  String addSeriesJoins(String name);
+
+  /// Libellé du champ des numéros possédés
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'ai les tomes'**
+  String get addSeriesVolumesLabel;
+
+  /// Exemple dans le champ des numéros possédés
+  ///
+  /// In fr, this message translates to:
+  /// **'1-12, 15'**
+  String get addSeriesVolumesHint;
+
+  /// Aide sous le champ des numéros possédés
+  ///
+  /// In fr, this message translates to:
+  /// **'Des numéros et des plages, séparés par des virgules'**
+  String get addSeriesVolumesHelper;
+
+  /// Interrupteur : la série ne paraîtra plus
+  ///
+  /// In fr, this message translates to:
+  /// **'Série terminée'**
+  String get addSeriesComplete;
+
+  /// Aide de l'interrupteur Série terminée
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus aucun tome ne paraîtra'**
+  String get addSeriesCompleteHint;
+
+  /// Erreur : aucun numéro de tome saisi
+  ///
+  /// In fr, this message translates to:
+  /// **'Indiquez au moins un tome'**
+  String get rangesEmpty;
+
+  /// Erreur : un morceau n'est ni un numéro ni une plage
+  ///
+  /// In fr, this message translates to:
+  /// **'Des numéros à partir de 1, comme 1-12, 15'**
+  String get rangesMalformed;
+
+  /// Erreur : plage à l'envers (12-1)
+  ///
+  /// In fr, this message translates to:
+  /// **'Une plage va du plus petit au plus grand : 1-12'**
+  String get rangesInverted;
+
+  /// Erreur : numéro trop grand
+  ///
+  /// In fr, this message translates to:
+  /// **'Un numéro jusqu\'à {max}'**
+  String rangesTooLarge(int max);
 }
 
 class _AppLocalizationsDelegate

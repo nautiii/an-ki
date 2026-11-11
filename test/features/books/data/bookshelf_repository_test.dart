@@ -304,6 +304,87 @@ void main() {
     });
   });
 
+  group('manual volumes', () {
+    Volume manual(String id, int number, {String seriesId = 's1'}) => Volume(
+      id: id,
+      seriesId: seriesId,
+      number: number,
+      title: '',
+      authors: const [],
+      lookup: LookupState.found,
+      addedAt: _added,
+    );
+
+    test('hands out distinct client ids', () {
+      expect(repository.newVolumeId('u1'), isNotEmpty);
+      expect(repository.newVolumeId('u1'), isNot(repository.newVolumeId('u1')));
+    });
+
+    test(
+      'writes a new series and its volumes, without ISBN or title',
+      () async {
+        await repository.addManualVolumes(
+          'u1',
+          [manual('a', 1), manual('b', 2)],
+          withSeries: (series: _series('s1'), createdAt: _added),
+        );
+
+        expect((await seriesOf('u1').doc('s1').get()).data(), {
+          'name': 'One Piece',
+          'keys': ['one piece'],
+          'createdAt': Timestamp.fromDate(_added),
+        });
+        expect((await volumesOf('u1').doc('a').get()).data(), {
+          'seriesId': 's1',
+          'number': 1,
+          'lookup': 'found',
+          'addedAt': Timestamp.fromDate(_added),
+        });
+        final data = (await volumesOf('u1').doc('b').get()).data()!;
+        expect(data['number'], 2);
+        expect(data.containsKey('isbn'), isFalse);
+        expect(data.containsKey('title'), isFalse);
+      },
+    );
+
+    test('marks an existing series complete', () async {
+      await repository.createSeries('u1', _series('s1'), createdAt: _added);
+
+      await repository.addManualVolumes('u1', [
+        manual('a', 3),
+      ], completeSeriesId: 's1');
+
+      final data = (await seriesOf('u1').doc('s1').get()).data()!;
+      expect(data['complete'], isTrue);
+      expect(data['keys'], ['one piece']);
+      expect((await volumesOf('u1').doc('a').get()).exists, isTrue);
+    });
+
+    test('leaves the other accounts untouched', () async {
+      await repository.createSeries('u2', _series('s1'), createdAt: _added);
+
+      await repository.addManualVolumes(
+        'u1',
+        [manual('a', 1)],
+        withSeries: (series: _series('s1'), createdAt: _added),
+      );
+
+      expect((await volumesOf('u2').get()).docs, isEmpty);
+      expect((await seriesOf('u2').get()).docs, hasLength(1));
+      expect((await volumesOf('u1').get()).docs, hasLength(1));
+    });
+
+    test('a refused write is a shelf failure', () async {
+      // Marquer terminée une série absente : le lot est refusé.
+      await expectLater(
+        repository.addManualVolumes('u1', [
+          manual('a', 1),
+        ], completeSeriesId: 'missing'),
+        throwsA(isA<ShelfFailure>()),
+      );
+    });
+  });
+
   group('series', () {
     test('creates a series with a client id, dated', () async {
       final id = repository.newSeriesId('u1');

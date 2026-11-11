@@ -12,6 +12,7 @@ import 'package:an_ki/features/books/providers/shelf_editor.dart';
 import 'package:an_ki/features/books/providers/shelf_offline.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
 import 'package:an_ki/features/books/screens/shelf_screen.dart';
+import 'package:an_ki/features/books/widgets/add_series_sheet.dart';
 import 'package:an_ki/features/books/widgets/offline_banner.dart';
 import 'package:an_ki/features/books/widgets/series_tile.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -106,11 +107,12 @@ void main() {
   }
 
   group('first run', () {
-    testWidgets('invites to scan, with no manual add', (tester) async {
+    testWidgets('invites to scan or to add a series by hand', (tester) async {
       await pumpShelf(tester, RecordingBookshelfRepository());
 
       expect(find.text('Votre étagère vous attend'), findsOneWidget);
       expect(find.text('Scanner un livre'), findsOneWidget);
+      expect(find.text('Ajouter une série à la main'), findsOneWidget);
       expect(find.text('Ajouter'), findsNothing);
       expect(find.byType(TextField), findsNothing);
     });
@@ -139,6 +141,57 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Page scan'), findsOneWidget);
+    });
+
+    testWidgets('the secondary action opens the add series sheet', (
+      tester,
+    ) async {
+      await pumpShelf(tester, RecordingBookshelfRepository());
+
+      await tester.tap(find.text('Ajouter une série à la main'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddSeriesSheet), findsOneWidget);
+      expect(find.text('Ajouter une série'), findsOneWidget);
+    });
+
+    testWidgets('the app bar button opens the add series sheet', (
+      tester,
+    ) async {
+      await pumpShelf(tester, filled());
+
+      await tester.tap(find.byTooltip('Ajouter une série à la main'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddSeriesSheet), findsOneWidget);
+      expect(find.text('Ajouter une série'), findsOneWidget);
+    });
+
+    testWidgets('saving a series pushes its page', (tester) async {
+      final repository = RecordingBookshelfRepository();
+      await pumpShelf(
+        tester,
+        repository,
+        routes: {AppRoutes.seriesPattern: (_) => const Text('Page série')},
+      );
+
+      await tester.tap(find.text('Ajouter une série à la main'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Nom de la série'),
+        'Blacksad',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, "J'ai les tomes"),
+        '1-2',
+      );
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Ajouter'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Page série'), findsOneWidget);
+      expect(repository.createdSeries.single.name, 'Blacksad');
+      expect(repository.volumes, hasLength(2));
     });
 
     testWidgets('the settings avatar opens the settings', (tester) async {

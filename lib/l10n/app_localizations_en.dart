@@ -617,14 +617,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookUntitled => 'Unknown title';
 
   @override
-  String isbnLabel(String isbn) {
-    return 'ISBN: $isbn';
-  }
-
-  @override
-  String get bookNotFound => 'Book not found';
-
-  @override
   String get deleteAccount => 'Delete my account';
 
   @override
@@ -1056,10 +1048,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deleteAccountError =>
       'Couldn\'t delete the account. Check your connection and try again.';
-
-  @override
-  String get errorQuotaExceeded =>
-      'Search limit reached. Please try again later.';
 
   @override
   String get notificationChannelName => 'Birthdays';
@@ -1568,5 +1556,107 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String a11ySeriesHolesMore(String numbers, int count) {
     return 'you\'re missing volumes $numbers and $count more';
+  }
+
+  @override
+  String burstAdded(String series, int number) {
+    return '$series · vol. $number';
+  }
+
+  @override
+  String burstPending(String isbn) {
+    return 'ISBN $isbn · details to come';
+  }
+
+  @override
+  String burstUnclassified(String title) {
+    return '$title · to sort';
+  }
+
+  @override
+  String get burstNotFound => 'Not found · Sort it';
+
+  @override
+  String burstAlreadyOwned(String volume) {
+    return 'Already in your collection · $volume';
+  }
+
+  @override
+  String burstCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count volumes added',
+      one: '1 volume added',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get scanDone => 'Done';
+
+  @override
+  String get torchOn => 'Turn on the torch';
+
+  @override
+  String get torchOff => 'Turn off the torch';
+
+  @override
+  String get isbnEntryTitle => 'Type an ISBN';
+
+  @override
+  String get isbnEntryLabel => 'ISBN';
+
+  @override
+  String get isbnEntryHint => '978-2-344-05956-2';
+
+  @override
+  String get isbnEntryHelper => '10 or 13 digits, on the back near the barcode';
+
+  @override
+  String get isbnEntryEmpty => 'Enter the book\'s ISBN';
+
+  @override
+  String get isbnEntryInvalid => 'This ISBN doesn\'t exist: check the digits';
+
+  @override
+  String get addSeriesTitle => 'Add a series';
+
+  @override
+  String get addSeriesByHand => 'Add a series by hand';
+
+  @override
+  String addSeriesJoins(String name) {
+    return 'Added to your series “$name”';
+  }
+
+  @override
+  String get addSeriesVolumesLabel => 'I own volumes';
+
+  @override
+  String get addSeriesVolumesHint => '1-12, 15';
+
+  @override
+  String get addSeriesVolumesHelper =>
+      'Numbers and ranges, separated by commas';
+
+  @override
+  String get addSeriesComplete => 'Series finished';
+
+  @override
+  String get addSeriesCompleteHint => 'No more volumes will come out';
+
+  @override
+  String get rangesEmpty => 'Enter at least one volume';
+
+  @override
+  String get rangesMalformed => 'Numbers from 1, like 1-12, 15';
+
+  @override
+  String get rangesInverted => 'A range goes from low to high: 1-12';
+
+  @override
+  String rangesTooLarge(int max) {
+    return 'A number up to $max';
   }
 }

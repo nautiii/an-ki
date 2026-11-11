@@ -1,10 +1,12 @@
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
+import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/shelf_failure.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
+import 'package:an_ki/features/books/providers/volume_lookup.dart';
 import 'package:an_ki/features/books/screens/shelf_inbox_screen.dart';
 import 'package:an_ki/features/books/widgets/classify_sheet.dart';
 import 'package:an_ki/features/books/widgets/volume_sheet.dart';
@@ -64,6 +66,11 @@ void main() {
       overrides: [
         bookshelfRepositoryProvider.overrideWithValue(repository),
         currentUidProvider.overrideWithValue('fake-uid'),
+        // Hors ligne : la page complète les tomes en attente à l'ouverture,
+        // celui-ci reste « infos à compléter ».
+        volumeLookupProvider.overrideWithValue(
+          RecordingVolumeLookup(failure: BookFailure.network),
+        ),
       ],
     );
     await tester.pumpAndSettle();
