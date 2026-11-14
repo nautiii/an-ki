@@ -20,6 +20,10 @@ class const Series({
 
   /// Ce qu'on sait du prochain tome ; null tant que personne n'a cherché.
   final NextVolumeInfo? next,
+
+  /// Image de la série cherchée chez AniList (D15) ; null tant que personne
+  /// n'a cherché.
+  final SeriesArtwork? artwork,
 }) {
   @override
   bool operator ==(Object other) =>
@@ -28,11 +32,35 @@ class const Series({
       other.name == name &&
       listEquals(other.keys, keys) &&
       other.complete == complete &&
-      other.next == next;
+      other.next == next &&
+      other.artwork == artwork;
 
   @override
   int get hashCode =>
-      Object.hash(id, name, Object.hashAll(keys), complete, next);
+      Object.hash(id, name, Object.hashAll(keys), complete, next, artwork);
+}
+
+/// Ce qu'AniList a répondu pour l'image d'une série, gardé sur la série pour
+/// ne pas redemander à chaque ouverture et pour se lire hors ligne.
+class const SeriesArtwork({
+  /// Adresse de l'image ; null quand aucun titre ne correspondait.
+  final String? url,
+
+  /// Nom de la série au moment de la recherche : un renommage la relance.
+  required final String forName,
+
+  /// Quand AniList a été interrogé.
+  required final DateTime checkedAt,
+}) {
+  @override
+  bool operator ==(Object other) =>
+      other is SeriesArtwork &&
+      other.url == url &&
+      other.forName == forName &&
+      other.checkedAt == checkedAt;
+
+  @override
+  int get hashCode => Object.hash(url, forName, checkedAt);
 }
 
 /// Ce qu'une source dit du prochain tome d'une série, gardé sur la série pour

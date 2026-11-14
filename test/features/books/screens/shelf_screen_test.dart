@@ -2,6 +2,7 @@ import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/books/data/anilist_catalog.dart';
 import 'package:an_ki/features/books/data/bnf_catalog.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/data/google_books_catalog.dart';
@@ -80,6 +81,7 @@ void main() {
     // Aucun catalogue réel : l'étagère vérifie les sorties à l'ouverture.
     bnfCatalogProvider.overrideWithValue(RecordingBnfCatalog()),
     googleBooksCatalogProvider.overrideWithValue(RecordingGoogleBooksCatalog()),
+    aniListCatalogProvider.overrideWithValue(RecordingAniListCatalog()),
   ];
 
   RecordingBookshelfRepository filled() => RecordingBookshelfRepository(

@@ -1,4 +1,5 @@
 import 'package:an_ki/features/books/domain/series.dart';
+import 'package:an_ki/features/books/domain/series_artwork.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/domain/volume_number.dart';
 import 'package:flutter/foundation.dart';
@@ -44,7 +45,9 @@ class const ShelfEntry({
   /// série vide). Null quand la série est terminée et sans trou.
   final int? nextToBuy,
 
-  /// Couverture du dernier tome possédé qui en a une.
+  /// Image de la série : celle d'AniList (`artworkUrlOf`), sinon la
+  /// couverture du premier tome possédé qui en a une. Stable quand un tome
+  /// s'ajoute.
   final String? coverUrl,
 }) {
   @override
@@ -125,13 +128,15 @@ ShelfEntry _entryOf(Series series, List<Volume> numbered) {
     nextToBuy = (last ?? 0) + 1;
   }
 
-  // La couverture du plus haut numéro qui en a une : un dernier tome sans
-  // image ne vide pas la vignette de la série.
-  String? coverUrl;
-  for (final volume in sorted.reversed) {
-    if (volume.imageUrl case final url? when url.isNotEmpty) {
-      coverUrl = url;
-      break;
+  // L'image de la série, sinon la couverture du plus petit numéro qui en a
+  // une : un nouveau tome ne change pas la vignette.
+  var coverUrl = artworkUrlOf(series);
+  if (coverUrl == null) {
+    for (final volume in sorted) {
+      if (volume.imageUrl case final url? when url.isNotEmpty) {
+        coverUrl = url;
+        break;
+      }
     }
   }
 

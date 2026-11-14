@@ -19,6 +19,7 @@ when"; changing one is a **system** change (brief + approval) and updates this f
 - D12 Background replan with workmanager
 - D13 Modules: a static registry in `app/`, activation in the profile
 - D14 Book metadata and release dates
+- D15 Series artwork from AniList
 - Sources
 
 ---
@@ -352,6 +353,40 @@ no account data); a privacy policy is needed before any publication. Sources che
 **Revisit when** a source offers French upcoming dates openly (a publisher or a bookseller API),
 Google Books stops giving French dates or its dates prove wrong in use, or the app is published
 (privacy policy, terms).
+
+---
+
+## D15 — Series artwork from AniList
+
+**Decision.** A series on the shelf shows one image, the work's cover from AniList (public
+GraphQL API, no key, `graphql.anilist.co`), looked up by the series name and kept on the series
+(`bookSeries.artwork`: `url`, `forName`, `checkedAt`). Accepted only when one of the work's titles
+(romaji, English, native or a synonym, French ones included) has a key of the series
+(`seriesKey`, or the same letters without spaces and an isolated « x »); otherwise none, and the
+row falls back to the cover of the lowest owned volume that has one, then to the initials. Found:
+never asked again; renamed: asked again; not found: asked again after 30 days. Up to 20 series per
+shelf opening, one at a time, silent, the first network error stops the pass. The volume grid
+keeps each volume's own cover. Approved 2026-11-14.
+
+**Why.** Google Books thumbnails, the only volume covers, are missing for most French manga
+(measured 2026-11-14: its by-ISBN image is the « image not available » placeholder for 6 ISBNs
+out of 7), and the series row used the highest volume's, so it changed with each purchase. The
+same day AniList found One Piece, Blue Lock, Spy x Family and L'Attaque des Titans (French
+synonym) by their shelf names, and nothing for Tintin (BD: initials or a volume cover).
+
+**Rejected.**
+- *BnF `catalogue.bnf.fr/couverture?idArk=`*: real covers (400×620), but undocumented, many
+  empty or 500 answers, and the server refused every connection after about forty requests.
+- *Open Library covers by ISBN*: 1 out of 7.
+- *Google Books image by ISBN (`books/content?vid=ISBN…`)*: a placeholder, not a cover.
+
+**How.** AniList allows free non-commercial use, 30 to 90 requests a minute depending on its API's state
+(a 429 stops the pass, nothing marked); the image is loaded
+from AniList's CDN by `Image.network` (no disk cache, as for the other covers). The search leaves
+from the phone with the series name only.
+
+**Revisit when** AniList limits or changes its API, wrong images show up in use, the shelf needs
+BD artwork, or the app is published (AniList's terms for commercial use).
 
 ---
 

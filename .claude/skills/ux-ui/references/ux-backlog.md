@@ -74,7 +74,7 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
     `pending`/`found`/`notFound`, `addedAt`); whole numbers only: a « tome 10.5 », a special or a
     box set stays « à classer » with its title;
   - `shelfOf(series, volumes)`: owned, last, **gaps**, next to buy (the first gap, else last + 1),
-    cover of the last owned;
+    cover: the series artwork (AniList, D15), else the lowest owned volume's;
   - `nextVolumeStatus(series, today)`: `released`, `announced` (day or month), `unknown`,
     `complete`;
   - `guessVolume(record)`: the BnF structured fields first (225 `$a`/`$v`, 461 `$t`/`$v`, high

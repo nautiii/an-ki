@@ -283,6 +283,7 @@ the marked address deletes a marked document (§10). Added 2026-11-09, rules **n
 | `keys` | array of string | matching keys (`seriesKey`: folded name, punctuation as spaces): the name's, plus former names after a rename or a merge; `[]` → matched by its folded name; non-strings skipped |
 | `complete` | bool, optional | closed by the user; written only when true at creation; absent → false |
 | `next` | map, optional | the next volume: `number` int, `status` `released` · `announced` · `unknown`, `date` string `2026-12-03` or `2026-12` (optional, never a `Timestamp`: no timezone shift), `source` `bnf` · `googleBooks` · `user`, `checkedAt` timestamp; unreadable or an unknown status/source → no information |
+| `artwork` | map, optional | the series image from AniList (D15): `url` string or null (nothing matched), `forName` string (the name looked up: a rename makes it stale), `checkedAt` timestamp; unreadable → not looked up yet |
 | `createdAt` | timestamp | the app's clock at creation; not read |
 | `transferTo` | string, optional | guest move (§10) |
 
@@ -290,7 +291,8 @@ the marked address deletes a marked document (§10). Added 2026-11-09, rules **n
 - Written by `BookshelfRepository.createSeries` (`set`), `renameSeries` (`update` of `name`,
   `keys` with `arrayUnion`), `mergeSeries` (the target's `keys` with `arrayUnion`, the source
   deleted, in the batch that moves its volumes), `setSeriesComplete`, `setNextVolume` (`next`,
-  `FieldValue.delete()` to clear), `applyLegacyImport`, `takeOver` (§10); erased by
+  `FieldValue.delete()` to clear), `setSeriesArtwork` (`artwork`, the whole map),
+  `applyLegacyImport`, `takeOver` (§10); erased by
   `deleteAllUserData`.
 - Read by `watchSeries` (whole subcollection, stream; `bookSeriesProvider`) and `fetchShelf`
   (server read: import, takeover).

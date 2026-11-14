@@ -149,27 +149,13 @@ void main() {
   });
 
   group('cover', () {
-    test("is the last owned volume's", () {
+    test("is the first owned volume's, stable when one is added", () {
       final entry = entryOf(
         [series('op')],
         [
-          volume('1', seriesId: 'op', number: 1, imageUrl: 'https://c/1.jpg'),
           volume('3', seriesId: 'op', number: 3, imageUrl: 'https://c/3.jpg'),
-          volume('2', seriesId: 'op', number: 2, imageUrl: 'https://c/2.jpg'),
-        ],
-        'op',
-      );
-
-      expect(entry.coverUrl, 'https://c/3.jpg');
-    });
-
-    test('falls back to the highest volume that has one', () {
-      final entry = entryOf(
-        [series('op')],
-        [
           volume('1', seriesId: 'op', number: 1, imageUrl: 'https://c/1.jpg'),
-          volume('2', seriesId: 'op', number: 2),
-          volume('3', seriesId: 'op', number: 3, imageUrl: ''),
+          volume('2', seriesId: 'op', number: 2, imageUrl: 'https://c/2.jpg'),
         ],
         'op',
       );
@@ -177,10 +163,64 @@ void main() {
       expect(entry.coverUrl, 'https://c/1.jpg');
     });
 
+    test('falls back to the lowest volume that has one', () {
+      final entry = entryOf(
+        [series('op')],
+        [
+          volume('1', seriesId: 'op', number: 1, imageUrl: ''),
+          volume('2', seriesId: 'op', number: 2),
+          volume('3', seriesId: 'op', number: 3, imageUrl: 'https://c/3.jpg'),
+        ],
+        'op',
+      );
+
+      expect(entry.coverUrl, 'https://c/3.jpg');
+    });
+
     test('is null when no volume has one', () {
       final entry = entryOf([series('op')], owning('op', [1, 2]), 'op');
 
       expect(entry.coverUrl, isNull);
+    });
+
+    Series illustrated(String forName, String? url) => Series(
+      id: 'op',
+      name: 'op',
+      keys: const ['op'],
+      complete: false,
+      artwork: SeriesArtwork(
+        url: url,
+        forName: forName,
+        checkedAt: DateTime(2026, 11),
+      ),
+    );
+    final volumes = [
+      volume('1', seriesId: 'op', number: 1, imageUrl: 'https://c/1.jpg'),
+    ];
+
+    test("the series artwork wins over the volumes' covers", () {
+      final entry = entryOf(
+        [illustrated('op', 'https://a/op.jpg')],
+        volumes,
+        'op',
+      );
+
+      expect(entry.coverUrl, 'https://a/op.jpg');
+    });
+
+    test('an artwork found for a former name or not found is ignored', () {
+      expect(
+        entryOf(
+          [illustrated('old', 'https://a/op.jpg')],
+          volumes,
+          'op',
+        ).coverUrl,
+        'https://c/1.jpg',
+      );
+      expect(
+        entryOf([illustrated('op', null)], volumes, 'op').coverUrl,
+        'https://c/1.jpg',
+      );
     });
   });
 

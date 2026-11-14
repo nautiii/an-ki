@@ -1,4 +1,5 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/books/data/anilist_catalog.dart';
 import 'package:an_ki/features/books/data/bnf_catalog.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/data/google_books_catalog.dart';
@@ -42,6 +43,8 @@ void main() {
 
   late RecordingBnfCatalog bnf;
 
+  late RecordingAniListCatalog aniList;
+
   Future<void> mount(
     WidgetTester tester,
     RecordingVolumeLookup lookup, {
@@ -60,6 +63,7 @@ void main() {
       volumes: [_pending],
     );
     bnf = RecordingBnfCatalog();
+    aniList = RecordingAniListCatalog();
     await tester.pumpHarness(
       TickerMode(
         enabled: tickers,
@@ -72,6 +76,7 @@ void main() {
         bookshelfRepositoryProvider.overrideWithValue(repository),
         volumeLookupProvider.overrideWithValue(lookup),
         bnfCatalogProvider.overrideWithValue(bnf),
+        aniListCatalogProvider.overrideWithValue(aniList),
         googleBooksCatalogProvider.overrideWithValue(
           RecordingGoogleBooksCatalog(),
         ),
@@ -141,6 +146,21 @@ void main() {
 
     await mount(tester, lookup);
     expect(bnf.asked, isEmpty);
+    expect(aniList.asked, isEmpty);
+  });
+
+  testWidgets('the shelf looks up the series artwork on opening, once', (
+    tester,
+  ) async {
+    final lookup = RecordingVolumeLookup(failure: BookFailure.network);
+    await mount(tester, lookup, checkReleases: true);
+    expect(aniList.asked, ['One Piece']);
+
+    await resume(tester);
+
+    // Rien trouvé, mais cherché : la reprise ne la redemande pas.
+    expect(aniList.asked, ['One Piece']);
+    expect(repository.series.single.artwork?.forName, 'One Piece');
   });
 
   testWidgets('the shelf checks the release dates on opening and resume', (

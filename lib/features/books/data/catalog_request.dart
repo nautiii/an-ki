@@ -20,9 +20,36 @@ Future<http.Response> getFromCatalog(
   Uri url, {
   required String source,
   Duration timeout = catalogTimeout,
+}) => _send(() => client.get(url), source: source, timeout: timeout);
+
+/// POST [body] (JSON déjà encodé) à [url] chez le catalogue [source] ; mêmes
+/// échecs que [getFromCatalog].
+Future<http.Response> postToCatalog(
+  http.Client client,
+  Uri url, {
+  required String body,
+  required String source,
+  Duration timeout = catalogTimeout,
+}) => _send(
+  () => client.post(
+    url,
+    headers: const {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: body,
+  ),
+  source: source,
+  timeout: timeout,
+);
+
+Future<http.Response> _send(
+  Future<http.Response> Function() request, {
+  required String source,
+  required Duration timeout,
 }) async {
   try {
-    return await client.get(url).timeout(timeout);
+    return await request().timeout(timeout);
   } on TimeoutException catch (e, stack) {
     debugPrint('$source timed out: $e');
     Error.throwWithStackTrace(BookFailure.network, stack);

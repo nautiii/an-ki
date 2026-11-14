@@ -279,6 +279,16 @@ class BookshelfRepository {
     }),
   );
 
+  /// L'image de [seriesId] cherchée chez AniList (D15).
+  Future<void> setSeriesArtwork(
+    String uid,
+    String seriesId,
+    SeriesArtwork artwork,
+  ) => _guard(
+    () =>
+        _series(uid).doc(seriesId).update({'artwork': _artworkToMap(artwork)}),
+  );
+
   // --- Import des anciens livres ---
 
   /// Écrit le plan d'import [plan] : chaque entrée (sa série neuve, son tome,
@@ -458,14 +468,16 @@ Series _seriesFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     keys: _strings(data['keys']),
     complete: data['complete'] == true,
     next: _nextFromMap(data['next']),
+    artwork: _artworkFromMap(data['artwork']),
   );
 }
 
-Map<String, Object> _seriesToMap(Series series, {DateTime? createdAt}) => {
+Map<String, Object?> _seriesToMap(Series series, {DateTime? createdAt}) => {
   'name': series.name,
   'keys': series.keys,
   if (series.complete) 'complete': true,
   if (series.next case final next?) 'next': _nextToMap(next),
+  if (series.artwork case final artwork?) 'artwork': _artworkToMap(artwork),
   if (createdAt != null) 'createdAt': Timestamp.fromDate(createdAt),
 };
 
@@ -492,6 +504,28 @@ NextVolumeInfo? _nextFromMap(Object? raw) {
     checkedAt: checkedAt.toDate(),
   );
 }
+
+/// La carte `artwork` ; null quand elle manque ou que `forName` ou
+/// `checkedAt` est illisible (l'image sera recherchée).
+SeriesArtwork? _artworkFromMap(Object? raw) {
+  if (raw is! Map<String, dynamic>) return null;
+  final forName = _string(raw['forName']);
+  final checkedAt = raw['checkedAt'];
+  if (forName == null || checkedAt is! Timestamp) return null;
+  return SeriesArtwork(
+    url: _string(raw['url']),
+    forName: forName,
+    checkedAt: checkedAt.toDate(),
+  );
+}
+
+/// `url` toujours écrit, null quand rien n'a été trouvé : la carte remplace
+/// l'ancienne en entier, une image d'avant un renommage ne survit pas.
+Map<String, Object?> _artworkToMap(SeriesArtwork artwork) => {
+  'url': artwork.url,
+  'forName': artwork.forName,
+  'checkedAt': Timestamp.fromDate(artwork.checkedAt),
+};
 
 /// La date en chaîne ISO avec sa précision (`2026-12-03`, `2026-12`), jamais
 /// en `Timestamp` : pas de décalage de fuseau.

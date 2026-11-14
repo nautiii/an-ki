@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/features/books/providers/release_check.dart';
+import 'package:an_ki/features/books/providers/series_artwork.dart';
 import 'package:an_ki/features/books/providers/shelf_editor.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,7 +15,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// l'éditeur n'en mène qu'une à la fois.
 ///
 /// Avec [checkReleases] (l'étagère), il vérifie aussi, au même moment, le
-/// prochain tome des séries dues (`ReleaseCheck.checkStale`).
+/// prochain tome des séries dues (`ReleaseCheck.checkStale`) et cherche
+/// l'image des séries qui n'en ont pas (`SeriesArtworkLookup`).
 class PendingCompleter extends ConsumerStatefulWidget {
   const PendingCompleter({
     super.key,
@@ -24,7 +26,7 @@ class PendingCompleter extends ConsumerStatefulWidget {
 
   final Widget child;
 
-  /// Vrai sur l'étagère : vérifier aussi les dates de sortie.
+  /// Vrai sur l'étagère : vérifier aussi les dates de sortie et les images.
   final bool checkReleases;
 
   @override
@@ -39,7 +41,11 @@ class _PendingCompleterState extends ConsumerState<PendingCompleter> {
     super.initState();
     // Garde l'éditeur (autoDispose) en vie pendant la passe.
     ref.listenManual(shelfEditorProvider, (_, _) {});
-    if (widget.checkReleases) ref.listenManual(releaseCheckProvider, (_, _) {});
+    if (widget.checkReleases) {
+      ref
+        ..listenManual(releaseCheckProvider, (_, _) {})
+        ..listenManual(seriesArtworkLookupProvider, (_, _) {});
+    }
     _lifecycle = AppLifecycleListener(
       onResume: () {
         // Un onglet caché (une autre branche affichée) ne compte pas.
@@ -55,6 +61,9 @@ class _PendingCompleterState extends ConsumerState<PendingCompleter> {
     unawaited(ref.read(shelfEditorProvider.notifier).completePending());
     if (widget.checkReleases) {
       unawaited(ref.read(releaseCheckProvider.notifier).checkStale());
+      unawaited(
+        ref.read(seriesArtworkLookupProvider.notifier).illustrateMissing(),
+      );
     }
   }
 

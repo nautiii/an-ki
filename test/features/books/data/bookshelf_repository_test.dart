@@ -605,6 +605,88 @@ void main() {
       expect(data.containsKey('next'), isFalse);
       expect(data['complete'], isFalse);
     });
+
+    test('sets the artwork and reads it back', () async {
+      await repository.createSeries('u1', _series('s1'), createdAt: _added);
+
+      await repository.setSeriesArtwork(
+        'u1',
+        's1',
+        SeriesArtwork(url: 'https://a/op.jpg', forName: 'S', checkedAt: _added),
+      );
+      var data = (await seriesOf('u1').doc('s1').get()).data()!;
+      expect(data['artwork'], {
+        'url': 'https://a/op.jpg',
+        'forName': 'S',
+        'checkedAt': Timestamp.fromDate(_added),
+      });
+
+      // Rien trouvé (après un renommage) : la recherche est gardée, l'ancienne
+      // adresse effacée.
+      await repository.setSeriesArtwork(
+        'u1',
+        's1',
+        SeriesArtwork(forName: 'S', checkedAt: _added),
+      );
+      data = (await seriesOf('u1').doc('s1').get()).data()!;
+      expect(data['artwork'], {
+        'url': null,
+        'forName': 'S',
+        'checkedAt': Timestamp.fromDate(_added),
+      });
+      final series = await repository.watchSeries('u1').first;
+      expect(
+        series.single.artwork,
+        SeriesArtwork(forName: 'S', checkedAt: _added),
+      );
+    });
+
+    test('an artwork map that cannot be read means no lookup yet', () async {
+      await seriesOf('u1').doc('s1').set({
+        'name': 'One Piece',
+        'artwork': {'url': 'https://a', 'checkedAt': 'hier'},
+      });
+      await seriesOf('u1')
+          .doc('s2')
+          .set({'name': 'Naruto', 'artwork': 'https://a'});
+
+      final series = await repository.watchSeries('u1').first;
+
+      expect(series.map((s) => s.artwork), [isNull, isNull]);
+    });
+
+    test('a created series keeps its artwork', () async {
+      final artwork = SeriesArtwork(
+        url: 'https://a',
+        forName: 'S',
+        checkedAt: _added,
+      );
+      final series = Series(
+        id: 's1',
+        name: 'S',
+        keys: const ['s'],
+        complete: false,
+        artwork: artwork,
+      );
+
+      await repository.createSeries('u1', series, createdAt: _added);
+
+      expect(
+        (await repository.watchSeries('u1').first).single.artwork,
+        artwork,
+      );
+    });
+
+    test('setting the artwork of a missing series is a failure', () async {
+      await expectLater(
+        repository.setSeriesArtwork(
+          'u1',
+          'missing',
+          SeriesArtwork(forName: 'S', checkedAt: _added),
+        ),
+        throwsA(isA<ShelfFailure>()),
+      );
+    });
   });
 
   group('watchFromCache', () {
@@ -759,11 +841,21 @@ void main() {
       );
       await repository.saveScannedVolume('guest', _volume('v1'));
       await legacy().doc('k1').set({'uid': 'guest', 'transferTo': 'b@x.fr'});
+      // La série copiée garde son image.
+      final naruto = Series(
+        id: 's2',
+        name: 'Naruto',
+        keys: const ['naruto'],
+        complete: false,
+        artwork: SeriesArtwork(
+          url: 'https://a',
+          forName: 'Naruto',
+          checkedAt: _added,
+        ),
+      );
       final plan = ShelfTakeOverPlan(
         guestUid: 'guest',
-        seriesToCopy: [
-          _series('s2', name: 'Naruto', keys: ['naruto']),
-        ],
+        seriesToCopy: [naruto],
         keysToAdd: const {
           't1': ['one piece fr'],
         },
@@ -779,7 +871,7 @@ void main() {
       expect(
         target.series,
         unorderedEquals([
-          _series('s2', name: 'Naruto', keys: ['naruto']),
+          naruto,
           _series('t1', keys: ['one piece', 'one piece fr']),
         ]),
       );

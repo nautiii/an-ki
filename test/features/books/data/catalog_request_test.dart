@@ -29,6 +29,43 @@ void main() {
     expect(response.body, 'corps');
   });
 
+  test('posts a JSON body and returns the response', () async {
+    late http.Request sent;
+    final client = MockClient((request) async {
+      sent = request;
+      return http.Response('ok', 200);
+    });
+
+    final response = await postToCatalog(
+      client,
+      _url,
+      body: '{"a":1}',
+      source: 'Test',
+    );
+
+    expect(response.body, 'ok');
+    expect(sent.method, 'POST');
+    expect(sent.body, '{"a":1}');
+    expect(sent.headers['Content-Type'], startsWith('application/json'));
+  });
+
+  test('a post that never answers is cut at the timeout', () async {
+    final never = Completer<http.Response>();
+    final client = MockClient((_) => never.future);
+
+    final failure = await failureOf(
+      () => postToCatalog(
+        client,
+        _url,
+        body: '{}',
+        source: 'Test',
+        timeout: const Duration(milliseconds: 20),
+      ),
+    );
+
+    expect(failure, BookFailure.network);
+  });
+
   test('a request that never answers is cut at the timeout', () async {
     final never = Completer<http.Response>();
     final client = MockClient((_) => never.future);

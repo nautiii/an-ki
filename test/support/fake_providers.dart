@@ -12,6 +12,7 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
+import 'package:an_ki/features/books/data/anilist_catalog.dart';
 import 'package:an_ki/features/books/data/bnf_catalog.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/data/google_books_catalog.dart';
@@ -19,6 +20,7 @@ import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/book_metadata.dart';
 import 'package:an_ki/features/books/domain/legacy_import.dart';
 import 'package:an_ki/features/books/domain/series.dart';
+import 'package:an_ki/features/books/domain/series_artwork.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/domain/volume_identification.dart';
 import 'package:an_ki/features/books/domain/volume_number.dart';
@@ -666,6 +668,7 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
         keys: series.keys,
         complete: true,
         next: series.next,
+        artwork: series.artwork,
       );
     }
   });
@@ -709,6 +712,7 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
       keys: {...series.keys, key}.toList(),
       complete: series.complete,
       next: series.next,
+      artwork: series.artwork,
     );
   });
 
@@ -741,6 +745,7 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
       keys: {...target.keys, ...keys}.toList(),
       complete: target.complete,
       next: target.next,
+      artwork: target.artwork,
     );
     _series.remove(sourceId);
   });
@@ -758,6 +763,7 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
       keys: series.keys,
       complete: complete,
       next: series.next,
+      artwork: series.artwork,
     );
   });
 
@@ -774,6 +780,24 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
       keys: series.keys,
       complete: series.complete,
       next: next,
+      artwork: series.artwork,
+    );
+  });
+
+  @override
+  Future<void> setSeriesArtwork(
+    String uid,
+    String seriesId,
+    SeriesArtwork artwork,
+  ) => _write(() {
+    final series = _series[seriesId]!;
+    _series[seriesId] = Series(
+      id: seriesId,
+      name: series.name,
+      keys: series.keys,
+      complete: series.complete,
+      next: series.next,
+      artwork: artwork,
     );
   });
 
@@ -1242,5 +1266,31 @@ class RecordingGoogleBooksCatalog extends Fake implements GoogleBooksCatalog {
     if (gate case final gate?) await gate;
     if (failure case final failure?) throw failure;
     return answers[(seriesName, number)] ?? const [];
+  }
+}
+
+/// Catalogue AniList dont les recherches ([searchManga]) répondent par nom ;
+/// il retient chaque question.
+class RecordingAniListCatalog extends Fake implements AniListCatalog {
+  RecordingAniListCatalog([this.answers = const {}]);
+
+  /// Œuvres rendues pour un nom ; aucune sinon.
+  final Map<String, List<ArtworkCandidate>> answers;
+
+  /// Les recherches reçues, dans l'ordre.
+  final asked = <String>[];
+
+  /// Levé par chaque recherche quand il est défini.
+  BookFailure? failure;
+
+  /// Retient chaque réponse jusqu'à ce qu'il se termine.
+  Future<void>? gate;
+
+  @override
+  Future<List<ArtworkCandidate>> searchManga(String name) async {
+    asked.add(name);
+    if (gate case final gate?) await gate;
+    if (failure case final failure?) throw failure;
+    return answers[name] ?? const [];
   }
 }
