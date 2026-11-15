@@ -10,6 +10,7 @@ import 'package:an_ki/app/modules/modules_screen.dart';
 import 'package:an_ki/app/modules/modules_tile.dart';
 import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
@@ -183,10 +184,12 @@ class _SettingsPage extends ConsumerWidget {
 
 /// Démarrage : session et verrou biométrique pas encore connus (quelques
 /// millisecondes). Un fond neutre, plutôt que la bienvenue qui clignoterait
-/// avant l'app ou le verrou.
+/// avant l'app ou le verrou ; peint en prune nuit, la couleur du splash natif
+/// (surface du thème sombre), pour qu'aucun écran clair ne s'intercale (D28).
 class _StartupScreen extends StatelessWidget {
   const _StartupScreen();
 
   @override
-  Widget build(BuildContext context) => const Scaffold();
+  Widget build(BuildContext context) =>
+      Theme(data: AppTheme.dark, child: const Scaffold());
 }

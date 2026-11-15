@@ -9,7 +9,9 @@ import 'package:an_ki/app/router/app_router.dart';
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/notification_service.dart';
+import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/screens/auth_choice_screen.dart';
 import 'package:an_ki/features/auth/screens/login_screen.dart';
 import 'package:an_ki/features/auth/screens/signup_screen.dart';
@@ -41,6 +43,28 @@ import '../../support/network_image_mock.dart';
 import '../../support/probe_module.dart';
 
 void main() {
+  group('startup', () {
+    testWidgets('paints the startup screen in the splash plum night', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        auth: FakeAuthRepository(),
+        // Session et verrou pas encore connus : l'app reste au démarrage.
+        overrides: [authAccessProvider.overrideWithValue(null)],
+      );
+      await tester.pump();
+
+      final scaffold = find.byType(Scaffold);
+      expect(scaffold, findsOneWidget);
+      final background = tester
+          .widget<Material>(
+            find.descendant(of: scaffold, matching: find.byType(Material)),
+          )
+          .color;
+      expect(background, AppTheme.dark.colorScheme.surface);
+    });
+  });
+
   group('accessRedirect', () {
     test('waits on the startup screen until the access is known', () {
       expect(accessRedirect(null, AppRoutes.birthdays), '/');

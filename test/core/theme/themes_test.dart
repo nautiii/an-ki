@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:an_ki/core/theme/anki_colors.dart';
@@ -74,6 +75,24 @@ void main() {
     expect(night.secondaryContainer, const Color(0xFF72333E));
     expect(night.onSecondaryContainer, const Color(0xFFFFD9DD));
     expect(night.tertiary, const Color(0xFF9FCAFD));
+  });
+
+  test('the native splash paints the dark surface, as the startup screen', () {
+    final hex =
+        '#${AppTheme.dark.colorScheme.surface.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+    expect(RegExp('color: "$hex"').allMatches(pubspec), hasLength(2));
+    for (final styles in [
+      'android/app/src/main/res/values-v31/styles.xml',
+      'android/app/src/main/res/values-night-v31/styles.xml',
+    ]) {
+      expect(
+        File(styles).readAsStringSync(),
+        contains(
+          '<item name="android:windowSplashScreenBackground">$hex</item>',
+        ),
+      );
+    }
   });
 
   for (final (label, brightness) in [

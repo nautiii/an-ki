@@ -107,7 +107,7 @@ flutter_launcher_icons:
 flutter_native_splash:
   # Docs: https://pub.dev/packages/flutter_native_splash
   # Run: dart run flutter_native_splash:create
-  color: "#121318"
+  color: "#1D1011"
   # color_dark: "#01295B"
   image: "lib/assets/icon.png"
   # image_dark: "lib/assets/icon.png"
@@ -116,7 +116,7 @@ flutter_native_splash:
   ios: true
   # Configuration spécifique pour Android 12+
   android_12:
-    color: "#121318"
+    color: "#1D1011"
     image: "lib/assets/icon.png"
     branding: "lib/assets/brand.png"
     # branding_dark: "lib/assets/mythologie.png"
