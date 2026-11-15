@@ -51,6 +51,63 @@ void main() {
     });
   });
 
+  test('paints lotus by day, plum night by night, from the icon', () {
+    final day = AppTheme.light.colorScheme;
+    final night = AppTheme.dark.colorScheme;
+
+    expect(AppTheme.seedColor, AnKiColors.lotusSeed);
+    expect(day.primary, const Color(0xFFBD0046));
+    expect(day.primaryContainer, const Color(0xFFFFD9DD));
+    expect(day.tertiary, const Color(0xFF35618E));
+    expect(day.tertiaryContainer, const Color(0xFFD1E4FF));
+    expect(day.surface, const Color(0xFFFFF8F7));
+    expect(day.surfaceContainerLow, const Color(0xFFFFF0F1));
+    expect(day.surfaceContainer, const Color(0xFFFFE9EA));
+    expect(day.surfaceContainerHigh, const Color(0xFFFDE2E4));
+    expect(night.primary, const Color(0xFFFFB2BC));
+    expect(night.primaryContainer, const Color(0xFF910034));
+    expect(night.tertiaryContainer, const Color(0xFF184974));
+    expect(night.surface, const Color(0xFF1D1011));
+    expect(night.surfaceContainerLow, const Color(0xFF261819));
+    // Lotus tonal en secondaire : boutons tonals et indicateur restent roses
+    // la nuit, jamais bruns ; le nuage en tertiaire.
+    expect(night.secondaryContainer, const Color(0xFF72333E));
+    expect(night.onSecondaryContainer, const Color(0xFFFFD9DD));
+    expect(night.tertiary, const Color(0xFF9FCAFD));
+  });
+
+  for (final (label, brightness) in [
+    ('light', Brightness.light),
+    ('dark', Brightness.dark),
+  ]) {
+    test('takes secondary from the tonal lotus and tertiary from the cloud '
+        '($label)', () {
+      final scheme =
+          (brightness == Brightness.dark ? AppTheme.dark : AppTheme.light)
+              .colorScheme;
+      final lotus = ColorScheme.fromSeed(
+        seedColor: AnKiColors.lotusSeed,
+        brightness: brightness,
+      );
+      final cloud = ColorScheme.fromSeed(
+        seedColor: AnKiColors.cloudSeed,
+        brightness: brightness,
+      );
+
+      expect(scheme.secondary, lotus.primary);
+      expect(scheme.onSecondary, lotus.onPrimary);
+      expect(scheme.secondaryContainer, lotus.primaryContainer);
+      expect(scheme.onSecondaryContainer, lotus.onPrimaryContainer);
+      expect(scheme.secondaryFixedDim, lotus.primaryFixedDim);
+      expect(scheme.tertiary, cloud.primary);
+      expect(scheme.onTertiary, cloud.onPrimary);
+      expect(scheme.tertiaryContainer, cloud.primaryContainer);
+      expect(scheme.onTertiaryContainer, cloud.onPrimaryContainer);
+      expect(scheme.tertiaryFixedDim, cloud.primaryFixedDim);
+      expect(scheme.onTertiaryFixed, cloud.onPrimaryFixed);
+    });
+  }
+
   for (final (label, theme, brightness) in [
     ('light', AppTheme.light, Brightness.light),
     ('dark', AppTheme.dark, Brightness.dark),
@@ -135,14 +192,12 @@ void main() {
 
         expect(colors, isNotNull);
         expect(
-          colors!.hero.colors,
+          colors!.hero.colors.first,
           brightness == Brightness.dark
-              ? [
-                  theme.colorScheme.primaryContainer,
-                  theme.colorScheme.tertiaryContainer,
-                ]
-              : [theme.colorScheme.primary, theme.colorScheme.tertiary],
+              ? const Color(0xFF7A1035)
+              : theme.colorScheme.primaryFixedDim,
         );
+        expect(colors.petals, hasLength(3));
       });
 
       test('keeps the undo action of a snackbar AA on its background', () {

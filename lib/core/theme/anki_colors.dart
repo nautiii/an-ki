@@ -46,7 +46,7 @@ class TonalColors {
       );
 }
 
-/// Couleurs de marque AnKi (« jardin au clair de lune ») pour un thème donné.
+/// Couleurs de marque AnKi (« lotus au clair de lune ») pour un thème donné.
 ///
 /// Ajoutée à `ThemeData.extensions` par `AppTheme` ; lue via `context.ankiColors`.
 @immutable
@@ -66,63 +66,91 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
     required this.floatingShadow,
   });
 
+  /// Rose lotus de l'icône : graine du thème.
+  static const Color lotusSeed = Color(0xFFFFB6BF);
+
+  /// Bleu nuage de l'icône : rôles tertiaires.
+  static const Color cloudSeed = Color(0xFFC5DEFF);
+
+  /// Rouge prune de l'icône : bout clair du dégradé du jour J.
+  static const Color plumSeed = Color(0xFFFF1E32);
+
   /// Lotus des illustrations : célébration, « aujourd'hui ».
   static const Color blossomSeed = Color(0xFFF88898);
 
   /// Feuille des illustrations : succès, « souhaité ».
   static const Color mintSeed = Color(0xFF70D8B8);
 
-  /// Lavande de la lune : accents calmes, motif lunaire.
+  /// Lavande de la lune (la mascotte) : accents calmes, motif lunaire.
   static const Color moonSeed = Color(0xFFD0D0F8);
 
-  /// Dérive les couleurs de marque du schéma de base : le crépuscule (clair)
-  /// devient un ciel de nuit (sombre), jamais un aplat pastel éblouissant.
+  /// Héros sombre : baie → bleu nuit. Les rôles du schéma sombre
+  /// (`primaryContainer`, `tertiaryContainer`) contrastent moins avec le texte.
+  static const Color _nightBerry = Color(0xFF7A1035);
+  static const Color _nightBlue = Color(0xFF1E3F6E);
+
+  /// Texte rose pâle sur les dégradés sombres.
+  static const Color _blush = Color(0xFFFFE0E5);
+
+  /// Jour J : framboise → rouge prune (clair), prune → grenat (sombre).
+  static const Color _raspberry = Color(0xFFA8003D);
+
+  /// `primary` vibrant de [plumSeed] en clair : assez foncé pour le texte
+  /// blanc secondaire à 85 % (AA), calculé une seule fois.
+  static final Color _plumRed = ColorScheme.fromSeed(
+    seedColor: plumSeed,
+    dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
+  ).primary;
+  static const Color _plum = Color(0xFF7A0030);
+  static const Color _garnet = Color(0xFF9B1B30);
+
+  /// Pétales : lotus profond et or des étamines (le lotus clair est [lotusSeed]).
+  static const Color _deepLotus = Color(0xFFF98F9E);
+  static const Color _stamenGold = Color(0xFFFFD849);
+
+  /// Dérive les couleurs de marque du schéma de base : lotus et nuage au
+  /// jour, baie et bleu nuit la nuit, jamais un aplat pastel éblouissant.
   factory AnKiColors.from(ColorScheme scheme) {
     final isDark = scheme.brightness == Brightness.dark;
-    final blossom = TonalColors.fromSeed(blossomSeed, scheme.brightness);
-    final moonlight = TonalColors.fromSeed(moonSeed, scheme.brightness);
+    const top = Alignment.topLeft;
+    const bottom = Alignment.bottomRight;
+    final petalAlpha = isDark ? 0.75 : 0.9;
     return AnKiColors(
+      // Clair : les rôles « fixed » (lotus → nuage) contrastent mieux avec
+      // leur texte que les valeurs du prototype.
       hero: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+        begin: top,
+        end: bottom,
         colors: isDark
-            ? [scheme.primaryContainer, scheme.tertiaryContainer]
-            : [scheme.primary, scheme.tertiary],
+            ? const [_nightBerry, _nightBlue]
+            : [scheme.primaryFixedDim, scheme.tertiaryFixedDim],
       ),
-      onHero: isDark ? scheme.onPrimaryContainer : scheme.onPrimary,
+      onHero: isDark ? _blush : scheme.onPrimaryFixed,
       celebration: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: isDark
-            ? [scheme.primaryContainer, blossom.container]
-            : [scheme.primary, blossom.color],
+        begin: top,
+        end: bottom,
+        colors: isDark ? const [_plum, _garnet] : [_raspberry, _plumRed],
       ),
-      onCelebration: isDark ? blossom.onContainer : blossom.onColor,
+      onCelebration: isDark ? _blush : Colors.white,
       // Le départ du dégradé, sur un bouton plein [onCelebration].
-      onCelebrationAction: isDark ? scheme.primaryContainer : scheme.primary,
-      // Pâles sur le crépuscule, plus lumineux sur la nuit : toujours visibles
-      // sur le dégradé de fête, jamais criards.
-      petals: isDark
-          ? [
-              blossom.color.withValues(alpha: 0.8),
-              blossom.onContainer.withValues(alpha: 0.5),
-              moonlight.color.withValues(alpha: 0.6),
-            ]
-          : [
-              blossom.container.withValues(alpha: 0.9),
-              blossom.onColor.withValues(alpha: 0.6),
-              moonlight.container.withValues(alpha: 0.75),
-            ],
-      blossom: blossom,
+      onCelebrationAction: isDark ? _plum : _raspberry,
+      // Lotus clair, lotus profond, or des étamines : visibles sur le dégradé
+      // de fête, adoucis la nuit.
+      petals: [
+        for (final color in const [lotusSeed, _deepLotus, _stamenGold])
+          color.withValues(alpha: petalAlpha),
+      ],
+      blossom: TonalColors.fromSeed(blossomSeed, scheme.brightness),
       success: TonalColors.fromSeed(mintSeed, scheme.brightness),
-      moonlight: moonlight,
+      moonlight: TonalColors.fromSeed(moonSeed, scheme.brightness),
       glass: scheme.surfaceContainer.withValues(alpha: isDark ? 0.65 : 0.78),
       glassBorder: scheme.outlineVariant.withValues(alpha: isDark ? 0.5 : 0.6),
+      // Ombre rosée, teintée par le lotus.
       floatingShadow: isDark
           ? const []
           : [
               BoxShadow(
-                color: scheme.shadow.withValues(alpha: 0.10),
+                color: scheme.primary.withValues(alpha: 0.14),
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               ),
@@ -136,7 +164,7 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
   /// Texte et icônes sur [hero] ; texte secondaire à 85 % minimum.
   final Color onHero;
 
-  /// Dégradé du jour J (nuit → lotus).
+  /// Dégradé du jour J (framboise → rouge prune, prune → grenat la nuit).
   final LinearGradient celebration;
   final Color onCelebration;
 

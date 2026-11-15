@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:an_ki/core/theme/anki_colors.dart';
+import 'package:an_ki/core/theme/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -13,24 +14,39 @@ double _contrast(Color a, Color b) {
 }
 
 void main() {
-  const night = Color(0xFF073165);
-  final light = ColorScheme.fromSeed(seedColor: night);
-  final dark = ColorScheme.fromSeed(
-    seedColor: night,
-    brightness: Brightness.dark,
-  );
+  final light = AppTheme.light.colorScheme;
+  final dark = AppTheme.dark.colorScheme;
 
-  test('hero is a dusk gradient in light and a night sky in dark', () {
+  test('hero is lotus to cloud by day, berry to night blue by night', () {
     final day = AnKiColors.from(light);
     final nightColors = AnKiColors.from(dark);
 
-    expect(day.hero.colors, [light.primary, light.tertiary]);
-    expect(day.onHero, light.onPrimary);
-    expect(nightColors.hero.colors, [
-      dark.primaryContainer,
-      dark.tertiaryContainer,
+    expect(day.hero.colors, [light.primaryFixedDim, light.tertiaryFixedDim]);
+    expect(day.onHero, light.onPrimaryFixed);
+    expect(nightColors.hero.colors, const [
+      Color(0xFF7A1035),
+      Color(0xFF1E3F6E),
     ]);
-    expect(nightColors.onHero, dark.onPrimaryContainer);
+    expect(nightColors.onHero, const Color(0xFFFFE0E5));
+  });
+
+  test('celebration is raspberry by day, plum by night', () {
+    final day = AnKiColors.from(light);
+    final nightColors = AnKiColors.from(dark);
+
+    // Le bout clair est le `primary` vibrant du rouge prune de l'icône.
+    expect(day.celebration.colors, const [
+      Color(0xFFA8003D),
+      Color(0xFFC0001D),
+    ]);
+    expect(day.onCelebration, Colors.white);
+    expect(day.onCelebrationAction, const Color(0xFFA8003D));
+    expect(nightColors.celebration.colors, const [
+      Color(0xFF7A0030),
+      Color(0xFF9B1B30),
+    ]);
+    expect(nightColors.onCelebration, const Color(0xFFFFE0E5));
+    expect(nightColors.onCelebrationAction, const Color(0xFF7A0030));
   });
 
   test('every brand pair meets WCAG AA in both themes', () {
@@ -50,6 +66,12 @@ void main() {
           _contrast(colors.onCelebration, background),
           greaterThanOrEqualTo(4.5),
         );
+        // Texte secondaire du jour J : 85 % d'opacité minimum.
+        final secondary = Color.alphaBlend(
+          colors.onCelebration.withValues(alpha: 0.85),
+          background,
+        );
+        expect(_contrast(secondary, background), greaterThanOrEqualTo(4.5));
       }
       // « Souhaiter » : bouton plein [onCelebration], texte dessus.
       expect(
@@ -69,19 +91,34 @@ void main() {
     }
   });
 
-  test('petals take three tones per theme, brighter on the night sky', () {
+  test('petals take three tones per theme, softer at night', () {
     final day = AnKiColors.from(light);
     final nightColors = AnKiColors.from(dark);
 
     expect(day.petals, hasLength(3));
     expect(nightColors.petals, hasLength(3));
+    // Lotus clair, lotus profond, or des étamines.
+    expect(day.petals.last.withValues(alpha: 1), const Color(0xFFFFD849));
+    for (final (index, petal) in nightColors.petals.indexed) {
+      expect(petal.a, lessThan(day.petals[index].a));
+    }
     expect(day.lerp(nightColors, 1).petals, nightColors.petals);
     expect(day.copyWith(petals: const []).petals, isEmpty);
   });
 
-  test('floating elements cast a shadow in light only', () {
-    expect(AnKiColors.from(light).floatingShadow, isNotEmpty);
+  test('floating elements cast a lotus shadow in light only', () {
+    final shadow = AnKiColors.from(light).floatingShadow.single;
+
+    expect(shadow.color.withValues(alpha: 1), light.primary);
+    expect(shadow.color.a, lessThanOrEqualTo(0.14));
     expect(AnKiColors.from(dark).floatingShadow, isEmpty);
+  });
+
+  test('the moon stays lavender, the mascot of the identity', () {
+    expect(
+      AnKiColors.from(light).moonlight.color,
+      TonalColors.fromSeed(AnKiColors.moonSeed, Brightness.light).color,
+    );
   });
 
   test('copyWith and lerp', () {
@@ -106,13 +143,14 @@ void main() {
   });
 
   test('TonalColors.of caches one instance per seed and brightness', () {
+    const lotus = AnKiColors.lotusSeed;
     expect(
-      TonalColors.of(night, Brightness.light),
-      same(TonalColors.of(night, Brightness.light)),
+      TonalColors.of(lotus, Brightness.light),
+      same(TonalColors.of(lotus, Brightness.light)),
     );
     expect(
-      TonalColors.of(night, Brightness.dark),
-      isNot(same(TonalColors.of(night, Brightness.light))),
+      TonalColors.of(lotus, Brightness.dark),
+      isNot(same(TonalColors.of(lotus, Brightness.light))),
     );
   });
 

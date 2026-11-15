@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class AppTheme {
-  static const seedColor = Color(0xFF073165);
+  static const seedColor = AnKiColors.lotusSeed;
 
   /// Famille embarquée (lib/assets/fonts, licence OFL) : vraies graisses de
   /// 400 à 800, rendu identique hors ligne.
@@ -13,11 +13,44 @@ class AppTheme {
   static ThemeData light = _buildTheme(Brightness.light);
   static ThemeData dark = _buildTheme(Brightness.dark);
 
-  static ThemeData _buildTheme(Brightness brightness) {
-    final colorScheme = ColorScheme.fromSeed(
+  /// Lotus vif (variante `vibrant`) ; les rôles secondaires reprennent le
+  /// lotus en `tonalSpot` (sinon les boutons tonals et l'indicateur de la
+  /// barre virent au brun en sombre), les tertiaires le bleu nuage de l'icône.
+  static ColorScheme _colorScheme(Brightness brightness) {
+    final lotus = ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: brightness,
     );
+    final cloud = ColorScheme.fromSeed(
+      seedColor: AnKiColors.cloudSeed,
+      brightness: brightness,
+    );
+    return ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: brightness,
+      dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
+    ).copyWith(
+      secondary: lotus.primary,
+      onSecondary: lotus.onPrimary,
+      secondaryContainer: lotus.primaryContainer,
+      onSecondaryContainer: lotus.onPrimaryContainer,
+      secondaryFixed: lotus.primaryFixed,
+      secondaryFixedDim: lotus.primaryFixedDim,
+      onSecondaryFixed: lotus.onPrimaryFixed,
+      onSecondaryFixedVariant: lotus.onPrimaryFixedVariant,
+      tertiary: cloud.primary,
+      onTertiary: cloud.onPrimary,
+      tertiaryContainer: cloud.primaryContainer,
+      onTertiaryContainer: cloud.onPrimaryContainer,
+      tertiaryFixed: cloud.primaryFixed,
+      tertiaryFixedDim: cloud.primaryFixedDim,
+      onTertiaryFixed: cloud.onPrimaryFixed,
+      onTertiaryFixedVariant: cloud.onPrimaryFixedVariant,
+    );
+  }
+
+  static ThemeData _buildTheme(Brightness brightness) {
+    final colorScheme = _colorScheme(brightness);
     final base = ThemeData(
       brightness: brightness,
       fontFamily: fontFamily,
