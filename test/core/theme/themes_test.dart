@@ -125,6 +125,37 @@ void main() {
       expect(scheme.tertiaryFixedDim, cloud.primaryFixedDim);
       expect(scheme.onTertiaryFixed, cloud.onPrimaryFixed);
     });
+
+    test('takes the errors from the vermilion, apart from the primary '
+        '($label)', () {
+      final scheme =
+          (brightness == Brightness.dark ? AppTheme.dark : AppTheme.light)
+              .colorScheme;
+      final vermilion = ColorScheme.fromSeed(
+        seedColor: AnKiColors.errorSeed,
+        brightness: brightness,
+        dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
+      );
+
+      expect(scheme.error, vermilion.primary);
+      expect(scheme.onError, vermilion.onPrimary);
+      expect(scheme.errorContainer, vermilion.primaryContainer);
+      expect(scheme.onErrorContainer, vermilion.onPrimaryContainer);
+      final isLight = brightness == Brightness.light;
+      expect(
+        (scheme.error, scheme.onError),
+        isLight
+            ? (const Color(0xFFB02E00), const Color(0xFFFFFFFF))
+            : (const Color(0xFFFFB5A0), const Color(0xFF5F1500)),
+      );
+      // L'intention : l'erreur s'écarte du framboise (teinte HSV ; avec le
+      // rouge M3, l'écart n'était que de 22° de jour et 14° de nuit).
+      final gap =
+          (HSVColor.fromColor(scheme.error).hue -
+                  HSVColor.fromColor(scheme.primary).hue)
+              .abs();
+      expect(math.min(gap, 360 - gap), greaterThan(isLight ? 30 : 18));
+    });
   }
 
   for (final (label, theme, brightness) in [

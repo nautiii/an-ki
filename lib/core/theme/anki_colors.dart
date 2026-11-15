@@ -75,6 +75,10 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
   /// Rouge prune de l'icône : bout clair du dégradé du jour J.
   static const Color plumSeed = Color(0xFFFF1E32);
 
+  /// Vermillon des erreurs : à 25° de teinte du framboise, une erreur ne se
+  /// confond plus avec l'action principale (le rouge M3 n'en était qu'à 15°).
+  static const Color errorSeed = Color(0xFFF4511E);
+
   /// Lotus des illustrations : célébration, « aujourd'hui ».
   static const Color blossomSeed = Color(0xFFF88898);
 

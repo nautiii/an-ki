@@ -15,7 +15,8 @@ class AppTheme {
 
   /// Lotus vif (variante `vibrant`) ; les rôles secondaires reprennent le
   /// lotus en `tonalSpot` (sinon les boutons tonals et l'indicateur de la
-  /// barre virent au brun en sombre), les tertiaires le bleu nuage de l'icône.
+  /// barre virent au brun en sombre), les tertiaires le bleu nuage de l'icône,
+  /// les erreurs un vermillon distinct du framboise.
   static ColorScheme _colorScheme(Brightness brightness) {
     final lotus = ColorScheme.fromSeed(
       seedColor: seedColor,
@@ -24,6 +25,11 @@ class AppTheme {
     final cloud = ColorScheme.fromSeed(
       seedColor: AnKiColors.cloudSeed,
       brightness: brightness,
+    );
+    final vermilion = ColorScheme.fromSeed(
+      seedColor: AnKiColors.errorSeed,
+      brightness: brightness,
+      dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
     );
     return ColorScheme.fromSeed(
       seedColor: seedColor,
@@ -46,6 +52,10 @@ class AppTheme {
       tertiaryFixedDim: cloud.primaryFixedDim,
       onTertiaryFixed: cloud.onPrimaryFixed,
       onTertiaryFixedVariant: cloud.onPrimaryFixedVariant,
+      error: vermilion.primary,
+      onError: vermilion.onPrimary,
+      errorContainer: vermilion.primaryContainer,
+      onErrorContainer: vermilion.onPrimaryContainer,
     );
   }
 

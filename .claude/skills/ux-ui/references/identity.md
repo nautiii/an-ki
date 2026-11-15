@@ -82,7 +82,8 @@ native splash keeps the night, in plum (`#1D1011`).
 | surface | `#FFF8F7` (blush) | `#1D1011` (plum night) |
 | surfaceContainerLow / · / High | `#FFF0F1` `#FFE9EA` `#FDE2E4` | `#261819` `#2B1C1D` `#362628` |
 | onSurface / onSurfaceVariant | `#261819` / `#574144` | `#F7DCDE` / `#DEBFC2` |
-| error | `#BA1A1A` | `#FFB4AB` |
+| error / onError | `#B02E00` / `#FFFFFF` (vermilion) | `#FFB5A0` / `#5F1500` |
+| errorContainer / on | `#FFDBD1` / `#872100` | `#872100` / `#FFDBD1` |
 
 Contrast facts (palette audit): onSurfaceVariant on surface 8.9 (L) / 10.9 (D), on a card
 (`surfaceContainerHigh`) 7.7 / 8.4 → secondary text is safe; primary on surface 6.2 / 10.9;
@@ -90,12 +91,15 @@ filled button 6.5 / 7.7; every tonal container pair ≥ 7.2. `outline` on surfac
 it for **meaningful** borders (inputs, selected outlines, 3:1 rule). `outlineVariant` is
 1.6 / 2.0 → **decorative dividers only**, and the unselected chip's border: there the label and
 icon identify the chip and the selection shows as a fill with a check, so the border is not
-the cue. Error stays M3's red: the raspberry primary (hue
-≈ 345°) and plum red never stand for an error, and an error is never shown by color alone.
-Known clash (2026-11-15): primary `#BD0046` and error `#BA1A1A` (dark `#FFB2BC` / `#FFB4AB`)
-read almost alike — « Annuler » and « Effacer » in `module_erase_dialog` and `group_edit_sheet`,
-a focused field and a field in error. Until the theme separates them, never let a destructive
-action or an error state rely on its color: icon, label and placement carry it.
+the cue. Error is **vermilion**, not M3's red: `AnKiColors.errorSeed` `#F4511E` (vibrant) puts it
+24–25° of HCT hue away from the raspberry primary (HCT ≈ 10°), where M3's `#BA1A1A` sat at 15°
+and read like it (a focused field and a field in error, « Annuler » beside « Effacer »). By day
+the gap is clear (ΔE OKLab 5.6 → 8.4); **by night it stays small** (`#FFB5A0` vs `#FFB2BC`,
+ΔE 2.5 → 4.1): at tone 80 the gamut caps vermilion's chroma, so a focused field and a field in
+error still have near-identical outlines there. Error on surface 6.2 (L) / 10.9 (D), on a card
+5.3 (L), onError 6.5 / 7.8, containers 7.3. The raspberry primary and plum red never stand for
+an error, and an error is never shown by color alone: icon, label and placement carry it —
+by night, they are the only cue.
 
 ### 3.2 Brand accents — what each color means
 
