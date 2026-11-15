@@ -1,8 +1,9 @@
-# UX backlog — audit of 2026-10-07
+# UX backlog — audits of 2026-10-07 and 2026-11-14
 
 Living list of what to improve, from a full audit with the snapshot tool (light, dark, 200 % text,
-360×640) and the palette audit. The current UI is a **draft, not a constraint**: the "big bets"
-below deliberately question structure, not just polish.
+360×640) and the palette audit, then a friction review of the key flows against current practice
+(2026-11-14). The current UI is a **draft, not a constraint**: the "big bets" below deliberately
+question structure, not just polish.
 
 Evidence: regenerate with the snapshot tool (home, home_empty, birthday_form, loading,
 scanner, settings, auth). Shipped items are gone (git history holds them); device checks still
@@ -12,12 +13,49 @@ Rules: verify an item still exists before acting (code moves); delete items you 
 find (one line, evidence, priority). Big bets and anything touching the data model, navigation,
 auth or dependencies → design brief + maintainer approval first.
 
-Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The architecture decisions D1–D14 live in `architecture/references/decisions.md` and are cited « decision D9 ».
+Ids (B, D, F, P, Q, S) are this backlog's; elsewhere cite them as « ux D17 » (P1–P10 are the
+friction review's). The architecture decisions D1–D14 live in `architecture/references/decisions.md` and are cited « decision D9 ».
 
 ## Contents
+- Friction review (2026-11-14) — P1–P10 by job with their status; identity « Lotus au clair de lune »
 - Big bets (B4's gift ideas, deferred; B8; B9 Livres, approved, and B9-ext) — structural redesigns with the highest impact
 - P2 — polish (D17, D28, D29)
 - Suggested roadmap
+
+---
+
+## Friction review — 2026-11-14
+
+Method: the key flows walked in the code and in snapshots (theme A prototype: welcome, sign-in,
+add sheet, person page, search, settings, shelf), counted against the friction budgets
+(patterns §O), and set against current practice — Nielsen Norman Group, Google (Material 3
+Expressive research, widget quality tiers, Smart Reply, the Android 17 contact picker), Netflix
+(2025 TV redesign), Spotify (« Créer » button, 2024–2025). Approved by the maintainer on
+2026-11-15 with every default: the order below; P8 replaces the form for adding (the form stays
+for editing); P1 + P3 and P5 get their own briefs.
+
+| Id | Job | Proposal | Status |
+|----|-----|----------|--------|
+| P7 + P8 | Capture | « + » beside the nav pill (floating button, alone without the pill); one-line add « Léa 12 mars », pasted lines in bulk, « Ajouter et continuer » | In design (session « quick-capture », 2026-11-15) |
+| P4 + P6 | Wish | Three suggested wishes (age, tone by group, length), one tap to share; belated wish the day after (D15) | In design (session « wish-suggestions ») |
+| P2 | See who's next | One plum night from the native splash to the agenda (D28), cold start measured | Shipped 2026-11-15 (7d1c995): splash and startup screen in plum night. Cold start **4.1 s** (median of 5, profile build, emulator) — over the < 2 s promise: measure on the phone, then profile the start |
+| — | All | Primary `#BD0046` ≈ error `#BA1A1A`: cancel and destructive buttons, focused and erroneous fields look alike | Open: decide (shift error toward vermilion, or neutral cancel + icons) |
+| — | Build | Release build fails: `IconData(icon, …)` built at run time in `category_display.dart:11` defeats icon tree-shaking (pre-existing) | Open |
+| P10 | All | Person page redesign: header on the lotus gradient, action row (Souhaiter · Message), reminders on one line, wishes as a timeline of years | Next; first eval case of the ux-ui skill: `person-page-identity` |
+| P1 + P3 | See who's next, capture | Home-screen widget (next birthdays, J-0 « Souhaiter »); app shortcuts (Ajouter, Rechercher, « Souhaiter à Léa ») | Own brief: packages `home_widget`, `quick_actions`, native Glance code |
+| P5 | Wish | Link to the person's contact, opted in person by person: « Appeler », « Message » with the text ready | Own brief: data model, and the promise « AnKi ne lit que les noms et les dates » |
+| P9 | Capture | A suggestion when a phone contact gains a birthday | Later, once access is granted |
+| — | Capture | Android 17 contact picker: Play declaration for `READ_CONTACTS` (the bulk import justifies it); a single add through the picker | Watch: check that a birthday can be requested |
+
+Rejected: a vertical feed (Spotify, TikTok) or a bento dashboard for the home — a year of dates
+reads better as an agenda; a chatbot; streaks or guilt copy; moving familiar navigation.
+
+### Identity « Lotus au clair de lune » (approved 2026-11-15)
+The UI was correct but terne: a desaturated night indigo (`#073165`, tonalSpot) unrelated to the
+icon's lotus pink, plum red and cloud blue. Three palettes were prototyped on the real screens;
+option A « Lotus & nuage » won (identity.md). The theme ships in session « lotus-theme »; screens
+then take the lotus distribution (identity §3.3) as they are touched, and the review checklist
+holds the logo test.
 
 ---
 
@@ -272,7 +310,9 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
   system): native splash (#121318) → blank light screen → dark home. `_StartupScreen`
   (`app/router/app_router.dart`) is an empty `Scaffold` painted with `ThemeMode.system`, since
   `themeProvider` waits for the profile → paint it in the splash colour, or start from the last
-  theme kept on the device. Priority: medium, seen on every cold start.
+  theme kept on the device. Priority: medium, seen on every cold start. Half fixed (P2,
+  2026-11-15): splash and startup screen share the plum night, but while the profile loads the
+  home can still show a few frames in the system theme → keep the last theme on the device.
 - **D29 guest details lost on a merge duplicate** (B5.5, 2026-11-05): when a guest's birthday
   matches one already in the Google account, the account's record wins and the guest's photo,
   wished years and own reminders on it are dropped → fill the account record's empty fields from
@@ -280,8 +320,10 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
 
 ## Suggested roadmap
 
-1. **B8, D17, D28** — depth and polish (D29 if it matters);
-   natural-language quick add (« Léa 12 mars ») once the typed date proves the bottleneck.
-2. **B9 Livres** — approved 2026-11-08, in progress: modules, then series, shelf, burst scan,
+1. **Theme A « Lotus au clair de lune » + P2** (in progress), then the ux-ui skill's evals.
+2. **P7 + P8** capture and **P4 + P6** wish — in design (friction review).
+3. **P10** person page; then the **P1 + P3** (widget, shortcuts) and **P5** (contact link) briefs.
+4. **B8, D17** — depth and polish (D29 if it matters).
+5. **B9 Livres** — approved 2026-11-08, in progress: modules, then series, shelf, burst scan,
    release dates, discovery card; **B9-ext** (release reminders) proposed after it.
-3. **B4's gift ideas** — an Anniversaires extension, when the maintainer picks them up.
+6. **B4's gift ideas** — an Anniversaires extension, when the maintainer picks them up.

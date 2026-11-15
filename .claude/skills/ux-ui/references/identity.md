@@ -1,8 +1,10 @@
-# AnKi identity — « Jardin au clair de lune »
+# AnKi identity — « Lotus au clair de lune »
 
-The source of truth for what makes a screen *look and feel like AnKi*. Every value below was
-computed with `ColorScheme.fromSeed` (tonalSpot) on 2026-10-07 — identical on Flutter 3.44.9 and 3.47.6; re-measured on Flutter 3.47.9 on 2026-11-07 with the palette audit: unchanged; if a seed changes,
-re-run `scripts/palette_audit_test.dart` and update the tables.
+The source of truth for what makes a screen *look and feel like AnKi*. The palette is option A
+« Lotus & nuage », chosen by the maintainer on 2026-11-15 among three directions prototyped on the
+real screens. Every value below comes from the palette audit (`scripts/palette_audit_test.dart`)
+run on that prototype with Flutter 3.47.9; if a seed or an override changes, re-run the audit and
+update the tables.
 
 ## Contents
 1. Concept · 2. Signature elements · 3. Color · 4. Typography · 5. Shape · 6. Spacing & layout ·
@@ -13,88 +15,136 @@ re-run `scripts/palette_audit_test.dart` and update the tables.
 ## 1. Concept
 
 **AnKi** (暗記, *learn by heart*) + **Kairos** (the right moment): never miss the moment that
-matters to someone you love. The brand already exists in the assets — a smiling moon, lotus and
-plum blossoms, soft clouds, a deep night-indigo seed (`#073165`) and a night splash (`#121318`).
+matters to someone you love. The brand already lives in the assets: a lotus in bloom before a
+soft blue cloud, with plum blossoms (`icon.png`); a smiling lavender moon above lotus buds and
+mint leaves (`lune.png`).
 
-The identity is a **moonlit garden**: Japanese-inspired calm (generous negative space, *ma*),
-warmth (blossoms = celebration), precision (time, countdowns). Three adjectives to test every
-screen against: **calm · warm · precise**. If a screen is loud, cold or vague, it's off-brand.
+The identity is **« Lotus au clair de lune »**: every birthday is a lotus opening. By day, a dawn
+on the pond — blush canvas, lotus pink, cloud blue. On the day itself the flower turns vivid,
+raspberry to plum red. By night, the pond under the moon — plum night and night blue, the
+lavender moon watching. Three adjectives to test every screen against:
+**warm · blooming · precise** (« chaleureux · épanoui · précis »).
+- *Warm*: lotus-tinted surfaces, human copy, the person's name and face first.
+- *Blooming*: color and life on every screen — the brand is in the canvas, the containers and
+  the moments, not only on the hero.
+- *Precise*: dates, ages and countdowns exact and legible at a glance; one clear action per
+  screen.
 
-Benchmarks for the *feel*: Headspace/Calm (soft, reassuring), Things 3 (crafted minimalism),
-Spotify (one accent used with intent), Google Calendar (clarity of time).
+A grey, cold or vague screen is off-brand — that was the « terne » UI this identity replaced. A
+loud screen is off-brand too: vivid color everywhere, accents competing with the one action.
+**Logo test**: hide the name and the icon; the screen must still read as AnKi.
+
+Benchmarks for the *feel*: Airbnb (one warm brand color carried through every surface),
+Headspace (soft and reassuring), Spotify (an accent that means *act here*), Google Calendar
+(clarity of time), Things 3 (crafted calm).
 
 ## 2. Signature elements
 
-Originality lives **only** here — controls stay conventional. Use each one where listed, nowhere
-else: a signature seen everywhere stops being one.
+Originality lives in color, surfaces and these signatures; controls stay conventional. Use each
+signature where listed, nowhere else: a signature seen everywhere stops being one.
 
 | # | Element | Where | Rules |
 |---|---------|-------|-------|
-| S1 | **Dusk / night hero gradient** | Next-birthday hero, celebration state, onboarding hero | Max one per screen. Light = dusk (`primary → tertiary`), dark = night (`primaryContainer → tertiaryContainer`), see §3.3. |
-| S2 | **Moon mascot** (`AppAssets.moon`) | Empty states, onboarding, success/zero-inbox moments | Never in dense screens or lists. Max one per screen. Shines on dark — no white plate behind it. |
-| S3 | **Orbit countdown** *(`lib/core/common/orbit_countdown.dart`)* | Around the number of the hero before the day and of the person page header (the coming age, else the days), and of every agenda row (the days left) | A small moon travels a thin orbit: the arc covers the last 29 days and closes on the day in blossom (mint once wished), around the age on the person header, else around a cake (a check once wished). The drawing is mute: the number and its row text carry the meaning, TalkBack reads « Dans 12 jours » / « Aura 34 ans ». On gradients pass `trackColor: onHero` at 25 % and `arcColor: onHero`. Not on the J-0 hero (big age instead). The text next to it never repeats the orbit's number (no « Dans 12 jours » under « 12 jours »). The only S3 form in the app. |
-| S4 | **Blossom celebration** *(`features/birthday/widgets/blossom_rain.dart`)* | Hero on the birthday itself (J-0) | Soft falling lotus/plum petals ≤ 2.5 s (2.4 s), once per person per day, `mediumImpact`. Skipped when reduce-motion is on. Never generic confetti. Tones `AnKiColors.petals`. |
-| S5 | **Floating glass pill navigation** | Main tabs (`core/common/bottom_bar.dart`) | Blurred translucent pill, radius 32, content scrolls beneath. Labels must stay available to TalkBack. |
+| S1 | **Lotus hero gradient** | Next-birthday hero, celebration (J-0), onboarding hero, the person page header (P10) | Max one per screen. Before the day: light = dawn on the pond (lotus → cloud, dark text), dark = the pond at night (berry → night blue). On J-0: raspberry → plum red, the day the flower turns vivid. Values in §3.4. |
+| S2 | **Moon mascot** (`AppAssets.moon`) | Empty states, onboarding, success/zero-inbox moments | Never in dense screens or lists. Max one per screen. Shines on the plum night — no white plate behind it. |
+| S3 | **Orbit countdown** *(`lib/core/common/orbit_countdown.dart`)* | Around the number of the hero before the day and of the person page header (the coming age, else the days), and of every agenda row (the days left) | A small lavender moon travels a thin orbit: the arc covers the last 29 days and closes on the day in blossom (mint once wished), around the age on the person header, else around a cake (a check once wished). The drawing is mute: the number and its row text carry the meaning, TalkBack reads « Dans 12 jours » / « Aura 34 ans ». On gradients pass `trackColor: onHero` at 25 % and `arcColor: onHero`. Not on the J-0 hero (big age instead). The text next to it never repeats the orbit's number (no « Dans 12 jours » under « 12 jours »). The only S3 form in the app. |
+| S4 | **Petal rain** *(`features/birthday/widgets/blossom_rain.dart`)* | Hero on the birthday itself (J-0) | Soft falling lotus petals and plum blossoms ≤ 2.5 s (2.4 s), once per person per day, `mediumImpact`. Skipped when reduce-motion is on. Never generic confetti. Tones `AnKiColors.petals`: lotus pinks and the gold of the stamens. |
+| S5 | **Floating glass pill navigation** | Main tabs (`core/common/bottom_bar.dart`) | Blurred translucent pill, radius 32, content scrolls beneath; the glass takes the canvas tint (blush, plum night). Labels must stay available to TalkBack. |
 | S6 | **Big tabular numerals** | Countdown, age, counts, a series' last volume | Outfit w800, `FontFeature.tabularFigures()`, letter-spacing −1. One per card: the orbit's number, the J-0 hero's age (`displaySmall`), or the last owned volume of a shelf row (`headlineMedium`) and of the series page header (`displaySmall`), `LastVolumeNumber` in `features/books/widgets/series_tile.dart`. |
 
 ## 3. Color
 
-### 3.1 Base scheme — seed « Nuit » `#073165`, `DynamicSchemeVariant.tonalSpot`
+### 3.1 Base scheme — seed « Lotus » `#FFB6BF`, `DynamicSchemeVariant.vibrant`
 
-Keep **tonalSpot**: `fidelity` was tested and rejected (light primary turns near-black `#001C42`
-and tertiary turns brown `#351300`). AnKi deliberately does **not** use wallpaper dynamic color:
-the night indigo *is* the brand.
+`AppTheme` builds `ColorScheme.fromSeed(seedColor: #FFB6BF, dynamicSchemeVariant: vibrant)`
+(the light petal of `icon.png`), then overrides two role families with `copyWith`:
+- `secondary*` ← the `primary*` roles of the same seed in **tonalSpot**. Vibrant's own secondary
+  is a terracotta (`#82524A`, container `#673B34` in dark) that turned tonal buttons and the nav
+  indicator brown;
+- `tertiary*` ← the `primary*` roles of the cloud `#C5DEFF` in tonalSpot: the icon's sky blue,
+  the calm counterpoint to the pink.
+
+Why vibrant: tonalSpot gives a dusty rose primary (`#8E4955`) — the old dullness, in pink;
+fidelity keeps the bright seed as the container in dark, a glaring slab on the night. Vibrant
+gives a confident raspberry (`#BD0046`) on blush surfaces and a plum night in dark. AnKi
+deliberately does **not** use wallpaper dynamic color: the lotus palette is the brand. The old
+night-indigo seed (`#073165`, tonalSpot: slate blue `#425E91` on grey-blue surfaces) is gone; the
+native splash keeps the night, in plum (`#1D1011`).
 
 | Role | Light | Dark |
 |------|-------|------|
-| primary / onPrimary | `#425E91` / `#FFFFFF` | `#ABC7FF` / `#0C305F` |
-| primaryContainer / on | `#D7E3FF` / `#284677` | `#284677` / `#D7E3FF` |
-| secondaryContainer / on | `#DAE2F9` / `#3E4759` | `#3E4759` / `#DAE2F9` |
-| tertiary / onTertiary | `#705574` / `#FFFFFF` | `#DDBCE0` / `#3F2844` |
-| tertiaryContainer / on | `#FAD8FD` / `#573E5C` | `#573E5C` / `#FAD8FD` |
-| surface | `#F9F9FF` | `#111318` (≈ splash `#121318`) |
-| surfaceContainerLow / · / High / Highest | `#F3F3FA` `#EDEDF4` `#E7E8EE` `#E2E2E9` | `#191C20` `#1E2025` `#282A2F` `#33353A` |
-| onSurface / onSurfaceVariant | `#191C20` / `#44474E` | `#E2E2E9` / `#C4C6D0` |
-| outline / outlineVariant | `#74777F` / `#C4C6D0` | `#8E9099` / `#44474E` |
+| primary / onPrimary | `#BD0046` / `#FFFFFF` | `#FFB2BC` / `#670022` |
+| primaryContainer / on | `#FFD9DD` / `#910034` | `#910034` / `#FFD9DD` |
+| secondary / onSecondary | `#8E4955` / `#FFFFFF` | `#FFB2BC` / `#561D28` |
+| secondaryContainer / on | `#FFD9DD` / `#72333E` | `#72333E` / `#FFD9DD` |
+| tertiary / onTertiary | `#35618E` / `#FFFFFF` | `#9FCAFD` / `#003257` |
+| tertiaryContainer / on | `#D1E4FF` / `#184974` | `#184974` / `#D1E4FF` |
+| surface | `#FFF8F7` (blush) | `#1D1011` (plum night) |
+| surfaceContainerLow / · / High | `#FFF0F1` `#FFE9EA` `#FDE2E4` | `#261819` `#2B1C1D` `#362628` |
+| onSurface / onSurfaceVariant | `#261819` / `#574144` | `#F7DCDE` / `#DEBFC2` |
 | error | `#BA1A1A` | `#FFB4AB` |
 
-Contrast facts (palette audit): onSurfaceVariant on surface 8.9 (L) / 10.9 (D) → secondary text
-is safe. `outline` on surface 4.3 / 5.8 → use it for **meaningful** borders (inputs, selected
-outlines, 3:1 rule). `outlineVariant` is 1.6 / 2.0 → **decorative dividers only**.
+Contrast facts (palette audit): onSurfaceVariant on surface 8.9 (L) / 10.9 (D), on a card
+(`surfaceContainerHigh`) 7.7 / 8.4 → secondary text is safe; primary on surface 6.2 / 10.9;
+filled button 6.5 / 7.7; every tonal container pair ≥ 7.2. `outline` on surface 4.3 / 5.8 → use
+it for **meaningful** borders (inputs, selected outlines, 3:1 rule). `outlineVariant` is
+1.6 / 2.0 → **decorative dividers only**, and the unselected chip's border: there the label and
+icon identify the chip and the selection shows as a fill with a check, so the border is not
+the cue. Error stays M3's red: the raspberry primary (hue
+≈ 345°) and plum red never stand for an error, and an error is never shown by color alone.
+Known clash (2026-11-15): primary `#BD0046` and error `#BA1A1A` (dark `#FFB2BC` / `#FFB4AB`)
+read almost alike — « Annuler » and « Effacer » in `module_erase_dialog` and `group_edit_sheet`,
+a focused field and a field in error. Until the theme separates them, never let a destructive
+action or an error state rely on its color: icon, label and placement carry it.
 
-### 3.2 Brand accents — from the illustrations
+### 3.2 Brand accents — what each color means
 
-Sampled from `icon.png` / `lune.png`. Never paste these hex values into widgets: derive tonal pairs
-with `ColorScheme.fromSeed(seedColor: accent, brightness: b)` and expose them through the
-`AnKiColors` ThemeExtension (flutter-recipes.md §2). Derived roles guarantee ≥ 7:1 in both themes.
+| Accent | Source | Means | Where |
+|--------|--------|-------|-------|
+| **Raspberry** = `primary` | lotus seed `#FFB6BF` | *Act here*, *this is selected* | The one filled action of a screen, links, focus, selected states, the S6 numerals |
+| **Lotus** = `primaryContainer`, `secondaryContainer` | same seed | Warmth, the person, gentle emphasis | Tonal buttons, selected chips, the nav indicator, avatars' default tone |
+| **Plum red** | `icon.png` blossoms `#FF1E32` | *The day itself* | J-0 only: the celebration gradient's end (hero, later the widget). Never a button outside J-0, never an error |
+| **Cloud** = `tertiary*` | `icon.png` cloud `#C5DEFF` | Calm, information, time ahead | The hero gradient's end, informational cards and badges; never an action |
+| **Moonlight** (lavender) | `lune.png` `#D0D0F8` → `AnKiColors.moonlight` | The moon | Orbit moon and arc, mascot, search highlight |
+| **Blossom** | lotus `#F88898` → `AnKiColors.blossom` | The day's small marks | J-0 cake and orbit in agenda rows |
+| **Mint** | leaf `#70D8B8` → `AnKiColors.success` | Done, « souhaité ✓ » | Success states, the wished check |
+| **Gold** | stamens `#FFD849` | Festivity | Petal rain only |
 
-| Accent | Seed | Meaning | Light: main · container/on | Dark: main · container/on |
-|--------|------|---------|----------------------------|---------------------------|
-| **Blossom** (lotus) | `#F88898` | Celebration, "today", love | `#8E4954` · `#FFD9DC`/`#72333D` | `#FFB2BB` · `#72333D`/`#FFD9DC` |
-| **Mint** (leaf) | `#70D8B8` | Success, "wished ✓", done | `#136B55` · `#A3F2D7`/`#00513F` | `#88D6BB` · `#00513F`/`#A3F2D7` |
-| **Moonlight** (lavender) | `#D0D0F8` | Calm highlights, onboarding, moon motif | `#565992` · `#E1E0FF`/`#3F4178` | `#BFC1FF` · `#3F4178`/`#E1E0FF` |
-| Plum red | `#F81830` | Illustration only — never UI (reads as error) | — | — |
-| Cloud | `#C0D8F8` | Illustration only | — | — |
+Never paste these hex values into widgets: accents are derived as tonal pairs
+(`ColorScheme.fromSeed(seedColor: accent, brightness: b)`) and exposed through `colorScheme` or the
+`AnKiColors` ThemeExtension (flutter-recipes.md §2). Derived pairs guarantee ≥ 7:1 in both themes.
 
-**60-30-10**: ~60 % surfaces, ~30 % containers/neutral tones, ≤ 10 % accent (primary actions +
-the one "moment" per screen). Spotify's rule: the accent means *act here* or *this matters now*.
+### 3.3 Color in use — the lotus distribution
 
-### 3.3 Hero & celebration gradients (S1)
+This replaces the old 60-30-10 rule with ≤ 10 % of accent, which kept every screen but the hero
+grey.
+- **Canvas (~50 %)**: tinted surfaces — blush by day, plum night by night. Never a grey-blue
+  neutral, never pure white or black.
+- **Containers (~35 %)**: the brand's tonal containers carry the structure — cards on
+  `surfaceContainer*`, selected chips and tonal buttons in lotus, information in cloud, each
+  person's groups in their own tones (§3.5).
+- **Vivid (~15 %)**: raspberry for *the* action and the selection, the hero gradient, the day's
+  celebration. One filled primary button per screen.
+- Run the logo test on every snapshot: when nothing but the canvas carries the brand, the screen
+  is unfinished; when two vivid elements compete, it is loud.
+
+### 3.4 Hero & celebration gradients (S1)
 
 | Use | Light | Dark | Text on it |
 |-----|-------|------|-----------|
-| Hero (next birthday) | `primary → tertiary` `#425E91 → #705574` (dusk) | `primaryContainer → tertiaryContainer` `#284677 → #573E5C` (night sky) | L: `onPrimary` · D: `onPrimaryContainer` |
-| Celebration (J-0) | `primary → blossom.main` `#425E91 → #8E4954` | `primaryContainer → blossom.container` `#284677 → #72333D` | L: `#FFFFFF` · D: `blossom.onContainer` |
+| Hero (next birthday) | lotus → cloud `primaryFixedDim → tertiaryFixedDim` `#FFB2BC → #9FCAFD` (dawn on the pond) | berry → night blue `#7A1035 → #1E3F6E` (the pond at night; derived roles gave only 7.2:1) | L `onPrimaryFixed #400012` ≥ 10:1 · D `#FFE0E5` 8.7 / 8.6:1 |
+| Celebration (J-0) | raspberry → plum red `#A8003D → #C0001D` (the plum seed `#FF1E32`'s vibrant primary) | `#7A0030 → #9B1B30` | L white 7.7 / 6.4:1 (4.9 at 85 %) · D `#FFE0E5` 9.1 / 6.6:1 (5.1 at 85 %) |
 
+- Before the day the hero is pastel with dark text; only J-0 is vivid. The contrast between the
+  waiting (pastel) and the day (vivid) is the story: never make the everyday hero vivid.
 - A filled button on the celebration (« Souhaiter »): fill `onCelebration`, text and icon
-  `onCelebrationAction` — the start of the gradient, ≥ 6.5:1 in both themes.
-- Primary text on the gradient at 100 % (6.5:1 L, 7.3:1 D). Secondary text **≥ 85 % opacity**
-  (5.2 L, 5.8 D). **Never 70 %**: it measures 4.1 (L) / 4.5 (D, 4.48) — fails AA (palette audit).
-- Dark hero = containers (night sky), always: `primary → tertiary` in dark is a pastel slab that
-  glares on the night background.
-- Direction `topLeft → bottomRight`. Light: soft tinted shadow (see §7). Dark: no shadow.
+  `onCelebrationAction` — the start of the gradient, ≥ 7.7:1 in both themes.
+- Primary text on a gradient at 100 %. Secondary text **≥ 85 % opacity**, measured on both ends
+  of each gradient in the palette audit (hero: 6.0–7.0:1 light, 6.7:1 dark). Never 70 %. A
+  brighter plum end (`#D8243F`, prototype) failed at 85 % (3.9:1): the end stays a deep plum.
+- Direction `topLeft → bottomRight`. Light: soft shadow tinted by `primary` (§7). Dark: no shadow.
 
-### 3.4 Category colors
+### 3.5 Category colors
 
 Each category tone comes from a seed in `LabelTones` (`lib/core/theme/label_tones.dart`, read
 through `category.tones(context)` in `category_display.dart`), with values for both themes: the
@@ -106,21 +156,25 @@ tones: no red, read as an error, nor yellow, brown or grey; the first free one i
 else its predefined category's own (grey for « Autres »), else one derived from its id, so older
 groups no longer share one ring.
 
-### 3.5 Theme rules
+### 3.6 Theme rules
 
 **Both themes**: colors only from `colorScheme`, `AnKiColors` or `LabelTones` — no `Colors.*`, no hex, no
 `isDark ? x : y` ternaries in widgets (put both values in the theme extension). Scrims =
-`colorScheme.scrim` with alpha; shadows = `colorScheme.shadow` with alpha.
+`colorScheme.scrim` with alpha; shadows = `colorScheme.shadow` or `primary` with alpha.
 
-**Dark** — night, not inverted day:
-- Depth through tonal surfaces (`surfaceContainerLow → Highest`), not shadows (invisible on dark).
+**Dark** — the pond at night, not an inverted day:
+- Plum night canvas; depth through tonal surfaces (`surfaceContainerLow → High`), not shadows
+  (invisible on dark).
 - Separate floating layers with a hairline `outlineVariant` at 40–60 % alpha.
-- No pure black, no pure white text on large areas (`onSurface #E2E2E9`).
-- Saturated accents only in small doses; large colored areas use container tones.
+- No pure black, no pure white text on large areas (`onSurface #F7DCDE`).
+- Saturated accents only in small doses; large colored areas use container tones (berry
+  `#910034`, night blue `#184974`).
 
-**Light** — cool, airy paper:
-- Layer with `surfaceContainerLow/High` on `surface`; avoid white-on-white cards without a tone step.
-- Shadows only for floating elements (nav pill, hero, FAB): tinted, soft, low alpha.
+**Light** — dawn on the pond:
+- Blush canvas; layer with `surfaceContainerLow/High`, avoid white-on-white cards without a tone
+  step.
+- Shadows only for floating elements (nav pill, hero, floating button): tinted by `primary`,
+  soft, low alpha.
 
 ## 4. Typography
 
@@ -135,7 +189,7 @@ hyphen.
 |---------|----------|--------|
 | displaySmall | Onboarding title, big countdown in celebration | 800 |
 | headlineMedium / Small | Greeting name, screen titles, sheet titles | 700 |
-| titleLarge | Hero name | 800 |
+| titleLarge | Hero name (the theme sets 600; the hero sets 800 with `copyWith`) | 600 · 800 |
 | titleMedium | Names in list rows, section headers | 600–700 |
 | bodyLarge / Medium | Content, descriptions, settings subtitles | 400 |
 | labelLarge | Buttons, tabs, chips | 600 |
@@ -144,20 +198,20 @@ hyphen.
 Rules:
 - **Minimum 12 sp** for any text, no exception left (the 11 sp published date went with
   `BookCard`, 2026-11-10).
-- Sentence case. No ALL-CAPS overlines (hard to read, louder than "calm"); if an overline is
-  needed: labelMedium, sentence case, `onSurfaceVariant` or 85 % on gradients.
+- Sentence case. No ALL-CAPS overlines (hard to read, shouty); if an overline is needed:
+  labelMedium, sentence case, `onSurfaceVariant` or 85 % on gradients.
 - Tabular figures for anything that counts or aligns: `FontFeature.tabularFigures()`.
 - Max two weights per component; hierarchy comes from size and color before weight.
 - Body line height ≥ 1.4; line length ≤ ~60 characters on large screens.
 - French typography: lowercase months and weekdays ("9 octobre"), no-break space
-  (U+00A0; Outfit lacks the narrow U+202F) before `? ! : ;` (` `), « guillemets ».
+  (U+00A0; Outfit lacks the narrow U+202F) before `? ! : ;` (` `), « guillemets ».
   Format dates with `intl` `DateFormat` + locale, never by hand.
 
 ## 5. Shape
 
-Soft, pebble-like. Use **squircles** (`RoundedSuperellipseBorder` / `ClipRSuperellipse`) for
-cards, tiles, hero and sheets: continuous corners read calmer than circular arcs (iOS-grade
-polish, unusual on Android — a quiet signature).
+Soft, pebble-like — a petal, never a hard tile. Use **squircles** (`RoundedSuperellipseBorder` /
+`ClipRSuperellipse`) for cards, tiles, hero and sheets: continuous corners read softer than
+circular arcs (iOS-grade polish, unusual on Android — a quiet signature).
 
 | Token | Radius | Use |
 |-------|--------|-----|
@@ -178,7 +232,7 @@ lg 24 · xl 32 · xxl 48`.
 - Layout (screen gutters, gaps between blocks, sections): multiples of 8 — 8, 16, 24, 32, 48.
 - Inside a component (icon ↔ label, chip padding, list-row rhythm): 4, 8, 12 allowed.
 - Never 2, 6, 10, 14, 20 (except a 1–2 dp optical nudge, commented).
-- Screen gutter **24** (*ma*: calm needs air). Dense grids may use 16.
+- Screen gutter **24** (*ma*: the content breathes). Dense grids may use 16.
 - Agenda: month headers are list subheaders; their own top margin (16) is the gap, under the
   hero as between two months, with no extra `SizedBox` (exception to the section gap below).
 - Section gap 24–32; card-to-card 12; content above the floating nav pill: pad by
@@ -190,8 +244,8 @@ lg 24 · xl 32 · xxl 48`.
 ## 7. Depth & glass
 
 - **Elevation** = tone first (surface containers), shadow second.
-- Light shadow for floating elements: `colorScheme.shadow` at 8–12 %, blur 24, offset (0, 8);
-  the hero may tint its shadow with `primary` at ≤ 20 %.
+- Light shadow for floating elements: `colorScheme.primary` or `shadow` at 8–14 %, blur 24,
+  offset (0, 8) — a blush glow rather than a grey smudge.
 - Dark: no shadow; lift with a higher container tone + hairline border.
 - **Glass** (nav pill, floating toolbars only): `BackdropFilter` blur σ 16–20 + fill
   `surfaceContainer` at 70–80 % (light) / 60–70 % (dark) + hairline `outlineVariant`. Never glass
@@ -234,7 +288,8 @@ Haptics confirm, they never inform alone.
 - Material Symbols **Rounded** (`Icons.*_rounded`). Outlined = inactive, filled = active/selected.
   Sizes 20 (dense) · 24 (default) · 32 (feature). Icon-only buttons always have a `tooltip`.
 - Illustration style = the existing assets: flat pastel, rounded, no outlines, 2–3 tone shading,
-  kawaii but restrained. New art must match or not exist. Max one illustration per screen.
+  kawaii but restrained, in the icon's family (lotus, plum blossom, cloud, moon, mint leaves). New
+  art must match or not exist. Max one illustration per screen.
 - Avatars: photo if any; otherwise **initials** on a tonal container derived from the name
   (deterministic, like Google Contacts) — more human and recognizable than a generic person icon.
 

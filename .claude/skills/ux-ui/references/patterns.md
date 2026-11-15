@@ -19,6 +19,7 @@ a better pattern, score it with the rubric in SKILL.md and explain the choice.
 - L. The birthday moment (celebration)
 - M. 2025–2026 trends — adopt, adapt or skip
 - N. UX laws cheat sheet
+- O. Friction budgets — the three jobs, step by step
 
 ---
 
@@ -30,6 +31,10 @@ a better pattern, score it with the rubric in SKILL.md and explain the choice.
 - Refs: Spotify / Instagram bottom tabs; iOS 26 floating tab bar; M3 `NavigationBar`.
 - Flutter: custom pill today; `NavigationBar` + `NavigationDestinationLabelBehavior` if it's
   ever rebuilt; `Semantics(selected: …)` on items.
+- Keep it stable: a destination never moves or turns into an action. Spotify added a « Créer »
+  button to its bottom bar in 2024, beside « Bibliothèque », and had to let users hide it in July
+  2025; Netflix's 2025 TV redesign cut friction but moved familiar browsing and drew a backlash.
+  A creation action is a floating button beside the pill, never a tab (§C).
 
 **Choose the container** (Material + Apple HIG agree):
 
@@ -67,8 +72,22 @@ agenda** (Netflix billboard + Todoist Upcoming / Google Calendar schedule).
   `SliverPersistentHeader`; grouping in a domain rule (`agenda()`) wired by `agendaProvider`.
   Shipped in step 2: `home_screen.dart`, `agenda_list.dart`, `agenda_tile.dart`.
 - Avoid: one flat list sorted by name, the birth year as main metadata, more than one hero.
+- Beyond the screen (friction review 2026-11-14): the answer to « who's next » that costs zero
+  taps is a **home-screen widget** (P1: « Hugo · dans 3 jours · 34 ans », on J-0 « Léa · 29 ans ·
+  Souhaiter »); it needs `home_widget` and native Glance code, so it comes with its own brief.
+  The one-tap answer starts without a break: native splash and startup screen in the same plum
+  night, then the cached agenda (P2, ux D28), cold start measured on the emulator.
 
 ## C. Capture a birthday (core flow — make it < 10 s)
+
+**Decided 2026-11-15, in design (friction review P7 + P8)**: the « + » leaves the top-right
+corner, the hardest reach one-handed, for a floating button beside the nav pill (alone when the
+pill is hidden), tonal (`primaryContainer`) so that the J-0 « Souhaiter » stays the screen's one
+filled action (identity §3.3); and adding becomes **one line** — « Léa 12 mars », « Mamie 3/2/50 » — parsed live
+by a domain rule (name + day/month, optional year, month names in FR and EN, the phone region's
+numeric order), Enter adds, pasted lines add in bulk, « Ajouter et continuer » keeps the sheet
+open. The two-field sheet below stays for **editing**. Refs: Todoist Quick Add, Google Calendar
+quick event; Google's FAB on Contacts, Calendar and Gmail. Update this section once it ships.
 
 **Quick-add sheet** (Google Calendar quick event, Todoist Quick Add, Google Contacts' optional
 year). Shipped in step 3: `birthday_form_sheet.dart`, `birth_date_field.dart`; the flow is « + »,
@@ -99,7 +118,13 @@ the name, « Suivant », four digits, « OK ».
   the contacts pre-checked, soonest first, with those already in AnKi apart and not importable
   (`previewContactImport`: same name up to case, accents and dashes, same day). Denied →
   « Autoriser l'accès »; blocked → « Ouvrir les réglages », re-read on return.
-- Stretch: natural-language single field « Léa 12 mars » (Todoist) parsed by a domain rule.
+- Next for the bulk path: a discreet suggestion when a phone contact gains a birthday (« 2
+  nouveaux anniversaires dans vos contacts · Ajouter », P9, only once access is granted; Google
+  Photos' suggestions). Watch Android 17's contact picker: it shares only the chosen contacts,
+  without `READ_CONTACTS`, and Google Play will ask apps targeting Android 17 that still request
+  the permission to justify why the picker isn't enough. The pre-checked bulk import justifies
+  it; a single « Ajouter depuis un contact » could use the picker (check that a birthday is among
+  the data it can return).
 - Avoid: photo picker as the first thing in the form, required fields that aren't needed to
   remind, validation only after pressing save, a date control that forces the year.
 
@@ -150,7 +175,7 @@ A spinner is acceptable only inside the control that triggered a short action.
 ## H. Onboarding, auth, permissions
 
 - **Value first, account later** (Duolingo lazy sign-up), shipped in step 5.1: signed out lands
-  on the welcome (`welcome_screen.dart`) — one promise on the night hero, « Commencer » opens an
+  on the welcome (`welcome_screen.dart`) — one promise on the lotus hero (S1), « Commencer » opens an
   anonymous session at once, « J'ai déjà un compte » pushes the sign-in above it. Saving the
   account comes at a moment of value, never as a wall — shipped in step 5.4: from 3 birthdays a
   guest finds `GuestBackupCard` (`features/settings/widgets`, through the home's `guestBackup`
@@ -175,7 +200,8 @@ A spinner is acceptable only inside the control that triggered a short action.
   2026-10-24).
 - No intro motion: the CTAs are there from the first frame; layouts scroll on small screens.
 - **Permission priming** (Duolingo, Instagram), shipped in step 5.3: never a system prompt at
-  launch. `ReminderPrompt` (`app/bootstrap`) opens `ReminderOfferSheet` over the agenda at a
+  launch — since Android 13 notifications are off until allowed, and the median Android opt-in
+  fell to about 53 % in 2025 (Airship benchmarks). `ReminderPrompt` (`app/bootstrap`) opens `ReminderOfferSheet` over the agenda at a
   moment of value — an import, the first birthdays added by hand, a sign-in that brings an agenda
   to this phone — at most once per session: what just happened (« 12 anniversaires ajoutés »),
   the cadence from the reminder preferences, the next real J-0 reminder as the notification will show it,
@@ -207,7 +233,13 @@ People come back when AnKi saves them from forgetting and makes them look though
 - Weekly digest (opt-in) « Cette semaine : 2 anniversaires » — Monday morning.
 - Close the loop: « Souhaité » → mint check, light haptic, « Annuler » (peak-end rule; §L).
 - Yearly recap (Spotify Wrapped spirit) « Votre année en anniversaires » — shareable, delightful.
-- Home-screen widget (native, future) for the next birthday.
+- Home-screen widget for the next birthday (P1, §B): table stakes in the category (CandlesUp,
+  hbd, Birthday Reminder Widget all ship one), and a widget case study on Android Developers
+  reported +25 % retention; build it to Google's widget quality tiers (2025: system corner
+  radius, generated previews, sized touch targets).
+- App shortcuts on a long-press of the icon (P3): « Ajouter un anniversaire », « Rechercher »,
+  and on J-0 a dynamic « Souhaiter à Léa » — the screen nobody has to open (needs
+  `quick_actions`, its own brief with P1).
 - Forbidden: guilt copy (« Vous avez oublié… »), fake urgency, streak pressure, re-engagement
   spam, hiding account deletion.
 
@@ -256,19 +288,34 @@ full moon + « Aujourd'hui 🎉 », the age (S6), and S4 petals once per person 
   one button (opens the sheet); the actions are separate targets for TalkBack.
 - Model: `wishedYears` (`arrayUnion` / `arrayRemove`), rule `BirthdayWishes.isWished(today)` —
   the year of the latest birthday, so a belated wish on 1 January counts for 31 December.
-- Later: « Idée cadeau » (B4), a belated wish (ux D15).
+- Decided 2026-11-15, in design (friction review P4 + P6): **suggested wishes** — three varied
+  messages (a round or milestone age, a tone by group, short / warm / funny; never an age without
+  a year), the person's saved message first, one tap to share, without adding a step to the
+  common case (Gmail Smart Reply: about 10 % of mobile replies, the first position takes 45 % of
+  the picks, diverse suggestions get 7.5 % more clicks); and a **belated wish** the day after an
+  unwished birthday, « Hier, Hugo a eu 34 ans · Souhaiter quand même », never guilt (ux D15,
+  Facebook). Update this section once they ship.
+- Next, own brief: a link to the person's contact, opted in person by person — « Appeler »,
+  « Message » opening the conversation with the text ready (Google Contacts' action row): two
+  taps from the J-0 notification to a sent wish, but it touches the promise « AnKi ne lit que les
+  noms et les dates » (P5).
+- Later: « Idée cadeau » (B4, deferred by the maintainer).
 
 ## M. 2025–2026 trends — adopt, adapt or skip
 
 | Trend | Verdict for AnKi |
 |-------|------------------|
-| **Material 3 Expressive** (springs, shape contrast, emphasized type, floating toolbars, button groups) | **Adapt the principles** with core Flutter: springs for drag/dismiss, bolder type for the key number, squircle/shape contrast. Flutter core is not implementing M3E; community packages (`material_3_expressive`, `m3e_core`) exist — never add one without the maintainer's approval. |
+| **Material 3 Expressive** (springs, shape contrast, emphasized type, floating toolbars + FAB, button groups, FAB menu) | **Adapt the principles** with core Flutter: springs for drag/dismiss, bolder type for the key number, squircle/shape contrast, a prominent primary action. Google's research behind it (46 studies, 18 000+ participants) found key elements spotted up to 4× faster when made bigger and more prominent, and older users as fast as younger ones. Flutter core is not implementing M3E; community packages (`material_3_expressive`, `m3e_core`) exist — never add one without the maintainer's approval. |
 | **Liquid Glass** (iOS 26 translucent floating chrome) | Already echoed by the nav pill. Glass stays limited to floating chrome. |
 | Edge-to-edge (enforced from Android 15) & predictive back | Adopt: `SafeArea` everywhere, transparent system bars with correct icon brightness per theme; Flutter's default Android transition (3.44+) is `PredictiveBackPageTransitionsBuilder`, and `android:enableOnBackInvokedCallback="true"` in the manifest gives the gesture preview (adopted 2026-10-24). |
 | Skeletons, optimistic UI, micro-interactions + haptics | Adopt (G, identity §8–9). |
 | Natural-language / AI-assisted input | Adapt later: « Léa 12 mars » quick add (C). No chatbot. |
 | Bento-grid dashboards | Skip for the home (agenda beats tiles for time); possible for a yearly recap. |
-| Dynamic color (wallpaper) | Skip: the night indigo is the brand. |
+| Dynamic color (wallpaper) | Skip: the lotus palette is the brand. |
+| Home-screen widgets (Google's widget quality tiers, 2025) | Adopt with its own brief (P1): zero taps to « who's next ». |
+| Privacy pickers (photo picker; Android 17 contact picker) | Adopt where they remove a permission without adding steps; keep `READ_CONTACTS` for the pre-checked bulk import, with its Play declaration (§C). |
+| Smart suggestions (Gmail Smart Reply) | Adapt as local templates for wishes (P4): no AI service, no network. |
+| Vertical feeds (Spotify 2022, TikTok) | Skip: a year of dates reads better as an agenda. |
 | Material/Cupertino moving out of core (`material_ui` / `cupertino_ui`, announced with 3.44; in-framework Material still not deprecated in 3.47) | Separate migration task, never inside a UI change. |
 
 ## N. UX laws cheat sheet
@@ -282,3 +329,26 @@ full moon + « Aujourd'hui 🎉 », the age (S6), and S4 petals once per person 
 - **Postel** — be liberal in what you accept (dates in many formats), strict in what you display.
 - **Peak-end** — end flows on a high (success state, celebration), soften the worst moment (undo).
 - **Aesthetic-usability** — polish buys tolerance, but never hides a broken flow.
+- **Goal-gradient** — show progress toward the end of a multi-step flow (« 3 sur 5 »), or remove
+  the steps.
+
+## O. Friction budgets — the three jobs, step by step
+
+From the friction review of 2026-11-14 (ux-backlog). A budget is the most a job may cost on its
+common path; every brief that touches a job counts its steps before and after against it.
+
+| Job | Budget (common path) | Measured 2026-11-14 | Levers |
+|-----|----------------------|---------------------|--------|
+| See who's next | 0 taps (widget), else 1 tap and < 1.5 s to the agenda | 1 tap; cold start never measured; a light flash in dark (D28) | widget (P1), one plum night from splash to agenda (P2), cached agenda |
+| Wish | 1 tap from the hero or the J-0 notification to a messaging app with a fitting message ready | 3–5 taps: share sheet → app → find the person → send; one message for everyone | suggested wishes (P4), contact link (P5), belated wish (P6) |
+| Capture one | 1 tap + 1 line + Enter, ≤ 5 s, one-handed | 3 taps + 2 fields, « + » in the top-right corner | thumb-zone button (P7), one-line add (P8), app shortcut (P3) |
+| Capture many | ≤ 4 taps from the empty home to a full agenda | 4 taps: import, allow, import, reminders | contact suggestions (P9) |
+| Undo a mistake | 1 tap, never a confirmation | undo on delete and wish | keep |
+
+Rules:
+- A step that only confirms is a step to remove: undo instead.
+- What the app can infer (a date's order, a name's split, a message, a group) is inferred and
+  shown, never asked.
+- The screen nobody opens beats the fastest screen: notification actions, widget, app shortcuts.
+- Count taps, fields, decisions and waits; time the flow on the emulator when speed is the claim
+  (Doherty: answer within 400 ms).

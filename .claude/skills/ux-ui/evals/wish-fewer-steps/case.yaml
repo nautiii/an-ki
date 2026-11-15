@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: wish-fewer-steps
+expected_outcome: |
+  A structural brief in French, with prototype captures, that keeps wishing at one tap on the
+  common path while varying the message: three suggested wishes (an age only when the birth year is
+  known, a tone by group, short / warm / funny) with the person's saved message first; a belated
+  wish the day after, without guilt; a direct link to the person's conversation treated as a
+  separate decision because it touches the promise that AnKi only reads names and dates. It waits
+  for the go before touching lib/.

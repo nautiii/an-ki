@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: person-page-identity
+expected_outcome: |
+  A structural brief in French, with before/after prototype captures in light and dark, that
+  gives the person page the « Lotus au clair de lune » identity: the header on the lotus gradient or
+  brand containers, the person's name, age and countdown first, the actions reachable (Souhaiter,
+  message), reminders reduced to one line, the wish history as a readable timeline. It runs the logo
+  test, compares at least two variants with the rubric and waits for the go before touching lib/.

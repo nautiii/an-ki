@@ -6,7 +6,7 @@
 // texte 4.5:1 · gros texte (≥ 24px, ou ≥ 18.66px gras) 3:1 · bordures/icônes utiles 3:1.
 //
 // 1. mkdir -p build/ui_snapshots/_src && cp .claude/skills/ux-ui/scripts/*.dart build/ui_snapshots/_src/
-// 2. Ajouter dans PAIRS les couples du composant travaillé (alpha et ThemeExtension compris).
+// 2. Ajouter dans `pairs` les couples du composant travaillé (alpha et ThemeExtension compris).
 // 3. flutter test build/ui_snapshots/_src/palette_audit_test.dart
 
 import 'dart:math' as math;
@@ -50,9 +50,19 @@ final List<Pair> pairs = [
     (t) => t.colorScheme.primaryContainer,
   ),
   Pair(
+    'tonal secondaire (bouton tonal, indicateur de barre)',
+    (t) => t.colorScheme.onSecondaryContainer,
+    (t) => t.colorScheme.secondaryContainer,
+  ),
+  Pair(
     'tonal tertiaire',
     (t) => t.colorScheme.onTertiaryContainer,
     (t) => t.colorScheme.tertiaryContainer,
+  ),
+  Pair(
+    'tertiaire (nuage) en texte',
+    (t) => t.colorScheme.tertiary,
+    (t) => t.colorScheme.surface,
   ),
   Pair('erreur', (t) => t.colorScheme.error, (t) => t.colorScheme.surface),
   Pair(
@@ -107,6 +117,18 @@ final List<Pair> pairs = [
     'célébration : texte (fin)',
     (t) => _brand(t).onCelebration,
     (t) => _end(_brand(t).celebration),
+  ),
+  Pair(
+    'célébration : texte secondaire (début)',
+    (t) => _brand(t).onCelebration,
+    (t) => _start(_brand(t).celebration),
+    alpha: 0.85,
+  ),
+  Pair(
+    'célébration : texte secondaire (fin)',
+    (t) => _brand(t).onCelebration,
+    (t) => _end(_brand(t).celebration),
+    alpha: 0.85,
   ),
   Pair(
     'célébration : bouton « Souhaiter »',
