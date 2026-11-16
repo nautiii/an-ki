@@ -256,6 +256,92 @@ void main() {
       );
     });
 
+    test('a scan removes the volumes it replaces in the same batch', () async {
+      final byHand = Volume(
+        id: 'by-hand',
+        seriesId: 's1',
+        number: 3,
+        title: '',
+        authors: const [],
+        lookup: LookupState.found,
+        addedAt: _added,
+      );
+      await repository.addManualVolumes('u1', [byHand]);
+      await volumesOf('u2').doc('by-hand').set({'title': 'Autre compte'});
+
+      await repository.saveScannedVolume(
+        'u1',
+        _volume('9782723488525', seriesId: 's1', number: 3),
+        replacing: ['by-hand'],
+      );
+
+      final shelf = await repository.fetchShelf('u1');
+      expect(shelf.volumes.map((v) => v.id), ['9782723488525']);
+      expect((await volumesOf('u2').doc('by-hand').get()).exists, isTrue);
+    });
+
+    test(
+      'completes an existing volume, never recreates a removed one',
+      () async {
+        final pending = Volume(
+          id: 'p1',
+          seriesId: 's1',
+          number: 3,
+          title: '',
+          authors: const [],
+          lookup: LookupState.pending,
+          addedAt: _added,
+        );
+        await repository.addManualVolumes('u1', [pending]);
+        final completed = Volume(
+          id: 'p1',
+          seriesId: 's1',
+          number: 3,
+          isbn: '9782723488525',
+          title: 'One Piece - Tome 3',
+          authors: const ['Eiichirō Oda'],
+          publisher: 'Glénat',
+          lookup: LookupState.found,
+          addedAt: _added,
+        );
+
+        await repository.completeVolume('u1', completed);
+        expect((await repository.fetchShelf('u1')).volumes, [completed]);
+
+        await repository.deleteVolume('u1', 'p1');
+        await expectLater(
+          repository.completeVolume('u1', completed),
+          throwsA(isA<ShelfFailure>()),
+        );
+        expect((await volumesOf('u1').doc('p1').get()).exists, isFalse);
+      },
+    );
+
+    test('deletes several volumes of one user', () async {
+      await repository.saveScannedVolume('u1', _volume('v1'));
+      await repository.saveScannedVolume('u1', _volume('v2'));
+      await repository.saveScannedVolume('u1', _volume('v3'));
+      await repository.saveScannedVolume('u2', _volume('v1'));
+
+      await repository.deleteVolumes('u1', ['v1', 'v2']);
+
+      expect((await repository.fetchShelf('u1')).volumes.map((v) => v.id), [
+        'v3',
+      ]);
+      expect((await repository.fetchShelf('u2')).volumes, hasLength(1));
+    });
+
+    test('a volume without ISBN nor state reads as pending', () async {
+      await volumesOf('u1').doc('p1').set({
+        'seriesId': 's1',
+        'number': 3,
+        'addedAt': Timestamp.fromDate(_added),
+      });
+
+      final volume = (await repository.fetchShelf('u1')).volumes.single;
+      expect((volume.isbn, volume.lookup), (null, LookupState.pending));
+    });
+
     // Un lot refusé n'est pas testé ici : FakeFirebaseFirestore donne un
     // WriteBatch neuf à chaque batch(), que mock_exceptions ne peut viser ;
     // la traduction passe par le même _guard que les écritures simples.

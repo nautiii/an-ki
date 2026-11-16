@@ -112,3 +112,47 @@ void _hideThenWrite(
         }),
   );
 }
+
+/// « J'ai aussi les tomes précédents » du tome [volumeId], avec « Annuler » :
+/// les tomes sont ajoutés tout de suite (la série et ses trous suivent) et
+/// leurs infos se cherchent ensuite ; « Annuler » les retire. Rien quand il
+/// n'y a rien à ajouter.
+void addPreviousWithUndo(BuildContext context, String volumeId) {
+  final container = ProviderScope.containerOf(context, listen: false);
+  // Le compte de départ : « Annuler » après un changement de compte ne
+  // retire rien (voir `ShelfEditor`).
+  final uid = container.read(currentUidProvider);
+  // L'éditeur est libéré sans auditeur : on le garde en vie jusqu'à la fin.
+  final keepAlive = container.listen(shelfEditorProvider, (_, _) {});
+  final added = container
+      .read(shelfEditorProvider.notifier)
+      .addPrevious(volumeId);
+  if (added.isEmpty) {
+    keepAlive.close();
+    return;
+  }
+  final l10n = context.l10n;
+  final accessible = MediaQuery.accessibleNavigationOf(context);
+  unawaited(HapticFeedback.lightImpact());
+  final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+  unawaited(
+    messenger
+        .showSnackBar(
+          SnackBar(
+            content: Text(l10n.previousVolumesAdded(added.length)),
+            persist: false,
+            duration: accessible ? shelfUndoDelay * 2 : shelfUndoDelay,
+            action: SnackBarAction(
+              label: l10n.undo,
+              onPressed: () => unawaited(
+                container
+                    .read(shelfEditorProvider.notifier)
+                    .removeVolumes(added, uid: uid),
+              ),
+            ),
+          ),
+        )
+        .closed
+        .then((_) => keepAlive.close()),
+  );
+}

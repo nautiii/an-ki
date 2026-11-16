@@ -102,26 +102,36 @@ class BookshelfRepository {
   /// hors ligne ou depuis deux appareils, réécrit le même document. Seuls les
   /// champs connus sont écrits : un tome en attente n'efface pas un titre.
   /// [withSeries] : la série neuve qu'il ouvre, créée dans le même lot (jamais
-  /// un tome vers une série refusée).
+  /// un tome vers une série refusée). [replacing] : les tomes qu'il remplace
+  /// (même série, même numéro, non scannés), retirés dans le même lot.
   Future<void> saveScannedVolume(
     String uid,
     Volume volume, {
     ({Series series, DateTime createdAt})? withSeries,
+    List<String> replacing = const [],
   }) => _guard(() {
     final volumeDoc = _volumes(uid).doc(volume.id);
-    if (withSeries == null) {
+    if (withSeries == null && replacing.isEmpty) {
       return volumeDoc.set(_volumeToMap(volume), SetOptions(merge: true));
     }
-    final (:series, :createdAt) = withSeries;
     return _firestore.writeInBatches(<void Function(WriteBatch)>[
-      (batch) => batch.set(
-        _series(uid).doc(series.id),
-        _seriesToMap(series, createdAt: createdAt),
-      ),
+      if (withSeries case (:final series, :final createdAt))
+        (batch) => batch.set(
+          _series(uid).doc(series.id),
+          _seriesToMap(series, createdAt: createdAt),
+        ),
       (batch) =>
           batch.set(volumeDoc, _volumeToMap(volume), SetOptions(merge: true)),
+      for (final id in replacing)
+        (batch) => batch.delete(_volumes(uid).doc(id)),
     ], (batch, write) => write(batch));
   });
+
+  /// Complète le tome existant [volume] (ajouté sans ISBN) avec ce qu'une
+  /// recherche en a trouvé. Une mise à jour, pas une fusion : un tome retiré
+  /// entre-temps (« Annuler ») n'est pas recréé, l'écriture échoue.
+  Future<void> completeVolume(String uid, Volume volume) =>
+      _guard(() => _volumes(uid).doc(volume.id).update(_volumeToMap(volume)));
 
   /// Range le tome [volumeId] dans [seriesId] au numéro [number] ; null efface
   /// le champ (sans série : « à classer »).
@@ -139,6 +149,14 @@ class BookshelfRepository {
 
   Future<void> deleteVolume(String uid, String volumeId) =>
       _guard(() => _volumes(uid).doc(volumeId).delete());
+
+  /// Retire les tomes [volumeIds], par lots (`writeInBatches`).
+  Future<void> deleteVolumes(String uid, List<String> volumeIds) => _guard(
+    () => _firestore.writeInBatches(<void Function(WriteBatch)>[
+      for (final id in volumeIds)
+        (batch) => batch.delete(_volumes(uid).doc(id)),
+    ], (batch, write) => write(batch)),
+  );
 
   /// Id d'un tome ajouté à la main (sans ISBN), tiré côté client.
   String newVolumeId(String uid) => _volumes(uid).doc().id;

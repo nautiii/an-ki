@@ -47,17 +47,28 @@ class VolumeSheet extends ConsumerWidget {
       final id? => ref.watch(seriesEntryProvider(id)).value?.series.name,
       null => null,
     };
-    return _VolumeDetails(volume: volume, seriesName: seriesName);
+    return _VolumeDetails(
+      volume: volume,
+      seriesName: seriesName,
+      missingPrevious: ref.watch(missingPreviousProvider(volumeId)),
+    );
   }
 }
 
 class _VolumeDetails extends StatelessWidget {
-  const _VolumeDetails({required this.volume, required this.seriesName});
+  const _VolumeDetails({
+    required this.volume,
+    required this.seriesName,
+    required this.missingPrevious,
+  });
 
   final Volume volume;
 
   /// Nom de la série du tome ; null s'il est à classer.
   final String? seriesName;
+
+  /// Numéros d'avant que sa série n'a pas : « J'ai aussi les tomes 1 à 4 ».
+  final List<int> missingPrevious;
 
   @override
   Widget build(BuildContext context) {
@@ -148,6 +159,22 @@ class _VolumeDetails extends StatelessWidget {
                     label: Text(l10n.volumeSort),
                   ),
           ),
+          if (classified && missingPrevious.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.xs),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  // La snackbar « Annuler » s'affiche sous la feuille, qui se
+                  // ferme : la série et ses trous suivent derrière.
+                  addPreviousWithUndo(context, volume.id);
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.library_add_rounded),
+                label: Text(previousVolumesLabel(l10n, missingPrevious)),
+              ),
+            ),
+          ],
           const SizedBox(height: AppSpacing.xs),
           SizedBox(
             width: double.infinity,

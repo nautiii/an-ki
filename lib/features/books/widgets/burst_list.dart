@@ -1,17 +1,26 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/books/providers/burst_scan.dart';
+import 'package:an_ki/features/books/widgets/shelf_display.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 /// Les tomes de la rafale, le plus récent en haut : « ✓ One Piece · tome
 /// 108 », « ISBN 978… · infos à compléter », « Introuvable · Classer ». Un
-/// toucher ouvre la correction du tome ([onOpen]).
+/// toucher ouvre la correction du tome ([onOpen]) ; un tome rangé dont la
+/// série n'a pas les numéros d'avant propose « J'ai aussi les tomes 1 à
+/// 107 » ([onAddPrevious]).
 class BurstList extends StatelessWidget {
-  const BurstList({super.key, required this.rows, required this.onOpen});
+  const BurstList({
+    super.key,
+    required this.rows,
+    required this.onOpen,
+    required this.onAddPrevious,
+  });
 
   final List<BurstRow> rows;
   final ValueChanged<BurstRow> onOpen;
+  final ValueChanged<BurstRow> onAddPrevious;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +65,7 @@ class BurstList extends StatelessWidget {
                 key: ValueKey(row.isbn),
                 row: row,
                 onTap: () => onOpen(row),
+                onAddPrevious: () => onAddPrevious(row),
               );
             },
           ),
@@ -67,10 +77,16 @@ class BurstList extends StatelessWidget {
 
 /// Une ligne : une icône d'état, le texte, et la correction d'un toucher.
 class _BurstTile extends StatelessWidget {
-  const _BurstTile({super.key, required this.row, required this.onTap});
+  const _BurstTile({
+    super.key,
+    required this.row,
+    required this.onTap,
+    required this.onAddPrevious,
+  });
 
   final BurstRow row;
   final VoidCallback onTap;
+  final VoidCallback onAddPrevious;
 
   @override
   Widget build(BuildContext context) {
@@ -102,9 +118,28 @@ class _BurstTile extends StatelessWidget {
         child: Icon(icon, color: color),
       ),
       title: Text(burstRowText(l10n, row)),
-      subtitle: row.status == BurstRowStatus.notFound
-          ? Text(l10n.volumeIsbn(row.isbn))
-          : null,
+      subtitle: switch (row) {
+        BurstRow(status: BurstRowStatus.notFound) => Text(
+          l10n.volumeIsbn(row.isbn),
+        ),
+        BurstRow(
+          status: BurstRowStatus.classified,
+          missingPrevious: final missing,
+        )
+            when missing.isNotEmpty =>
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+              ),
+              onPressed: onAddPrevious,
+              icon: const Icon(Icons.library_add_rounded),
+              label: Text(previousVolumesLabel(l10n, missing)),
+            ),
+          ),
+        _ => null,
+      },
       trailing: const Icon(Icons.chevron_right_rounded),
     );
   }

@@ -597,6 +597,7 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
     String uid,
     Volume volume, {
     ({Series series, DateTime createdAt})? withSeries,
+    List<String> replacing = const [],
   }) => _write(() {
     if (withSeries case (:final series, createdAt: _)) {
       createdSeries.add(series);
@@ -604,7 +605,25 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
     }
     savedVolumes.add(volume);
     _volumes[volume.id] = volume;
+    replacing.forEach(_volumes.remove);
   });
+
+  /// Tomes complétés par [completeVolume], dans l'ordre.
+  final completedVolumes = <Volume>[];
+
+  @override
+  Future<void> completeVolume(String uid, Volume volume) => _write(() {
+    // Comme une mise à jour Firestore : un tome retiré n'est pas recréé.
+    if (!_volumes.containsKey(volume.id)) {
+      throw StateError('no volume ${volume.id}');
+    }
+    completedVolumes.add(volume);
+    _volumes[volume.id] = volume;
+  });
+
+  @override
+  Future<void> deleteVolumes(String uid, List<String> volumeIds) =>
+      _write(() => volumeIds.forEach(_volumes.remove));
 
   @override
   Future<void> createSeries(
@@ -824,19 +843,51 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
 /// Recherche de livres configurable : [found] pour tout ISBN, ou [failure]
 /// levée ; compte les recherches.
 class RecordingVolumeLookup extends Fake implements VolumeLookup {
-  RecordingVolumeLookup({this.found, this.failure});
+  RecordingVolumeLookup({this.found, this.failure, this.numbered = const {}});
 
   /// Identifie l'ISBN demandé avec ces métadonnées ; null : livre inconnu.
   final IdentifiedVolume Function(String isbn)? found;
   final Exception? failure;
 
+  /// Notices rendues par [findByNumber] pour (nom de série, numéro) ; aucune
+  /// sinon (réponse définitive).
+  final Map<(String, int), BookMetadata> numbered;
+
+  /// Levé par [findByNumber] quand il est défini (la BnF en échec).
+  BookFailure? numberFailure;
+
+  /// Faux : Google ne répond pas, un tome sans notice BnF reste à chercher.
+  bool googleAnswers = true;
+
   final lookedUp = <String>[];
+
+  /// Les recherches par numéro reçues, et si Google pouvait être interrogé.
+  final searched = <(String, int, bool)>[];
+
+  /// Éditeur préféré de chaque recherche par numéro, dans l'ordre.
+  final publishers = <String?>[];
 
   @override
   Future<IdentifiedVolume?> lookUp(String isbn) async {
     lookedUp.add(isbn);
     if (failure case final error?) throw error;
     return found?.call(isbn);
+  }
+
+  @override
+  Future<({BookMetadata? record, bool settled})> findByNumber(
+    String seriesName,
+    Set<String> keys,
+    int number, {
+    String? publisher,
+    bool askGoogle = true,
+  }) async {
+    searched.add((seriesName, number, askGoogle));
+    publishers.add(publisher);
+    if (numberFailure case final error?) throw error;
+    final record = numbered[(seriesName, number)];
+    if (record != null) return (record: record, settled: true);
+    return (record: null, settled: askGoogle && googleAnswers);
   }
 }
 

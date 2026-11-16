@@ -2462,6 +2462,24 @@ abstract class AppLocalizations {
   /// **'Introuvable · Classer'**
   String get burstNotFound;
 
+  /// Rafale et feuille d'un tome : ajoute tous les tomes d'avant, absents de la série (« J'ai aussi les tomes 1 à 107 »)
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'ai aussi les tomes {first} à {last}'**
+  String previousVolumesRange(int first, int last);
+
+  /// Rafale et feuille d'un tome : ajoute les tomes d'avant qui manquent à la série, quand elle en a déjà certains ; {number} est le seul manquant
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{J\'ai aussi le tome {number}} other{J\'ai aussi les {count} tomes manquants}}'**
+  String previousVolumesMissing(int count, int number);
+
+  /// Snackbar après « J'ai aussi les tomes … », avec Annuler ; leurs infos se cherchent ensuite
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{{count} tome ajouté · infos en cours} other{{count} tomes ajoutés · infos en cours}}'**
+  String previousVolumesAdded(int count);
+
   /// Message quand on scanne un tome déjà possédé (« One Piece 108 »)
   ///
   /// In fr, this message translates to:

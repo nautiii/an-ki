@@ -145,6 +145,35 @@ void main() {
     });
   });
 
+  group('missingPreviousProvider', () {
+    test('the numbers its series lacks before it', () async {
+      repository = RecordingBookshelfRepository(
+        series: const [_onePiece],
+        volumes: [
+          _volume('v2', seriesId: 's1', number: 2),
+          _volume('v5', seriesId: 's1', number: 5),
+        ],
+      );
+      final container = makeContainer();
+      container.listen(missingPreviousProvider('v5'), (_, _) {});
+      await load(container);
+
+      expect(container.read(missingPreviousProvider('v5')), [1, 3, 4]);
+    });
+
+    test('empty for a volume to sort, unknown, or before loading', () async {
+      final container = makeContainer();
+      container
+        ..listen(missingPreviousProvider('loose'), (_, _) {})
+        ..listen(missingPreviousProvider('nope'), (_, _) {});
+      expect(container.read(missingPreviousProvider('loose')), isEmpty);
+      await load(container);
+
+      expect(container.read(missingPreviousProvider('loose')), isEmpty);
+      expect(container.read(missingPreviousProvider('nope')), isEmpty);
+    });
+  });
+
   group('seriesEntryProvider', () {
     test('finds the entry of a series', () async {
       final container = makeContainer();

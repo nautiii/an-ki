@@ -1627,6 +1627,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get burstNotFound => 'Not found · Sort it';
 
   @override
+  String previousVolumesRange(int first, int last) {
+    return 'I also have volumes $first to $last';
+  }
+
+  @override
+  String previousVolumesMissing(int count, int number) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'I also have the $count missing volumes',
+      one: 'I also have volume $number',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String previousVolumesAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count volumes added · fetching details',
+      one: '$count volume added · fetching details',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String burstAlreadyOwned(String volume) {
     return 'Already in your collection · $volume';
   }

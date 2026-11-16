@@ -1647,6 +1647,39 @@
   "@burstNotFound": {
     "description": "Ligne de la rafale : aucun catalogue ne connaît l'ISBN ; toucher pour le classer"
   },
+  "previousVolumesRange": "J'ai aussi les tomes {first} à {last}",
+  "@previousVolumesRange": {
+    "description": "Rafale et feuille d'un tome : ajoute tous les tomes d'avant, absents de la série (« J'ai aussi les tomes 1 à 107 »)",
+    "placeholders": {
+      "first": {
+        "type": "int"
+      },
+      "last": {
+        "type": "int"
+      }
+    }
+  },
+  "previousVolumesMissing": "{count, plural, one{J'ai aussi le tome {number}} other{J'ai aussi les {count} tomes manquants}}",
+  "@previousVolumesMissing": {
+    "description": "Rafale et feuille d'un tome : ajoute les tomes d'avant qui manquent à la série, quand elle en a déjà certains ; {number} est le seul manquant",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "previousVolumesAdded": "{count, plural, one{{count} tome ajouté · infos en cours} other{{count} tomes ajoutés · infos en cours}}",
+  "@previousVolumesAdded": {
+    "description": "Snackbar après « J'ai aussi les tomes … », avec Annuler ; leurs infos se cherchent ensuite",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "burstAlreadyOwned": "Déjà dans votre collection · {volume}",
   "@burstAlreadyOwned": {
     "description": "Message quand on scanne un tome déjà possédé (« One Piece 108 »)",

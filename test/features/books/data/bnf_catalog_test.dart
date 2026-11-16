@@ -6,6 +6,7 @@ import 'package:an_ki/core/providers/http_client_provider.dart';
 import 'package:an_ki/features/books/data/bnf_catalog.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/book_metadata.dart';
+import 'package:an_ki/features/books/domain/volume_backfill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -125,6 +126,8 @@ void main() {
           publishedDate: '2013',
           seriesTitle: 'One piece',
           seriesNumber: 15,
+          numberedInCollection: true,
+          isbn: _isbn,
         ),
       );
     });
@@ -143,6 +146,8 @@ void main() {
             publishedDate: '2018',
             seriesTitle: 'Les fées Valentines',
             seriesNumber: 2,
+            numberedInCollection: true,
+            isbn: '9782205076745',
           ),
         );
       },
@@ -605,6 +610,35 @@ void main() {
       );
       expect(original.title, 'One Piece - Édition originale - Tome 113');
       expect(original.publishedDate, '2026-09-23');
+      // L'ISBN de la notice (010 $a) : un tome trouvé par son titre le garde.
+      expect(original.isbn, '9782344071120');
+    });
+
+    test('One Piece 1: the Glénat volume, not the art book', () async {
+      // Réponse réelle du 15 novembre 2026 : l'art-book « color walk 1 »,
+      // un coffret, un roman Hachette et deux impressions du tome 1 sont
+      // tous rattachés à « One piece » n° 1.
+      final records = await catalogAnswering(
+        fixture('bnf_search_one_piece_1.xml'),
+      ).searchVolume('One piece', 1);
+
+      final artBook = records.singleWhere((r) => r.subtitle == 'color walk');
+      expect(artBook.numberedInCollection, isFalse);
+      final chosen = backfillRecordOf(
+        {'one piece'},
+        1,
+        records,
+        publisher: 'Glénat',
+      );
+      expect(chosen?.title, 'Romance dawn');
+      expect(chosen?.isbn, '9782723488525');
+      expect(chosen?.numberedInCollection, isTrue);
+      // Sans éditeur connu (série ajoutée à la main) : celui que la BnF cite
+      // le plus pour ce tome, pas le roman Hachette plus récent.
+      expect(
+        backfillRecordOf({'one piece'}, 1, records)?.isbn,
+        '9782723488525',
+      );
     });
 
     test('an unreadable answer or an HTTP error is unavailable', () async {

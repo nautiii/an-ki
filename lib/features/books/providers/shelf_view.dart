@@ -2,6 +2,7 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/domain/shelf.dart';
 import 'package:an_ki/features/books/domain/shelf_search.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
+import 'package:an_ki/features/books/domain/volume_backfill.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -58,3 +59,20 @@ final volumeByIdProvider = Provider.autoDispose
             ].where((volume) => volume.id == volumeId).firstOrNull,
           ),
     );
+
+/// Les numéros d'avant le tome [volumeId] que sa série n'a pas
+/// ([missingBefore]), pour « J'ai aussi les tomes 1 à 4 » ; vide pour un
+/// tome à classer, ou tant que l'étagère n'est pas lue.
+final missingPreviousProvider = Provider.autoDispose.family<List<int>, String>((
+  ref,
+  volumeId,
+) {
+  final shelf = ref.watch(shelfProvider).value;
+  if (shelf == null) return const [];
+  for (final entry in shelf.entries) {
+    for (final volume in entry.volumes) {
+      if (volume.id == volumeId) return missingBefore(entry, volume.number!);
+    }
+  }
+  return const [];
+});

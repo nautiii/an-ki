@@ -11,6 +11,7 @@ import 'package:an_ki/features/books/widgets/burst_list.dart';
 import 'package:an_ki/features/books/widgets/classify_sheet.dart';
 import 'package:an_ki/features/books/widgets/isbn_entry_sheet.dart';
 import 'package:an_ki/features/books/widgets/pending_completer.dart';
+import 'package:an_ki/features/books/widgets/shelf_undo.dart';
 import 'package:an_ki/features/books/widgets/volume_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -193,7 +194,13 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
                 // La caméra garde la plus grande part : la liste défile.
                 ConstrainedBox(
                   constraints: BoxConstraints(maxHeight: height * 0.4),
-                  child: BurstList(rows: rows, onOpen: _open),
+                  child: BurstList(
+                    rows: rows,
+                    onOpen: _open,
+                    // Un tome scanné a son ISBN pour id.
+                    onAddPrevious: (row) =>
+                        addPreviousWithUndo(context, row.isbn),
+                  ),
                 ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(

@@ -140,6 +140,33 @@ VolumeGuess? guessVolume(BookMetadata record) {
   );
 }
 
+/// Vrai quand [record], trouvé par une recherche de mots (« One Piece
+/// 109 »), décrit le tome [number] d'une série dont les clés sont [keys] :
+/// `guessVolume` y lit, en confiance moyenne ou haute, ce numéro et une de
+/// ces clés.
+///
+/// La collection d'une notice n'est pas toujours la série, et une étagère
+/// peut garder une série devinée avant une correction de `guessVolume`
+/// (« Shonen One Piece » pour « One Piece - Tome 113 ») : le titre seul est
+/// donc lu aussi.
+bool describesVolume(BookMetadata record, Set<String> keys, int number) {
+  bool matches(VolumeGuess? guess) =>
+      guess != null &&
+      guess.confidence != GuessConfidence.low &&
+      guess.number == number &&
+      keys.contains(seriesKey(guess.seriesName));
+  return matches(guessVolume(record)) ||
+      matches(
+        guessVolume(
+          BookMetadata(
+            title: record.title,
+            subtitle: record.subtitle,
+            authors: record.authors,
+          ),
+        ),
+      );
+}
+
 /// Un repère de numéro trouvé dans un texte.
 class _Marked {
   const _Marked({

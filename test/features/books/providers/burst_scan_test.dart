@@ -134,6 +134,49 @@ void main() {
     expect(shelf.savedVolumes, isEmpty);
   });
 
+  test('an ISBN carried by a volume found by its number is owned', () async {
+    shelf = RecordingBookshelfRepository(
+      series: [_series],
+      volumes: [
+        Volume(
+          id: 'found-by-number',
+          seriesId: 's1',
+          number: 3,
+          isbn: _isbn,
+          title: 'One Piece - Tome 3',
+          authors: const [],
+          lookup: LookupState.found,
+          addedAt: _now,
+        ),
+      ],
+    );
+    final container = await makeContainer();
+
+    final result = burstOf(container).scan(_isbn);
+
+    expect(result.outcome, ScanOutcome.alreadyOwned);
+    expect((result.row?.seriesName, result.row?.number), ('One Piece', 3));
+    expect(shelf.savedVolumes, isEmpty);
+  });
+
+  test('a shelved row carries the numbers its series lacks before', () async {
+    shelf = RecordingBookshelfRepository(
+      series: [_series],
+      volumes: [_owned(_other, number: 105)],
+    );
+    final container = await makeContainer();
+
+    burstOf(container).scan(_isbn);
+    await settle(container);
+
+    final row = container.read(burstRowsProvider).single;
+    expect(row.number, 108);
+    expect(row.missingPrevious, [
+      for (var n = 1; n < 108; n++)
+        if (n != 105) n,
+    ]);
+  });
+
   test('a typed ISBN already in the burst says "already owned"', () async {
     final container = await makeContainer();
 

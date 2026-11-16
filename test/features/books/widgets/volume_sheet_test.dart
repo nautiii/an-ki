@@ -2,6 +2,7 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
+import 'package:an_ki/features/books/providers/volume_lookup.dart';
 import 'package:an_ki/features/books/widgets/classify_sheet.dart';
 import 'package:an_ki/features/books/widgets/shelf_undo.dart';
 import 'package:an_ki/features/books/widgets/volume_sheet.dart';
@@ -57,6 +58,8 @@ void main() {
       overrides: [
         bookshelfRepositoryProvider.overrideWithValue(repo),
         currentUidProvider.overrideWithValue('fake-uid'),
+        // Les tomes ajoutés se cherchent ensuite : aucun catalogue réel.
+        volumeLookupProvider.overrideWithValue(RecordingVolumeLookup()),
       ],
     );
     await tester.pump();
@@ -88,6 +91,64 @@ void main() {
     expect(find.text('Inconnu des catalogues'), findsNothing);
     expect(find.text('Changer de série ou de numéro'), findsOneWidget);
     expect(find.text('Classer'), findsNothing);
+  });
+
+  testWidgets('adds the previous volumes, then « Annuler »', (tester) async {
+    await openSheet(
+      tester,
+      RecordingBookshelfRepository(
+        series: const [_series],
+        volumes: [_volume()],
+      ),
+    );
+    final haptics = recordHaptics(tester);
+
+    await tester.tap(find.text("J'ai aussi les tomes 1 à 3"));
+    await tester.pumpAndSettle();
+
+    // La feuille se ferme ; la série a ses tomes aussitôt.
+    expect(find.byType(VolumeSheet), findsNothing);
+    expect(find.text('3 tomes ajoutés · infos en cours'), findsOneWidget);
+    expect(
+      repository.volumes.map((v) => v.number),
+      unorderedEquals([1, 2, 3, 4]),
+    );
+    expect(haptics, ['HapticFeedbackType.lightImpact']);
+
+    await tester.tap(find.text('Annuler'));
+    await tester.pumpAndSettle();
+
+    expect(repository.volumes.map((v) => v.id), ['v1']);
+  });
+
+  testWidgets('a single missing volume is named', (tester) async {
+    await openSheet(
+      tester,
+      RecordingBookshelfRepository(
+        series: const [_series],
+        volumes: [
+          _volume(),
+          _volume(id: 'v2', number: 1),
+          _volume(id: 'v3', number: 3),
+        ],
+      ),
+    );
+
+    expect(find.text("J'ai aussi le tome 2"), findsOneWidget);
+  });
+
+  testWidgets('no offer for volume 1 nor a volume to sort', (tester) async {
+    await openSheet(
+      tester,
+      RecordingBookshelfRepository(
+        series: const [_series],
+        volumes: [
+          _volume(number: 1),
+          _volume(id: 'loose', seriesId: null, number: null),
+        ],
+      ),
+    );
+    expect(find.textContaining("J'ai aussi"), findsNothing);
   });
 
   testWidgets('says when the catalogues are still to be asked', (tester) async {

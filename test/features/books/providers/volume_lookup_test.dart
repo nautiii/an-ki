@@ -6,6 +6,8 @@ import 'package:an_ki/features/books/providers/volume_lookup.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../support/fake_providers.dart';
+
 const _isbn = '9782344059562';
 
 /// Catalogue qui répond [metadata] ou lève [failure].
@@ -124,5 +126,94 @@ void main() {
       await failureOf(BookFailure.unavailable, BookFailure.unavailable),
       BookFailure.unavailable,
     );
+  });
+
+  group('findByNumber', () {
+    const keys = {'one piece'};
+    const glenat = BookMetadata(
+      title: 'One Piece - Tome 3',
+      authors: [],
+      publisher: 'Glénat',
+      isbn: '9782723488525',
+    );
+    const kana = BookMetadata(
+      title: 'One Piece - Tome 3',
+      authors: [],
+      publisher: 'Kana',
+    );
+
+    test('the BnF record, the usual publisher first, without Google', () async {
+      final bnf = RecordingBnfCatalog({
+        ('One Piece', 3): [kana, glenat],
+      });
+      final google = RecordingGoogleBooksCatalog();
+
+      final found = await lookupWith(
+        bnf: bnf,
+        google: google,
+      ).findByNumber('One Piece', keys, 3, publisher: 'Glénat');
+
+      expect(found, (record: glenat, settled: true));
+      expect(google.asked, isEmpty);
+    });
+
+    test('nothing at the BnF: Google, validated by the series rule', () async {
+      final google = RecordingGoogleBooksCatalog({
+        ('One Piece', 3): [
+          const BookMetadata(title: 'One Piece - Tome 4', authors: []),
+          kana,
+        ],
+      });
+
+      final found = await lookupWith(
+        bnf: RecordingBnfCatalog(),
+        google: google,
+      ).findByNumber('One Piece', keys, 3);
+
+      expect(found, (record: kana, settled: true));
+    });
+
+    test('known nowhere: settled without a record', () async {
+      final found = await lookupWith(
+        bnf: RecordingBnfCatalog(),
+        google: RecordingGoogleBooksCatalog(),
+      ).findByNumber('One Piece', keys, 3);
+
+      expect(found, (record: null, settled: true));
+    });
+
+    test('Google failing or not asked: not settled', () async {
+      final down = RecordingGoogleBooksCatalog()
+        ..failure = BookFailure.quotaExceeded;
+      final unused = RecordingGoogleBooksCatalog();
+
+      expect(
+        await lookupWith(
+          bnf: RecordingBnfCatalog(),
+          google: down,
+        ).findByNumber('One Piece', keys, 3),
+        (record: null, settled: false),
+      );
+      expect(
+        await lookupWith(
+          bnf: RecordingBnfCatalog(),
+          google: unused,
+        ).findByNumber('One Piece', keys, 3, askGoogle: false),
+        (record: null, settled: false),
+      );
+      expect(unused.asked, isEmpty);
+    });
+
+    test('a BnF failure is raised', () async {
+      final bnf = RecordingBnfCatalog()..failure = BookFailure.network;
+
+      await expectLater(
+        lookupWith(
+          bnf: bnf,
+          google: RecordingGoogleBooksCatalog(),
+        ).findByNumber('One Piece', keys, 3),
+        throwsA(BookFailure.network),
+      );
+    });
   });
 }

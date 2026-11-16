@@ -10,6 +10,7 @@ BookMetadata metadata({
   String? imageUrl,
   String? seriesTitle,
   int? seriesNumber,
+  String? isbn,
 }) => BookMetadata(
   title: title,
   subtitle: subtitle,
@@ -19,6 +20,7 @@ BookMetadata metadata({
   imageUrl: imageUrl,
   seriesTitle: seriesTitle,
   seriesNumber: seriesNumber,
+  isbn: isbn,
 );
 
 void main() {
@@ -54,6 +56,43 @@ void main() {
       expect(merged.publisher, 'Glénat');
       expect(merged.seriesTitle, 'One piece');
       expect(merged.seriesNumber, 15);
+    });
+
+    test('« numbered in its collection » goes with the BnF series', () {
+      const numbered = BookMetadata(
+        title: 'Romance dawn',
+        authors: [],
+        seriesTitle: 'One piece',
+        seriesNumber: 1,
+        numberedInCollection: true,
+      );
+      expect(mergeMetadata(numbered, metadata())!.numberedInCollection, isTrue);
+      // Sans série à la BnF, la série vient de Google : pas de collection.
+      expect(
+        mergeMetadata(
+          const BookMetadata(
+            title: 'X',
+            authors: [],
+            numberedInCollection: true,
+          ),
+          metadata(seriesNumber: 1),
+        )!.numberedInCollection,
+        isFalse,
+      );
+    });
+
+    test('the ISBN comes from the BnF, else from Google', () {
+      expect(
+        mergeMetadata(
+          metadata(isbn: '9782723488525'),
+          metadata(isbn: '9782344059562'),
+        )!.isbn,
+        '9782723488525',
+      );
+      expect(
+        mergeMetadata(metadata(), metadata(isbn: '9782344059562'))!.isbn,
+        '9782344059562',
+      );
     });
 
     test('the cover comes from Google', () {
@@ -203,5 +242,9 @@ void main() {
     expect(a.hashCode, b.hashCode);
     expect(a, isNot(metadata(authors: const ['B'], seriesNumber: 1)));
     expect(a, isNot(metadata(authors: const ['A'], seriesNumber: 2)));
+    expect(
+      a,
+      isNot(metadata(authors: const ['A'], seriesNumber: 1, isbn: '978')),
+    );
   });
 }

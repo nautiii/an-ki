@@ -9,6 +9,7 @@ import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/shelf_failure.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
+import 'package:an_ki/features/books/domain/volume_backfill.dart';
 import 'package:an_ki/features/books/domain/volume_guess.dart';
 import 'package:an_ki/features/books/domain/volume_identification.dart';
 import 'package:an_ki/features/books/providers/shelf_editor.dart';
@@ -339,7 +340,7 @@ void main() {
       expect(shelf.createdSeries, isEmpty);
     });
 
-    test('a second pass while one runs does nothing', () async {
+    test('a call during a pass looks nothing up twice', () async {
       shelf = RecordingBookshelfRepository(volumes: [_pending(_isbn)]);
       final container = makeContainer();
       await settle(container);
@@ -625,6 +626,465 @@ void main() {
       expect(id, isNull);
       expect(shelf.createdSeries, isEmpty);
       expect(shelf.volumes, isEmpty);
+    });
+  });
+
+  group('previous volumes', () {
+    const onePiece = Series(
+      id: 's1',
+      name: 'One Piece',
+      keys: ['one piece'],
+      complete: false,
+    );
+
+    /// Tome scanné [number] de One Piece, publié par [publisher].
+    Volume scanned(String isbn, int number, {String? publisher}) => Volume(
+      id: isbn,
+      seriesId: 's1',
+      number: number,
+      isbn: isbn,
+      title: 'One Piece',
+      authors: const [],
+      publisher: publisher,
+      lookup: LookupState.found,
+      addedAt: _now,
+    );
+
+    Volume waiting(String id, int number, {DateTime? addedAt}) => Volume(
+      id: id,
+      seriesId: 's1',
+      number: number,
+      title: '',
+      authors: const [],
+      lookup: LookupState.pending,
+      addedAt: addedAt ?? _now,
+    );
+
+    BookMetadata tome(int number) => BookMetadata(
+      title: 'One Piece - Tome $number',
+      authors: const ['Eiichirō Oda'],
+      publisher: 'Glénat',
+      isbn: '978000000000$number',
+    );
+
+    test(
+      'adds the missing numbers before it at once, then their records',
+      () async {
+        shelf = RecordingBookshelfRepository(
+          series: [onePiece],
+          volumes: [
+            scanned(_isbn, 5, publisher: 'Glénat'),
+            scanned(_other, 2),
+          ],
+        );
+        lookup = RecordingVolumeLookup(
+          numbered: {('One Piece', 1): tome(1), ('One Piece', 4): tome(4)},
+        );
+        final container = makeContainer();
+        await settle(container);
+
+        final added = editorOf(container).addPrevious(_isbn);
+
+        expect(added, hasLength(3));
+        await pumpEventQueue(times: 200);
+        final byNumber = {
+          for (final volume in shelf.volumes) volume.number: volume,
+        };
+        expect(byNumber.keys.toSet(), {1, 2, 3, 4, 5});
+        expect([
+          for (final n in [1, 3, 4]) byNumber[n]!.id,
+        ], unorderedEquals(added));
+        expect(lookup.searched, [
+          ('One Piece', 1, true),
+          ('One Piece', 3, true),
+          ('One Piece', 4, true),
+        ]);
+        expect(lookup.publishers, everyElement('Glénat'));
+        final first = byNumber[1]!;
+        expect(
+          (first.title, first.isbn, first.lookup, first.seriesId),
+          ('One Piece - Tome 1', '9780000000001', LookupState.found, 's1'),
+        );
+        // Inconnu des catalogues : complet tel quel.
+        final third = byNumber[3]!;
+        expect(
+          (third.title, third.isbn, third.lookup),
+          ('', null, LookupState.found),
+        );
+      },
+    );
+
+    test('nothing for a volume to sort, volume 1 or no gap', () async {
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [
+          scanned(_isbn, 1),
+          scanned(_other, 2),
+          Volume(
+            id: 'loose',
+            title: 'Hors-série',
+            authors: const [],
+            lookup: LookupState.found,
+            addedAt: _now,
+          ),
+        ],
+      );
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      expect(editor.addPrevious(_isbn), isEmpty);
+      expect(editor.addPrevious(_other), isEmpty);
+      expect(editor.addPrevious('loose'), isEmpty);
+      expect(editor.addPrevious('unknown'), isEmpty);
+      await pumpEventQueue();
+      expect(shelf.volumes, hasLength(3));
+    });
+
+    test('« Annuler » removes them, a late record brings none back', () async {
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [scanned(_isbn, 3)],
+      );
+      final gate = Completer<void>();
+      lookup = _GatedNumbers(gate.future, {('One Piece', 1): tome(1)});
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      final added = editor.addPrevious(_isbn);
+      await pumpEventQueue();
+      await editor.removeVolumes(added, uid: 'u1');
+      gate.complete();
+      await pumpEventQueue(times: 200);
+
+      expect(shelf.volumes.map((v) => v.id), [_isbn]);
+      expect(shelf.completedVolumes, isEmpty);
+      // Seul le tome déjà parti est cherché ; l'autre, retiré, ne l'est pas.
+      expect(lookup.searched, hasLength(1));
+    });
+
+    test('tapping twice adds each number once', () async {
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [scanned(_isbn, 3)],
+      );
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      final first = editor.addPrevious(_isbn);
+      final second = editor.addPrevious(_isbn);
+      await pumpEventQueue(times: 200);
+
+      expect(first, hasLength(2));
+      expect(second, isEmpty);
+      expect(shelf.volumes, hasLength(3));
+    });
+
+    test('added during a pass, searched in the next one', () async {
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [waiting('p1', 1), scanned(_isbn, 4)],
+      );
+      final gate = Completer<void>();
+      lookup = _GatedNumbers(gate.future, const {});
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      final pass = editor.completePending();
+      await pumpEventQueue();
+      final added = editor.addPrevious(_isbn);
+      gate.complete();
+      await pass;
+      await pumpEventQueue(times: 200);
+
+      expect(added, hasLength(2));
+      expect(lookup.searched.map((s) => s.$2), [1, 2, 3]);
+      expect(shelf.volumes.every((v) => v.lookup == LookupState.found), isTrue);
+    });
+
+    test('calls during a pass share its limit', () async {
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [
+          for (var n = 1; n <= backfillsPerPass + 5; n++) waiting('p$n', n),
+        ],
+      );
+      final gate = Completer<void>();
+      lookup = _GatedNumbers(gate.future, const {});
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      final pass = editor.completePending();
+      await pumpEventQueue();
+      // Retour dans l'app, une autre page de Livres : pas 40 de plus.
+      await editor.completePending();
+      await editor.completePending();
+      gate.complete();
+      await pass;
+
+      expect(lookup.searched, hasLength(backfillsPerPass));
+    });
+
+    test(
+      'Google down twice: the same volumes wait behind the others',
+      () async {
+        shelf = RecordingBookshelfRepository(
+          series: [onePiece],
+          volumes: [waiting('p1', 1), waiting('p2', 2)],
+        );
+        lookup = RecordingVolumeLookup()..googleAnswers = false;
+        final container = makeContainer();
+        await settle(container);
+        final editor = editorOf(container);
+
+        await editor.completePending();
+        await shelf.addManualVolumes('u1', [waiting('p3', 3)]);
+        await pumpEventQueue();
+        await editor.completePending();
+
+        // p1 et p2 attendent Google : le nouveau venu passe devant eux, et,
+        // Google toujours muet, ils ne sont pas redemandés à la BnF.
+        expect(lookup.searched.map((s) => s.$2), [1, 2, 3]);
+        expect(
+          shelf.volumes.every((v) => v.lookup == LookupState.pending),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'another account during a search: nothing written, pass over',
+      () async {
+        shelf = RecordingBookshelfRepository(
+          series: [onePiece],
+          volumes: [waiting('p1', 1), waiting('p2', 2)],
+        );
+        final gate = Completer<void>();
+        final gated = _GatedNumbers(gate.future, {('One Piece', 1): tome(1)});
+        final uid = NotifierProvider<_Uid, String?>(_Uid.new);
+        final container = ProviderContainer.test(
+          retry: (_, _) => null,
+          overrides: [
+            bookshelfRepositoryProvider.overrideWithValue(shelf),
+            volumeLookupProvider.overrideWithValue(gated),
+            currentUidProvider.overrideWith((ref) => ref.watch(uid)),
+            clockProvider.overrideWithValue(() => _now),
+          ],
+        );
+        container.listen(shelfEditorProvider, (_, _) {});
+        await settle(container);
+        final editor = editorOf(container);
+
+        final pass = editor.completePending();
+        await pumpEventQueue();
+        container.read(uid.notifier).change('u2');
+        // Une page qui s'ouvre sous le nouveau compte demande une passe.
+        unawaited(editor.completePending());
+        gate.complete();
+        await pass;
+        await pumpEventQueue();
+
+        expect(gated.searched, hasLength(1));
+        expect(shelf.completedVolumes, isEmpty);
+      },
+    );
+
+    test('another account during a scan lookup: nothing written', () async {
+      shelf = RecordingBookshelfRepository(volumes: [_pending(_isbn)]);
+      final answer = Completer<IdentifiedVolume?>();
+      final uid = NotifierProvider<_Uid, String?>(_Uid.new);
+      final container = ProviderContainer.test(
+        retry: (_, _) => null,
+        overrides: [
+          bookshelfRepositoryProvider.overrideWithValue(shelf),
+          volumeLookupProvider.overrideWithValue(
+            _GatedLookup(() => answer.future),
+          ),
+          currentUidProvider.overrideWith((ref) => ref.watch(uid)),
+          clockProvider.overrideWithValue(() => _now),
+        ],
+      );
+      container.listen(shelfEditorProvider, (_, _) {});
+      await settle(container);
+
+      final pass = editorOf(container).completePending();
+      await pumpEventQueue();
+      container.read(uid.notifier).change('u2');
+      answer.complete(_onePiece(_isbn));
+      await pass;
+      await pumpEventQueue();
+
+      expect(shelf.savedVolumes, isEmpty);
+      expect(shelf.createdSeries, isEmpty);
+
+      // Aucune série fantôme de l'ancien compte : le nouveau la crée.
+      editorOf(container).addSeriesByHand('One Piece', [1], complete: false);
+      await pumpEventQueue();
+      expect(shelf.createdSeries.single.name, 'One Piece');
+    });
+
+    test('another account at « Annuler » removes nothing', () async {
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [scanned(_isbn, 2)],
+      );
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      final added = editor.addPrevious(_isbn);
+      await pumpEventQueue();
+      await editor.removeVolumes(added, uid: 'someone-else');
+
+      expect(shelf.volumes, hasLength(2));
+    });
+
+    test('a volume moved during its search is not completed', () async {
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [waiting('p1', 1)],
+      );
+      final gate = Completer<void>();
+      lookup = _GatedNumbers(gate.future, {('One Piece', 1): tome(1)});
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      final pass = editor.completePending();
+      await pumpEventQueue();
+      await editor.classify('p1', seriesId: 's1', number: 7);
+      gate.complete();
+      await pass;
+
+      final volume = shelf.volumes.single;
+      expect((volume.number, volume.lookup), (7, LookupState.pending));
+      expect(shelf.completedVolumes, isEmpty);
+    });
+
+    test('a pass completes the oldest first, at most per pass', () async {
+      final earlier = _now.subtract(const Duration(days: 1));
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [
+          for (var n = backfillsPerPass + 5; n >= 1; n--) waiting('p$n', n),
+          waiting('old', 99, addedAt: earlier),
+        ],
+      );
+      final container = makeContainer();
+      await settle(container);
+
+      await editorOf(container).completePending();
+
+      expect(lookup.searched, hasLength(backfillsPerPass));
+      expect(lookup.searched.first.$2, 99);
+      expect(lookup.searched[1].$2, 1);
+      expect(
+        shelf.volumes.where((v) => v.lookup == LookupState.pending),
+        hasLength(6),
+      );
+    });
+
+    test('a BnF failure stops the pass, nothing is marked', () async {
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [waiting('p1', 1), waiting('p2', 2)],
+      );
+      lookup = RecordingVolumeLookup()..numberFailure = BookFailure.network;
+      final container = makeContainer();
+      await settle(container);
+
+      await editorOf(container).completePending();
+
+      expect(lookup.searched, hasLength(1));
+      expect(
+        shelf.volumes.every((v) => v.lookup == LookupState.pending),
+        isTrue,
+      );
+    });
+
+    test('Google down: the BnF alone for the rest, the unknown wait', () async {
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [waiting('p1', 1), waiting('p2', 2), waiting('p3', 3)],
+      );
+      lookup = RecordingVolumeLookup(numbered: {('One Piece', 3): tome(3)})
+        ..googleAnswers = false;
+      final container = makeContainer();
+      await settle(container);
+
+      await editorOf(container).completePending();
+      await pumpEventQueue();
+
+      expect(lookup.searched, [
+        ('One Piece', 1, true),
+        ('One Piece', 2, false),
+        ('One Piece', 3, false),
+      ]);
+      expect(
+        {for (final v in shelf.volumes) v.id: v.lookup},
+        {
+          'p1': LookupState.pending,
+          'p2': LookupState.pending,
+          'p3': LookupState.found,
+        },
+      );
+    });
+
+    test('a series added by hand gets its records too', () async {
+      lookup = RecordingVolumeLookup(numbered: {('Blacksad', 2): tome(2)});
+      final container = makeContainer();
+      await settle(container);
+
+      editorOf(container).addSeriesByHand('Blacksad', [1, 2], complete: false);
+      await pumpEventQueue(times: 200);
+
+      expect(lookup.searched.map((s) => s.$2), [1, 2]);
+      expect(shelf.volumes.every((v) => v.lookup == LookupState.found), isTrue);
+      expect(
+        shelf.volumes.singleWhere((v) => v.number == 2).isbn,
+        '9780000000002',
+      );
+    });
+
+    test('a scanned volume replaces the one added without ISBN', () async {
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [
+          Volume(
+            id: 'by-hand',
+            seriesId: 's1',
+            number: 108,
+            title: '',
+            authors: const [],
+            lookup: LookupState.found,
+            addedAt: _now,
+          ),
+        ],
+      );
+      final container = makeContainer();
+      await settle(container);
+
+      await editorOf(container).addScanned(_isbn, identified: _onePiece(_isbn));
+
+      final volume = shelf.volumes.single;
+      expect((volume.id, volume.number), (_isbn, 108));
+    });
+
+    test('two scanned editions of a number both stay', () async {
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [scanned(_other, 108)],
+      );
+      final container = makeContainer();
+      await settle(container);
+
+      await editorOf(container).addScanned(_isbn, identified: _onePiece(_isbn));
+
+      expect(shelf.volumes, hasLength(2));
     });
   });
 
@@ -915,6 +1375,50 @@ class _GatedLookup extends Fake implements VolumeLookup {
   Future<IdentifiedVolume?> lookUp(String isbn) {
     calls++;
     return _answer();
+  }
+
+  /// Aucune notice par numéro, réponse définitive.
+  @override
+  Future<({BookMetadata? record, bool settled})> findByNumber(
+    String seriesName,
+    Set<String> keys,
+    int number, {
+    String? publisher,
+    bool askGoogle = true,
+  }) async => (record: null, settled: true);
+}
+
+/// Session que le test change en cours de route.
+class _Uid extends Notifier<String?> {
+  @override
+  String? build() => 'u1';
+
+  void change(String? uid) => state = uid;
+}
+
+/// Recherche par numéro qui attend [_gate] avant de répondre.
+class _GatedNumbers extends RecordingVolumeLookup {
+  _GatedNumbers(this._gate, Map<(String, int), BookMetadata> numbered)
+    : super(numbered: numbered);
+
+  final Future<void> _gate;
+
+  @override
+  Future<({BookMetadata? record, bool settled})> findByNumber(
+    String seriesName,
+    Set<String> keys,
+    int number, {
+    String? publisher,
+    bool askGoogle = true,
+  }) async {
+    await _gate;
+    return super.findByNumber(
+      seriesName,
+      keys,
+      number,
+      publisher: publisher,
+      askGoogle: askGoogle,
+    );
   }
 }
 

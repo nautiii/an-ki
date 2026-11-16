@@ -1645,6 +1645,33 @@ class AppLocalizationsFr extends AppLocalizations {
   String get burstNotFound => 'Introuvable · Classer';
 
   @override
+  String previousVolumesRange(int first, int last) {
+    return 'J\'ai aussi les tomes $first à $last';
+  }
+
+  @override
+  String previousVolumesMissing(int count, int number) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'J\'ai aussi les $count tomes manquants',
+      one: 'J\'ai aussi le tome $number',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String previousVolumesAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tomes ajoutés · infos en cours',
+      one: '$count tome ajouté · infos en cours',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String burstAlreadyOwned(String volume) {
     return 'Déjà dans votre collection · $volume';
   }

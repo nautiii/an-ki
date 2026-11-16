@@ -162,6 +162,13 @@ Ids (B, D, F, Q, S) are this backlog's; elsewhere cite them as « ux D17 ». The
   stays, buttons disabled, until then; a refused write frees it); « Plus tard » writes
   `books: false`, so it never returns on any device. The lot is complete, apart from the rules
   deploy (step 6) and the phone checks (`migration.md` §1).
+  « J'ai aussi les tomes précédents », built on 2026-11-15: a shelved row of the burst and the
+  volume sheet offer « J'ai aussi les tomes 1 à 107 » (« le tome 4 », « les 3 tomes manquants »)
+  when the series lacks numbers before it; one tap adds them at once, offline included (light
+  vibration, « 107 tomes ajoutés · infos en cours » with Annuler), and their records are searched
+  by series and number (BnF, then Google Books; the series' usual publisher (else the records' most frequent one), then a volume numbered in its collection, then the latest printing; 40 per pass; measured on the emulator: without the collection rule, One Piece 1 and 2 took the « Color walk » art book).
+  The « Ajouter une série » numbers are searched the same way. A later scan of such a number
+  replaces it; its found ISBN says « déjà dans votre collection ».
   6. `FEAT(books): series and volumes`: domain, repositories (Firestore, BnF, Google), rules,
      emulator tests and deployment, eraser and guest transfer, legacy import;
   7. `FEAT(books): shelf and series pages`: shelf, series page, volume sheet, « À classer », the

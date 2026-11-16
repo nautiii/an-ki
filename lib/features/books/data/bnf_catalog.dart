@@ -6,6 +6,7 @@ import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/book_metadata.dart';
 import 'package:an_ki/features/books/domain/isbn.dart';
 import 'package:an_ki/features/books/domain/release_date.dart';
+import 'package:an_ki/features/books/domain/series_key.dart';
 import 'package:an_ki/features/books/domain/volume_number.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -181,20 +182,31 @@ BookMetadata? _metadataFromRecord(XmlElement record, String? isbn) {
   ];
 
   final publication = _publicationField(tagged('214'), tagged('210'));
+  final collections = [
+    for (final field in tagged('225'))
+      // Une collection d'éditeur porte un ISSN ($x) : pas une série.
+      if (field.first('a') case final name? when field.first('x') == null)
+        _Series(name, parseVolumeNumber(field.first('v') ?? '')),
+  ];
   final series = _chooseSeries(
     linked: [
       for (final field in tagged('461'))
         if (field.first('t') case final name?)
           _Series(name, parseVolumeNumber(field.first('v') ?? '')),
     ],
-    collections: [
-      for (final field in tagged('225'))
-        // Une collection d'éditeur porte un ISSN ($x) : pas une série.
-        if (field.first('a') case final name? when field.first('x') == null)
-          _Series(name, parseVolumeNumber(field.first('v') ?? '')),
-    ],
+    collections: collections,
     part: partSeries,
   );
+  // La collection de l'éditeur numérote ce tome dans cette série (« One
+  // piece ; tome 1 ») : un tome courant, pas un art-book ni un coffret que
+  // le 461 rattache aussi à la série.
+  final numberedInCollection =
+      series?.number != null &&
+      collections.any(
+        (c) =>
+            c.number == series!.number &&
+            seriesKey(c.name) == seriesKey(series.name),
+      );
 
   return BookMetadata(
     title: title,
@@ -204,6 +216,9 @@ BookMetadata? _metadataFromRecord(XmlElement record, String? isbn) {
     publishedDate: _publicationDate(publication?.first('d')),
     seriesTitle: series?.name,
     seriesNumber: series?.number,
+    numberedInCollection: numberedInCollection,
+    // L'ISBN demandé, sinon le premier de la notice (010 `$a` d'abord).
+    isbn: isbn ?? noticeIsbns.firstOrNull,
   );
 }
 

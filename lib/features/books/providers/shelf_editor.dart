@@ -4,13 +4,16 @@ import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
+import 'package:an_ki/features/books/domain/book_metadata.dart';
 import 'package:an_ki/features/books/domain/isbn.dart';
 import 'package:an_ki/features/books/domain/release_check.dart';
 import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/series_key.dart';
+import 'package:an_ki/features/books/domain/shelf.dart';
 import 'package:an_ki/features/books/domain/shelf_failure.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
+import 'package:an_ki/features/books/domain/volume_backfill.dart';
 import 'package:an_ki/features/books/domain/volume_identification.dart';
 import 'package:an_ki/features/books/domain/volume_placement.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
@@ -34,11 +37,24 @@ class ShelfEditor extends AsyncNotifier<void> {
   /// Vrai pendant une passe de [completePending].
   bool _completing = false;
 
+  /// Vrai quand des tomes sont arrivés pendant une passe : elle en refait une.
+  bool _again = false;
+
+  /// Tomes sans ISBN ajoutés par cet éditeur, à compléter, tant que le flux
+  /// des tomes ne les montre pas encore (l'écriture vient de partir).
+  final _queued = <String, Volume>{};
+
+  /// Tomes laissés en attente faute de Google : cherchés après les autres,
+  /// pour qu'ils ne bloquent pas la file à chaque ouverture.
+  final _waitingGoogle = <String>{};
+
   @override
   FutureOr<void> build() {
     // Une autre session repart de zéro.
     ref.watch(currentUidProvider);
     _createdSeries.clear();
+    _queued.clear();
+    _waitingGoogle.clear();
     // L'éditeur range d'après l'étagère : ses flux restent en vie avec lui,
     // même sans écran qui les regarde (sinon chaque scan créerait sa série).
     ref
@@ -96,50 +112,111 @@ class ShelfEditor extends AsyncNotifier<void> {
         );
       }
       final result = await _lookedUp(uid, volume, written: existing == null);
-      if (!ref.mounted) return;
+      if (_stale(uid)) return;
       completion = result.completion;
     }
     if (completion != null) writes.add(_save(uid, completion));
     await _settle(writes);
   }
 
-  /// Complète les tomes en attente (scannés hors ligne) : une recherche par
-  /// tome, dans l'ordre ; la première erreur de réseau ou de quota arrête la
-  /// passe sans rien marquer introuvable. Une seule passe à la fois. Attend
-  /// la première lecture des tomes (un écran qui s'ouvre l'appelle aussitôt) ;
-  /// une étagère illisible ne lance rien.
+  /// Complète les tomes en attente : d'abord les scannés hors ligne (une
+  /// recherche par ISBN), puis les tomes ajoutés sans ISBN (« les tomes
+  /// précédents », une série ajoutée à la main), par leur série et leur
+  /// numéro, [backfillsPerPass] au plus par appel. La première erreur de
+  /// réseau ou de quota arrête la passe sans rien marquer introuvable ;
+  /// Google en échec laisse seulement en attente les tomes que la BnF ne
+  /// connaît pas, cherchés ensuite après les autres.
+  ///
+  /// Une seule passe à la fois : un appel pendant une passe en demande une
+  /// autre à sa fin (des tomes viennent d'être ajoutés), qui ne reprend pas
+  /// les tomes déjà traités (le flux peut ne pas encore montrer leurs
+  /// écritures) et partage la limite de l'appel. Un changement de compte
+  /// arrête tout. Attend la première lecture des tomes (un écran qui s'ouvre
+  /// l'appelle aussitôt) ; une étagère illisible ne lance rien.
   Future<void> completePending() async {
     final uid = ref.read(currentUidProvider);
-    if (uid == null || _completing) return;
+    if (uid == null) return;
+    if (_completing) {
+      _again = true;
+      return;
+    }
     _completing = true;
     final writes = <Future<AsyncValue<void>>>[];
+    final done = <String>{};
+    final budget = _Budget(backfillsPerPass);
+    var started = false;
     try {
-      final List<Volume> volumes;
-      try {
-        volumes = await ref.read(bookVolumesProvider.future);
-      } on Object {
-        return;
-      }
-      if (!ref.mounted) return;
-      final pending = [
-        for (final volume in volumes)
-          if (volume.lookup == LookupState.pending && volume.isbn != null)
-            volume,
-      ];
-      if (pending.isEmpty) return;
-      state = const AsyncLoading();
-      for (final volume in pending) {
-        final result = await _lookedUp(uid, volume);
-        if (!ref.mounted) return;
-        if (!result.ok) break;
-        if (result.completion case final completion?) {
-          writes.add(_save(uid, completion));
-        }
-      }
+      do {
+        _again = false;
+        final pass = await _completionPass(uid, writes, done, budget);
+        started = started || pass.started;
+        if (!pass.ok) break;
+      } while (_again && !_stale(uid));
     } finally {
       _completing = false;
     }
-    await _settle(writes);
+    if (started) await _settle(writes);
+  }
+
+  /// Vrai quand ce qui a été lu pour [uid] ne vaut plus : éditeur libéré,
+  /// ou un autre compte connecté entre-temps (l'éditeur survit à ce
+  /// changement, `ref.mounted` reste vrai).
+  bool _stale(String uid) =>
+      !ref.mounted || ref.read(currentUidProvider) != uid;
+
+  /// Une passe de [completePending] ; `ok` faux quand elle s'est arrêtée
+  /// (réseau, quota, éditeur libéré, autre compte, étagère illisible),
+  /// `started` vrai quand elle avait des tomes à compléter. [done] : les
+  /// tomes déjà traités par cet appel, passés ; chaque tome traité s'y
+  /// ajoute. [budget] : les recherches par numéro qui restent à l'appel.
+  Future<({bool ok, bool started})> _completionPass(
+    String uid,
+    List<Future<AsyncValue<void>>> writes,
+    Set<String> done,
+    _Budget budget,
+  ) async {
+    final List<Volume> volumes;
+    try {
+      volumes = await ref.read(bookVolumesProvider.future);
+    } on Object {
+      return (ok: false, started: false);
+    }
+    if (_stale(uid)) return (ok: false, started: false);
+    final scanned = [
+      for (final volume in volumes)
+        if (volume.lookup == LookupState.pending &&
+            volume.isbn != null &&
+            !done.contains(volume.id))
+          volume,
+    ];
+    final seen = {for (final volume in volumes) volume.id};
+    _queued.removeWhere((id, _) => seen.contains(id));
+    final numbered = [
+      for (final volume in [...volumes, ..._queued.values])
+        if (awaitsBackfill(volume) && !done.contains(volume.id)) volume,
+    ]..sort(_backfillOrder);
+    if (scanned.isEmpty && numbered.isEmpty) return (ok: true, started: false);
+    state = const AsyncLoading();
+    for (final volume in scanned) {
+      done.add(volume.id);
+      final result = await _lookedUp(uid, volume);
+      if (_stale(uid) || !result.ok) return (ok: false, started: true);
+      if (result.completion case final completion?) {
+        writes.add(_save(uid, completion));
+      }
+    }
+    var googleDown = false;
+    for (final volume in numbered) {
+      if (budget.left == 0) break;
+      done.add(volume.id);
+      // La BnF ne le connaît pas, Google ne répond pas : rien à redemander.
+      if (googleDown && _waitingGoogle.contains(volume.id)) continue;
+      final result = await _backfill(uid, volume, askGoogle: !googleDown);
+      if (result == null) return (ok: false, started: true);
+      if (result.searched) budget.left--;
+      if (!result.settled) googleDown = true;
+    }
+    return (ok: true, started: true);
   }
 
   /// Ajoute à la main la série [name] avec les tomes [numbers] (une
@@ -189,11 +266,12 @@ class ShelfEditor extends AsyncNotifier<void> {
             number: number,
             title: '',
             authors: const [],
-            // Rien à chercher sans ISBN : le tome est complet tel quel.
-            lookup: LookupState.found,
+            // Cherché ensuite par sa série et son numéro.
+            lookup: LookupState.pending,
             addedAt: now,
           ),
     ];
+    _queue(volumes);
     unawaited(
       _write(
         (repository, uid) => repository.addManualVolumes(
@@ -231,6 +309,63 @@ class ShelfEditor extends AsyncNotifier<void> {
     (repository, uid) => repository.deleteVolume(uid, volumeId),
     startedBy: uid,
   );
+
+  /// « J'ai aussi les tomes précédents » : ajoute à la série du tome
+  /// [volumeId] les numéros qu'elle n'a pas avant le sien
+  /// ([missingBefore]), sans ISBN et en attente, aussitôt (hors ligne
+  /// compris), puis lance leur recherche ([completePending]). Renvoie leurs
+  /// ids, pour « Annuler » ; vide quand il n'y a rien à ajouter (tome à
+  /// classer, aucun trou avant lui) ou hors session.
+  List<String> addPrevious(String volumeId) {
+    final uid = ref.read(currentUidProvider);
+    if (uid == null) return const [];
+    final volume = _volumes().where((v) => v.id == volumeId).firstOrNull;
+    final seriesId = volume?.seriesId;
+    final number = volume?.number;
+    if (seriesId == null || number == null) return const [];
+    final entry = shelfOf(
+      _series(),
+      _volumes(),
+    ).entries.where((entry) => entry.series.id == seriesId).firstOrNull;
+    if (entry == null) return const [];
+    // Déjà ajoutés, mais pas encore montrés par le flux (double toucher,
+    // deux lignes d'une même série) : pas de doublon.
+    final queued = {
+      for (final volume in _queued.values)
+        if (volume.seriesId == seriesId) ?volume.number,
+    };
+    final repository = ref.read(bookshelfRepositoryProvider);
+    final now = ref.read(clockProvider)();
+    final volumes = [
+      for (final missing in missingBefore(entry, number))
+        if (!queued.contains(missing))
+          Volume(
+            id: repository.newVolumeId(uid),
+            seriesId: seriesId,
+            number: missing,
+            title: '',
+            authors: const [],
+            lookup: LookupState.pending,
+            addedAt: now,
+          ),
+    ];
+    if (volumes.isEmpty) return const [];
+    _queue(volumes);
+    unawaited(
+      _write((repository, uid) => repository.addManualVolumes(uid, volumes)),
+    );
+    return [for (final volume in volumes) volume.id];
+  }
+
+  /// Retire les tomes [volumeIds] (« Annuler » de [addPrevious]). [uid] :
+  /// voir [_write].
+  Future<void> removeVolumes(List<String> volumeIds, {String? uid}) {
+    _queued.removeWhere((id, _) => volumeIds.contains(id));
+    return _write(
+      (repository, uid) => repository.deleteVolumes(uid, volumeIds),
+      startedBy: uid,
+    );
+  }
 
   /// Crée la série [name] et renvoie son id aussitôt (hors ligne compris) ;
   /// null pour un nom vide ou hors session.
@@ -350,7 +485,9 @@ class ShelfEditor extends AsyncNotifier<void> {
     } on BookFailure {
       return (ok: false, completion: null);
     }
-    if (!ref.mounted) return (ok: false, completion: null);
+    // Un autre compte entre-temps : rien de celui-ci ne passe à l'autre (pas
+    // même une série neuve dans `_createdSeries`).
+    if (_stale(uid)) return (ok: false, completion: null);
     // Relu après l'attente : pendant la recherche, l'utilisateur a pu retirer
     // le tome ou le ranger ; la complétion ne le recrée ni ne le déplace.
     final known = ref.read(bookVolumesProvider).value;
@@ -371,6 +508,107 @@ class ShelfEditor extends AsyncNotifier<void> {
       );
     }
     return (ok: true, completion: _completedWith(uid, current, found));
+  }
+
+  /// Garde [volumes] (sans ISBN, en attente) à compléter, puis lance la
+  /// recherche ; ils comptent avant même que le flux des tomes les montre.
+  void _queue(List<Volume> volumes) {
+    if (volumes.isEmpty) return;
+    for (final volume in volumes) {
+      _queued[volume.id] = volume;
+    }
+    unawaited(completePending());
+  }
+
+  /// Cherche [volume] (sans ISBN) par sa série et son numéro, et écrit ce
+  /// qu'on en a trouvé, sans l'attendre et en silence (rien n'a été demandé :
+  /// un tome retiré entre-temps fait échouer l'écriture, sans plus). Null
+  /// quand la BnF n'a pas pu répondre, que l'éditeur n'est plus monté ou que
+  /// le compte a changé (la passe s'arrête) ; `searched` faux quand rien n'a
+  /// été demandé (tome retiré, déplacé ou complété depuis la liste de la
+  /// passe) ; `settled` faux quand Google, nécessaire, n'a pas pu répondre
+  /// (le tome reste en attente).
+  Future<({bool searched, bool settled})?> _backfill(
+    String uid,
+    Volume volume, {
+    required bool askGoogle,
+  }) async {
+    final seriesId = volume.seriesId!;
+    final number = volume.number!;
+    const skipped = (searched: false, settled: true);
+    // Relu avant de rien demander : « Annuler », un scan qui le remplace ou
+    // une série supprimée l'ont peut-être déjà retiré.
+    if (!_stillAwaits(volume.id, seriesId, number)) {
+      _queued.remove(volume.id);
+      return skipped;
+    }
+    final entry = shelfOf(
+      _series(),
+      _volumes(),
+    ).entries.where((entry) => entry.series.id == seriesId).firstOrNull;
+    // Série pas encore montrée par le flux, ou supprimée : rien à chercher.
+    if (entry == null) return skipped;
+    final ({BookMetadata? record, bool settled}) found;
+    try {
+      found = await ref
+          .read(volumeLookupProvider)
+          .findByNumber(
+            entry.series.name,
+            keysOf(entry.series).toSet(),
+            number,
+            publisher: usualPublisherOf(entry),
+            askGoogle: askGoogle,
+          );
+    } on BookFailure {
+      return null;
+    }
+    if (_stale(uid)) return null;
+    if (!found.settled) {
+      _waitingGoogle.add(volume.id);
+      return (searched: true, settled: false);
+    }
+    _waitingGoogle.remove(volume.id);
+    // Relu après l'attente : retiré, déplacé ou renuméroté entre-temps, il
+    // n'est pas complété avec la notice d'un autre tome.
+    final current = _awaiting(volume.id);
+    final stillAwaits = _stillAwaits(volume.id, seriesId, number);
+    _queued.remove(volume.id);
+    if (current != null && stillAwaits) {
+      unawaited(
+        AsyncValue.guard(
+          () => ref
+              .read(bookshelfRepositoryProvider)
+              .completeVolume(uid, backfilled(current, found.record)),
+        ),
+      );
+    }
+    return (searched: true, settled: true);
+  }
+
+  /// Le tome [id] tel que l'éditeur le connaît : le flux, sinon la file.
+  Volume? _awaiting(String id) =>
+      _volumes().where((v) => v.id == id).firstOrNull ?? _queued[id];
+
+  /// Vrai quand le tome [id] attend toujours sa recherche, au numéro
+  /// [number] de [seriesId].
+  bool _stillAwaits(String id, String seriesId, int number) {
+    final current = _awaiting(id);
+    return current != null &&
+        awaitsBackfill(current) &&
+        current.seriesId == seriesId &&
+        current.number == number;
+  }
+
+  /// Ordre des recherches par numéro : ceux qui attendaient Google en
+  /// dernier, puis les plus anciens ajouts, puis par numéro (une série
+  /// ajoutée se complète dans l'ordre de ses tomes).
+  int _backfillOrder(Volume a, Volume b) {
+    final waiting = (_waitingGoogle.contains(a.id) ? 1 : 0).compareTo(
+      _waitingGoogle.contains(b.id) ? 1 : 0,
+    );
+    if (waiting != 0) return waiting;
+    final byAdded = a.addedAt.compareTo(b.addedAt);
+    return byAdded != 0 ? byAdded : (a.number ?? 0).compareTo(b.number ?? 0);
   }
 
   /// [volume] complété par [found] : rangé dans sa série, ou « à classer »,
@@ -413,18 +651,32 @@ class ShelfEditor extends AsyncNotifier<void> {
     );
   }
 
-  /// Écrit [completion] : le tome et sa série neuve dans un même lot. Refusée,
-  /// la série neuve est oubliée : les scans suivants ne s'y rangent pas.
+  /// Écrit [completion] : le tome, sa série neuve, et le retrait des tomes
+  /// non scannés qu'il remplace ([replacedByScan]), dans un même lot.
+  /// Refusée, la série neuve est oubliée : les scans suivants ne s'y rangent
+  /// pas.
   Future<AsyncValue<void>> _save(String uid, _Completion completion) async {
     final repository = ref.read(bookshelfRepositoryProvider);
     final newSeries = completion.newSeries;
+    final volume = completion.volume;
+    final replacing = switch ((volume.seriesId, volume.number)) {
+      (final seriesId?, final number?) => replacedByScan(
+        [..._volumes(), ..._queued.values],
+        seriesId: seriesId,
+        number: number,
+        scannedId: volume.id,
+      ),
+      _ => const <String>[],
+    };
+    _queued.removeWhere((id, _) => replacing.contains(id));
     final result = await AsyncValue.guard(
       () => repository.saveScannedVolume(
         uid,
-        completion.volume,
+        volume,
         withSeries: newSeries == null
             ? null
             : (series: newSeries, createdAt: ref.read(clockProvider)()),
+        replacing: replacing,
       ),
     );
     if (result.hasError && newSeries != null) {
@@ -464,6 +716,14 @@ class ShelfEditor extends AsyncNotifier<void> {
 
 /// Un tome à écrire, et la série neuve qu'il ouvre.
 typedef _Completion = ({Volume volume, Series? newSeries});
+
+/// Les recherches par numéro qui restent à un appel de `completePending`,
+/// toutes passes comprises.
+class _Budget {
+  _Budget(this.left);
+
+  int left;
+}
 
 Volume _withLookup(Volume volume, LookupState lookup) => Volume(
   id: volume.id,

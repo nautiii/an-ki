@@ -23,6 +23,15 @@ class const BookMetadata({
   /// Numéro du tome dans la série, quand la source le structure et qu'il est
   /// entier.
   final int? seriesNumber,
+
+  /// Vrai quand la collection de l'éditeur (BnF 225) numérote ce tome dans
+  /// cette série : un tome courant. Un art-book ou un coffret que la BnF
+  /// rattache aussi à la série (461) ne l'est pas.
+  final bool numberedInCollection = false,
+
+  /// ISBN-13 normalisé que la source donne pour ce livre : ce qu'on garde
+  /// d'un tome trouvé par son titre (`searchVolume`), pas par son ISBN.
+  final String? isbn,
 }) {
   @override
   bool operator ==(Object other) =>
@@ -34,7 +43,9 @@ class const BookMetadata({
       other.publishedDate == publishedDate &&
       other.imageUrl == imageUrl &&
       other.seriesTitle == seriesTitle &&
-      other.seriesNumber == seriesNumber;
+      other.seriesNumber == seriesNumber &&
+      other.numberedInCollection == numberedInCollection &&
+      other.isbn == isbn;
 
   @override
   int get hashCode => Object.hash(
@@ -46,6 +57,8 @@ class const BookMetadata({
     imageUrl,
     seriesTitle,
     seriesNumber,
+    numberedInCollection,
+    isbn,
   );
 }
 
@@ -83,6 +96,8 @@ BookMetadata? mergeMetadata(BookMetadata? bnf, BookMetadata? google) {
     imageUrl: google.imageUrl ?? bnf.imageUrl,
     seriesTitle: useBnfSeries ? bnf.seriesTitle : google.seriesTitle,
     seriesNumber: useBnfSeries ? bnf.seriesNumber : google.seriesNumber,
+    numberedInCollection: useBnfSeries && bnf.numberedInCollection,
+    isbn: bnf.isbn ?? google.isbn,
   );
 }
 

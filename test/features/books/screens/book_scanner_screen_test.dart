@@ -285,6 +285,38 @@ void main() {
       expect(find.byType(VolumeSheet), findsOneWidget);
     });
 
+    testWidgets('a shelved volume offers the previous ones, with « Annuler »', (
+      tester,
+    ) async {
+      final repo = RecordingBookshelfRepository(
+        series: const [_series],
+        volumes: [_owned],
+      );
+      final lookup = RecordingVolumeLookup(found: _onePiece);
+      await pumpScreen(tester, repo: repo, lookup: lookup);
+
+      detect(tester, _other);
+      await settle(tester);
+      // 109 scanné, 107 déjà là : il manque 1 à 106 et 108.
+      final offer = find.text("J'ai aussi les 107 tomes manquants");
+      expect(offer, findsOneWidget);
+
+      await tester.tap(offer);
+      await tester.pump();
+
+      expect(find.text('107 tomes ajoutés · infos en cours'), findsOneWidget);
+      expect(repo.volumes, hasLength(109));
+      // Rangés aussitôt : la ligne ne propose plus rien.
+      await settle(tester);
+      expect(offer, findsNothing);
+      expect(lookup.searched, isNotEmpty);
+
+      await tester.tap(find.text('Annuler'));
+      await settle(tester);
+
+      expect(repo.volumes.map((v) => v.id), unorderedEquals([_isbn, _other]));
+    });
+
     testWidgets('a typed ISBN is checked, then added like a scan', (
       tester,
     ) async {

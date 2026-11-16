@@ -4,8 +4,10 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/domain/isbn.dart';
 import 'package:an_ki/features/books/domain/shelf.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
+import 'package:an_ki/features/books/domain/volume_backfill.dart';
 import 'package:an_ki/features/books/providers/shelf_editor.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Ce que devient un code lu (caméra) ou saisi pendant une rafale.
@@ -49,6 +51,10 @@ class const BurstRow({
 
   /// Titre trouvé (vide tant qu'il est en attente).
   final String title = '',
+
+  /// Numéros d'avant que sa série n'a pas ([missingBefore]) : « J'ai aussi
+  /// les tomes 1 à 107 ». Vide pour un tome à classer.
+  final List<int> missingPrevious = const [],
 }) {
   @override
   bool operator ==(Object other) =>
@@ -57,10 +63,18 @@ class const BurstRow({
       other.status == status &&
       other.seriesName == seriesName &&
       other.number == number &&
-      other.title == title;
+      other.title == title &&
+      listEquals(other.missingPrevious, missingPrevious);
 
   @override
-  int get hashCode => Object.hash(isbn, status, seriesName, number, title);
+  int get hashCode => Object.hash(
+    isbn,
+    status,
+    seriesName,
+    number,
+    title,
+    Object.hashAll(missingPrevious),
+  );
 }
 
 /// Le résultat d'un code : son sort, et la ligne du tome concerné (l'ajouté,
@@ -180,41 +194,54 @@ final burstRowsProvider = Provider.autoDispose<List<BurstRow>>((ref) {
 });
 
 /// La ligne du tome [isbn] d'après [shelf] ; en attente tant que l'étagère ne
-/// le montre pas encore.
+/// le montre pas encore. Un tome scanné a cet ISBN pour id ; à défaut, la
+/// ligne est celle du tome qui porte cet ISBN (trouvé par « les tomes
+/// précédents »).
 BurstRow burstRowOf(String isbn, Shelf? shelf) {
   if (shelf == null) {
     return BurstRow(isbn: isbn, status: BurstRowStatus.pending);
   }
-  for (final entry in shelf.entries) {
-    for (final volume in entry.volumes) {
-      if (volume.id == isbn) {
-        return BurstRow(
-          isbn: isbn,
-          status: BurstRowStatus.classified,
-          seriesName: entry.series.name,
-          number: volume.number,
-          title: volume.title,
-        );
+  for (final byIsbnField in const [false, true]) {
+    bool matches(Volume volume) =>
+        byIsbnField ? volume.isbn == isbn : volume.id == isbn;
+    for (final entry in shelf.entries) {
+      for (final volume in entry.volumes) {
+        if (matches(volume)) {
+          return BurstRow(
+            isbn: isbn,
+            status: BurstRowStatus.classified,
+            seriesName: entry.series.name,
+            number: volume.number,
+            title: volume.title,
+            missingPrevious: missingBefore(entry, volume.number!),
+          );
+        }
       }
     }
-  }
-  final volume = shelf.unclassified.where((v) => v.id == isbn).firstOrNull;
-  return BurstRow(
-    isbn: isbn,
-    status: switch (volume?.lookup) {
-      null || LookupState.pending => BurstRowStatus.pending,
-      LookupState.notFound => BurstRowStatus.notFound,
-      LookupState.found => BurstRowStatus.unclassified,
-    },
-    title: volume?.title ?? '',
-  );
-}
-
-Volume? _volumeOf(Shelf shelf, String isbn) {
-  for (final entry in shelf.entries) {
-    for (final volume in entry.volumes) {
-      if (volume.id == isbn) return volume;
+    if (shelf.unclassified.where(matches).firstOrNull case final volume?) {
+      return _unclassifiedRow(isbn, volume);
     }
   }
-  return shelf.unclassified.where((v) => v.id == isbn).firstOrNull;
+  return _unclassifiedRow(isbn, null);
+}
+
+BurstRow _unclassifiedRow(String isbn, Volume? volume) => BurstRow(
+  isbn: isbn,
+  status: switch (volume?.lookup) {
+    null || LookupState.pending => BurstRowStatus.pending,
+    LookupState.notFound => BurstRowStatus.notFound,
+    LookupState.found => BurstRowStatus.unclassified,
+  },
+  title: volume?.title ?? '',
+);
+
+/// Le tome [isbn] de [shelf] : celui qui l'a pour id (scanné), sinon celui
+/// qui porte cet ISBN (trouvé par « les tomes précédents »).
+Volume? _volumeOf(Shelf shelf, String isbn) {
+  final volumes = [
+    for (final entry in shelf.entries) ...entry.volumes,
+    ...shelf.unclassified,
+  ];
+  return volumes.where((v) => v.id == isbn).firstOrNull ??
+      volumes.where((v) => v.isbn == isbn).firstOrNull;
 }

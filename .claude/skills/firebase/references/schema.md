@@ -301,16 +301,18 @@ the marked address deletes a marked document (§10). Added 2026-11-09, rules **n
 
 A volume the user owns. **Id = its ISBN-13** for a scanned volume (normalised, check digit
 verified): rescanning, offline or from two devices, rewrites the same document; a legacy book
-whose ISBN is unreadable keeps its `books` id. Owner: the path. Rules: as §11.
+whose ISBN is unreadable keeps its `books` id; a volume added without scanning (« Ajouter une
+série », « J'ai aussi les tomes … ») has a client id (`newVolumeId`), even once a search gave it an
+`isbn`. Owner: the path. Rules: as §11.
 
 | Field | Type | Meaning, default when absent |
 |-------|------|------------------------------|
 | `seriesId`, `number` | string, int, optional | its series and whole number; absent (or a series that no longer exists, or a number outside 1–1000) → « à classer » |
-| `isbn` | string, optional | ISBN-13 |
+| `isbn` | string, optional | ISBN-13: the scanned one (= the id), or the one of the record found by series and number for a volume added without scanning (since 2026-11-15); a scan of that ISBN is « déjà dans votre collection » |
 | `title` | string | catalogue title, then « : subtitle »; written only when not empty; `''` |
 | `authors` | array of string | written only when not empty; `[]` |
 | `imageUrl`, `publisher`, `publishedDate` | string, optional | from the catalogues (`publishedDate` as the source gives it: `2013`, `2013-06-28`) |
-| `lookup` | string `found` · `notFound` | metadata search; **`pending` is never written** (a merge must not downgrade a found volume): absent → `found` with a title, else `pending` |
+| `lookup` | string `found` · `notFound` | metadata search; **`pending` is never written** (a merge must not downgrade a found volume): absent → `found` with a title, else `pending`. A volume added without scanning is written without it (pending), then searched by its series and number; the volumes added by hand before 2026-11-15 carry `found` and are never searched |
 | `addedAt` | timestamp | the app's clock at the scan (legacy: its `scannedAt`); absent → the oldest |
 | `transferTo` | string, optional | guest move (§10) |
 
@@ -325,8 +327,16 @@ whose ISBN is unreadable keeps its `books` id. Owner: the path. Rules: as §11.
   `VolumeLookup`): found → its series (same key, or a new one at medium or high confidence) or
   unclassified; unknown to both → `notFound`; network or quota error → stays pending, for
   `completePending`. A volume removed or classified during the lookup is neither recreated nor
-  moved. The pending path and `completePending` are not called by any screen yet (step 8:
-  burst scanning, offline queue).
+  moved. `completePending` (every Livres page, on opening and resume) then searches the volumes
+  added without scanning by series name and number (BnF, then Google Books when the BnF has no
+  record; `describesVolume` checks the series key and number; then the series' usual publisher (else the most frequent among the records), a volume numbered in its publisher's collection (BnF 225, not an art book or box set the 461 also links) and the latest printing first: `backfillRecordOf`),
+  40 per pass: found → `completeVolume` (`update`, so a volume removed by « Annuler » is not
+  recreated) with title, authors, cover, publisher, date and `isbn`; known nowhere → `found`
+  without title; BnF error → the pass stops; Google error → stays pending. A scanned volume placed
+  at a number already held by a volume that was not scanned replaces it in the same batch
+  (`saveScannedVolume(replacing:)`); two scanned editions of a number both stay.
+  `addManualVolumes` writes the volumes added without scanning; `deleteVolumes` removes them
+  (« Annuler »).
 - Read by `watchVolumes` (whole subcollection, stream; `bookVolumesProvider`, joined with the
   series by `shelfOf` in `shelfProvider`), `fetchShelf` (server read) and `mergeSeries` (`where
   seriesId ==`, cache or server).

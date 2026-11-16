@@ -437,4 +437,22 @@ void main() {
       expect(words.published(' vers 1990 '), 'Paru en vers 1990');
     });
   });
+
+  testWidgets('previousVolumesLabel: a run, one volume, or a count', (
+    tester,
+  ) async {
+    final context = await tester.pumpLocalizedContext();
+    final l10n = AppLocalizations.of(context);
+
+    expect(
+      previousVolumesLabel(l10n, [for (var n = 1; n < 108; n++) n]),
+      "J'ai aussi les tomes 1 à 107",
+    );
+    expect(previousVolumesLabel(l10n, [3, 4, 5]), "J'ai aussi les tomes 3 à 5");
+    expect(previousVolumesLabel(l10n, [4]), "J'ai aussi le tome 4");
+    expect(
+      previousVolumesLabel(l10n, [1, 2, 5]),
+      "J'ai aussi les 3 tomes manquants",
+    );
+  });
 }

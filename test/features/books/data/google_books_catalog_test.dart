@@ -106,6 +106,46 @@ void main() {
       );
     });
 
+    test('the ISBN-13 of industryIdentifiers, normalized', () async {
+      final catalog = catalogReturning(
+        (_) => json200(
+          volumes({
+            'title': 'One Piece - Tome 3',
+            'industryIdentifiers': [
+              {'type': 'ISBN_10', 'identifier': '2723488527'},
+              {'type': 'ISBN_13', 'identifier': '978-2-7234-8852-5'},
+            ],
+          }),
+        ),
+      );
+
+      expect((await catalog.fetchByIsbn(_isbn))?.isbn, '9782723488525');
+    });
+
+    test('no ISBN-13, or a wrong one: no ISBN', () async {
+      Future<String?> isbnOf(List<Object> identifiers) async {
+        final catalog = catalogReturning(
+          (_) => json200(
+            volumes({'title': 'X', 'industryIdentifiers': identifiers}),
+          ),
+        );
+        return (await catalog.fetchByIsbn(_isbn))?.isbn;
+      }
+
+      expect(
+        await isbnOf([
+          {'type': 'OTHER', 'identifier': 'UOM:39015'},
+        ]),
+        isNull,
+      );
+      expect(
+        await isbnOf([
+          {'type': 'ISBN_13', 'identifier': '9782723488520'},
+        ]),
+        isNull,
+      );
+    });
+
     test('a minimal volume', () async {
       final catalog = catalogReturning(
         (_) => json200(volumes({'title': 'Blacksad'})),

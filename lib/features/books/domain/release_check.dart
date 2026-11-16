@@ -2,7 +2,6 @@ import 'package:an_ki/features/books/domain/book_metadata.dart';
 import 'package:an_ki/features/books/domain/next_volume_status.dart';
 import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/domain/series.dart';
-import 'package:an_ki/features/books/domain/series_key.dart';
 import 'package:an_ki/features/books/domain/shelf.dart';
 import 'package:an_ki/features/books/domain/volume_guess.dart';
 
@@ -223,20 +222,8 @@ _Match? _matchOf(ShelfEntry entry, int number, List<BookMetadata> records) {
   final dates = <ReleaseDate>[];
   final years = <int>[];
   var found = false;
-  bool matches(VolumeGuess? guess) =>
-      guess != null &&
-      guess.confidence != GuessConfidence.low &&
-      guess.number == number &&
-      keys.contains(seriesKey(guess.seriesName));
   for (final record in records) {
-    // La collection d'une notice n'est pas toujours la série, et une étagère
-    // peut garder une série devinée avant la correction de `guessVolume`
-    // (« Shonen One Piece » pour « One Piece - Tome 113 »). Le titre seul est
-    // donc lu aussi.
-    if (!matches(guessVolume(record)) &&
-        !matches(guessVolume(_titleOnly(record)))) {
-      continue;
-    }
+    if (!describesVolume(record, keys, number)) continue;
     found = true;
     final published = record.publishedDate ?? '';
     if (ReleaseDate.tryParse(published) case final date?) {
@@ -270,13 +257,6 @@ NextVolumeInfo enteredRelease(int number, ReleaseDate date, DateTime now) =>
       source: ReleaseSource.user,
       checkedAt: now,
     );
-
-/// [record] sans sa série structurée : ce que son titre dit seul.
-BookMetadata _titleOnly(BookMetadata record) => BookMetadata(
-  title: record.title,
-  subtitle: record.subtitle,
-  authors: record.authors,
-);
 
 /// Un millésime de quatre chiffres.
 final _year = RegExp(r'\d{4}');

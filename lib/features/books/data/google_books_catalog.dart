@@ -163,7 +163,19 @@ BookMetadata _metadataFromVolume(Map<String, dynamic> item) {
       'https:',
     ),
     seriesNumber: _seriesNumber(seriesInfo),
+    isbn: _isbnOf(volumeInfo?['industryIdentifiers'] as List<dynamic>?),
   );
+}
+
+/// L'ISBN-13 (normalisé) des `industryIdentifiers` d'un volume ; null sans
+/// ISBN valable.
+String? _isbnOf(List<dynamic>? identifiers) {
+  for (final identifier in identifiers ?? const <dynamic>[]) {
+    if (identifier case {'type': 'ISBN_13', 'identifier': final String value}) {
+      if (normalizeIsbn(value) case final isbn?) return isbn;
+    }
+  }
+  return null;
 }
 
 /// Numéro entier du tome d'après `seriesInfo` : `bookDisplayNumber` (texte),

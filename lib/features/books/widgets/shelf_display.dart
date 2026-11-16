@@ -203,3 +203,15 @@ class ShelfWords {
   String loadError(Object? error) =>
       error == ShelfFailure.offline ? l10n.errorNetwork : l10n.errorUnknown;
 }
+
+/// Le bouton « les tomes précédents » pour les numéros [missing] (non vide,
+/// croissants) : « J'ai aussi les tomes 1 à 107 » quand ils se suivent,
+/// « J'ai aussi le tome 4 » pour un seul, sinon « J'ai aussi les 3 tomes
+/// manquants ».
+String previousVolumesLabel(AppLocalizations l10n, List<int> missing) {
+  final (first, last) = (missing.first, missing.last);
+  if (missing.length > 1 && last - first + 1 == missing.length) {
+    return l10n.previousVolumesRange(first, last);
+  }
+  return l10n.previousVolumesMissing(missing.length, first);
+}
