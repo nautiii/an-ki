@@ -1757,4 +1757,66 @@ class AppLocalizationsFr extends AppLocalizations {
   String rangesTooLarge(int max) {
     return 'Un numéro jusqu\'à $max';
   }
+
+  @override
+  String get quickAddLabel => 'Qui, et quand ?';
+
+  @override
+  String get quickAddHelper =>
+      'Le prénom puis la date, comme « Léa 12 mars ». L\'année est facultative. Collez une liste pour ajouter plusieurs personnes, une par ligne.';
+
+  @override
+  String get quickAddNeedsDate => 'Ajoutez la date, comme « 12 mars »';
+
+  @override
+  String get quickAddNeedsName => 'Ajoutez le prénom, avant ou après la date';
+
+  @override
+  String quickAddKnown(String name) {
+    return '$name est déjà dans vos anniversaires à cette date';
+  }
+
+  @override
+  String get quickAddGroups => 'Groupes · facultatif';
+
+  @override
+  String get quickAddContinue => 'Ajouter et continuer';
+
+  @override
+  String get quickAddFullForm => 'Formulaire complet';
+
+  @override
+  String quickAddAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ajouter les $count',
+      one: 'Ajouter 1 personne',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String quickAddBatchTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count personnes à ajouter',
+      one: '1 personne à ajouter',
+      zero: 'Personne à ajouter',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get quickAddBatchKnown => 'déjà dans vos anniversaires';
+
+  @override
+  String get quickAddBatchNoDate => 'il manque la date';
+
+  @override
+  String get quickAddBatchNoName => 'il manque le prénom';
+
+  @override
+  String get quickAddBatchBadDate => 'date impossible';
 }

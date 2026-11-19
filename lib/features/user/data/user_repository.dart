@@ -82,6 +82,11 @@ class UserRepository {
     FieldPath(['modules', moduleId]): enabled,
   });
 
+  /// Note que [uid] a ajouté quelqu'un avec le formulaire : l'ajout en une
+  /// ligne le remplace désormais. Écriture optimiste, comme les préférences.
+  Future<void> markQuickAddLearned(String uid) =>
+      _users.doc(uid).update({'quickAddLearned': true});
+
   /// Marque le profil de [uid], un invité, pour le compte Google [email] qui
   /// l'effacera une fois ses données reprises, et renvoie ce profil (ses
   /// modules suivent l'invité) ; null s'il n'existe pas. Lu sur le serveur ;
@@ -118,6 +123,8 @@ UserProfile _userFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     locale: data['locale'] as String?,
     biometricToken: data['biometricToken'] as String?,
     moduleChoices: _moduleChoicesFrom(data['modules']),
+    // Absent (profils d'avant l'ajout en une ligne) : pas encore appris.
+    quickAddLearned: data['quickAddLearned'] == true,
   );
 }
 
@@ -154,4 +161,5 @@ Map<String, Object> _userToMap(UserProfile user) => {
   'locale': ?user.locale,
   'biometricToken': ?user.biometricToken,
   if (user.moduleChoices.isNotEmpty) 'modules': user.moduleChoices,
+  if (user.quickAddLearned) 'quickAddLearned': true,
 };

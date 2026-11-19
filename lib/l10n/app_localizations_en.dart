@@ -1736,4 +1736,66 @@ class AppLocalizationsEn extends AppLocalizations {
   String rangesTooLarge(int max) {
     return 'A number up to $max';
   }
+
+  @override
+  String get quickAddLabel => 'Who, and when?';
+
+  @override
+  String get quickAddHelper =>
+      'The name then the date, like “Leah March 12”. The year is optional. Paste a list to add several people, one per line.';
+
+  @override
+  String get quickAddNeedsDate => 'Add the date, like “March 12”';
+
+  @override
+  String get quickAddNeedsName => 'Add the name, before or after the date';
+
+  @override
+  String quickAddKnown(String name) {
+    return '$name is already in your birthdays on this date';
+  }
+
+  @override
+  String get quickAddGroups => 'Groups · optional';
+
+  @override
+  String get quickAddContinue => 'Add and continue';
+
+  @override
+  String get quickAddFullForm => 'Full form';
+
+  @override
+  String quickAddAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add all $count',
+      one: 'Add 1 person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String quickAddBatchTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people to add',
+      one: '1 person to add',
+      zero: 'Nobody to add',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get quickAddBatchKnown => 'already in your birthdays';
+
+  @override
+  String get quickAddBatchNoDate => 'no date';
+
+  @override
+  String get quickAddBatchNoName => 'no name';
+
+  @override
+  String get quickAddBatchBadDate => 'impossible date';
 }

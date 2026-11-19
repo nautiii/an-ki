@@ -140,6 +140,34 @@ void main() {
       expect(find.byType(SnackBar), findsNothing);
     });
 
+    testWidgets('an add the open sheet already said stays silent', (
+      tester,
+    ) async {
+      await pumpPrompt(tester);
+
+      add(
+        const BirthdaysAdded(
+          count: 1,
+          imported: false,
+          first: true,
+          name: 'Léa Martin',
+          id: 'lea',
+          announced: true,
+        ),
+      );
+      await settle(tester);
+
+      // Ni message ni proposition derrière « Ajouter et continuer ».
+      expect(find.byType(SnackBar), findsNothing);
+      expect(find.byType(ReminderOfferSheet), findsNothing);
+
+      // La proposition reste due : le prochain ajout feuille fermée la fait,
+      // bien qu'il ne soit plus le premier de l'agenda.
+      add(_byHand());
+      await settle(tester);
+      expect(find.byType(ReminderOfferSheet), findsOneWidget);
+    });
+
     testWidgets('with reminders on, a birthday by hand is named', (
       tester,
     ) async {

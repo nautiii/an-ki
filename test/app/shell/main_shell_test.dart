@@ -5,10 +5,12 @@ import 'package:an_ki/app/modules/module_registry.dart';
 import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/common/bottom_bar.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/quick_add_sheet.dart';
 import 'package:an_ki/features/books/screens/shelf_screen.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/providers/user_profile_editor.dart';
@@ -63,6 +65,58 @@ void main() {
       expect(find.byType(ShelfScreen), findsOneWidget);
       expect(find.byType(HomeScreen), findsNothing);
       expect(tester.appRouter.state.matchedLocation, AppRoutes.books);
+    });
+  });
+
+  group('action under the thumb', () {
+    testWidgets('« + » beside the bar opens the form, then the one-line '
+        'add once a person was added by hand', (tester) async {
+      await mockNetworkImages(() async {
+        await pumpSignedIn(tester);
+        final add = find.byTooltip('Ajouter un anniversaire');
+        // À droite de la barre, à sa hauteur.
+        final bar = tester.getRect(find.byType(BottomBar));
+        expect(tester.getRect(add).left, greaterThan(bar.center.dx));
+        expect(
+          (tester.getCenter(add).dy - bar.center.dy).abs(),
+          lessThan(AppSpacing.md),
+        );
+
+        await tester.tap(add);
+        await tester.pumpAndSettle();
+        expect(find.byType(BirthdayFormSheet), findsOneWidget);
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Prénom et nom'),
+          'Zoé',
+        );
+        await tester.enterText(
+          find.widgetWithText(TextField, "Date d'anniversaire"),
+          '0101',
+        );
+        await tester.pump();
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+        expect(find.byType(BirthdayFormSheet), findsNothing, reason: 'saved');
+        await tester.pump(const Duration(seconds: 6));
+        await tester.pumpAndSettle();
+
+        await tester.tap(add);
+        await tester.pumpAndSettle();
+        expect(find.byType(QuickAddSheet), findsOneWidget);
+      });
+    });
+
+    testWidgets('on the books tab, the button scans', (tester) async {
+      await mockNetworkImages(() async {
+        await pumpSignedIn(tester);
+        await tester.tap(barIcon(Icons.auto_stories_outlined));
+        await tester.pumpAndSettle();
+
+        expect(find.byTooltip('Ajouter un anniversaire'), findsNothing);
+        await tester.tap(find.byTooltip('Scanner un livre'));
+        await tester.pumpAndSettle();
+        expect(tester.appRouter.state.matchedLocation, AppRoutes.booksScan);
+      });
     });
   });
 
@@ -205,26 +259,29 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('one module: no bar, the content and snackbars reach the '
-        'bottom', (tester) async {
+    testWidgets('one module: no bar, the « + » alone in the corner, the '
+        'content and snackbars above it', (tester) async {
       await mockNetworkImages(() async {
         await tester.pumpApp(auth: FakeAuthRepository(user: MockUser()));
         await tester.settleApp();
 
         expect(find.byType(HomeScreen), findsOneWidget);
         expect(find.byType(BottomBar), findsNothing);
-        // Rien à réserver pour une barre absente.
-        expect(
-          MediaQuery.paddingOf(tester.element(find.byType(HomeScreen))).bottom,
-          0,
-        );
+        final add = tester.getRect(find.byTooltip('Ajouter un anniversaire'));
+        expect(add.right, greaterThan(800 - 100));
+        expect(add.bottom, greaterThan(1200 - 100));
+        // La place du bouton seul, pas celle d'une barre.
+        final padding = MediaQuery.paddingOf(
+          tester.element(find.byType(HomeScreen)),
+        ).bottom;
+        expect(padding, 1200 - add.top);
 
         ScaffoldMessenger.of(tester.element(find.byType(HomeScreen)))
             .showSnackBar(const SnackBar(content: Text('Hello')));
         await tester.pumpAndSettle();
         final snackBar = tester.getRect(find.byType(SnackBar));
-        expect(snackBar.bottom, lessThanOrEqualTo(1200));
-        expect(snackBar.bottom, greaterThan(1200 - 120));
+        expect(snackBar.bottom, lessThanOrEqualTo(add.top));
+        expect(snackBar.bottom, greaterThan(1200 - 200));
 
         await tester.pump(const Duration(seconds: 5));
         await tester.pumpAndSettle();

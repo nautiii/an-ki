@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_ki/app/modules/app_module.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/books/providers/shelf_data_hooks.dart';
@@ -21,6 +23,11 @@ final booksModule = AppModule(
   name: (l10n) => l10n.moduleBooks,
   description: (l10n) => l10n.moduleBooksDescription,
   rootPath: AppRoutes.books,
+  primaryAction: ModuleAction(
+    icon: Icons.qr_code_scanner_rounded,
+    label: (l10n) => l10n.scanBook,
+    onPressed: (context, _) => unawaited(context.push(AppRoutes.booksScan)),
+  ),
   buildBranch: (rootNavigatorKey) => StatefulShellBranch(
     routes: [
       GoRoute(

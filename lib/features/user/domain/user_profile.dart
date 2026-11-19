@@ -24,6 +24,11 @@ class const UserProfile({
   /// un module absent suit son réglage par défaut. La feature `user` stocke
   /// ces ids sans savoir ce qu'est un module (`app/modules/`).
   final Map<String, bool> moduleChoices = const {},
+
+  /// L'utilisateur a déjà ajouté quelqu'un avec le formulaire : l'ajout en
+  /// une ligne (« Léa 12 mars ») prend alors sa place, sur tous ses
+  /// appareils.
+  final bool quickAddLearned = false,
 }) {
   /// Nom pour saluer : le pseudo s'il est défini, sinon le prénom ; null s'il
   /// n'y a ni l'un ni l'autre. Pour un invité ([guest]), le pseudo seul : son
@@ -45,7 +50,8 @@ class const UserProfile({
       other.theme == theme &&
       other.locale == locale &&
       other.biometricToken == biometricToken &&
-      mapEquals(other.moduleChoices, moduleChoices);
+      mapEquals(other.moduleChoices, moduleChoices) &&
+      other.quickAddLearned == quickAddLearned;
 
   @override
   int get hashCode => Object.hash(
@@ -60,5 +66,6 @@ class const UserProfile({
       for (final MapEntry(:key, :value) in moduleChoices.entries)
         Object.hash(key, value),
     ]),
+    quickAddLearned,
   );
 }

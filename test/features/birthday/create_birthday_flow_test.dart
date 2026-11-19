@@ -38,7 +38,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Ajouter un anniversaire'));
+    // Agenda vide : « Ajouter à la main » ouvre le formulaire (le premier
+    // ajout se fait toujours avec lui).
+    await tester.tap(find.text('Ajouter à la main'));
     await tester.pumpAndSettle();
 
     await tester.enterText(

@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:an_ki/app/modules/app_module.dart';
 import 'package:an_ki/app/modules/birthdays_settings_section.dart';
 import 'package:an_ki/app/modules/module_discovery.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/providers/quick_add.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
+import 'package:an_ki/features/birthday/widgets/add_birthday.dart';
 import 'package:an_ki/features/reminders/providers/reminder_sync_provider.dart';
 import 'package:an_ki/features/reminders/widgets/reminders_off_card.dart';
 import 'package:an_ki/features/settings/widgets/guest_backup_card.dart';
@@ -38,7 +42,13 @@ final birthdaysModule = AppModule(
     ],
   ),
   settingsSection: const BirthdaysSettingsSection(),
-  effects: [reminderSyncProvider],
+  // Le formulaire au premier ajout, l'ajout en une ligne ensuite.
+  primaryAction: ModuleAction(
+    icon: Icons.add_rounded,
+    label: (l10n) => l10n.addBirthday,
+    onPressed: (context, ref) => unawaited(showAddBirthday(context, ref)),
+  ),
+  effects: [reminderSyncProvider, quickAddLearningProvider],
   // Les anniversaires, puis les groupes privés. La reprise d'un invité se fait
   // dans `GuestMerge`, qui écarte les doublons.
   data: ModuleData(

@@ -1,26 +1,29 @@
 import 'dart:async';
 
-import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birth_date_input.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/widgets/birth_date_field.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_photo_button.dart';
 import 'package:an_ki/features/birthday/widgets/group_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-/// Feuille d'ajout ou de modification d'un anniversaire, faite pour la saisie
-/// express : un seul champ « Prénom et nom », la date tapée au clavier
-/// (l'année est facultative), les groupes sur une ligne.
+/// Formulaire d'un anniversaire : un champ « Prénom et nom », la date tapée
+/// au clavier (l'année est facultative), les groupes sur une ligne.
 ///
-/// Une création tient en « + », le nom, « Suivant », quatre chiffres, « OK ».
+/// Il modifie toujours ; il crée tant que l'utilisateur ne l'a jamais fait
+/// (son premier ajout lui montre ce qu'AnKi attend), puis l'ajout en une
+/// ligne prend sa place (`showAddBirthday`), qui y renvoie par « Formulaire
+/// complet ».
 class BirthdayFormSheet extends ConsumerStatefulWidget {
   final Birthday? birthdayToEdit;
 
@@ -28,12 +31,30 @@ class BirthdayFormSheet extends ConsumerStatefulWidget {
   /// la saisie reprend alors à la date.
   final String? initialName;
 
-  const BirthdayFormSheet({super.key, this.birthdayToEdit, this.initialName});
+  /// Date pré-remplie d'une création : celle que l'ajout en une ligne avait
+  /// lue.
+  final BirthDate? initialDate;
+
+  /// Groupes et photo d'une création, choisis dans l'ajout en une ligne.
+  final List<String> initialCategories;
+  final Uint8List? initialPicture;
+
+  const BirthdayFormSheet({
+    super.key,
+    this.birthdayToEdit,
+    this.initialName,
+    this.initialDate,
+    this.initialCategories = const [],
+    this.initialPicture,
+  });
 
   static Future<bool?> show(
     BuildContext context, {
     Birthday? birthdayToEdit,
     String? initialName,
+    BirthDate? initialDate,
+    List<String> initialCategories = const [],
+    Uint8List? initialPicture,
   }) {
     return showModalBottomSheet<bool>(
       context: context,
@@ -44,6 +65,9 @@ class BirthdayFormSheet extends ConsumerStatefulWidget {
       builder: (context) => BirthdayFormSheet(
         birthdayToEdit: birthdayToEdit,
         initialName: initialName,
+        initialDate: initialDate,
+        initialCategories: initialCategories,
+        initialPicture: initialPicture,
       ),
     );
   }
@@ -81,7 +105,8 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     );
     // Pré-remplie dans didChangeDependencies : son texte suit la région.
     _date = TextEditingController();
-    _categories = [...?birthday?.categories];
+    _categories = [...(birthday?.categories ?? widget.initialCategories)];
+    _picture = widget.initialPicture;
     _autofocusName = birthday == null && _name.text.isEmpty;
     _autofocusDate = birthday == null && _name.text.isNotEmpty;
     // Quitter le champ de date peut changer son aide en erreur.
@@ -96,11 +121,8 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     super.didChangeDependencies();
     if (_datePrefilled) return;
     _datePrefilled = true;
-    if (widget.birthdayToEdit case final birthday?) {
-      _date.text = birthDateInputText(
-        birthday.date,
-        order: typedDateOrder(context),
-      );
+    if (widget.birthdayToEdit?.date ?? widget.initialDate case final date?) {
+      _date.text = birthDateInputText(date, order: typedDateOrder(context));
     }
   }
 
@@ -215,7 +237,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                   const SizedBox(height: AppSpacing.lg),
                   Row(
                     children: [
-                      _PhotoButton(
+                      BirthdayPhotoButton(
                         name: _name.text,
                         picture: _picture ?? widget.birthdayToEdit?.picture,
                         onTap: _pickImage,
@@ -307,73 +329,6 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Avatar de la personne, ses initiales suivant la saisie ; le toucher
-/// choisit une photo.
-class _PhotoButton extends StatelessWidget {
-  const _PhotoButton({
-    required this.name,
-    required this.picture,
-    required this.onTap,
-  });
-
-  final String name;
-  final Uint8List? picture;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final picture = this.picture;
-
-    return Semantics(
-      button: true,
-      label: context.l10n.choosePhoto,
-      excludeSemantics: true,
-      onTap: onTap,
-      child: Stack(
-        children: [
-          AnKiAvatar(
-            name: name,
-            image: picture != null ? MemoryImage(picture) : null,
-            radius: 28,
-          ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: colorScheme.primary,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: colorScheme.surfaceContainerLow,
-                  width: 2,
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.xxs),
-                child: Icon(
-                  Icons.photo_camera_rounded,
-                  size: 14,
-                  color: colorScheme.onPrimary,
-                ),
-              ),
-            ),
-          ),
-          // Au-dessus de l'avatar, pour que l'onde du toucher reste visible.
-          Positioned.fill(
-            child: Material(
-              type: MaterialType.transparency,
-              shape: const CircleBorder(),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(onTap: onTap),
-            ),
-          ),
-        ],
       ),
     );
   }

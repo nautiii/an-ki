@@ -18,6 +18,10 @@ class const BirthdaysAdded({
   /// Id de l'anniversaire saisi à la main, pour ouvrir sa page ; null pour
   /// un import.
   final String? id,
+
+  /// L'écran d'ajout l'a déjà dit et reste ouvert (« Ajouter et
+  /// continuer ») : ni message ni proposition des rappels derrière lui.
+  final bool announced = false,
 }) {
   @override
   bool operator ==(Object other) =>
@@ -26,8 +30,9 @@ class const BirthdaysAdded({
       other.imported == imported &&
       other.first == first &&
       other.name == name &&
-      other.id == id;
+      other.id == id &&
+      other.announced == announced;
 
   @override
-  int get hashCode => Object.hash(count, imported, first, name, id);
+  int get hashCode => Object.hash(count, imported, first, name, id, announced);
 }

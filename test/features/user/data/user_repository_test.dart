@@ -342,6 +342,40 @@ void main() {
     });
   });
 
+  group('quickAddLearned', () {
+    test('is false for a profile written before it existed', () async {
+      await firestore.collection('user').doc('user-1').set({'name': 'Quentin'});
+
+      final watched = await repository.watchUser('user-1').first;
+      expect(watched?.quickAddLearned, isFalse);
+    });
+
+    test('markQuickAddLearned writes its one field', () async {
+      await firestore.collection('user').doc('user-1').set({
+        'name': 'Quentin',
+        'locale': 'fr',
+      });
+
+      await repository.markQuickAddLearned('user-1');
+
+      final data = (await firestore.collection('user').doc('user-1').get())
+          .data()!;
+      expect(data, {
+        'name': 'Quentin',
+        'locale': 'fr',
+        'quickAddLearned': true,
+      });
+      final watched = await repository.watchUser('user-1').first;
+      expect(watched?.quickAddLearned, isTrue);
+    });
+
+    test('createUser writes it only once learned', () async {
+      await repository.createUser(user);
+      final doc = await firestore.collection('user').doc('user-1').get();
+      expect(doc.data()!.containsKey('quickAddLearned'), isFalse);
+    });
+  });
+
   test('createUser writes no modules field without a choice', () async {
     await repository.createUser(user);
 

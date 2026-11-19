@@ -212,4 +212,52 @@ void main() {
 
     expect(container.read(birthdayEditorProvider).hasError, isTrue);
   });
+
+  group('createAll', () {
+    test('writes the batch and announces how many', () async {
+      final repo = RecordingBirthdayRepository();
+      final container = makeContainer(repo, existing: [_lea]);
+      final announced = <BirthdaysAdded?>[];
+      container.listen(
+        birthdayAdditionsProvider,
+        (_, added) => announced.add(added),
+      );
+
+      await container.read(birthdayEditorProvider.notifier).createAll([
+        _input(),
+        _input(),
+      ]);
+
+      expect(repo.created, hasLength(2));
+      expect(announced, [
+        const BirthdaysAdded(count: 2, imported: false, first: false),
+      ]);
+    });
+
+    test('one draft is a plain creation, named', () async {
+      final repo = RecordingBirthdayRepository();
+      final container = makeContainer(repo);
+      final announced = <BirthdaysAdded?>[];
+      container.listen(
+        birthdayAdditionsProvider,
+        (_, added) => announced.add(added),
+      );
+
+      await container.read(birthdayEditorProvider.notifier).createAll([
+        _input(),
+      ]);
+
+      expect(repo.createdIds, hasLength(1));
+      expect(announced.single?.name, 'New Person');
+    });
+
+    test('an empty list writes nothing', () async {
+      final repo = RecordingBirthdayRepository();
+      final container = makeContainer(repo);
+
+      await container.read(birthdayEditorProvider.notifier).createAll([]);
+
+      expect(repo.created, isEmpty);
+    });
+  });
 }

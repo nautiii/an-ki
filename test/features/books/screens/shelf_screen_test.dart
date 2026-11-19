@@ -137,17 +137,14 @@ void main() {
       expect(find.text('Page scan'), findsOneWidget);
     });
 
-    testWidgets('the app bar action opens the scanner too', (tester) async {
-      await pumpShelf(
-        tester,
-        filled(),
-        routes: {AppRoutes.booksScan: (_) => const Text('Page scan')},
-      );
+    testWidgets('the scan leaves the app bar for the floating button', (
+      tester,
+    ) async {
+      await pumpShelf(tester, filled());
 
-      await tester.tap(find.byTooltip('Scanner un livre'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Page scan'), findsOneWidget);
+      // Le bouton flottant de la coquille scanne (`main_shell_test.dart`).
+      expect(find.byTooltip('Scanner un livre'), findsNothing);
+      expect(find.byTooltip('Ajouter une série à la main'), findsOneWidget);
     });
 
     testWidgets('the secondary action opens the add series sheet', (

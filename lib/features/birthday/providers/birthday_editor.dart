@@ -22,8 +22,9 @@ class BirthdayEditor extends AsyncNotifier<void> {
   FutureOr<void> build() {}
 
   /// Crée [draft] et annonce l'ajout ([birthdayAdditionsProvider]) : qui,
-  /// son id (pour ouvrir sa page), et si l'agenda était vide.
-  Future<void> create(BirthdayDraft draft) {
+  /// son id (pour ouvrir sa page), et si l'agenda était vide ; [announced]
+  /// quand l'écran d'ajout, resté ouvert, l'a déjà dit.
+  Future<void> create(BirthdayDraft draft, {bool announced = false}) {
     final repository = ref.read(birthdayRepositoryProvider);
     final birthdayId = repository.newBirthdayId();
     if (ref.read(currentUidProvider) != null) {
@@ -36,10 +37,31 @@ class BirthdayEditor extends AsyncNotifier<void> {
               first: ref.read(birthdaysListProvider).isEmpty,
               name: draft.fullName,
               id: birthdayId,
+              announced: announced,
             ),
           );
     }
     return _write((uid) => repository.createBirthday(uid, birthdayId, draft));
+  }
+
+  /// Crée plusieurs personnes d'un coup (une liste collée dans l'ajout en
+  /// une ligne) et annonce leur nombre ([birthdayAdditionsProvider]).
+  Future<void> createAll(List<BirthdayDraft> drafts) {
+    if (drafts.isEmpty) return Future.value();
+    if (drafts case [final draft]) return create(draft);
+    final repository = ref.read(birthdayRepositoryProvider);
+    if (ref.read(currentUidProvider) != null) {
+      ref
+          .read(birthdayAdditionsProvider.notifier)
+          .record(
+            BirthdaysAdded(
+              count: drafts.length,
+              imported: false,
+              first: ref.read(birthdaysListProvider).isEmpty,
+            ),
+          );
+    }
+    return _write((uid) => repository.createBirthdays(uid, drafts));
   }
 
   Future<void> edit(String birthdayId, BirthdayDraft draft) => _write(

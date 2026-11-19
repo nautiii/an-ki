@@ -97,7 +97,8 @@ class ShelfScreen extends ConsumerWidget {
   }
 }
 
-/// Barre épinglée, comme l'accueil : le titre, le scan, les réglages.
+/// Barre épinglée, comme l'accueil : le titre, l'ajout à la main, les
+/// réglages. Le scan est le bouton flottant de l'onglet (`app/`).
 class _ShelfAppBar extends ConsumerWidget {
   const _ShelfAppBar();
 
@@ -116,11 +117,6 @@ class _ShelfAppBar extends ConsumerWidget {
           onPressed: () => unawaited(addSeriesByHand(context)),
           tooltip: l10n.addSeriesByHand,
           icon: const Icon(Icons.library_add_rounded),
-        ),
-        IconButton.filledTonal(
-          onPressed: () => unawaited(context.push(AppRoutes.booksScan)),
-          tooltip: l10n.scanBook,
-          icon: const Icon(Icons.qr_code_scanner_rounded),
         ),
         IconButton(
           onPressed: () => unawaited(context.push(AppRoutes.settings)),

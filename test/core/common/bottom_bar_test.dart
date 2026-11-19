@@ -43,6 +43,35 @@ void main() {
         tester.getBottomLeft(find.byIcon(Icons.cake_rounded)).dy <=
         tester.getTopLeft(find.text('Birthdays')).dy;
 
+    testWidgets('sets the trailing button at its right, the floating action '
+        'tonal', (tester) async {
+      var pressed = 0;
+      await tester.pumpHarness(
+        BottomBar(
+          destinations: destinations,
+          selectedIndex: 0,
+          onSelected: (_) {},
+          trailing: FloatingAction(
+            icon: Icons.add_rounded,
+            label: 'Add',
+            onPressed: () => pressed++,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final add = tester.getRect(find.byTooltip('Add'));
+      expect(add.left, greaterThan(tester.getRect(find.text('Scanner')).right));
+      await tester.tap(find.byTooltip('Add'));
+      expect(pressed, 1);
+      final button = tester.widget<FloatingActionButton>(
+        find.byType(FloatingActionButton),
+      );
+      final colors = Theme.of(tester.element(find.byTooltip('Add')))
+          .colorScheme;
+      expect(button.backgroundColor, colors.primaryContainer);
+    });
+
     testWidgets('shows every destination with its label', (tester) async {
       await pumpBar(tester);
 

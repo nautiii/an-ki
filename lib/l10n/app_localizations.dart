@@ -2617,6 +2617,90 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Un numéro jusqu\'à {max}'**
   String rangesTooLarge(int max);
+
+  /// Ajout en une ligne : libellé du champ unique (nom et date)
+  ///
+  /// In fr, this message translates to:
+  /// **'Qui, et quand ?'**
+  String get quickAddLabel;
+
+  /// Ajout en une ligne : aide sous le champ vide
+  ///
+  /// In fr, this message translates to:
+  /// **'Le prénom puis la date, comme « Léa 12 mars ». L\'année est facultative. Collez une liste pour ajouter plusieurs personnes, une par ligne.'**
+  String get quickAddHelper;
+
+  /// Ajout en une ligne : le nom est là, la date manque
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez la date, comme « 12 mars »'**
+  String get quickAddNeedsDate;
+
+  /// Ajout en une ligne : la date est là, le nom manque
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez le prénom, avant ou après la date'**
+  String get quickAddNeedsName;
+
+  /// Ajout en une ligne : la même personne existe déjà (même nom, même jour) ; l'ajout reste possible
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} est déjà dans vos anniversaires à cette date'**
+  String quickAddKnown(String name);
+
+  /// Ajout en une ligne : titre des groupes, qu'on peut laisser vides
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupes · facultatif'**
+  String get quickAddGroups;
+
+  /// Ajout en une ligne : ajoute la personne et garde la feuille ouverte pour la suivante
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter et continuer'**
+  String get quickAddContinue;
+
+  /// Ajout en une ligne : ouvre le formulaire classique avec ce qui a été compris
+  ///
+  /// In fr, this message translates to:
+  /// **'Formulaire complet'**
+  String get quickAddFullForm;
+
+  /// Ajout en une ligne, plusieurs lignes collées : bouton qui ajoute les personnes nouvelles
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, one{Ajouter 1 personne} other{Ajouter les {count}}}'**
+  String quickAddAll(int count);
+
+  /// Ajout en une ligne, plusieurs lignes collées : titre de l'aperçu
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Personne à ajouter} one{1 personne à ajouter} other{{count} personnes à ajouter}}'**
+  String quickAddBatchTitle(int count);
+
+  /// Aperçu d'une liste collée : ligne écartée, la personne existe déjà
+  ///
+  /// In fr, this message translates to:
+  /// **'déjà dans vos anniversaires'**
+  String get quickAddBatchKnown;
+
+  /// Aperçu d'une liste collée : ligne écartée, sans date
+  ///
+  /// In fr, this message translates to:
+  /// **'il manque la date'**
+  String get quickAddBatchNoDate;
+
+  /// Aperçu d'une liste collée : ligne écartée, sans nom
+  ///
+  /// In fr, this message translates to:
+  /// **'il manque le prénom'**
+  String get quickAddBatchNoName;
+
+  /// Aperçu d'une liste collée : ligne écartée, date qui n'existe pas, incomplète ou à venir
+  ///
+  /// In fr, this message translates to:
+  /// **'date impossible'**
+  String get quickAddBatchBadDate;
 }
 
 class _AppLocalizationsDelegate

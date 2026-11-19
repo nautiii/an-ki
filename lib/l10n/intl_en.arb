@@ -472,5 +472,19 @@
   "rangesEmpty": "Enter at least one volume",
   "rangesMalformed": "Numbers from 1, like 1-12, 15",
   "rangesInverted": "A range goes from low to high: 1-12",
-  "rangesTooLarge": "A number up to {max}"
+  "rangesTooLarge": "A number up to {max}",
+  "quickAddLabel": "Who, and when?",
+  "quickAddHelper": "The name then the date, like “Leah March 12”. The year is optional. Paste a list to add several people, one per line.",
+  "quickAddNeedsDate": "Add the date, like “March 12”",
+  "quickAddNeedsName": "Add the name, before or after the date",
+  "quickAddKnown": "{name} is already in your birthdays on this date",
+  "quickAddGroups": "Groups · optional",
+  "quickAddContinue": "Add and continue",
+  "quickAddFullForm": "Full form",
+  "quickAddAll": "{count, plural, one{Add 1 person} other{Add all {count}}}",
+  "quickAddBatchTitle": "{count, plural, =0{Nobody to add} one{1 person to add} other{{count} people to add}}",
+  "quickAddBatchKnown": "already in your birthdays",
+  "quickAddBatchNoDate": "no date",
+  "quickAddBatchNoName": "no name",
+  "quickAddBatchBadDate": "impossible date"
 }

@@ -83,6 +83,9 @@ class FakeUserRepository extends Fake implements UserRepository {
   }) async {}
 
   @override
+  Future<void> markQuickAddLearned(String uid) async {}
+
+  @override
   Future<void> deleteUser(String uid) async {}
 }
 
@@ -97,6 +100,7 @@ UserProfile _merged(
   ThemePreference? theme,
   String? locale,
   Map<String, bool> modules = const {},
+  bool? quickAddLearned,
 }) => UserProfile(
   id: user.id,
   name: name ?? user.name,
@@ -106,6 +110,7 @@ UserProfile _merged(
   locale: locale ?? user.locale,
   biometricToken: user.biometricToken,
   moduleChoices: {...user.moduleChoices, ...modules},
+  quickAddLearned: quickAddLearned ?? user.quickAddLearned,
 );
 
 /// Dépôt de profils en mémoire : [watchUser] reflète chaque écriture, comme
@@ -187,6 +192,14 @@ class RecordingUserRepository extends FakeUserRepository {
   }) async {
     _maybeFail();
     final user = _merged(_stored!, modules: {moduleId: enabled});
+    updated.add(user);
+    _emit(user);
+  }
+
+  @override
+  Future<void> markQuickAddLearned(String uid) async {
+    _maybeFail();
+    final user = _merged(_stored!, quickAddLearned: true);
     updated.add(user);
     _emit(user);
   }

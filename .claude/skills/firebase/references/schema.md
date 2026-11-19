@@ -36,12 +36,14 @@ Owner: the path (`{uid}` = `request.auth.uid`). Rules: owner reads and writes, n
 | `reminders` | map `{leads: [string], hour: int, minute: int}`, optional | default reminder setting (B6); absent → J-7 + J-0 at 10:00; unknown leads skipped, `sameDay` always added; written only by `ReminderPreferencesRepository.savePreferences` (`update`) |
 | `transferTo` | string, optional | a guest moving to a Google account (§10): that account's address; the marked document is deleted by it |
 | `modules` | map `{<module id>: bool}`, optional | the user's explicit module choices (D13, since 2026-11-09), e.g. `{books: true}`; absent or a missing id → that module's default (`enabledByDefault`: Anniversaires on, Livres off), `alwaysOn` wins (Anniversaires); a non-bool value or a non-map field is ignored; an id the registry doesn't know is kept and ignored |
+| `quickAddLearned` | bool, optional | the user has added someone with the full form (since 2026-11-19): « + » then opens the one-line add; absent or not `true` → not learned; written once, never reset; not carried by a guest takeover (learned again on the first manual add) |
 
 - Written by `UserRepository.markForTransfer` (§10), `UserRepository.createUser` (transaction: creates only if absent, never overwrites;
   `modules` only when a choice exists),
   `updatePreferences` (`update`: `pseudo`, `themeMode` + delete `isDark`, `locale`), `updateNames`
   (`update`), `setModuleEnabled` (`update` of the field path `modules.<id>` alone, so two devices
-  choosing two modules don't overwrite each other), `deleteUser`; `AuthRepository.setBiometricToken` (`set` with `merge`).
+  choosing two modules don't overwrite each other), `markQuickAddLearned` (`update` of
+  `quickAddLearned: true` alone), `deleteUser`; `AuthRepository.setBiometricToken` (`set` with `merge`).
 - Read by `UserRepository.watchUser` (stream; null while the document doesn't exist) and
   `AuthRepository.isBiometricTokenValid` (`get`), `ReminderPreferencesRepository.watchPreferences`
   (the `reminders` field of the profile document).

@@ -1791,5 +1791,70 @@
         "type": "int"
       }
     }
+  },
+  "quickAddLabel": "Qui, et quand ?",
+  "@quickAddLabel": {
+    "description": "Ajout en une ligne : libellé du champ unique (nom et date)"
+  },
+  "quickAddHelper": "Le prénom puis la date, comme « Léa 12 mars ». L'année est facultative. Collez une liste pour ajouter plusieurs personnes, une par ligne.",
+  "@quickAddHelper": {
+    "description": "Ajout en une ligne : aide sous le champ vide"
+  },
+  "quickAddNeedsDate": "Ajoutez la date, comme « 12 mars »",
+  "@quickAddNeedsDate": {
+    "description": "Ajout en une ligne : le nom est là, la date manque"
+  },
+  "quickAddNeedsName": "Ajoutez le prénom, avant ou après la date",
+  "@quickAddNeedsName": {
+    "description": "Ajout en une ligne : la date est là, le nom manque"
+  },
+  "quickAddKnown": "{name} est déjà dans vos anniversaires à cette date",
+  "@quickAddKnown": {
+    "description": "Ajout en une ligne : la même personne existe déjà (même nom, même jour) ; l'ajout reste possible",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "quickAddGroups": "Groupes · facultatif",
+  "@quickAddGroups": {
+    "description": "Ajout en une ligne : titre des groupes, qu'on peut laisser vides"
+  },
+  "quickAddContinue": "Ajouter et continuer",
+  "@quickAddContinue": {
+    "description": "Ajout en une ligne : ajoute la personne et garde la feuille ouverte pour la suivante"
+  },
+  "quickAddFullForm": "Formulaire complet",
+  "@quickAddFullForm": {
+    "description": "Ajout en une ligne : ouvre le formulaire classique avec ce qui a été compris"
+  },
+  "quickAddAll": "{count, plural, one{Ajouter 1 personne} other{Ajouter les {count}}}",
+  "@quickAddAll": {
+    "description": "Ajout en une ligne, plusieurs lignes collées : bouton qui ajoute les personnes nouvelles",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "quickAddBatchTitle": "{count, plural, =0{Personne à ajouter} one{1 personne à ajouter} other{{count} personnes à ajouter}}",
+  "@quickAddBatchTitle": {
+    "description": "Ajout en une ligne, plusieurs lignes collées : titre de l'aperçu",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "quickAddBatchKnown": "déjà dans vos anniversaires",
+  "@quickAddBatchKnown": {
+    "description": "Aperçu d'une liste collée : ligne écartée, la personne existe déjà"
+  },
+  "quickAddBatchNoDate": "il manque la date",
+  "@quickAddBatchNoDate": {
+    "description": "Aperçu d'une liste collée : ligne écartée, sans date"
+  },
+  "quickAddBatchNoName": "il manque le prénom",
+  "@quickAddBatchNoName": {
+    "description": "Aperçu d'une liste collée : ligne écartée, sans nom"
+  },
+  "quickAddBatchBadDate": "date impossible",
+  "@quickAddBatchBadDate": {
+    "description": "Aperçu d'une liste collée : ligne écartée, date qui n'existe pas, incomplète ou à venir"
   }
 }

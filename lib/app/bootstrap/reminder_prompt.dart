@@ -48,6 +48,10 @@ class _ReminderPromptState extends ConsumerState<ReminderPrompt> {
   /// pas, le message le fait.
   BirthdaysAdded? _toAnnounce;
 
+  /// Proposition qu'un ajout dit par la feuille restée ouverte (« Ajouter et
+  /// continuer ») a rendue due : le prochain ajout feuille fermée la fait.
+  ReminderOffer? _dueOffer;
+
   Timer? _pending;
 
   @override
@@ -70,7 +74,14 @@ class _ReminderPromptState extends ConsumerState<ReminderPrompt> {
   }
 
   void _onAdded(BirthdaysAdded added) {
-    final offer = reminderOfferAfter(added);
+    // Dit par la feuille restée ouverte : rien à empiler derrière elle. La
+    // proposition qu'il appelle attend le prochain ajout feuille fermée.
+    if (added.announced) {
+      _dueOffer ??= reminderOfferAfter(added);
+      return;
+    }
+    final offer = reminderOfferAfter(added) ?? _dueOffer;
+    _dueOffer = null;
     if (offer != null && _mayOffer()) {
       _toAnnounce = added;
       _schedule(offer);

@@ -48,6 +48,10 @@ class const AppModule({
   /// sécurité ; null s'il n'en a pas.
   final Widget? settingsSection,
 
+  /// Son action la plus fréquente (ajouter, scanner), sous le pouce à côté
+  /// de la barre ; null s'il n'en a pas.
+  final ModuleAction? primaryAction,
+
   /// Providers que l'app garde en vie tant que le module est actif : un
   /// provider que personne n'écoute est mis en pause.
   final List<ProviderListenable<Object?>> effects = const [],
@@ -55,6 +59,15 @@ class const AppModule({
   /// Ses données utilisateur : effacées avec le compte et reprises avec un
   /// invité, que le module soit actif ou non ; null s'il n'en a pas.
   final ModuleData? data,
+});
+
+/// Action principale d'un module : le bouton flottant de son onglet.
+class const ModuleAction({
+  required final IconData icon,
+
+  /// Ce que fait le bouton, lu par les lecteurs d'écran et en infobulle.
+  required final String Function(AppLocalizations l10n) label,
+  required final void Function(BuildContext context, WidgetRef ref) onPressed,
 });
 
 /// Données utilisateur d'un module, pour la suppression du compte et la

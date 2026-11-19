@@ -4,7 +4,6 @@ import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/greeting_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,11 +43,6 @@ class HomeAppBar extends ConsumerWidget {
             tooltip: l10n.searchTooltip,
             icon: const Icon(Icons.search_rounded),
           ),
-        IconButton.filledTonal(
-          onPressed: () => BirthdayFormSheet.show(context),
-          tooltip: l10n.addBirthday,
-          icon: const Icon(Icons.add_rounded),
-        ),
         IconButton(
           onPressed: () => context.push(AppRoutes.settings),
           tooltip: l10n.settings,

@@ -17,24 +17,34 @@ class const BottomBarDestination({
 /// Sans état : l'appelant fournit les destinations et l'index sélectionné, et
 /// reçoit l'index choisi dans [onSelected] (jamais l'index déjà sélectionné).
 /// Chaque destination garde son libellé visible et lu par les lecteurs d'écran.
+/// [trailing] (le bouton d'action de l'onglet) se pose à sa droite, sous le
+/// pouce.
 class BottomBar extends StatelessWidget {
   const BottomBar({
     super.key,
     required this.destinations,
     required this.selectedIndex,
     required this.onSelected,
+    this.trailing,
   });
 
   final List<BottomBarDestination> destinations;
   final int selectedIndex;
   final ValueChanged<int> onSelected;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.ankiColors;
-    const radius = BorderRadius.all(Radius.circular(AppRadii.xl));
     // Grand texte : icône au-dessus du libellé, pour garder les libellés entiers.
     final largeText = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
+    final pill = _Pill(
+      child: _BottomBarItems(
+        destinations: destinations,
+        selectedIndex: selectedIndex,
+        onSelected: onSelected,
+        largeText: largeText,
+      ),
+    );
 
     return SafeArea(
       top: false,
@@ -45,37 +55,117 @@ class BottomBar extends StatelessWidget {
           AppSpacing.lg,
           AppSpacing.md,
         ),
-        child: DecoratedBox(
-          decoration: ShapeDecoration(
-            shape: const RoundedSuperellipseBorder(borderRadius: radius),
-            shadows: colors.floatingShadow,
-          ),
-          child: ClipRSuperellipse(
-            borderRadius: radius,
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-              child: DecoratedBox(
-                decoration: ShapeDecoration(
-                  color: colors.glass,
-                  shape: RoundedSuperellipseBorder(
-                    borderRadius: radius,
-                    side: BorderSide(color: colors.glassBorder),
-                  ),
-                ),
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.xs),
-                    child: MediaQuery.withClampedTextScaling(
-                      maxScaleFactor: 1.3,
-                      child: _BottomBarItems(
-                        destinations: destinations,
-                        selectedIndex: selectedIndex,
-                        onSelected: onSelected,
-                        largeText: largeText,
-                      ),
-                    ),
-                  ),
+        child: Row(
+          children: [
+            Expanded(child: pill),
+            if (trailing case final trailing?) ...[
+              const SizedBox(width: AppSpacing.sm),
+              trailing,
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bouton d'action flottant, tonal (`primaryContainer`) : l'action pleine
+/// de l'écran reste « Souhaiter ». Posé à côté de la [BottomBar], ou seul
+/// en bas à droite quand elle est cachée ([FloatingActionArea]).
+class FloatingAction extends StatelessWidget {
+  const FloatingAction({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+
+  /// Infobulle et libellé lu.
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return FloatingActionButton(
+      heroTag: null,
+      onPressed: onPressed,
+      tooltip: label,
+      backgroundColor: colorScheme.primaryContainer,
+      foregroundColor: colorScheme.onPrimaryContainer,
+      shape: const RoundedSuperellipseBorder(
+        borderRadius: BorderRadius.all(Radius.circular(AppRadii.lg)),
+      ),
+      child: Icon(icon),
+    );
+  }
+}
+
+/// [child] seul en bas à droite, aux marges de la [BottomBar] : la place de
+/// la barre quand un seul onglet la cache.
+class FloatingActionArea extends StatelessWidget {
+  const FloatingActionArea({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          0,
+          AppSpacing.lg,
+          AppSpacing.md,
+        ),
+        child: Align(
+          alignment: AlignmentDirectional.centerEnd,
+          // La hauteur du bouton, pas celle de l'écran.
+          heightFactor: 1,
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// Le verre de la barre et ses destinations.
+class _Pill extends StatelessWidget {
+  const _Pill({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.ankiColors;
+    const radius = BorderRadius.all(Radius.circular(AppRadii.xl));
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        shape: const RoundedSuperellipseBorder(borderRadius: radius),
+        shadows: colors.floatingShadow,
+      ),
+      child: ClipRSuperellipse(
+        borderRadius: radius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: DecoratedBox(
+            decoration: ShapeDecoration(
+              color: colors.glass,
+              shape: RoundedSuperellipseBorder(
+                borderRadius: radius,
+                side: BorderSide(color: colors.glassBorder),
+              ),
+            ),
+            child: Material(
+              type: MaterialType.transparency,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.xs),
+                child: MediaQuery.withClampedTextScaling(
+                  maxScaleFactor: 1.3,
+                  child: child,
                 ),
               ),
             ),

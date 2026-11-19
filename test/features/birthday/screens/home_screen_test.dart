@@ -304,7 +304,7 @@ void main() {
     semantics.dispose();
   });
 
-  testWidgets('the app bar opens the search, the form and the settings', (
+  testWidgets('the app bar opens the search, the add is under the thumb', (
     tester,
   ) async {
     await tester.pumpHarness(
@@ -317,11 +317,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Ajouter un anniversaire'));
-    await tester.pumpAndSettle();
-    expect(find.byType(BirthdayFormSheet), findsOneWidget);
-    await tester.tap(find.byTooltip('Fermer'));
-    await tester.pumpAndSettle();
+    // Le « + » a quitté le coin du haut pour le bouton flottant de la
+    // coquille (`main_shell_test.dart`).
+    expect(find.byTooltip('Ajouter un anniversaire'), findsNothing);
 
     await tester.tap(find.byTooltip('Rechercher'));
     await tester.pumpAndSettle();

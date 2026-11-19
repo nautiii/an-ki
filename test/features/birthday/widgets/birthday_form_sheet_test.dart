@@ -70,11 +70,16 @@ void main() {
     RecordingBirthdayRepository repository, {
     Birthday? toEdit,
     String? initialName,
+    BirthDate? initialDate,
     RecordingCategoryRepository? categories,
     Locale deviceLocale = const Locale('fr', 'FR'),
   }) => mockNetworkImages(() async {
     await tester.pumpHarness(
-      BirthdayFormSheet(birthdayToEdit: toEdit, initialName: initialName),
+      BirthdayFormSheet(
+        birthdayToEdit: toEdit,
+        initialName: initialName,
+        initialDate: initialDate,
+      ),
       overrides: overrides(repository, categories: categories),
       deviceLocale: deviceLocale,
     );
@@ -105,6 +110,22 @@ void main() {
       .enabled;
 
   group('creation', () {
+    testWidgets('starts from the one-line add: name and date filled', (
+      tester,
+    ) async {
+      final repository = RecordingBirthdayRepository();
+      await pumpSheet(
+        tester,
+        repository,
+        initialName: 'Léa Martin',
+        initialDate: const BirthDate(month: 3, day: 12),
+      );
+
+      expect(find.text('Léa Martin'), findsOneWidget);
+      expect(find.text('12/03'), findsOneWidget);
+      expect(saveEnabled(tester, 'Ajouter'), isTrue);
+    });
+
     testWidgets('opens on the name, keyboard ready', (tester) async {
       await pumpSheet(tester, RecordingBirthdayRepository());
 

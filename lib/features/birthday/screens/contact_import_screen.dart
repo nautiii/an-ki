@@ -14,7 +14,7 @@ import 'package:an_ki/features/birthday/domain/contact_import_failure.dart';
 import 'package:an_ki/features/birthday/domain/contact_import_preview.dart';
 import 'package:an_ki/features/birthday/providers/contact_import.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_display.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/add_birthday.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -75,7 +75,8 @@ class _ContactImportScreenState extends ConsumerState<ContactImportScreen> {
   void _addByHand() {
     final navigator = Navigator.of(context);
     context.pop();
-    unawaited(BirthdayFormSheet.show(navigator.context));
+    // Lu dans la foulée : l'écran reste monté le temps de sa sortie.
+    unawaited(showAddBirthday(navigator.context, ref));
   }
 
   @override

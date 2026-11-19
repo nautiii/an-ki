@@ -36,7 +36,8 @@ int shownBranch(List<ShellTab> tabs, int current) =>
 
 /// Coquille de l'app connectée : l'onglet courant et la barre du bas, un
 /// onglet par module qui tourne ([shellTabs], [runningModulesProvider]) ;
-/// pas de barre pour un seul module.
+/// pas de barre pour un seul module. L'action principale du module montré
+/// ([AppModule.primaryAction]) flotte à côté de la barre, ou seule.
 ///
 /// Vit dans `app/` : elle assemble les écrans de plusieurs features, ce
 /// qu'aucune feature n'a le droit de faire. Les onglets sont les branches du
@@ -188,6 +189,14 @@ class _MainShellState extends ConsumerState<MainShell> {
       });
     final shown = shownBranch(tabs, widget.navigationShell.currentIndex);
     final l10n = context.l10n;
+    final action = switch (registry[shown].primaryAction) {
+      final action? => FloatingAction(
+        icon: action.icon,
+        label: action.label(l10n),
+        onPressed: () => action.onPressed(context, ref),
+      ),
+      null => null,
+    };
 
     // La barre est celle du Scaffold racine : les snackbars (toujours
     // affichées par ce Scaffold, même lancées depuis un onglet) se posent
@@ -197,8 +206,9 @@ class _MainShellState extends ConsumerState<MainShell> {
     return Scaffold(
       extendBody: true,
       body: widget.navigationShell,
+      // Un seul onglet : pas de barre, le bouton d'action seul à sa place.
       bottomNavigationBar: tabs.length < 2
-          ? null
+          ? (action == null ? null : FloatingActionArea(child: action))
           : BottomBar(
               destinations: [
                 for (final tab in tabs)
@@ -210,6 +220,7 @@ class _MainShellState extends ConsumerState<MainShell> {
               ],
               selectedIndex: tabs.indexWhere((tab) => tab.branch == shown),
               onSelected: (index) => _open(tabs[index].branch),
+              trailing: action,
             ),
     );
   }
