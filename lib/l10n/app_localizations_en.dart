@@ -1887,4 +1887,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get wishMessageSuggestedCaption =>
       'Suggested by AnKi, changes every year';
+
+  @override
+  String get wishOtherMessages => 'Other messages';
+
+  @override
+  String get wishChooseAnother => 'Choose another message';
+
+  @override
+  String wishWriteOwn(String name) {
+    return 'Write a message for $name';
+  }
 }

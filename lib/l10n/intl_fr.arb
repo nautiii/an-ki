@@ -1907,5 +1907,20 @@
   "wishMessageSuggestedCaption": "Proposé par AnKi, change chaque année",
   "@wishMessageSuggestedCaption": {
     "description": "Sous le message de la page d'une personne, quand aucun message personnalisé n'est enregistré : c'est la première suggestion"
+  },
+  "wishOtherMessages": "Autres messages",
+  "@wishOtherMessages": {
+    "description": "Titre de la feuille des vœux suggérés, ouverte en touchant la bulle du message"
+  },
+  "wishChooseAnother": "Choisir un autre message",
+  "@wishChooseAnother": {
+    "description": "Indice lu par TalkBack sur la bulle du message, qui ouvre les autres suggestions"
+  },
+  "wishWriteOwn": "Écrire un message pour {name}",
+  "@wishWriteOwn": {
+    "description": "Bas de la feuille des vœux suggérés : ouvre le message propre à la personne",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
   }
 }

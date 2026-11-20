@@ -2743,6 +2743,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Proposé par AnKi, change chaque année'**
   String get wishMessageSuggestedCaption;
+
+  /// Titre de la feuille des vœux suggérés, ouverte en touchant la bulle du message
+  ///
+  /// In fr, this message translates to:
+  /// **'Autres messages'**
+  String get wishOtherMessages;
+
+  /// Indice lu par TalkBack sur la bulle du message, qui ouvre les autres suggestions
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir un autre message'**
+  String get wishChooseAnother;
+
+  /// Bas de la feuille des vœux suggérés : ouvre le message propre à la personne
+  ///
+  /// In fr, this message translates to:
+  /// **'Écrire un message pour {name}'**
+  String wishWriteOwn(String name);
 }
 
 class _AppLocalizationsDelegate

@@ -11,6 +11,7 @@ import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_wisher.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
+import 'package:an_ki/features/birthday/widgets/wish_bubble.dart';
 import 'package:an_ki/features/birthday/widgets/wish_text.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -18,8 +19,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Actions du héros le jour J, tant que l'anniversaire n'est pas souhaité :
-/// « Souhaiter » par la feuille de partage, ou « Déjà souhaité » quand
-/// c'est fait autrement. Une fois le vœu fait, le héros les retire.
+/// le message dans sa bulle ([WishBubble], qui ouvre les autres), puis
+/// « Souhaiter » qui l'envoie par la feuille de partage, ou « Déjà
+/// souhaité » quand c'est fait autrement. Une fois le vœu fait, le héros
+/// les retire.
 class WishActions extends ConsumerWidget {
   const WishActions({super.key, required this.birthday, required this.onColor});
 
@@ -35,7 +38,7 @@ class WishActions extends ConsumerWidget {
       birthdayWisherProvider.select((state) => state.isLoading),
     );
 
-    return Wrap(
+    final buttons = Wrap(
       spacing: AppSpacing.xs,
       runSpacing: AppSpacing.xs,
       crossAxisAlignment: WrapCrossAlignment.center,
@@ -67,12 +70,28 @@ class WishActions extends ConsumerWidget {
         ),
       ],
     );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Un voile du texte de fête : au plus 16 %, au-delà le contraste
+        // tombe sous 4,5:1 en sombre (audit de palette).
+        WishBubble(
+          birthday: birthday,
+          fill: onColor.withValues(alpha: 0.16),
+          onFill: onColor,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        buttons,
+      ],
+    );
   }
 }
 
 /// « ✓ Souhaité » en menthe (accent de succès). Sur la page de la personne,
-/// haute comme une cible tactile : elle prend la place des boutons sans
-/// faire sauter la page. [dense] dans une phrase ou une ligne (héros du
+/// haute comme une cible tactile, elle prend la place de la bulle et des
+/// boutons. [dense] dans une phrase ou une ligne (héros du
 /// jour J), à la hauteur du texte.
 class WishedPill extends StatelessWidget {
   const WishedPill({super.key, this.dense = false});

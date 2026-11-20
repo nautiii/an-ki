@@ -17,6 +17,8 @@ import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/screens/person_screen.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/wish_bubble.dart';
+import 'package:an_ki/features/birthday/widgets/wish_message_section.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
@@ -442,6 +444,43 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repository.wishMessageUpdates, [('lea', 'Bonne fête Léa')]);
+    });
+
+    testWidgets('on the day, the bubble opens the others; one tap shares it', (
+      tester,
+    ) async {
+      await pumpPage(tester, person: lea(day: 12));
+      final texts = wishTexts(
+        fr,
+        'Léa',
+        lea(day: 12).wishSuggestions(today, circle: WishCircle.family),
+      );
+
+      // Le message n'est qu'une fois sur la page : la bulle remplace la
+      // section du message ce jour-là.
+      expect(find.text(texts.first), findsOneWidget);
+      expect(find.byType(WishMessageSection), findsNothing);
+
+      await tester.tap(find.byType(WishBubble));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(OtherWishesSheet),
+          matching: find.text(texts[1]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(share.shared, [texts[1]]);
+      expect(repository.wished, [('lea', 2026)]);
+    });
+
+    testWidgets('once wished, the message section is back', (tester) async {
+      await pumpPage(tester, person: lea(day: 12, wishedYears: [2026]));
+
+      expect(find.byType(WishBubble), findsNothing);
+      await tester.ensureVisible(find.byType(WishMessageSection));
+      expect(find.byType(WishMessageSection), findsOneWidget);
     });
 
     testWidgets('their own, sent by « Souhaiter » on the day', (tester) async {

@@ -1924,4 +1924,15 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get wishMessageSuggestedCaption =>
       'Proposé par AnKi, change chaque année';
+
+  @override
+  String get wishOtherMessages => 'Autres messages';
+
+  @override
+  String get wishChooseAnother => 'Choisir un autre message';
+
+  @override
+  String wishWriteOwn(String name) {
+    return 'Écrire un message pour $name';
+  }
 }

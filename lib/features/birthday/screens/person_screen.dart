@@ -24,6 +24,7 @@ import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_reminders_picker.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
+import 'package:an_ki/features/birthday/widgets/wish_bubble.dart';
 import 'package:an_ki/features/birthday/widgets/wish_message_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -151,8 +152,12 @@ class _PersonDetails extends ConsumerWidget {
                 .setReminders(birthday.id, reminders),
           ),
         ),
-        const SizedBox(height: AppSpacing.xl),
-        WishMessageSection(birthday: birthday),
+        // Le jour du vœu, la bulle montre déjà ce message et la feuille des
+        // autres permet d'écrire le sien : pas deux fois le même texte.
+        if (!birthday.canWish(today) || birthday.isWished(today)) ...[
+          const SizedBox(height: AppSpacing.xl),
+          WishMessageSection(birthday: birthday),
+        ],
         const SizedBox(height: AppSpacing.xl),
         _WishHistory(birthday: birthday, today: today),
       ],
@@ -320,8 +325,9 @@ class _Countdown extends StatelessWidget {
   }
 }
 
-/// « Souhaiter » et « Déjà souhaité » le jour J et le lendemain, puis
-/// « ✓ Souhaité » une fois le vœu fait.
+/// Le message dans sa bulle, « Souhaiter » et « Déjà souhaité » le jour J
+/// et le lendemain, puis « ✓ Souhaité » une fois le vœu fait. La bulle est
+/// en nuage : une information calme à côté de l'action en lotus.
 class _WishRow extends ConsumerWidget {
   const _WishRow({required this.birthday, required this.today});
 
@@ -335,8 +341,9 @@ class _WishRow extends ConsumerWidget {
       birthdayWisherProvider.select((state) => state.isLoading),
     );
     if (birthday.isWished(today)) return const WishedPill();
+    final scheme = Theme.of(context).colorScheme;
 
-    return Wrap(
+    final buttons = Wrap(
       alignment: WrapAlignment.center,
       spacing: AppSpacing.xs,
       runSpacing: AppSpacing.xs,
@@ -359,6 +366,20 @@ class _WishRow extends ConsumerWidget {
           onPressed: () => markWishedWithUndo(context, birthday),
           child: Text(context.l10n.alreadyWished),
         ),
+      ],
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        WishBubble(
+          birthday: birthday,
+          fill: scheme.tertiaryContainer,
+          onFill: scheme.onTertiaryContainer,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        buttons,
       ],
     );
   }

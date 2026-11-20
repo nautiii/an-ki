@@ -493,5 +493,8 @@
   "wishSuggestionBelatedShort": "{variant, select, a{Happy belated birthday, {name}! 🎂} b{A little late, but happy birthday {name}!} other{Belated birthday wishes, {name}! 🎉}}",
   "wishSuggestionBelatedWarm": "{style, select, workA{Happy belated birthday, {name}! I hope the day was a great one} workB{A day late, but all the best: happy birthday {name}!} workC{Belated birthday wishes, {name}, and an excellent year ahead!} otherA{Happy belated birthday, {name}! I hope your day was wonderful} otherB{A day late, but my wishes still stand: happy birthday {name}!} other{Happy birthday {name}! Thinking of you, even a day late}}",
   "wishSuggestionBelatedLight": "{variant, select, a{Keeping the party going one more day: happy birthday {name}! 🎉} b{Cake is still good the next day: happy birthday {name}! 🎂} other{Better late than never: happy birthday {name}! 🎉}}",
-  "wishMessageSuggestedCaption": "Suggested by AnKi, changes every year"
+  "wishMessageSuggestedCaption": "Suggested by AnKi, changes every year",
+  "wishOtherMessages": "Other messages",
+  "wishChooseAnother": "Choose another message",
+  "wishWriteOwn": "Write a message for {name}"
 }
