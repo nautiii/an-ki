@@ -37,7 +37,7 @@ for editing); P1 + P3 and P5 get their own briefs.
 | Id | Job | Proposal | Status |
 |----|-----|----------|--------|
 | P7 + P8 | Capture | « + » beside the nav pill (floating button, alone without the pill); one-line add « Léa 12 mars », pasted lines in bulk, « Ajouter et continuer » | Shipped 2026-11-20 (f9c0187, 95c6f78): floating « + », one-line add with pasted lines, « Formulaire » / « En une ligne » toggle in place, last mode kept; checked on the emulator |
-| P4 + P6 | Wish | Three suggested wishes (age, tone by group, length), one tap to share; belated wish the day after (D15) | Built on branch `claude/wish-suggestions-0c286f` (3b9f2c9, 2173a38, 76b8ffd), not yet in `main` |
+| P4 + P6 | Wish | Three suggested wishes (age, tone by group, length), one tap to share; belated wish the day after (D15) | Shipped 2026-11-20 (062b1e0, 8ca95a2, ac30d0a): first message in a bubble above « Souhaiter », « Autres messages » sheet, FR + EN; P6 reduced by the maintainer to the belated message and « a eu 34 ans » on the « Hier » card (patterns §L). Not checked: light theme on device, real TalkBack |
 | P2 | See who's next | One plum night from the native splash to the agenda (D28), cold start measured | Shipped 2026-11-15 (7d1c995): splash and startup screen in plum night. Cold start **4.1 s** (median of 5, profile build, emulator) — over the < 2 s promise: measure on the phone, then profile the start |
 | — | All | Primary `#BD0046` ≈ error `#BA1A1A`: cancel and destructive buttons, focused and erroneous fields look alike | Fixed by day 2026-11-15: error from a vermilion seed `#F4511E` (vibrant) → `#B02E00` (ΔE OKLab 5.6 → 8.4). By night still close: `#FFB5A0` vs `#FFB2BC`, ΔE 2.5 → 4.1, chroma capped at tone 80; option: dark error at tone 75 (`#FFA086`, ΔE 6.9) — decide after a device check |
 | — | Build | Release build fails: `IconData(icon, …)` built at run time in `category_display.dart:11` defeats icon tree-shaking (pre-existing) | Open |
@@ -321,7 +321,7 @@ holds the logo test.
 ## Suggested roadmap
 
 1. **Theme A « Lotus au clair de lune » + P2** shipped 2026-11-15; ux-ui skill evals run (iteration 1), criteria to tighten.
-2. **P7 + P8** capture shipped 2026-11-20; **P4 + P6** wish built, to integrate.
+2. **P7 + P8** capture and **P4 + P6** wish shipped 2026-11-20.
 3. **P10** person page; then the **P1 + P3** (widget, shortcuts) and **P5** (contact link) briefs.
 4. **B8, D17** — depth and polish (D29 if it matters).
 5. **B9 Livres** — approved 2026-11-08, in progress: modules, then series, shelf, burst scan,

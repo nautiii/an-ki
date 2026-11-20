@@ -278,7 +278,7 @@ Shipped in step 4 (`next_birthday.dart`, `birthday_wish.dart`, `blossom_rain.dar
 full moon + « Aujourd'hui 🎉 », the age (S6), and S4 petals once per person per day (2.4 s,
 `mediumImpact`, nothing with reduce motion).
 - « Souhaiter » (filled, `onCelebration` / `onCelebrationAction`) opens the system share sheet
-  (`share_plus`) with a ready message in the user's voice (« tu »), editable in the app chosen.
+  (`share_plus`) with the first suggested wish (below), editable in the app chosen.
   Once an app is chosen the birthday is marked wished — Android reports the app chosen, not the
   sending, hence « Annuler ». A sheet closed without a choice changes nothing.
 - « Déjà souhaité » (text button) marks it at once, for a call or a wish in person.
@@ -288,13 +288,28 @@ full moon + « Aujourd'hui 🎉 », the age (S6), and S4 petals once per person 
   one button (opens the sheet); the actions are separate targets for TalkBack.
 - Model: `wishedYears` (`arrayUnion` / `arrayRemove`), rule `BirthdayWishes.isWished(today)` —
   the year of the latest birthday, so a belated wish on 1 January counts for 31 December.
-- Decided 2026-11-15, in design (friction review P4 + P6): **suggested wishes** — three varied
-  messages (a round or milestone age, a tone by group, short / warm / funny; never an age without
-  a year), the person's saved message first, one tap to share, without adding a step to the
-  common case (Gmail Smart Reply: about 10 % of mobile replies, the first position takes 45 % of
-  the picks, diverse suggestions get 7.5 % more clicks); and a **belated wish** the day after an
-  unwished birthday, « Hier, Hugo a eu 34 ans · Souhaiter quand même », never guilt (ux D15,
-  Facebook). Update this section once they ship.
+- **Suggested wishes** (P4, shipped 2026-11-20: `domain/wish_suggestions.dart`,
+  `widgets/wish_text.dart`, `widgets/wish_bubble.dart`). Gmail Smart Reply: the first position
+  takes 45 % of the picks, diverse suggestions get 7.5 % more clicks.
+  - The rule is a pure domain function, local ICU templates, no AI or network. Three messages:
+    the person's saved message first; then the milestone age (1, 18, every ten years; never an
+    age without a birth year), else a short one; then a warm and a light one. The group sets the
+    tone — Travail: two sober warm ones, no tu nor vous, the light one dropped. Gender-neutral,
+    one emoji at most.
+  - The variant is a stable hash of id + year: the same all day, another next year.
+  - On the J-0 hero and the person page the first message sits whole in a bubble above
+    « Souhaiter » (16 % `onCelebration` veil on the hero, cloud `tertiaryContainer` on the
+    page), so the common case stays 1 tap and shows what it sends. Tapping the bubble opens
+    « Autres messages »: the three as `primaryContainer` cards, one tap each shares it, and
+    « Écrire un message pour Léa » at the bottom. Rejected: tone chips on one bubble (2 taps to
+    read the three, white on white on the gradient); three bubbles (hero 197 → 479 dp, off
+    screen at 200 %).
+  - The person page's « Message » section shows the saved message or the suggested one, and
+    hides on J-0 while the bubble is there.
+- **Belated wish** (P6, reduced by the maintainer on 2026-11-20 to the message and the age): the
+  « Hier » card (`belated_wish.dart`) keeps its shape and adds « a eu 34 ans » under the name
+  (never « 0 », never without a year); its message is belated (« Un peu en retard, mais joyeux
+  anniversaire Hugo ! 🎉 »), never guilt — no « Désolé » (ux D15, Facebook).
 - Next, own brief: a link to the person's contact, opted in person by person — « Appeler »,
   « Message » opening the conversation with the text ready (Google Contacts' action row): two
   taps from the J-0 notification to a sent wish, but it touches the promise « AnKi ne lit que les
@@ -340,7 +355,7 @@ common path; every brief that touches a job counts its steps before and after ag
 | Job | Budget (common path) | Measured 2026-11-14 | Levers |
 |-----|----------------------|---------------------|--------|
 | See who's next | 0 taps (widget), else 1 tap and < 1.5 s to the agenda | 1 tap; cold start never measured; a light flash in dark (D28) | widget (P1), one plum night from splash to agenda (P2), cached agenda |
-| Wish | 1 tap from the hero or the J-0 notification to a messaging app with a fitting message ready | 3–5 taps: share sheet → app → find the person → send; one message for everyone | suggested wishes (P4), contact link (P5), belated wish (P6) |
+| Wish | 1 tap from the hero or the J-0 notification to a messaging app with a fitting message ready | 3–5 taps: share sheet → app → find the person → send; one message for everyone. 2026-11-20 (P4): 1 tap with a fitting message shown before sending; another message 2 taps without typing (was 4 and typing); the steps outside AnKi unchanged | contact link (P5) |
 | Capture one | 1 tap + 1 line + Enter, ≤ 5 s, one-handed | 3 taps + 2 fields, « + » in the top-right corner | thumb-zone button (P7), one-line add (P8), app shortcut (P3) |
 | Capture many | ≤ 4 taps from the empty home to a full agenda | 4 taps: import, allow, import, reminders | contact suggestions (P9) |
 | Undo a mistake | 1 tap, never a confirmation | undo on delete and wish | keep |
