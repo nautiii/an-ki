@@ -353,20 +353,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get wish => 'Souhaiter';
 
   @override
-  String wishMessage(String name) {
-    return 'Bon anniversaire $name ! 🎂';
-  }
-
-  @override
-  String wishMessageBelated(String name) {
-    return 'Désolé pour le retard, bon anniversaire $name !😅🎂';
-  }
-
-  @override
   String get wishMessageTitle => 'Message de vœux';
-
-  @override
-  String get wishMessageDefaultCaption => 'Message par défaut';
 
   @override
   String get wishMessageEdit => 'Modifier le message de vœux';
@@ -376,13 +363,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get wishMessageHelper =>
-      'Envoyé le jour J et le lendemain. Vous pourrez encore le modifier avant l\'envoi.';
+      'Proposé en premier le jour J et le lendemain. Vous pourrez encore le modifier avant l\'envoi.';
 
   @override
-  String get wishMessageRestored => 'Message par défaut rétabli';
+  String get wishMessageRestored => 'Messages proposés rétablis';
 
   @override
-  String get wishMessageReset => 'Rétablir le message par défaut';
+  String get wishMessageReset => 'Revenir aux messages proposés';
 
   @override
   String get errorSharing => 'Impossible d\'ouvrir le partage. Réessayez.';
@@ -1822,4 +1809,119 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get addModeLine => 'En une ligne';
+
+  @override
+  String wishSuggestionShort(String name, String variant) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'a': 'Bon anniversaire $name ! 🎂',
+      'b': 'Joyeux anniversaire $name ! 🎉',
+      'other': 'Très bel anniversaire $name !',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String wishSuggestionWarm(String name, String style) {
+    String _temp0 = intl.Intl.selectLogic(style, {
+      'familyA': 'Joyeux anniversaire $name ! Je t\'embrasse très fort',
+      'familyB':
+          'Bon anniversaire $name ! Plein d\'amour pour cette nouvelle année 🎂',
+      'familyC': 'Joyeux anniversaire $name ! Je pense fort à toi aujourd\'hui',
+      'friendsA':
+          'Bon anniversaire $name ! Que cette année t\'apporte tout ce que tu espères',
+      'friendsB': 'Joyeux anniversaire $name ! Profite bien de ta journée 🎉',
+      'friendsC':
+          'Bon anniversaire $name ! Plein de belles choses pour cette nouvelle année',
+      'workA':
+          'Joyeux anniversaire $name ! Belle journée et belle année à venir',
+      'workB':
+          'Bon anniversaire $name ! Tous mes vœux pour cette nouvelle année',
+      'workC': 'Très bel anniversaire $name, et une excellente année à venir !',
+      'otherA': 'Joyeux anniversaire $name ! Que cette journée te ressemble',
+      'otherB': 'Bon anniversaire $name ! Profite bien de ta journée',
+      'other':
+          'Joyeux anniversaire $name ! Plein de belles choses pour l\'année qui vient',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String wishSuggestionLight(String name, String style) {
+    String _temp0 = intl.Intl.selectLogic(style, {
+      'familyA':
+          'Joyeux anniversaire $name ! Une bougie de plus, et toujours autant de charme 🎂',
+      'familyB': 'Bon anniversaire $name ! Garde-moi une part de gâteau 🎂',
+      'familyC': 'Joyeux anniversaire $name ! Que la fête soit belle 🎉',
+      'friendsA':
+          'Joyeux anniversaire $name ! Une bougie de plus, et toujours autant de style 🎂',
+      'friendsB': 'Bon anniversaire $name ! Ce soir, on trinque à toi 🥂',
+      'friendsC':
+          'Joyeux anniversaire $name ! Un an de plus, mais qui compte ? 🎉',
+      'otherA': 'Joyeux anniversaire $name ! Que la fête soit belle 🎉',
+      'otherB': 'Bon anniversaire $name ! Garde-moi une part de gâteau 🎂',
+      'other':
+          'Joyeux anniversaire $name ! Une bougie de plus, et toujours autant de style 🎂',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String wishSuggestionMilestone(String name, String milestone, int age) {
+    String _temp0 = intl.Intl.selectLogic(milestone, {
+      'first': 'Joyeux premier anniversaire $name ! 🎂',
+      'adult': 'Joyeux anniversaire $name ! 18 ans, une belle étape 🎉',
+      'other': 'Joyeux anniversaire $name ! $age ans, ça se fête 🎉',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String wishSuggestionMilestoneWork(String name, int age) {
+    return 'Joyeux anniversaire $name pour ces $age ans !';
+  }
+
+  @override
+  String wishSuggestionBelatedShort(String name, String variant) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'a': 'Bon anniversaire $name, avec un peu de retard ! 🎂',
+      'b': 'Joyeux anniversaire $name, en léger différé !',
+      'other': 'Un peu en retard, mais joyeux anniversaire $name ! 🎉',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String wishSuggestionBelatedWarm(String name, String style) {
+    String _temp0 = intl.Intl.selectLogic(style, {
+      'workA':
+          'Bon anniversaire $name, avec un jour de retard ! J\'espère que la journée a été belle',
+      'workB':
+          'Tous mes vœux, avec un jour de retard : joyeux anniversaire $name !',
+      'workC':
+          'Joyeux anniversaire en différé, $name ! Une excellente année à venir',
+      'otherA':
+          'Joyeux anniversaire en différé, $name ! J\'espère que ta journée a été belle',
+      'otherB':
+          'Un jour de retard, mais tous mes vœux quand même : bon anniversaire $name !',
+      'other':
+          'Bon anniversaire $name ! Je pense à toi, même avec un jour de retard',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String wishSuggestionBelatedLight(String name, String variant) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'a':
+          'Je fais durer la fête un jour de plus : joyeux anniversaire $name ! 🎉',
+      'b':
+          'Le gâteau est encore bon le lendemain : bon anniversaire $name ! 🎂',
+      'other': 'Mieux vaut tard que jamais : joyeux anniversaire $name ! 🎉',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get wishMessageSuggestedCaption =>
+      'Proposé par AnKi, change chaque année';
 }

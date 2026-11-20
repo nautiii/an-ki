@@ -2,6 +2,7 @@ import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/core/theme/label_tones.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/stable_hash.dart';
 import 'package:flutter/material.dart';
 
 /// Rendu d'une [BirthdayCategory] : icône, teinte et libellé traduit.
@@ -52,21 +53,10 @@ extension CategoryDisplay on BirthdayCategory {
         'favorite' => 12,
         'couple' => 13,
         'other' => LabelTones.neutral,
-        _ => LabelTones.pickable[_stableHash(id) % LabelTones.pickable.length],
+        _ => LabelTones.pickable[stableHash(id) % LabelTones.pickable.length],
       };
 
   /// Paire tonale (pastille, puce) de la catégorie pour le thème courant.
   TonalColors tones(BuildContext context) =>
       LabelTones.of(toneIndex, Theme.of(context).brightness);
-}
-
-/// Hachage FNV-1a de [text], identique d'un lancement à l'autre
-/// (contrairement à `String.hashCode`, que Dart ne garantit pas) et bien
-/// réparti même entre des ids proches.
-int _stableHash(String text) {
-  var hash = 0x811c9dc5;
-  for (final unit in text.codeUnits) {
-    hash = ((hash ^ unit) * 0x01000193) & 0xffffffff;
-  }
-  return hash;
 }

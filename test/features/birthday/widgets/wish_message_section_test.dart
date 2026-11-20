@@ -5,20 +5,29 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/widgets/wish_message_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:an_ki/features/birthday/domain/wish_suggestions.dart';
+import 'package:an_ki/features/birthday/widgets/wish_text.dart';
+import 'package:an_ki/l10n/app_localizations.dart';
+import 'package:an_ki/core/providers/clock_provider.dart';
 
 import '../../../support/fake_providers.dart';
 import '../../../support/test_harness.dart';
 
 void main() {
-  // Le message par défaut, l'espace avant « ! » insécable.
-  const fallback = 'Bon anniversaire Léa ! 🎂';
-
   Birthday lea({String? wishMessage}) => Birthday(
     id: 'lea',
     name: 'Léa',
     surname: 'Martin',
     date: const BirthDate(month: 10, day: 24),
     wishMessage: wishMessage,
+  );
+
+  // Le 12 octobre 2026 : le vœu proposé pour le prochain anniversaire.
+  final today = DateTime(2026, 10, 12);
+  final fallback = suggestedWishText(
+    lookupAppLocalizations(const Locale('fr')),
+    lea(),
+    lea().wishSuggestions(today),
   );
 
   late RecordingBirthdayRepository repository;
@@ -30,6 +39,7 @@ void main() {
       Scaffold(body: child),
       overrides: [
         currentUidProvider.overrideWithValue('fake-uid'),
+        clockProvider.overrideWithValue(() => today),
         birthdayRepositoryProvider.overrideWithValue(repository),
       ],
     );
@@ -53,14 +63,17 @@ void main() {
 
       expect(find.text('Message de vœux'), findsOneWidget);
       expect(find.text(fallback), findsOneWidget);
-      expect(find.text('Message par défaut'), findsOneWidget);
+      expect(
+        find.text('Proposé par AnKi, change chaque année'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('shows their own message', (tester) async {
       await pump(tester, WishMessageSection(birthday: lea(wishMessage: 'Yo')));
 
       expect(find.text('Yo'), findsOneWidget);
-      expect(find.text('Message par défaut'), findsNothing);
+      expect(find.text('Proposé par AnKi, change chaque année'), findsNothing);
     });
 
     testWidgets('is a 48 dp button that opens the sheet', (tester) async {
@@ -75,7 +88,7 @@ void main() {
           hasTapAction: true,
           hasFocusAction: true,
           isFocusable: true,
-          label: '$fallback\nMessage par défaut',
+          label: '$fallback\nProposé par AnKi, change chaque année',
           hint: 'Modifier le message de vœux',
         ),
       );
@@ -93,7 +106,7 @@ void main() {
 
       expect(tester.widget<TextField>(field).controller?.text, fallback);
       expect(saveEnabled(tester), isFalse);
-      expect(find.text('Rétablir le message par défaut'), findsNothing);
+      expect(find.text('Revenir aux messages proposés'), findsNothing);
     });
 
     testWidgets('saves an own message, trimmed', (tester) async {
@@ -128,11 +141,11 @@ void main() {
 
       expect(tester.widget<TextField>(field).controller?.text, 'Yo');
       expect(saveEnabled(tester), isFalse);
-      await tester.tap(find.text('Rétablir le message par défaut'));
+      await tester.tap(find.text('Revenir aux messages proposés'));
       await tester.pumpAndSettle();
 
       expect(repository.wishMessageUpdates, [('lea', null)]);
-      expect(find.text('Message par défaut rétabli'), findsOneWidget);
+      expect(find.text('Messages proposés rétablis'), findsOneWidget);
       await tester.tap(find.text('Annuler'));
       await tester.pump();
 
@@ -144,7 +157,8 @@ void main() {
     ) async {
       await pump(tester, WishMessageSheet(birthday: lea()));
 
-      await tester.enterText(field, '  Bon anniversaire Léa ! 🎂 ');
+      // Une espace ordinaire tapée au lieu de l'insécable.
+      await tester.enterText(field, '  ${fallback.replaceAll(' ', ' ')} ');
       await tester.pump();
 
       expect(saveEnabled(tester), isFalse);

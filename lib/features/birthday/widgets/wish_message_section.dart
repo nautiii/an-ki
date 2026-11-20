@@ -5,22 +5,29 @@ import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_wish_message.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
+import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
+import 'package:an_ki/features/birthday/widgets/wish_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Message de vœu d'une personne sur sa page : celui qu'enverra
-/// « Souhaiter », le sien ou celui par défaut. Un toucher ouvre
-/// [WishMessageSheet].
-class WishMessageSection extends StatelessWidget {
+/// « Souhaiter », le sien ou le vœu proposé par AnKi cette année. Un toucher
+/// ouvre [WishMessageSheet].
+class WishMessageSection extends ConsumerWidget {
   const WishMessageSection({super.key, required this.birthday});
 
   final Birthday birthday;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final suggested = suggestedWishText(
+      l10n,
+      birthday,
+      ref.watch(wishSuggestionsProvider(birthday)),
+    );
     final theme = Theme.of(context);
     final variant = theme.colorScheme.onSurfaceVariant;
     final custom = birthday.wishMessage;
@@ -57,7 +64,7 @@ class WishMessageSection extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            custom ?? l10n.wishMessage(birthday.name),
+                            custom ?? suggested,
                             // Un aperçu : TalkBack lit le message entier.
                             maxLines: 4,
                             overflow: TextOverflow.ellipsis,
@@ -65,7 +72,7 @@ class WishMessageSection extends StatelessWidget {
                           ),
                           if (custom == null)
                             Text(
-                              l10n.wishMessageDefaultCaption,
+                              l10n.wishMessageSuggestedCaption,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: variant,
                               ),
@@ -110,7 +117,11 @@ class WishMessageSheet extends ConsumerStatefulWidget {
 }
 
 class _WishMessageSheetState extends ConsumerState<WishMessageSheet> {
-  late final String _default = context.l10n.wishMessage(widget.birthday.name);
+  late final String _default = suggestedWishText(
+    context.l10n,
+    widget.birthday,
+    ref.read(wishSuggestionsProvider(widget.birthday)),
+  );
   late final _message = TextEditingController(
     text: widget.birthday.wishMessage ?? _default,
   );

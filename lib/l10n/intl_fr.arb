@@ -283,31 +283,9 @@
   "@wish": {
     "description": "Bouton du héros le jour J et de la notification : ouvre la feuille de partage avec un message prêt"
   },
-  "wishMessage": "Bon anniversaire {name} ! 🎂",
-  "@wishMessage": {
-    "description": "Message prêt à envoyer, modifiable dans l'app choisie. La voix de l'utilisateur à un proche : tutoiement",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "wishMessageBelated": "Désolé pour le retard, bon anniversaire {name} !😅🎂",
-  "@wishMessageBelated": {
-    "description": "Message prêt à envoyer le lendemain d'un anniversaire oublié, modifiable dans l'app choisie. Chaleureux, sans reproche ; tutoiement",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "wishMessageTitle": "Message de vœux",
   "@wishMessageTitle": {
     "description": "Titre de la section de la page d'une personne et de la feuille qui personnalise le message envoyé par « Souhaiter »"
-  },
-  "wishMessageDefaultCaption": "Message par défaut",
-  "@wishMessageDefaultCaption": {
-    "description": "Sous le message de la page d'une personne, quand aucun message personnalisé n'est enregistré"
   },
   "wishMessageEdit": "Modifier le message de vœux",
   "@wishMessageEdit": {
@@ -317,15 +295,15 @@
   "@wishMessageField": {
     "description": "Libellé du champ de la feuille du message de vœu"
   },
-  "wishMessageHelper": "Envoyé le jour J et le lendemain. Vous pourrez encore le modifier avant l'envoi.",
+  "wishMessageHelper": "Proposé en premier le jour J et le lendemain. Vous pourrez encore le modifier avant l'envoi.",
   "@wishMessageHelper": {
     "description": "Aide sous le champ du message de vœu"
   },
-  "wishMessageRestored": "Message par défaut rétabli",
+  "wishMessageRestored": "Messages proposés rétablis",
   "@wishMessageRestored": {
-    "description": "Snackbar après « Rétablir le message par défaut », avec « Annuler »"
+    "description": "Snackbar après « Revenir aux messages proposés », avec « Annuler »"
   },
-  "wishMessageReset": "Rétablir le message par défaut",
+  "wishMessageReset": "Revenir aux messages proposés",
   "@wishMessageReset": {
     "description": "Bouton de la feuille du message de vœu : efface le message personnalisé"
   },
@@ -1860,5 +1838,74 @@
   "addModeLine": "En une ligne",
   "@addModeLine": {
     "description": "Feuille d'ajout : mode une seule ligne, « Léa 12 mars »"
+  },
+  "wishSuggestionShort": "{variant, select, a{Bon anniversaire {name}\u00a0! 🎂} b{Joyeux anniversaire {name}\u00a0! 🎉} other{Très bel anniversaire {name}\u00a0!}}",
+  "@wishSuggestionShort": {
+    "description": "Vœu suggéré court, sans pronom, aussi envoyé à un collègue : un emoji festif au plus ; trois variantes",
+    "placeholders": {
+      "name": { "type": "String" },
+      "variant": { "type": "String" }
+    }
+  },
+  "wishSuggestionWarm": "{style, select, familyA{Joyeux anniversaire {name}\u00a0! Je t'embrasse très fort} familyB{Bon anniversaire {name}\u00a0! Plein d'amour pour cette nouvelle année 🎂} familyC{Joyeux anniversaire {name}\u00a0! Je pense fort à toi aujourd'hui} friendsA{Bon anniversaire {name}\u00a0! Que cette année t'apporte tout ce que tu espères} friendsB{Joyeux anniversaire {name}\u00a0! Profite bien de ta journée 🎉} friendsC{Bon anniversaire {name}\u00a0! Plein de belles choses pour cette nouvelle année} workA{Joyeux anniversaire {name}\u00a0! Belle journée et belle année à venir} workB{Bon anniversaire {name}\u00a0! Tous mes vœux pour cette nouvelle année} workC{Très bel anniversaire {name}, et une excellente année à venir\u00a0!} otherA{Joyeux anniversaire {name}\u00a0! Que cette journée te ressemble} otherB{Bon anniversaire {name}\u00a0! Profite bien de ta journée} other{Joyeux anniversaire {name}\u00a0! Plein de belles choses pour l'année qui vient}}",
+  "@wishSuggestionWarm": {
+    "description": "Vœu suggéré tendre, selon le cercle (famille, amis, travail sans tu ni vous, autre) et la variante ; neutre en genre, un emoji au plus",
+    "placeholders": {
+      "name": { "type": "String" },
+      "style": { "type": "String" }
+    }
+  },
+  "wishSuggestionLight": "{style, select, familyA{Joyeux anniversaire {name}\u00a0! Une bougie de plus, et toujours autant de charme 🎂} familyB{Bon anniversaire {name}\u00a0! Garde-moi une part de gâteau 🎂} familyC{Joyeux anniversaire {name}\u00a0! Que la fête soit belle 🎉} friendsA{Joyeux anniversaire {name}\u00a0! Une bougie de plus, et toujours autant de style 🎂} friendsB{Bon anniversaire {name}\u00a0! Ce soir, on trinque à toi 🥂} friendsC{Joyeux anniversaire {name}\u00a0! Un an de plus, mais qui compte\u00a0? 🎉} otherA{Joyeux anniversaire {name}\u00a0! Que la fête soit belle 🎉} otherB{Bon anniversaire {name}\u00a0! Garde-moi une part de gâteau 🎂} other{Joyeux anniversaire {name}\u00a0! Une bougie de plus, et toujours autant de style 🎂}}",
+  "@wishSuggestionLight": {
+    "description": "Vœu suggéré léger ou drôle, selon le cercle (famille, amis, autre) et la variante ; neutre en genre",
+    "placeholders": {
+      "name": { "type": "String" },
+      "style": { "type": "String" }
+    }
+  },
+  "wishSuggestionMilestone": "{milestone, select, first{Joyeux premier anniversaire {name}\u00a0! 🎂} adult{Joyeux anniversaire {name}\u00a0! 18\u00a0ans, une belle étape 🎉} other{Joyeux anniversaire {name}\u00a0! {age}\u00a0ans, ça se fête 🎉}}",
+  "@wishSuggestionMilestone": {
+    "description": "Vœu suggéré pour un âge marquant : premier anniversaire (first), 18 ans (adult), chaque dizaine (other, avec l’âge)",
+    "placeholders": {
+      "name": { "type": "String" },
+      "milestone": { "type": "String" },
+      "age": { "type": "int" }
+    }
+  },
+  "wishSuggestionMilestoneWork": "Joyeux anniversaire {name} pour ces {age}\u00a0ans\u00a0!",
+  "@wishSuggestionMilestoneWork": {
+    "description": "Vœu suggéré pour un âge marquant, à un collègue : sobre, sans tu ni vous, sans emoji",
+    "placeholders": {
+      "name": { "type": "String" },
+      "age": { "type": "int" }
+    }
+  },
+  "wishSuggestionBelatedShort": "{variant, select, a{Bon anniversaire {name}, avec un peu de retard\u00a0! 🎂} b{Joyeux anniversaire {name}, en léger différé\u00a0!} other{Un peu en retard, mais joyeux anniversaire {name}\u00a0! 🎉}}",
+  "@wishSuggestionBelatedShort": {
+    "description": "Vœu suggéré court, le lendemain ; sans reproche, neutre en genre (jamais « désolé »)",
+    "placeholders": {
+      "name": { "type": "String" },
+      "variant": { "type": "String" }
+    }
+  },
+  "wishSuggestionBelatedWarm": "{style, select, workA{Bon anniversaire {name}, avec un jour de retard\u00a0! J'espère que la journée a été belle} workB{Tous mes vœux, avec un jour de retard\u00a0: joyeux anniversaire {name}\u00a0!} workC{Joyeux anniversaire en différé, {name}\u00a0! Une excellente année à venir} otherA{Joyeux anniversaire en différé, {name}\u00a0! J'espère que ta journée a été belle} otherB{Un jour de retard, mais tous mes vœux quand même\u00a0: bon anniversaire {name}\u00a0!} other{Bon anniversaire {name}\u00a0! Je pense à toi, même avec un jour de retard}}",
+  "@wishSuggestionBelatedWarm": {
+    "description": "Vœu suggéré tendre, le lendemain ; travail sans tu ni vous",
+    "placeholders": {
+      "name": { "type": "String" },
+      "style": { "type": "String" }
+    }
+  },
+  "wishSuggestionBelatedLight": "{variant, select, a{Je fais durer la fête un jour de plus\u00a0: joyeux anniversaire {name}\u00a0! 🎉} b{Le gâteau est encore bon le lendemain\u00a0: bon anniversaire {name}\u00a0! 🎂} other{Mieux vaut tard que jamais\u00a0: joyeux anniversaire {name}\u00a0! 🎉}}",
+  "@wishSuggestionBelatedLight": {
+    "description": "Vœu suggéré léger, le lendemain",
+    "placeholders": {
+      "name": { "type": "String" },
+      "variant": { "type": "String" }
+    }
+  },
+  "wishMessageSuggestedCaption": "Proposé par AnKi, change chaque année",
+  "@wishMessageSuggestedCaption": {
+    "description": "Sous le message de la page d'une personne, quand aucun message personnalisé n'est enregistré : c'est la première suggestion"
   }
 }

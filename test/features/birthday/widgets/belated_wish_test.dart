@@ -17,6 +17,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:an_ki/features/birthday/domain/wish_suggestions.dart';
+import 'package:an_ki/features/birthday/widgets/wish_text.dart';
+import 'package:an_ki/l10n/app_localizations.dart';
 
 import '../../../support/fake_providers.dart';
 import '../../../support/network_image_mock.dart';
@@ -136,8 +139,14 @@ void main() {
     await tester.tap(find.text('Souhaiter'));
     await tester.pump();
 
+    final suggestions = bornOn(12, 31).wishSuggestions(today);
+    expect((suggestions.first as TemplateWish).belated, isTrue);
     expect(share.shared, [
-      'Désolé pour le retard, bon anniversaire Nina !😅🎂',
+      wishTexts(
+        lookupAppLocalizations(const Locale('fr')),
+        'Nina',
+        suggestions,
+      ).first,
     ]);
     expect(repository.wished, [('nina', 2026)]);
     expect(find.text('Nina Rossi a reçu vos vœux'), findsOneWidget);

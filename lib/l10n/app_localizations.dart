@@ -644,29 +644,11 @@ abstract class AppLocalizations {
   /// **'Souhaiter'**
   String get wish;
 
-  /// Message prêt à envoyer, modifiable dans l'app choisie. La voix de l'utilisateur à un proche : tutoiement
-  ///
-  /// In fr, this message translates to:
-  /// **'Bon anniversaire {name} ! 🎂'**
-  String wishMessage(String name);
-
-  /// Message prêt à envoyer le lendemain d'un anniversaire oublié, modifiable dans l'app choisie. Chaleureux, sans reproche ; tutoiement
-  ///
-  /// In fr, this message translates to:
-  /// **'Désolé pour le retard, bon anniversaire {name} !😅🎂'**
-  String wishMessageBelated(String name);
-
   /// Titre de la section de la page d'une personne et de la feuille qui personnalise le message envoyé par « Souhaiter »
   ///
   /// In fr, this message translates to:
   /// **'Message de vœux'**
   String get wishMessageTitle;
-
-  /// Sous le message de la page d'une personne, quand aucun message personnalisé n'est enregistré
-  ///
-  /// In fr, this message translates to:
-  /// **'Message par défaut'**
-  String get wishMessageDefaultCaption;
 
   /// Libellé d'accessibilité de la ligne qui ouvre la feuille du message de vœu
   ///
@@ -683,19 +665,19 @@ abstract class AppLocalizations {
   /// Aide sous le champ du message de vœu
   ///
   /// In fr, this message translates to:
-  /// **'Envoyé le jour J et le lendemain. Vous pourrez encore le modifier avant l\'envoi.'**
+  /// **'Proposé en premier le jour J et le lendemain. Vous pourrez encore le modifier avant l\'envoi.'**
   String get wishMessageHelper;
 
-  /// Snackbar après « Rétablir le message par défaut », avec « Annuler »
+  /// Snackbar après « Revenir aux messages proposés », avec « Annuler »
   ///
   /// In fr, this message translates to:
-  /// **'Message par défaut rétabli'**
+  /// **'Messages proposés rétablis'**
   String get wishMessageRestored;
 
   /// Bouton de la feuille du message de vœu : efface le message personnalisé
   ///
   /// In fr, this message translates to:
-  /// **'Rétablir le message par défaut'**
+  /// **'Revenir aux messages proposés'**
   String get wishMessageReset;
 
   /// Snackbar quand la feuille de partage du système ne s'ouvre pas
@@ -2707,6 +2689,60 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'En une ligne'**
   String get addModeLine;
+
+  /// Vœu suggéré court, sans pronom, aussi envoyé à un collègue : un emoji festif au plus ; trois variantes
+  ///
+  /// In fr, this message translates to:
+  /// **'{variant, select, a{Bon anniversaire {name} ! 🎂} b{Joyeux anniversaire {name} ! 🎉} other{Très bel anniversaire {name} !}}'**
+  String wishSuggestionShort(String name, String variant);
+
+  /// Vœu suggéré tendre, selon le cercle (famille, amis, travail sans tu ni vous, autre) et la variante ; neutre en genre, un emoji au plus
+  ///
+  /// In fr, this message translates to:
+  /// **'{style, select, familyA{Joyeux anniversaire {name} ! Je t\'embrasse très fort} familyB{Bon anniversaire {name} ! Plein d\'amour pour cette nouvelle année 🎂} familyC{Joyeux anniversaire {name} ! Je pense fort à toi aujourd\'hui} friendsA{Bon anniversaire {name} ! Que cette année t\'apporte tout ce que tu espères} friendsB{Joyeux anniversaire {name} ! Profite bien de ta journée 🎉} friendsC{Bon anniversaire {name} ! Plein de belles choses pour cette nouvelle année} workA{Joyeux anniversaire {name} ! Belle journée et belle année à venir} workB{Bon anniversaire {name} ! Tous mes vœux pour cette nouvelle année} workC{Très bel anniversaire {name}, et une excellente année à venir !} otherA{Joyeux anniversaire {name} ! Que cette journée te ressemble} otherB{Bon anniversaire {name} ! Profite bien de ta journée} other{Joyeux anniversaire {name} ! Plein de belles choses pour l\'année qui vient}}'**
+  String wishSuggestionWarm(String name, String style);
+
+  /// Vœu suggéré léger ou drôle, selon le cercle (famille, amis, autre) et la variante ; neutre en genre
+  ///
+  /// In fr, this message translates to:
+  /// **'{style, select, familyA{Joyeux anniversaire {name} ! Une bougie de plus, et toujours autant de charme 🎂} familyB{Bon anniversaire {name} ! Garde-moi une part de gâteau 🎂} familyC{Joyeux anniversaire {name} ! Que la fête soit belle 🎉} friendsA{Joyeux anniversaire {name} ! Une bougie de plus, et toujours autant de style 🎂} friendsB{Bon anniversaire {name} ! Ce soir, on trinque à toi 🥂} friendsC{Joyeux anniversaire {name} ! Un an de plus, mais qui compte ? 🎉} otherA{Joyeux anniversaire {name} ! Que la fête soit belle 🎉} otherB{Bon anniversaire {name} ! Garde-moi une part de gâteau 🎂} other{Joyeux anniversaire {name} ! Une bougie de plus, et toujours autant de style 🎂}}'**
+  String wishSuggestionLight(String name, String style);
+
+  /// Vœu suggéré pour un âge marquant : premier anniversaire (first), 18 ans (adult), chaque dizaine (other, avec l’âge)
+  ///
+  /// In fr, this message translates to:
+  /// **'{milestone, select, first{Joyeux premier anniversaire {name} ! 🎂} adult{Joyeux anniversaire {name} ! 18 ans, une belle étape 🎉} other{Joyeux anniversaire {name} ! {age} ans, ça se fête 🎉}}'**
+  String wishSuggestionMilestone(String name, String milestone, int age);
+
+  /// Vœu suggéré pour un âge marquant, à un collègue : sobre, sans tu ni vous, sans emoji
+  ///
+  /// In fr, this message translates to:
+  /// **'Joyeux anniversaire {name} pour ces {age} ans !'**
+  String wishSuggestionMilestoneWork(String name, int age);
+
+  /// Vœu suggéré court, le lendemain ; sans reproche, neutre en genre (jamais « désolé »)
+  ///
+  /// In fr, this message translates to:
+  /// **'{variant, select, a{Bon anniversaire {name}, avec un peu de retard ! 🎂} b{Joyeux anniversaire {name}, en léger différé !} other{Un peu en retard, mais joyeux anniversaire {name} ! 🎉}}'**
+  String wishSuggestionBelatedShort(String name, String variant);
+
+  /// Vœu suggéré tendre, le lendemain ; travail sans tu ni vous
+  ///
+  /// In fr, this message translates to:
+  /// **'{style, select, workA{Bon anniversaire {name}, avec un jour de retard ! J\'espère que la journée a été belle} workB{Tous mes vœux, avec un jour de retard : joyeux anniversaire {name} !} workC{Joyeux anniversaire en différé, {name} ! Une excellente année à venir} otherA{Joyeux anniversaire en différé, {name} ! J\'espère que ta journée a été belle} otherB{Un jour de retard, mais tous mes vœux quand même : bon anniversaire {name} !} other{Bon anniversaire {name} ! Je pense à toi, même avec un jour de retard}}'**
+  String wishSuggestionBelatedWarm(String name, String style);
+
+  /// Vœu suggéré léger, le lendemain
+  ///
+  /// In fr, this message translates to:
+  /// **'{variant, select, a{Je fais durer la fête un jour de plus : joyeux anniversaire {name} ! 🎉} b{Le gâteau est encore bon le lendemain : bon anniversaire {name} ! 🎂} other{Mieux vaut tard que jamais : joyeux anniversaire {name} ! 🎉}}'**
+  String wishSuggestionBelatedLight(String name, String variant);
+
+  /// Sous le message de la page d'une personne, quand aucun message personnalisé n'est enregistré : c'est la première suggestion
+  ///
+  /// In fr, this message translates to:
+  /// **'Proposé par AnKi, change chaque année'**
+  String get wishMessageSuggestedCaption;
 }
 
 class _AppLocalizationsDelegate

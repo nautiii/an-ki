@@ -117,7 +117,6 @@ class _BelatedCard extends ConsumerWidget {
                 context,
                 birthday,
                 origin: shareOriginOf(buttonContext),
-                belated: true,
               ),
         style: FilledButton.styleFrom(
           padding: _wishPadding,

@@ -23,6 +23,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:an_ki/features/birthday/domain/wish_suggestions.dart';
+import 'package:an_ki/features/birthday/widgets/wish_text.dart';
+import 'package:an_ki/l10n/app_localizations.dart';
 
 import '../../../support/fake_providers.dart';
 import '../../../support/network_image_mock.dart';
@@ -44,6 +47,7 @@ class _FlakyBirthdays extends RecordingBirthdayRepository {
 void main() {
   // Le 12 octobre 2026.
   final today = DateTime(2026, 10, 12);
+  final fr = lookupAppLocalizations(const Locale('fr'));
   const family = BirthdayCategory(id: 'fam', name: 'family', icon: 0xe1be);
 
   /// Léa, née le [month]/[day] 1990 (année inconnue sans [yearKnown]).
@@ -286,7 +290,9 @@ void main() {
       await tester.tap(find.text('Souhaiter'));
       await tester.pump();
 
-      expect(share.shared.single, contains('Désolé pour le retard'));
+      final suggestions = lea(day: 11).wishSuggestions(today);
+      expect((suggestions.first as TemplateWish).belated, isTrue);
+      expect(share.shared.single, wishTexts(fr, 'Léa', suggestions).first);
       expect(repository.wished, [('lea', 2026)]);
     });
 
@@ -411,8 +417,13 @@ void main() {
     testWidgets('the default one, said so', (tester) async {
       await pumpPage(tester);
 
-      await tester.ensureVisible(find.text('Message par défaut'));
-      expect(find.text('Bon anniversaire Léa ! 🎂'), findsOneWidget);
+      await tester.ensureVisible(
+        find.text('Proposé par AnKi, change chaque année'),
+      );
+      expect(
+        find.text(suggestedWishText(fr, lea(), lea().wishSuggestions(today))),
+        findsOneWidget,
+      );
     });
 
     testWidgets('their own, customised from its sheet', (tester) async {

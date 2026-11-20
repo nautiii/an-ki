@@ -350,7 +350,6 @@ class _WishRow extends ConsumerWidget {
                     context,
                     birthday,
                     origin: shareOriginOf(buttonContext),
-                    belated: birthday.isBelated(today),
                   ),
             icon: const Icon(Icons.send_rounded),
             label: Text(context.l10n.wish),

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/app/bootstrap/app_initializer.dart';
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/notification_service.dart';
@@ -21,6 +22,9 @@ import 'package:firebase_auth_mocks/firebase_auth_mocks.dart' as fam;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:an_ki/features/birthday/domain/wish_suggestions.dart';
+import 'package:an_ki/features/birthday/widgets/wish_text.dart';
+import 'package:an_ki/l10n/app_localizations.dart';
 
 import '../../support/app_harness.dart';
 import '../../support/fake_providers.dart';
@@ -315,7 +319,13 @@ void main() {
       surname: 'Martin',
       date: BirthDate(month: 3, day: 12),
     );
-    const message = 'Bon anniversaire Léa ! 🎂';
+    // Le jour J de Léa, 9 h : l'action de la notification J-0.
+    final now = DateTime(2026, 3, 12, 9);
+    final message = wishTexts(
+      lookupAppLocalizations(const Locale('fr')),
+      'Léa',
+      lea.wishSuggestions(now),
+    ).first;
     const wishTap = NotificationTap(
       payload: 'lea',
       actionId: NotificationActions.wish,
@@ -332,6 +342,7 @@ void main() {
         birthdays: const [lea],
         notifications: notifications,
         share: share,
+        overrides: [clockProvider.overrideWithValue(() => now)],
       );
       await tester.settleApp();
     }

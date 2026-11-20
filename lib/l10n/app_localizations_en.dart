@@ -348,20 +348,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wish => 'Send wishes';
 
   @override
-  String wishMessage(String name) {
-    return 'Happy birthday $name! 🎂';
-  }
-
-  @override
-  String wishMessageBelated(String name) {
-    return 'Sorry I\'m late, happy birthday $name!😅🎂';
-  }
-
-  @override
   String get wishMessageTitle => 'Wish message';
-
-  @override
-  String get wishMessageDefaultCaption => 'Default message';
 
   @override
   String get wishMessageEdit => 'Edit the wish message';
@@ -371,13 +358,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wishMessageHelper =>
-      'Sent on the day and the day after. You can still edit it before sending.';
+      'Suggested first on the day and the day after. You can still edit it before sending.';
 
   @override
-  String get wishMessageRestored => 'Default message restored';
+  String get wishMessageRestored => 'Suggested messages restored';
 
   @override
-  String get wishMessageReset => 'Restore the default message';
+  String get wishMessageReset => 'Go back to suggested messages';
 
   @override
   String get errorSharing => 'Couldn\'t open sharing. Please try again.';
@@ -1801,4 +1788,103 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addModeLine => 'One line';
+
+  @override
+  String wishSuggestionShort(String name, String variant) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'a': 'Happy birthday $name! 🎂',
+      'b': 'Wishing you a wonderful birthday, $name! 🎉',
+      'other': 'Have a lovely birthday, $name!',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String wishSuggestionWarm(String name, String style) {
+    String _temp0 = intl.Intl.selectLogic(style, {
+      'familyA': 'Happy birthday $name! Sending you lots of love',
+      'familyB': 'Happy birthday $name! So much love for the year ahead 🎂',
+      'familyC': 'Happy birthday $name! Thinking of you today',
+      'friendsA':
+          'Happy birthday $name! Hope this year brings you everything you wish for',
+      'friendsB': 'Happy birthday $name! Enjoy every minute of your day 🎉',
+      'friendsC': 'Happy birthday $name! Here\'s to a year full of good things',
+      'workA': 'Happy birthday $name! Have a great day and a great year ahead',
+      'workB': 'Happy birthday $name! All the best for the year ahead',
+      'workC': 'Wishing $name a very happy birthday and an excellent year!',
+      'otherA': 'Happy birthday $name! Hope your day is as great as you are',
+      'otherB': 'Happy birthday $name! Enjoy your day',
+      'other': 'Happy birthday $name! Lots of good things for the year ahead',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String wishSuggestionLight(String name, String style) {
+    String _temp0 = intl.Intl.selectLogic(style, {
+      'familyA':
+          'Happy birthday $name! One more candle, and as charming as ever 🎂',
+      'familyB': 'Happy birthday $name! Save me a slice of cake 🎂',
+      'familyC': 'Happy birthday $name! Have a wonderful party 🎉',
+      'friendsA': 'Happy birthday $name! Another candle, same great style 🎂',
+      'friendsB': 'Happy birthday $name! Tonight we toast to you 🥂',
+      'friendsC': 'Happy birthday $name! A year older, but who\'s counting? 🎉',
+      'otherA': 'Happy birthday $name! Have a wonderful party 🎉',
+      'otherB': 'Happy birthday $name! Save me a slice of cake 🎂',
+      'other': 'Happy birthday $name! Another candle, same great style 🎂',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String wishSuggestionMilestone(String name, String milestone, int age) {
+    String _temp0 = intl.Intl.selectLogic(milestone, {
+      'first': 'Happy first birthday, $name! 🎂',
+      'adult': 'Happy birthday $name! 18, what a milestone 🎉',
+      'other': 'Happy birthday $name! $age is worth celebrating 🎉',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String wishSuggestionMilestoneWork(String name, int age) {
+    return 'Happy birthday $name, and congratulations on turning $age!';
+  }
+
+  @override
+  String wishSuggestionBelatedShort(String name, String variant) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'a': 'Happy belated birthday, $name! 🎂',
+      'b': 'A little late, but happy birthday $name!',
+      'other': 'Belated birthday wishes, $name! 🎉',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String wishSuggestionBelatedWarm(String name, String style) {
+    String _temp0 = intl.Intl.selectLogic(style, {
+      'workA': 'Happy belated birthday, $name! I hope the day was a great one',
+      'workB': 'A day late, but all the best: happy birthday $name!',
+      'workC': 'Belated birthday wishes, $name, and an excellent year ahead!',
+      'otherA': 'Happy belated birthday, $name! I hope your day was wonderful',
+      'otherB': 'A day late, but my wishes still stand: happy birthday $name!',
+      'other': 'Happy birthday $name! Thinking of you, even a day late',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String wishSuggestionBelatedLight(String name, String variant) {
+    String _temp0 = intl.Intl.selectLogic(variant, {
+      'a': 'Keeping the party going one more day: happy birthday $name! 🎉',
+      'b': 'Cake is still good the next day: happy birthday $name! 🎂',
+      'other': 'Better late than never: happy birthday $name! 🎉',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get wishMessageSuggestedCaption =>
+      'Suggested by AnKi, changes every year';
 }

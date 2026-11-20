@@ -8,8 +8,10 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/domain/wish_failure.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
+import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_wisher.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
+import 'package:an_ki/features/birthday/widgets/wish_text.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -124,22 +126,29 @@ class WishedPill extends StatelessWidget {
   }
 }
 
-/// Souhaite [birthday] par la feuille de partage du système, avec un message
-/// prêt (modifiable dans l'app choisie) : le sien s'il en a un, sinon celui
-/// par défaut. Une app choisie le marque souhaité, avec « Annuler ». [origin]
-/// situe la feuille sur iPad ; [belated] prend le message par défaut du
-/// lendemain, « Désolé pour le retard ».
+/// Souhaite [birthday] par la feuille de partage du système, avec [message]
+/// prêt (modifiable dans l'app choisie) : par défaut le premier vœu suggéré
+/// (le sien s'il en a un). Une app choisie le marque souhaité, avec
+/// « Annuler ». [origin] situe la feuille sur iPad.
 Future<void> wishBirthday(
   BuildContext context,
   Birthday birthday, {
   Rect? origin,
-  bool belated = false,
+  String? message,
 }) async {
   // Tout est lu avant d'ouvrir la feuille : le contexte peut disparaître
   // pendant qu'elle est ouverte.
   final container = ProviderScope.containerOf(context, listen: false);
   final announcer = _WishAnnouncer.of(context, container);
-  final year = birthday.wishYear(container.read(todayProvider));
+  final today = container.read(todayProvider);
+  final year = birthday.wishYear(today);
+  final text =
+      message ??
+      wishTexts(
+        announcer.l10n,
+        birthday.name,
+        container.read(wishSuggestionsProvider(birthday)),
+      ).first;
   // Garde le contrôleur en vie tant que la feuille est ouverte.
   final keepAlive = container.listen(birthdayWisherProvider, (_, _) {});
   try {
@@ -148,11 +157,7 @@ Future<void> wishBirthday(
         .wish(
           birthdayId: birthday.id,
           year: year,
-          message:
-              birthday.wishMessage ??
-              (belated
-                  ? announcer.l10n.wishMessageBelated(birthday.name)
-                  : announcer.l10n.wishMessage(birthday.name)),
+          message: text,
           origin: origin,
         );
     if (wished) announcer.wished(birthday, year);

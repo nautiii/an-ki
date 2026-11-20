@@ -4,7 +4,10 @@ import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/agenda.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/wish_suggestions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -167,6 +170,102 @@ void main() {
       final next = container.read(nextBirthdaysProvider);
 
       expect(next.map((b) => b.id), ['near']);
+    });
+
+    test('wishSuggestionsProvider takes the tone of predefined groups', () {
+      // Les ids des groupes prédéfinis sont quelconques : c'est le nom qui
+      // compte, et seulement dans la collection partagée.
+      const hugo = Birthday(
+        id: 'hugo',
+        name: 'Hugo',
+        surname: '',
+        date: BirthDate(year: 1993, month: 10, day: 16),
+        categories: ['c1', 'mine'],
+      );
+      final container = ProviderContainer.test(
+        overrides: [
+          todayProvider.overrideWith((ref) => ref.watch(_day)),
+          sharedCategoriesProvider.overrideWithValue(
+            const AsyncData([
+              BirthdayCategory(id: 'c1', name: 'colleague', icon: 0),
+            ]),
+          ),
+        ],
+      );
+      container.listen(wishSuggestionsProvider(hugo), (_, _) {});
+
+      expect(
+        container
+            .read(wishSuggestionsProvider(hugo))
+            .cast<TemplateWish>()
+            .map((s) => (s.circle, s.tone)),
+        [
+          (WishCircle.work, WishTone.short),
+          (WishCircle.work, WishTone.warm),
+          (WishCircle.work, WishTone.warm),
+        ],
+      );
+    });
+
+    test('wishSuggestionsProvider: a private group named like a predefined '
+        'one stays neutral', () {
+      const hugo = Birthday(
+        id: 'hugo',
+        name: 'Hugo',
+        surname: '',
+        date: BirthDate(year: 1993, month: 10, day: 16),
+        categories: ['mine'],
+      );
+      final container = ProviderContainer.test(
+        overrides: [
+          todayProvider.overrideWith((ref) => ref.watch(_day)),
+          sharedCategoriesProvider.overrideWithValue(const AsyncData([])),
+          ownCategoriesProvider.overrideWithValue(
+            const AsyncData([
+              BirthdayCategory(id: 'mine', name: 'colleague', icon: 0),
+            ]),
+          ),
+        ],
+      );
+      container.listen(wishSuggestionsProvider(hugo), (_, _) {});
+
+      expect(
+        container
+            .read(wishSuggestionsProvider(hugo))
+            .cast<TemplateWish>()
+            .every((s) => s.circle == WishCircle.other),
+        isTrue,
+      );
+    });
+
+    test('wishSuggestionsProvider follows the day', () {
+      // _day commence le 16 octobre 2026 : le jour J de Léa, puis le lendemain.
+      const lea = Birthday(
+        id: 'lea',
+        name: 'Léa',
+        surname: '',
+        date: BirthDate(year: 1996, month: 10, day: 16),
+      );
+      final container = ProviderContainer.test(
+        overrides: [
+          todayProvider.overrideWith((ref) => ref.watch(_day)),
+          sharedCategoriesProvider.overrideWithValue(const AsyncData([])),
+        ],
+      );
+      container.listen(wishSuggestionsProvider(lea), (_, _) {});
+
+      expect(
+        container.read(wishSuggestionsProvider(lea)).first,
+        const MilestoneWish(age: 30, circle: WishCircle.other),
+      );
+
+      container.read(_day.notifier).next();
+      expect(
+        container
+            .read(wishSuggestionsProvider(lea))
+            .every((s) => s is TemplateWish && s.belated),
+        isTrue,
+      );
     });
 
     test('belatedBirthdaysProvider keeps yesterday, one day only', () {

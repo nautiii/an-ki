@@ -9,6 +9,7 @@ import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/domain/birthday_groups.dart';
 import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
+import 'package:an_ki/features/birthday/domain/wish_suggestions.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -77,6 +78,26 @@ final belatedBirthdaysProvider = Provider<List<Birthday>>((ref) {
   final birthdays = ref.watch(birthdaysListProvider);
   return birthdays.belated(ref.watch(todayProvider));
 });
+
+/// Vœux suggérés aujourd'hui pour [Birthday] (`WishSuggestions`), dans
+/// l'ordre : le premier est celui qu'envoie « Souhaiter ». Le ton vient de
+/// ses groupes prédéfinis, reconnus par leur nom (seule la collection
+/// partagée compte : un groupe privé nommé « family » reste neutre).
+final wishSuggestionsProvider = Provider.autoDispose
+    .family<List<WishSuggestion>, Birthday>((ref, birthday) {
+      final names = {
+        for (final category
+            in ref.watch(sharedCategoriesProvider).value ??
+                const <BirthdayCategory>[])
+          category.id: category.name,
+      };
+      return birthday.wishSuggestions(
+        ref.watch(todayProvider),
+        circle: wishCircleOf(
+          birthday.categories.map((id) => names[id]).nonNulls,
+        ),
+      );
+    });
 
 /// Personnes dont la pluie de pétales (S4) est déjà tombée aujourd'hui : une
 /// fois par personne et par jour, tant que l'app tourne. Vide chaque jour et
