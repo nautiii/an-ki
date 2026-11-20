@@ -133,6 +133,38 @@ void main() {
     );
   });
 
+  testWidgets('says the age reached yesterday, never without a year', (
+    tester,
+  ) async {
+    await pumpBelated(tester, [
+      bornOn(12, 31),
+      const Birthday(
+        id: 'ada',
+        name: 'Ada',
+        surname: 'Rossi',
+        date: BirthDate(month: 12, day: 31),
+      ),
+    ]);
+
+    // Née en 1995 : 31 ans le 31 décembre 2026.
+    expect(find.text('a eu 31 ans'), findsOneWidget);
+    expect(find.textContaining('a eu'), findsOneWidget);
+  });
+
+  testWidgets('no « 0 » the day after a birth', (tester) async {
+    await pumpBelated(tester, [
+      const Birthday(
+        id: 'bebe',
+        name: 'Bébé',
+        surname: 'Rossi',
+        date: BirthDate(year: 2026, month: 12, day: 31),
+      ),
+    ]);
+
+    expect(find.text('Bébé Rossi'), findsOneWidget);
+    expect(find.textContaining('a eu'), findsNothing);
+  });
+
   testWidgets('wishes late, for the year of yesterday', (tester) async {
     await pumpBelated(tester, [bornOn(12, 31)]);
 
@@ -193,7 +225,7 @@ void main() {
     expect(
       tester.getSemantics(find.text('Nina Rossi')),
       isSemantics(
-        label: 'Hier\nNina Rossi',
+        label: 'Hier\nNina Rossi\na eu 31 ans',
         isButton: true,
         hasTapAction: true,
       ),

@@ -2,9 +2,11 @@ import 'dart:math' as math;
 
 import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_wisher.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
@@ -13,7 +15,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// Les anniversaires d'hier encore à souhaiter, sous le héros : « Hier », la
-/// personne, « Souhaiter » ou « Déjà souhaité ». Le lendemain seulement, sur
+/// personne et l'âge atteint (« a eu 34 ans », si l'année est connue),
+/// « Souhaiter » ou « Déjà souhaité ». Le lendemain seulement, sur
 /// la surface calme des cartes : un oubli se rattrape sans reproche.
 ///
 /// Rien quand il n'y en a pas ; sinon il porte l'écart qui le sépare du héros.
@@ -62,6 +65,11 @@ class _BelatedCard extends ConsumerWidget {
       birthdayWisherProvider.select((state) => state.isLoading),
     );
     final picture = birthday.picture;
+    // Né hier : pas de « 0 », comme sur le héros.
+    final age = switch (birthday.reachedAge(ref.watch(todayProvider))) {
+      final reached? when reached > 0 => reached,
+      _ => null,
+    };
 
     // Toucher la personne ouvre sa page, comme sur le héros ; les deux
     // actions restent des cibles à part pour les lecteurs d'écran.
@@ -100,6 +108,13 @@ class _BelatedCard extends ConsumerWidget {
                           color: colorScheme.onSurface,
                         ),
                       ),
+                      if (age != null)
+                        Text(
+                          context.l10n.belatedHadAge(age),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                     ],
                   ),
                 ),

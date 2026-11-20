@@ -1922,5 +1922,12 @@
     "placeholders": {
       "name": { "type": "String" }
     }
+  },
+  "belatedHadAge": "{age, plural, one{a eu {age}\u00a0an} other{a eu {age}\u00a0ans}}",
+  "@belatedHadAge": {
+    "description": "Carte du lendemain, sous le nom : l'âge atteint hier",
+    "placeholders": {
+      "age": { "type": "int" }
+    }
   }
 }

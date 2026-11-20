@@ -2761,6 +2761,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Écrire un message pour {name}'**
   String wishWriteOwn(String name);
+
+  /// Carte du lendemain, sous le nom : l'âge atteint hier
+  ///
+  /// In fr, this message translates to:
+  /// **'{age, plural, one{a eu {age} an} other{a eu {age} ans}}'**
+  String belatedHadAge(int age);
 }
 
 class _AppLocalizationsDelegate

@@ -43,6 +43,14 @@ extension BirthDateDates on BirthDate {
     if (year == null) return null;
     return nextOccurrence(today).year - year;
   }
+
+  /// Âge atteint au dernier anniversaire à [today], celui du jour compris :
+  /// « a eu 34 ans » hier. Null quand l'année de naissance est inconnue.
+  int? reachedAge(DateTime today) {
+    final year = this.year;
+    if (year == null) return null;
+    return lastOccurrence(today).year - year;
+  }
 }
 
 /// Les mêmes règles, lues depuis un anniversaire.
@@ -58,6 +66,9 @@ extension BirthdayDates on Birthday {
 
   /// Voir [BirthDateDates.turningAge].
   int? turningAge(DateTime today) => date.turningAge(today);
+
+  /// Voir [BirthDateDates.reachedAge].
+  int? reachedAge(DateTime today) => date.reachedAge(today);
 }
 
 /// Règles de dates sur une liste d'anniversaires.

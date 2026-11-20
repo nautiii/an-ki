@@ -496,5 +496,6 @@
   "wishMessageSuggestedCaption": "Suggested by AnKi, changes every year",
   "wishOtherMessages": "Other messages",
   "wishChooseAnother": "Choose another message",
-  "wishWriteOwn": "Write a message for {name}"
+  "wishWriteOwn": "Write a message for {name}",
+  "belatedHadAge": "{age, plural, one{turned {age}} other{turned {age}}}"
 }

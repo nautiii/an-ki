@@ -136,6 +136,36 @@ void main() {
     });
   });
 
+  group('reachedAge', () {
+    test('is the age reached at the last birthday', () {
+      expect(_born(DateTime(1990, 6, 14)).reachedAge(today), 36);
+    });
+
+    test('counts the birthday of the day', () {
+      expect(_born(DateTime(1990, 6, 15)).reachedAge(today), 36);
+    });
+
+    test('looks at last year before the birthday', () {
+      expect(_born(DateTime(1990, 6, 20)).reachedAge(today), 35);
+    });
+
+    test('is unknown without a birth year', () {
+      expect(_bornOn(6, 14).reachedAge(today), isNull);
+    });
+
+    test('on 1 January, the age reached on 31 December', () {
+      expect(_born(DateTime(1995, 12, 31)).reachedAge(DateTime(2027)), 31);
+    });
+
+    test('a 29 February birthday, the day after 1 March', () {
+      expect(_born(DateTime(2000, 2, 29)).reachedAge(DateTime(2027, 3, 2)), 27);
+    });
+
+    test('is 0 the day after a birth: the UI hides it', () {
+      expect(_born(DateTime(2026, 6, 14)).reachedAge(today), 0);
+    });
+  });
+
   group('sortedByNext', () {
     test('orders from the closest to the furthest birthday', () {
       final passed = _born(DateTime(1990, 6), id: 'passed');

@@ -1898,4 +1898,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String wishWriteOwn(String name) {
     return 'Write a message for $name';
   }
+
+  @override
+  String belatedHadAge(int age) {
+    String _temp0 = intl.Intl.pluralLogic(
+      age,
+      locale: localeName,
+      other: 'turned $age',
+      one: 'turned $age',
+    );
+    return '$_temp0';
+  }
 }
