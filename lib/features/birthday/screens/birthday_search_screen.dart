@@ -4,7 +4,7 @@ import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_search.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_tile.dart';
-import 'package:an_ki/features/birthday/widgets/add_birthday.dart';
+import 'package:an_ki/features/birthday/widgets/add_birthday_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -207,7 +207,7 @@ class _NoResults extends ConsumerWidget {
           if (query.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.lg),
             FilledButton.tonalIcon(
-              onPressed: () => showAddBirthday(context, ref, name: query),
+              onPressed: () => AddBirthdaySheet.show(context, name: query),
               icon: const Icon(Icons.add_rounded),
               label: Text(l10n.addNamed(query)),
             ),

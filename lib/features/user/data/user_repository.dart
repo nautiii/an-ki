@@ -82,10 +82,10 @@ class UserRepository {
     FieldPath(['modules', moduleId]): enabled,
   });
 
-  /// Note que [uid] a ajouté quelqu'un avec le formulaire : l'ajout en une
-  /// ligne le remplace désormais. Écriture optimiste, comme les préférences.
-  Future<void> markQuickAddLearned(String uid) =>
-      _users.doc(uid).update({'quickAddLearned': true});
+  /// Retient le mode d'ajout de [uid] : en une ligne ([quickAdd]) ou le
+  /// formulaire. Son seul champ ; écriture optimiste, comme les préférences.
+  Future<void> setQuickAddPreferred(String uid, {required bool quickAdd}) =>
+      _users.doc(uid).update({'quickAdd': quickAdd});
 
   /// Marque le profil de [uid], un invité, pour le compte Google [email] qui
   /// l'effacera une fois ses données reprises, et renvoie ce profil (ses
@@ -123,8 +123,8 @@ UserProfile _userFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     locale: data['locale'] as String?,
     biometricToken: data['biometricToken'] as String?,
     moduleChoices: _moduleChoicesFrom(data['modules']),
-    // Absent (profils d'avant l'ajout en une ligne) : pas encore appris.
-    quickAddLearned: data['quickAddLearned'] == true,
+    // Absent (profils d'avant l'ajout en une ligne) : le formulaire.
+    quickAddPreferred: data['quickAdd'] == true,
   );
 }
 
@@ -161,5 +161,5 @@ Map<String, Object> _userToMap(UserProfile user) => {
   'locale': ?user.locale,
   'biometricToken': ?user.biometricToken,
   if (user.moduleChoices.isNotEmpty) 'modules': user.moduleChoices,
-  if (user.quickAddLearned) 'quickAddLearned': true,
+  if (user.quickAddPreferred) 'quickAdd': true,
 };

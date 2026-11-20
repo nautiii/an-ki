@@ -31,10 +31,11 @@ class UserProfileEditor extends AsyncNotifier<void> {
             repository.setModuleEnabled(uid, moduleId, enabled: enabled),
       );
 
-  /// Note que l'utilisateur a ajouté quelqu'un avec le formulaire
-  /// ([UserProfile.quickAddLearned]).
-  Future<void> learnQuickAdd() =>
-      _write((repository, uid) => repository.markQuickAddLearned(uid));
+  /// Retient le mode d'ajout choisi ([UserProfile.quickAddPreferred]).
+  Future<void> setQuickAddPreferred({required bool quickAdd}) => _write(
+    (repository, uid) =>
+        repository.setQuickAddPreferred(uid, quickAdd: quickAdd),
+  );
 
   /// Écrit les seuls champs donnés.
   Future<void> _update({

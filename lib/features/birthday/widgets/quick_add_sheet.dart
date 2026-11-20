@@ -8,7 +8,7 @@ import 'package:an_ki/features/birthday/domain/quick_birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birth_date_field.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/add_mode_switch.dart';
 import 'package:an_ki/features/birthday/widgets/group_picker.dart';
 import 'package:an_ki/features/birthday/widgets/quick_add_preview.dart';
 import 'package:flutter/material.dart';
@@ -21,26 +21,36 @@ import 'package:image_picker/image_picker.dart';
 /// qu'AnKi a compris (le nom, la date, l'âge si l'année est connue) ou ce
 /// qui manque ; plusieurs lignes collées s'ajoutent d'un coup.
 ///
-/// Remplace le formulaire à l'ajout une fois celui-ci appris
-/// (`showAddBirthday`) ; « Formulaire complet » y revient avec ce qui a été
-/// compris. Les groupes et la photo restent facultatifs, sous la saisie.
+/// Second mode de la feuille d'ajout (`AddBirthdaySheet`) : [onSwitchMode]
+/// revient au formulaire avec ce qui a été compris. Les groupes et la photo
+/// restent facultatifs, sous la saisie.
 class QuickAddSheet extends ConsumerStatefulWidget {
-  const QuickAddSheet({super.key, this.initialText});
+  const QuickAddSheet({
+    super.key,
+    this.initialText = '',
+    this.initialCategories = const [],
+    this.initialPicture,
+    this.focusOnStart = false,
+    this.onEdited,
+    this.onSwitchMode,
+  });
 
-  /// Début de la ligne (le texte d'une recherche sans résultat) : la saisie
+  /// Début de la ligne (ce qui était saisi dans le formulaire) : la saisie
   /// reprend derrière.
-  final String? initialText;
+  final String initialText;
+  final List<String> initialCategories;
+  final Uint8List? initialPicture;
 
-  static Future<bool?> show(BuildContext context, {String? initialText}) {
-    return showModalBottomSheet<bool>(
-      context: context,
-      // Au-dessus de la barre flottante, pas dans l'onglet.
-      useRootNavigator: true,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => QuickAddSheet(initialText: initialText),
-    );
-  }
+  /// Prendre le focus à l'ouverture, même si un autre champ l'a encore
+  /// (changement de mode : le clavier reste ouvert).
+  final bool focusOnStart;
+
+  /// Première saisie (ligne, groupe, photo).
+  final VoidCallback? onEdited;
+
+  /// Revient au formulaire avec ce qui a été compris ; null : pas de choix
+  /// de mode.
+  final ValueChanged<AddHandoff>? onSwitchMode;
 
   @override
   ConsumerState<QuickAddSheet> createState() => _QuickAddSheetState();
@@ -51,10 +61,10 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
 
   late final TextEditingController _text;
   final _focus = FocusNode();
-  final _categories = <String>[];
+  late final List<String> _categories = [...widget.initialCategories];
 
   /// Photo choisie, lue dès le choix ; une seule personne à la fois.
-  Uint8List? _picture;
+  late Uint8List? _picture = widget.initialPicture;
 
   /// Entrée a été tapée sur une ligne incomplète : ce qui manque se dit en
   /// erreur, plus seulement en aide.
@@ -67,8 +77,15 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
   @override
   void initState() {
     super.initState();
-    final start = widget.initialText?.trim() ?? '';
+    final start = widget.initialText.trim();
     _text = TextEditingController(text: start.isEmpty ? '' : '$start ');
+    if (widget.focusOnStart) {
+      // L'autofocus cède à un champ encore focalisé (celui du formulaire,
+      // qui s'efface) : le focus est demandé, au frame suivant.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focus.requestFocus();
+      });
+    }
   }
 
   @override
@@ -78,10 +95,13 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
     super.dispose();
   }
 
-  void _changed(String _) => setState(() {
-    _submitted = false;
-    _added = null;
-  });
+  void _changed(String _) {
+    widget.onEdited?.call();
+    setState(() {
+      _submitted = false;
+      _added = null;
+    });
+  }
 
   Future<void> _pickImage() async {
     final image = await ImagePicker().pickImage(
@@ -92,12 +112,17 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
     );
     if (image == null) return;
     final bytes = await image.readAsBytes();
-    if (mounted) setState(() => _picture = bytes);
+    if (!mounted) return;
+    widget.onEdited?.call();
+    setState(() => _picture = bytes);
   }
 
-  void _toggleCategory(String id) => setState(() {
-    if (!_categories.remove(id)) _categories.add(id);
-  });
+  void _toggleCategory(String id) {
+    widget.onEdited?.call();
+    setState(() {
+      if (!_categories.remove(id)) _categories.add(id);
+    });
+  }
 
   List<QuickBirthday> _read() => readQuickBirthdays(
     _text.text,
@@ -169,23 +194,19 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
     Navigator.of(context).pop(true);
   }
 
-  /// Le formulaire classique, avec le nom et la date déjà compris.
-  void _openForm() {
-    final lines = _read();
-    final line = lines.length == 1 ? lines.single : null;
-    final navigator = Navigator.of(context);
-    navigator.pop();
-    unawaited(
-      BirthdayFormSheet.show(
-        navigator.context,
-        initialName: line?.fullName,
-        initialDate: switch (line?.date) {
-          BirthDateComplete(:final date) => date,
-          _ => null,
-        },
-        initialCategories: [..._categories],
-        initialPicture: _picture,
-      ),
+  /// Ce qui a été compris, pour le formulaire : le nom et la date de la
+  /// première ligne (une ligne sans date est tout entière le nom).
+  AddHandoff _handoff() {
+    final line = _read().firstOrNull;
+    return AddHandoff(
+      name: line?.fullName ?? '',
+      date: switch (line?.date) {
+        BirthDateComplete(:final date) => date,
+        _ => null,
+      },
+      lineText: _text.text.trim(),
+      categories: [..._categories],
+      picture: _picture,
     );
   }
 
@@ -227,6 +248,16 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const _Header(),
+                        if (widget.onSwitchMode case final onSwitch?) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          AddModeSwitch(
+                            mode: AddMode.line,
+                            // Une liste collée reste ici : le formulaire
+                            // n'en garderait qu'une personne.
+                            lineOnly: batch != null,
+                            onChanged: (_) => onSwitch(_handoff()),
+                          ),
+                        ],
                         const SizedBox(height: AppSpacing.md),
                         TextField(
                           controller: _text,
@@ -280,21 +311,6 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
                     onToggle: _toggleCategory,
                     padding: _gutter,
                   ),
-                  if (batch == null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.xs,
-                      ),
-                      child: Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: TextButton.icon(
-                          onPressed: _openForm,
-                          icon: const Icon(Icons.edit_note_rounded),
-                          label: Text(l10n.quickAddFullForm),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),

@@ -10,7 +10,7 @@ import 'package:an_ki/features/birthday/providers/category_editor.dart';
 import 'package:an_ki/features/birthday/providers/guest_backup_provider.dart';
 import 'package:an_ki/features/birthday/widgets/agenda_list.dart';
 import 'package:an_ki/features/birthday/widgets/belated_wish.dart';
-import 'package:an_ki/features/birthday/widgets/add_birthday.dart';
+import 'package:an_ki/features/birthday/widgets/add_birthday_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/home_app_bar.dart';
 import 'package:an_ki/features/birthday/widgets/next_birthday.dart';
 import 'package:flutter/material.dart';
@@ -142,11 +142,11 @@ class HomeScreen extends ConsumerWidget {
 /// Premier lancement : l'accueil vide est l'invitation à retrouver les
 /// anniversaires du répertoire, le plus court chemin vers un agenda rempli ;
 /// la saisie à la main reste à côté.
-class _FirstRun extends ConsumerWidget {
+class _FirstRun extends StatelessWidget {
   const _FirstRun();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
 
@@ -164,7 +164,7 @@ class _FirstRun extends ConsumerWidget {
           primaryIcon: Icons.contacts_rounded,
           onPrimary: () => context.push(AppRoutes.contactImport),
           secondaryLabel: context.l10n.addByHand,
-          onSecondary: () => showAddBirthday(context, ref),
+          onSecondary: () => AddBirthdaySheet.show(context),
           // Ce que l'import lit, avant que la boîte système ne le demande.
           footer: Row(
             mainAxisSize: MainAxisSize.min,

@@ -10,7 +10,7 @@ import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
-import 'package:an_ki/features/birthday/widgets/quick_add_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/add_birthday_sheet.dart';
 import 'package:an_ki/features/books/screens/shelf_screen.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/providers/user_profile_editor.dart';
@@ -69,8 +69,9 @@ void main() {
   });
 
   group('action under the thumb', () {
-    testWidgets('« + » beside the bar opens the form, then the one-line '
-        'add once a person was added by hand', (tester) async {
+    testWidgets('« + » beside the bar opens the add sheet, on the form', (
+      tester,
+    ) async {
       await mockNetworkImages(() async {
         await pumpSignedIn(tester);
         final add = find.byTooltip('Ajouter un anniversaire');
@@ -84,25 +85,8 @@ void main() {
 
         await tester.tap(add);
         await tester.pumpAndSettle();
+        expect(find.byType(AddBirthdaySheet), findsOneWidget);
         expect(find.byType(BirthdayFormSheet), findsOneWidget);
-        await tester.enterText(
-          find.widgetWithText(TextField, 'Prénom et nom'),
-          'Zoé',
-        );
-        await tester.enterText(
-          find.widgetWithText(TextField, "Date d'anniversaire"),
-          '0101',
-        );
-        await tester.pump();
-        await tester.testTextInput.receiveAction(TextInputAction.done);
-        await tester.pumpAndSettle();
-        expect(find.byType(BirthdayFormSheet), findsNothing, reason: 'saved');
-        await tester.pump(const Duration(seconds: 6));
-        await tester.pumpAndSettle();
-
-        await tester.tap(add);
-        await tester.pumpAndSettle();
-        expect(find.byType(QuickAddSheet), findsOneWidget);
       });
     });
 

@@ -342,37 +342,37 @@ void main() {
     });
   });
 
-  group('quickAddLearned', () {
-    test('is false for a profile written before it existed', () async {
+  group('quickAddPreferred', () {
+    test('is the form for a profile written before it existed', () async {
       await firestore.collection('user').doc('user-1').set({'name': 'Quentin'});
 
       final watched = await repository.watchUser('user-1').first;
-      expect(watched?.quickAddLearned, isFalse);
+      expect(watched?.quickAddPreferred, isFalse);
     });
 
-    test('markQuickAddLearned writes its one field', () async {
+    test('setQuickAddPreferred writes its one field, both ways', () async {
       await firestore.collection('user').doc('user-1').set({
         'name': 'Quentin',
         'locale': 'fr',
       });
 
-      await repository.markQuickAddLearned('user-1');
+      await repository.setQuickAddPreferred('user-1', quickAdd: true);
 
       final data = (await firestore.collection('user').doc('user-1').get())
           .data()!;
-      expect(data, {
-        'name': 'Quentin',
-        'locale': 'fr',
-        'quickAddLearned': true,
-      });
+      expect(data, {'name': 'Quentin', 'locale': 'fr', 'quickAdd': true});
       final watched = await repository.watchUser('user-1').first;
-      expect(watched?.quickAddLearned, isTrue);
+      expect(watched?.quickAddPreferred, isTrue);
+
+      await repository.setQuickAddPreferred('user-1', quickAdd: false);
+      final back = await repository.watchUser('user-1').first;
+      expect(back?.quickAddPreferred, isFalse);
     });
 
-    test('createUser writes it only once learned', () async {
+    test('createUser writes it only when the one-line add is chosen', () async {
       await repository.createUser(user);
       final doc = await firestore.collection('user').doc('user-1').get();
-      expect(doc.data()!.containsKey('quickAddLearned'), isFalse);
+      expect(doc.data()!.containsKey('quickAdd'), isFalse);
     });
   });
 

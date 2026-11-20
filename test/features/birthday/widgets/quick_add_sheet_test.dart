@@ -5,11 +5,11 @@ import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
-import 'package:an_ki/features/birthday/widgets/add_birthday.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/add_birthday_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/quick_add_preview.dart';
 import 'package:an_ki/features/birthday/widgets/quick_add_sheet.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
+import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,47 +28,45 @@ void main() {
     date: BirthDate(year: 1990, month: 11, day: 17),
   );
 
-  List<dynamic> overrides(
-    RecordingBirthdayRepository repository, {
-    bool learned = true,
-  }) => [
+  List<dynamic> overrides(RecordingBirthdayRepository repository) => [
     clockProvider.overrideWithValue(() => DateTime(2026, 11, 15, 9)),
     currentUidProvider.overrideWithValue('fake-uid'),
     birthdayRepositoryProvider.overrideWithValue(repository),
     categoryRepositoryProvider.overrideWithValue(
       RecordingCategoryRepository([friend]),
     ),
-    userProfileProvider.overrideWithValue(
-      AsyncData(
-        UserProfile(
+    // L'ajout en une ligne est le mode retenu : la feuille s'ouvre dessus.
+    userRepositoryProvider.overrideWithValue(
+      RecordingUserRepository(
+        stored: const UserProfile(
           id: 'fake-uid',
           name: 'A',
           surname: 'B',
           locale: 'fr',
-          quickAddLearned: learned,
+          quickAddPreferred: true,
         ),
       ),
     ),
   ];
 
   /// Un bouton « Ouvrir » qui lance l'ajout comme l'accueil
-  /// ([showAddBirthday]) ; il est touché tout de suite.
+  /// ([AddBirthdaySheet.show]) ; il est touché tout de suite.
   Future<void> openAdd(
     WidgetTester tester,
-    RecordingBirthdayRepository repository, {
-    bool learned = true,
-    String? name,
-  }) => mockNetworkImages(() async {
+    RecordingBirthdayRepository repository,
+  ) => mockNetworkImages(() async {
     await tester.pumpHarness(
+      // Le profil est écouté, comme dans l'app : chargé avant l'ouverture.
       Consumer(
         builder: (context, ref, _) => Center(
           child: TextButton(
-            onPressed: () => showAddBirthday(context, ref, name: name),
+            key: ValueKey(ref.watch(userProfileProvider).value),
+            onPressed: () => AddBirthdaySheet.show(context),
             child: const Text('Ouvrir'),
           ),
         ),
       ),
-      overrides: overrides(repository, learned: learned),
+      overrides: overrides(repository),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Ouvrir'));
@@ -96,30 +94,9 @@ void main() {
 
   Future<void> type(WidgetTester tester, String text) async {
     await tester.enterText(field, text);
-    await tester.pump();
+    // La feuille suit la hauteur de l'aperçu : attendre qu'elle l'ait prise.
+    await tester.pumpAndSettle();
   }
-
-  group('showAddBirthday', () {
-    testWidgets('opens the full form until a first manual add', (tester) async {
-      await openAdd(tester, RecordingBirthdayRepository(), learned: false);
-
-      expect(find.byType(BirthdayFormSheet), findsOneWidget);
-      expect(find.byType(QuickAddSheet), findsNothing);
-    });
-
-    testWidgets('opens the one-line add once learned', (tester) async {
-      await openAdd(tester, RecordingBirthdayRepository());
-
-      expect(find.byType(QuickAddSheet), findsOneWidget);
-      expect(find.byType(BirthdayFormSheet), findsNothing);
-    });
-
-    testWidgets('starts the line with a searched name', (tester) async {
-      await openAdd(tester, RecordingBirthdayRepository(), name: 'Léa');
-
-      expect(tester.widget<TextField>(field).controller!.text, 'Léa ');
-    });
-  });
 
   group('one line', () {
     testWidgets('explains the expected line, keyboard ready', (tester) async {
@@ -246,23 +223,6 @@ void main() {
       // La feuille l'a dit au fil de l'eau : rien d'empilé derrière elle.
       expect(find.byType(SnackBar), findsNothing);
     });
-
-    testWidgets('opens the full form with what it understood', (tester) async {
-      await openAdd(tester, RecordingBirthdayRepository());
-
-      await type(tester, 'Léa Martin 12 mars');
-      await tester.tap(find.byType(FilterChip).first);
-      await tester.pump();
-      await tester.tap(find.text('Formulaire complet'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(QuickAddSheet), findsNothing);
-      expect(find.byType(BirthdayFormSheet), findsOneWidget);
-      expect(find.text('Léa Martin'), findsOneWidget);
-      expect(find.text('12/03'), findsOneWidget);
-      final chip = tester.widget<FilterChip>(find.byType(FilterChip).first);
-      expect(chip.selected, isTrue);
-    });
   });
 
   group('pasted list', () {
@@ -282,7 +242,6 @@ void main() {
       );
       expect(find.textContaining('il manque la date'), findsOneWidget);
       expect(inPreview('Tonton Paul'), findsOneWidget);
-      expect(find.text('Formulaire complet'), findsNothing);
 
       await tester.tap(find.text('Ajouter les 2'));
       await tester.pumpAndSettle();

@@ -25,10 +25,10 @@ class const UserProfile({
   /// ces ids sans savoir ce qu'est un module (`app/modules/`).
   final Map<String, bool> moduleChoices = const {},
 
-  /// L'utilisateur a déjà ajouté quelqu'un avec le formulaire : l'ajout en
-  /// une ligne (« Léa 12 mars ») prend alors sa place, sur tous ses
-  /// appareils.
-  final bool quickAddLearned = false,
+  /// Mode d'ajout choisi en dernier : l'ajout en une ligne (« Léa 12
+  /// mars ») plutôt que le formulaire, qui reste celui par défaut. Suit
+  /// l'utilisateur sur tous ses appareils.
+  final bool quickAddPreferred = false,
 }) {
   /// Nom pour saluer : le pseudo s'il est défini, sinon le prénom ; null s'il
   /// n'y a ni l'un ni l'autre. Pour un invité ([guest]), le pseudo seul : son
@@ -51,7 +51,7 @@ class const UserProfile({
       other.locale == locale &&
       other.biometricToken == biometricToken &&
       mapEquals(other.moduleChoices, moduleChoices) &&
-      other.quickAddLearned == quickAddLearned;
+      other.quickAddPreferred == quickAddPreferred;
 
   @override
   int get hashCode => Object.hash(
@@ -66,6 +66,6 @@ class const UserProfile({
       for (final MapEntry(:key, :value) in moduleChoices.entries)
         Object.hash(key, value),
     ]),
-    quickAddLearned,
+    quickAddPreferred,
   );
 }

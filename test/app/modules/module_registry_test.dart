@@ -5,7 +5,6 @@ import 'package:an_ki/app/modules/books_module.dart';
 import 'package:an_ki/app/modules/module_registry.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/birthday/providers/quick_add.dart';
 import 'package:an_ki/features/reminders/providers/reminder_sync_provider.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -87,11 +86,8 @@ void main() {
     }
   });
 
-  test('Birthdays keeps the reminders in sync and learns the quick add', () {
-    expect(birthdaysModule.effects, [
-      reminderSyncProvider,
-      quickAddLearningProvider,
-    ]);
+  test('Birthdays keeps the reminders in sync while it is on', () {
+    expect(birthdaysModule.effects, [reminderSyncProvider]);
     expect(booksModule.effects, isEmpty);
   });
 

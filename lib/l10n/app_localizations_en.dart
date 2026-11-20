@@ -1762,9 +1762,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickAddContinue => 'Add and continue';
 
   @override
-  String get quickAddFullForm => 'Full form';
-
-  @override
   String quickAddAll(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1798,4 +1795,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quickAddBatchBadDate => 'impossible date';
+
+  @override
+  String get addModeForm => 'Form';
+
+  @override
+  String get addModeLine => 'One line';
 }

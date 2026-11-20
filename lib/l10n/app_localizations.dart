@@ -2660,12 +2660,6 @@ abstract class AppLocalizations {
   /// **'Ajouter et continuer'**
   String get quickAddContinue;
 
-  /// Ajout en une ligne : ouvre le formulaire classique avec ce qui a été compris
-  ///
-  /// In fr, this message translates to:
-  /// **'Formulaire complet'**
-  String get quickAddFullForm;
-
   /// Ajout en une ligne, plusieurs lignes collées : bouton qui ajoute les personnes nouvelles
   ///
   /// In fr, this message translates to:
@@ -2701,6 +2695,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'date impossible'**
   String get quickAddBatchBadDate;
+
+  /// Feuille d'ajout : mode formulaire (nom puis date), celui par défaut
+  ///
+  /// In fr, this message translates to:
+  /// **'Formulaire'**
+  String get addModeForm;
+
+  /// Feuille d'ajout : mode une seule ligne, « Léa 12 mars »
+  ///
+  /// In fr, this message translates to:
+  /// **'En une ligne'**
+  String get addModeLine;
 }
 
 class _AppLocalizationsDelegate

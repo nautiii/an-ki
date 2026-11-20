@@ -480,11 +480,12 @@
   "quickAddKnown": "{name} is already in your birthdays on this date",
   "quickAddGroups": "Groups · optional",
   "quickAddContinue": "Add and continue",
-  "quickAddFullForm": "Full form",
   "quickAddAll": "{count, plural, one{Add 1 person} other{Add all {count}}}",
   "quickAddBatchTitle": "{count, plural, =0{Nobody to add} one{1 person to add} other{{count} people to add}}",
   "quickAddBatchKnown": "already in your birthdays",
   "quickAddBatchNoDate": "no date",
   "quickAddBatchNoName": "no name",
-  "quickAddBatchBadDate": "impossible date"
+  "quickAddBatchBadDate": "impossible date",
+  "addModeForm": "Form",
+  "addModeLine": "One line"
 }

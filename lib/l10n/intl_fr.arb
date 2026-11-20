@@ -1823,10 +1823,6 @@
   "@quickAddContinue": {
     "description": "Ajout en une ligne : ajoute la personne et garde la feuille ouverte pour la suivante"
   },
-  "quickAddFullForm": "Formulaire complet",
-  "@quickAddFullForm": {
-    "description": "Ajout en une ligne : ouvre le formulaire classique avec ce qui a été compris"
-  },
   "quickAddAll": "{count, plural, one{Ajouter 1 personne} other{Ajouter les {count}}}",
   "@quickAddAll": {
     "description": "Ajout en une ligne, plusieurs lignes collées : bouton qui ajoute les personnes nouvelles",
@@ -1856,5 +1852,13 @@
   "quickAddBatchBadDate": "date impossible",
   "@quickAddBatchBadDate": {
     "description": "Aperçu d'une liste collée : ligne écartée, date qui n'existe pas, incomplète ou à venir"
+  },
+  "addModeForm": "Formulaire",
+  "@addModeForm": {
+    "description": "Feuille d'ajout : mode formulaire (nom puis date), celui par défaut"
+  },
+  "addModeLine": "En une ligne",
+  "@addModeLine": {
+    "description": "Feuille d'ajout : mode une seule ligne, « Léa 12 mars »"
   }
 }

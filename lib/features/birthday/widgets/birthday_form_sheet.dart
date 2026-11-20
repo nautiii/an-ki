@@ -9,6 +9,7 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/widgets/birth_date_field.dart';
+import 'package:an_ki/features/birthday/widgets/add_mode_switch.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_photo_button.dart';
 import 'package:an_ki/features/birthday/widgets/group_picker.dart';
@@ -20,10 +21,9 @@ import 'package:image_picker/image_picker.dart';
 /// Formulaire d'un anniversaire : un champ « Prénom et nom », la date tapée
 /// au clavier (l'année est facultative), les groupes sur une ligne.
 ///
-/// Il modifie toujours ; il crée tant que l'utilisateur ne l'a jamais fait
-/// (son premier ajout lui montre ce qu'AnKi attend), puis l'ajout en une
-/// ligne prend sa place (`showAddBirthday`), qui y renvoie par « Formulaire
-/// complet ».
+/// Il modifie, et il crée dans la feuille d'ajout (`AddBirthdaySheet`), où
+/// il est le mode par défaut : [onSwitchMode] y passe à l'ajout en une
+/// ligne avec ce qui est saisi.
 class BirthdayFormSheet extends ConsumerStatefulWidget {
   final Birthday? birthdayToEdit;
 
@@ -35,17 +35,42 @@ class BirthdayFormSheet extends ConsumerStatefulWidget {
   /// lue.
   final BirthDate? initialDate;
 
-  /// Groupes et photo d'une création, choisis dans l'ajout en une ligne.
+  /// La date d'une création telle que tapée dans ce formulaire avant un
+  /// aller-retour par l'ajout en une ligne, même incomplète ; prime sur
+  /// [initialDate].
+  final String initialDateText;
+
+  /// La ligne d'où vient cette création (`AddHandoff.lineText`) : rendue
+  /// telle quelle si l'on y revient sans toucher au nom ni à la date.
+  final String initialLineText;
+
+  /// Prendre le focus à l'ouverture, même si un autre champ l'a encore
+  /// (changement de mode : le clavier reste ouvert).
+  final bool focusOnStart;
+
+  /// Première saisie (nom, date, groupe, photo).
+  final VoidCallback? onEdited;
+
+  /// Groupes et photo d'une création, choisis dans l'autre mode.
   final List<String> initialCategories;
   final Uint8List? initialPicture;
+
+  /// Passe à l'ajout en une ligne avec ce qui est saisi ; null hors de la
+  /// feuille d'ajout (modification) : pas de choix de mode.
+  final ValueChanged<AddHandoff>? onSwitchMode;
 
   const BirthdayFormSheet({
     super.key,
     this.birthdayToEdit,
     this.initialName,
     this.initialDate,
+    this.initialDateText = '',
+    this.initialLineText = '',
     this.initialCategories = const [],
     this.initialPicture,
+    this.focusOnStart = false,
+    this.onEdited,
+    this.onSwitchMode,
   });
 
   static Future<bool?> show(
@@ -81,7 +106,17 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
 
   late final TextEditingController _name;
   late final TextEditingController _date;
+  final _nameFocus = FocusNode();
   final _dateFocus = FocusNode();
+
+  /// Le nom ou la date ont été touchés : la ligne d'origine ne vaut plus.
+  bool _typed = false;
+
+  void _edited() {
+    _typed = true;
+    widget.onEdited?.call();
+  }
+
   late final List<String> _categories;
 
   /// Champ qui ouvre le clavier à la création : le nom, ou la date quand le
@@ -111,6 +146,14 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     _autofocusDate = birthday == null && _name.text.isNotEmpty;
     // Quitter le champ de date peut changer son aide en erreur.
     _dateFocus.addListener(_refresh);
+    if (widget.focusOnStart) {
+      // L'autofocus cède à un champ encore focalisé (celui de l'autre mode,
+      // qui s'efface) : le focus est demandé, au frame suivant.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        (_name.text.isEmpty ? _nameFocus : _dateFocus).requestFocus();
+      });
+    }
   }
 
   /// La date à modifier est écrite dans le champ, une fois.
@@ -121,7 +164,10 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     super.didChangeDependencies();
     if (_datePrefilled) return;
     _datePrefilled = true;
-    if (widget.birthdayToEdit?.date ?? widget.initialDate case final date?) {
+    if (widget.initialDateText.isNotEmpty) {
+      _date.text = widget.initialDateText;
+    } else if (widget.birthdayToEdit?.date ?? widget.initialDate
+        case final date?) {
       _date.text = birthDateInputText(date, order: typedDateOrder(context));
     }
   }
@@ -130,6 +176,7 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
   void dispose() {
     _name.dispose();
     _date.dispose();
+    _nameFocus.dispose();
     _dateFocus.dispose();
     super.dispose();
   }
@@ -147,12 +194,17 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     );
     if (image == null) return;
     final bytes = await image.readAsBytes();
-    if (mounted) setState(() => _picture = bytes);
+    if (!mounted) return;
+    widget.onEdited?.call();
+    setState(() => _picture = bytes);
   }
 
-  void _toggleCategory(String id) => setState(() {
-    if (!_categories.remove(id)) _categories.add(id);
-  });
+  void _toggleCategory(String id) {
+    widget.onEdited?.call();
+    setState(() {
+      if (!_categories.remove(id)) _categories.add(id);
+    });
+  }
 
   /// Lance l'écriture sans l'attendre puis ferme la feuille : un échec
   /// éventuel est annoncé par l'écran d'accueil.
@@ -182,6 +234,15 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
     );
     Navigator.of(context).pop(true);
   }
+
+  /// Ce qui est saisi, pour l'ajout en une ligne.
+  AddHandoff _handoff() => AddHandoff(
+    name: _name.text.trim(),
+    dateText: _date.text.trim(),
+    lineText: _typed ? '' : widget.initialLineText,
+    categories: [..._categories],
+    picture: _picture,
+  );
 
   /// Supprime avec « Annuler » : la feuille se ferme, la snackbar de
   /// l'accueil laisse quelques secondes pour revenir en arrière.
@@ -234,6 +295,14 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                       ),
                     ],
                   ),
+                  if (widget.onSwitchMode case final onSwitch?
+                      when !isEditing) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    AddModeSwitch(
+                      mode: AddMode.form,
+                      onChanged: (_) => onSwitch(_handoff()),
+                    ),
+                  ],
                   const SizedBox(height: AppSpacing.lg),
                   Row(
                     children: [
@@ -246,10 +315,14 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                       Expanded(
                         child: TextField(
                           controller: _name,
+                          focusNode: _nameFocus,
                           autofocus: _autofocusName,
                           textCapitalization: TextCapitalization.words,
                           textInputAction: TextInputAction.next,
-                          onChanged: (_) => setState(() => _nameEdited = true),
+                          onChanged: (_) {
+                            _edited();
+                            setState(() => _nameEdited = true);
+                          },
                           // « Suivant » passe à la date, clavier ouvert.
                           onEditingComplete: _dateFocus.requestFocus,
                           decoration: InputDecoration(
@@ -271,7 +344,10 @@ class _BirthdayFormSheetState extends ConsumerState<BirthdayFormSheet> {
                     order: order,
                     today: today,
                     autofocus: _autofocusDate,
-                    onChanged: (_) => setState(() {}),
+                    onChanged: (_) {
+                      _edited();
+                      setState(() {});
+                    },
                     // « OK » enregistre ; sinon le champ quitté dit ce qui
                     // manque.
                     onSubmitted: (_) => _save(),
