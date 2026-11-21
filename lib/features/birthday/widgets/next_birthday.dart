@@ -92,7 +92,7 @@ class _HeroCard extends StatelessWidget {
                         )
                       : const EdgeInsets.all(AppSpacing.md),
                   child: isToday
-                      ? HeroCelebrationIdentity(
+                      ? HeroDayIdentity(
                           birthday: birthday,
                           today: today,
                           onColor: onColor,

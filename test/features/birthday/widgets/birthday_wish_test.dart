@@ -179,11 +179,11 @@ void main() {
     );
   });
 
-  testWidgets('a dense wished pill fits a row, under a button height', (
+  testWidgets('the wished pill fits a row, under a button height', (
     tester,
   ) async {
     await tester.pumpHarness(
-      const Center(child: WishedPill(dense: true)),
+      const Center(child: WishedPill()),
       overrides: [currentUidProvider.overrideWithValue('fake-uid')],
     );
 
@@ -192,24 +192,6 @@ void main() {
     expect(
       tester.getSize(find.byType(WishedPill)).height,
       lessThan(kMinInteractiveDimension),
-    );
-  });
-
-  testWidgets('shows the wished pill at the height of a button', (
-    tester,
-  ) async {
-    await tester.pumpHarness(const Center(child: WishedPill()));
-
-    expect(find.text('Souhaité'), findsOneWidget);
-    final pill = find
-        .ancestor(
-          of: find.text('Souhaité'),
-          matching: find.byType(DecoratedBox),
-        )
-        .first;
-    expect(
-      tester.getSize(pill).height,
-      greaterThanOrEqualTo(kMinInteractiveDimension),
     );
   });
 }

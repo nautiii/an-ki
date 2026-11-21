@@ -89,42 +89,30 @@ class WishActions extends ConsumerWidget {
   }
 }
 
-/// « ✓ Souhaité » en menthe (accent de succès). Sur la page de la personne,
-/// haute comme une cible tactile, elle prend la place de la bulle et des
-/// boutons. [dense] dans une phrase ou une ligne (héros du
-/// jour J), à la hauteur du texte.
+/// « ✓ Souhaité » en menthe (accent de succès), dans une phrase ou une
+/// ligne, à la hauteur du texte : la carte du jour J sur l'accueil, l'en-tête
+/// de la fiche le jour J et le lendemain.
 class WishedPill extends StatelessWidget {
-  const WishedPill({super.key, this.dense = false});
-
-  final bool dense;
+  const WishedPill({super.key});
 
   @override
   Widget build(BuildContext context) {
     final success = context.ankiColors.success;
-    final pill = DecoratedBox(
+    return DecoratedBox(
       decoration: ShapeDecoration(
         color: success.container,
         shape: const StadiumBorder(),
       ),
       child: Padding(
-        padding: dense
-            ? const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xs,
-                vertical: AppSpacing.xxs,
-              )
-            : const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.xs,
-              ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs,
+          vertical: AppSpacing.xxs,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.check_rounded,
-              size: dense ? 16 : 18,
-              color: success.onContainer,
-            ),
-            SizedBox(width: dense ? AppSpacing.xxs : AppSpacing.xs),
+            Icon(Icons.check_rounded, size: 16, color: success.onContainer),
+            const SizedBox(width: AppSpacing.xxs),
             Flexible(
               child: Text(
                 context.l10n.wished,
@@ -135,12 +123,6 @@ class WishedPill extends StatelessWidget {
           ],
         ),
       ),
-    );
-
-    if (dense) return pill;
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
-      child: pill,
     );
   }
 }

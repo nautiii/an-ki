@@ -4,7 +4,6 @@ import 'package:an_ki/core/common/orbit_countdown.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
-import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
@@ -17,11 +16,16 @@ import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/screens/person_screen.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
+import 'package:an_ki/features/birthday/widgets/blossom_rain.dart';
+import 'package:an_ki/features/birthday/widgets/category_display.dart';
+import 'package:an_ki/features/birthday/widgets/person_header.dart';
 import 'package:an_ki/features/birthday/widgets/wish_bubble.dart';
 import 'package:an_ki/features/birthday/widgets/wish_message_section.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -136,12 +140,16 @@ void main() {
     of: find.byType(OrbitCountdown),
     matching: find.text(text),
   );
-  Finder inOrbitIcon(IconData icon) => find.descendant(
-    of: find.byType(OrbitCountdown),
-    matching: find.byIcon(icon),
+
+  /// Ce que TalkBack lit de l'en-tête : un seul nœud, dans l'ordre visuel.
+  SemanticsNode header(WidgetTester tester) => tester.getSemantics(
+    find
+        .descendant(
+          of: find.byType(PersonHeader),
+          matching: find.byType(MergeSemantics),
+        )
+        .first,
   );
-  AnKiColors colorsOf(WidgetTester tester) =>
-      tester.element(find.byType(OrbitCountdown)).ankiColors;
 
   ChoiceChip choice(WidgetTester tester, String label) =>
       tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, label));
@@ -181,8 +189,13 @@ void main() {
       expect(inOrbit('jours'), findsOneWidget);
       // Déjà dans l'orbite : pas répété en dessous, mais lu par TalkBack.
       expect(find.text('Dans 12 jours'), findsNothing);
-      expect(find.bySemanticsLabel('Dans 12 jours'), findsOneWidget);
-      expect(find.bySemanticsLabel(RegExp('Aura')), findsNothing);
+      expect(
+        header(tester),
+        isSemantics(
+          label: 'Léa Martin\n24 octobre\nDans 12 jours',
+          isHeader: true,
+        ),
+      );
       semantics.dispose();
     });
 
@@ -190,42 +203,60 @@ void main() {
       final semantics = tester.ensureSemantics();
       await pumpPage(tester);
 
-      expect(find.bySemanticsLabel('Aura 36 ans'), findsOneWidget);
+      expect(
+        header(tester),
+        isSemantics(
+          label: 'Dans 12 jours\nLéa Martin\n24 octobre 1990\nAura 36 ans',
+          isHeader: true,
+        ),
+      );
       // Le dessin et ses chiffres ne se lisent pas une seconde fois.
       expect(find.bySemanticsLabel('36'), findsNothing);
       semantics.dispose();
     });
 
-    testWidgets('the age reached on the day itself, the orbit closed', (
-      tester,
-    ) async {
+    testWidgets('the day itself, celebrated in the header', (tester) async {
       final semantics = tester.ensureSemantics();
       await pumpPage(tester, person: lea(day: 12));
 
-      expect(find.text("Aujourd'hui 🎉"), findsOneWidget);
-      expect(inOrbit('36'), findsOneWidget);
-      expect(find.bySemanticsLabel('36 ans'), findsOneWidget);
-      expect(orbit(tester).daysLeft, 0);
-      expect(orbit(tester).arcColor, colorsOf(tester).blossom.color);
+      Finder inHeader(Finder finder) =>
+          find.descendant(of: find.byType(PersonHeader), matching: finder);
+      expect(inHeader(find.text("Aujourd'hui 🎉")), findsOneWidget);
+      expect(
+        inHeader(find.text("fête ses 36 ans aujourd'hui")),
+        findsOneWidget,
+      );
+      // L'âge en grand, sans orbite : la phrase le dit à TalkBack.
+      expect(inHeader(find.text('36')), findsOneWidget);
+      expect(find.byType(OrbitCountdown), findsNothing);
+      expect(find.bySemanticsLabel('36'), findsNothing);
+      // Le vœu se fait dans la carte, avec les pétales derrière.
+      expect(inHeader(find.text('Souhaiter')), findsOneWidget);
+      expect(inHeader(find.byType(BlossomRain)), findsOneWidget);
       semantics.dispose();
     });
 
-    testWidgets('the orbit turns mint once the day is wished', (tester) async {
+    testWidgets('once the day is wished, « Souhaité » joins the sentence', (
+      tester,
+    ) async {
       await pumpPage(tester, person: lea(day: 12, wishedYears: [2026]));
 
-      expect(orbit(tester).arcColor, colorsOf(tester).success.color);
-      expect(inOrbit('36'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(PersonHeader),
+          matching: find.byType(WishedPill),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Souhaiter'), findsNothing);
     });
 
-    testWidgets('a cake on the day without a birth year', (tester) async {
-      final semantics = tester.ensureSemantics();
+    testWidgets('no age on the day without a birth year', (tester) async {
       await pumpPage(tester, person: lea(day: 12, yearKnown: false));
 
-      expect(find.text("Aujourd'hui 🎉"), findsOneWidget);
-      expect(inOrbitIcon(Icons.cake_rounded), findsOneWidget);
-      // L'orbite muette : « Aujourd'hui » ne se lit qu'une fois, sous elle.
-      expect(find.bySemanticsLabel(RegExp("^Aujourd'hui")), findsOneWidget);
-      semantics.dispose();
+      expect(find.text("fête son anniversaire aujourd'hui"), findsOneWidget);
+      expect(find.text('ans'), findsNothing);
+      expect(find.byType(OrbitCountdown), findsNothing);
     });
 
     testWidgets('the day before without a birth year, read « Demain »', (
@@ -237,25 +268,60 @@ void main() {
       expect(inOrbit('1'), findsOneWidget);
       expect(inOrbit('jour'), findsOneWidget);
       expect(find.text('Demain'), findsNothing);
-      expect(find.bySemanticsLabel('Demain'), findsOneWidget);
+      expect(header(tester).label, endsWith('\nDemain'));
       semantics.dispose();
-    });
-
-    testWidgets('a check once wished, without a birth year', (tester) async {
-      await pumpPage(
-        tester,
-        person: lea(day: 12, yearKnown: false, wishedYears: [2026]),
-      );
-
-      expect(inOrbitIcon(Icons.check_rounded), findsOneWidget);
-      expect(orbit(tester).arcColor, colorsOf(tester).success.color);
     });
 
     testWidgets('tomorrow, the day before', (tester) async {
       await pumpPage(tester, person: lea(day: 13));
 
       expect(find.text('Demain'), findsOneWidget);
-      expect(orbit(tester).arcColor, isNull);
+      expect(orbit(tester).daysLeft, 1);
+      expect(find.byType(BlossomRain), findsNothing);
+    });
+
+    testWidgets('the day after, the age reached and the late wish', (
+      tester,
+    ) async {
+      await pumpPage(tester, person: lea(day: 11));
+
+      Finder inHeader(Finder finder) =>
+          find.descendant(of: find.byType(PersonHeader), matching: finder);
+      expect(inHeader(find.text('Hier')), findsOneWidget);
+      expect(inHeader(find.text('a eu 36 ans')), findsOneWidget);
+      // Ni orbite d'un an, ni fête : le vœu en retard est sous la carte.
+      expect(find.byType(OrbitCountdown), findsNothing);
+      expect(find.byType(BlossomRain), findsNothing);
+      expect(inHeader(find.text('Souhaiter')), findsNothing);
+      expect(find.text('Souhaiter'), findsOneWidget);
+    });
+
+    testWidgets('the day after, once wished, « Souhaité » in the header', (
+      tester,
+    ) async {
+      await pumpPage(tester, person: lea(day: 11, wishedYears: [2026]));
+
+      expect(find.text('Hier'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(PersonHeader),
+          matching: find.byType(WishedPill),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Souhaiter'), findsNothing);
+    });
+
+    testWidgets('the groups as chips in their tone', (tester) async {
+      await pumpPage(tester);
+
+      final chip = tester.widget<ActionChip>(
+        find.widgetWithText(ActionChip, 'Famille'),
+      );
+      final tones = family.tones(tester.element(find.byType(ActionChip)));
+      expect(chip.side, BorderSide.none);
+      expect(chip.color!.resolve({}), tones.container);
+      expect(chip.labelStyle?.color, tones.onContainer);
     });
 
     testWidgets('the name as the page header, with 48 dp targets', (
@@ -265,8 +331,11 @@ void main() {
       await pumpPage(tester, person: lea(day: 12, wishedYears: [2026]));
 
       expect(
-        tester.getSemantics(find.text('Léa Martin')),
-        isSemantics(label: 'Léa Martin', isHeader: true),
+        header(tester),
+        isSemantics(
+          label: "Aujourd'hui 🎉\nLéa Martin\nfête ses 36 ans aujourd'hui\nSouhaité",
+          isHeader: true,
+        ),
       );
       await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
@@ -288,7 +357,6 @@ void main() {
     testWidgets('the day after, still, with a late wish', (tester) async {
       await pumpPage(tester, person: lea(day: 11));
 
-      expect(find.text('Hier'), findsNothing);
       await tester.tap(find.text('Souhaiter'));
       await tester.pump();
 

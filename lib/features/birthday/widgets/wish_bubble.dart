@@ -42,7 +42,9 @@ class WishBubble extends ConsumerWidget {
       borderRadius: BorderRadius.all(Radius.circular(AppRadii.md)),
     );
 
+    // Un nœud à lui : un bouton à part, jamais fondu dans la phrase voisine.
     return Semantics(
+      container: true,
       button: true,
       enabled: !sharing,
       hint: l10n.wishChooseAnother,
