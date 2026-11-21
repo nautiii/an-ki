@@ -212,7 +212,6 @@
       "year": { "type": "int" }
     }
   },
-  "personNeverWished": "Not wished with AnKi yet",
   "personWishRemoved": "{year} wish removed",
   "@personWishRemoved": {
     "placeholders": {
@@ -222,7 +221,6 @@
   "personMissingTitle": "Birthday not found",
   "personMissingMessage": "It was probably deleted. Your birthdays are waiting on the home screen.",
   "personErrorTitle": "Can't show this birthday",
-  "personWishRemove": "Remove",
   "personBackHome": "Back to home",
   "birthdaysAdded": "{count, plural, =1{1 birthday added} other{{count} birthdays added}}",
   "contactImportDeniedTitle": "AnKi can't see your contacts",
@@ -497,5 +495,8 @@
   "wishOtherMessages": "Other messages",
   "wishChooseAnother": "Choose another message",
   "wishWriteOwn": "Write a message for {name}",
-  "belatedHadAge": "{age, plural, one{turned {age}} other{turned {age}}}"
+  "belatedHadAge": "{age, plural, one{turned {age}} other{turned {age}}}",
+  "personRemindersNone": "No reminders",
+  "personWishRemoveYear": "Remove the {year} wish",
+  "wishMessageOwnCaption": "Your message for {date}"
 }

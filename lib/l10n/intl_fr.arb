@@ -691,12 +691,11 @@
   },
   "personWishedIn": "Souhaité en {year}",
   "@personWishedIn": {
-    "description": "Page personne : une année où l'anniversaire a été souhaité",
+    "description": "Page personne : une année souhaitée, lue par TalkBack sur sa pastille (« 2025 »)",
     "placeholders": {
       "year": { "type": "int" }
     }
   },
-  "personNeverWished": "Pas encore souhaité avec AnKi",
   "personWishRemoved": "Vœu de {year} retiré",
   "@personWishRemoved": {
     "description": "Snackbar après l'annulation d'un vœu depuis la page personne",
@@ -707,10 +706,6 @@
   "personMissingTitle": "Anniversaire introuvable",
   "personMissingMessage": "Il a sans doute été supprimé. Vos anniversaires vous attendent sur l'accueil.",
   "personErrorTitle": "Impossible d'afficher cet anniversaire",
-  "personWishRemove": "Retirer",
-  "@personWishRemove": {
-    "description": "Page personne : retire le vœu de l'année en cours de l'historique"
-  },
   "personBackHome": "Retour à l'accueil",
   "birthdaysAdded": "{count, plural, =1{1 anniversaire ajouté} other{{count} anniversaires ajoutés}}",
   "@birthdaysAdded": {
@@ -1928,6 +1923,24 @@
     "description": "Carte du lendemain, sous le nom : l'âge atteint hier",
     "placeholders": {
       "age": { "type": "int" }
+    }
+  },
+  "personRemindersNone": "Aucun rappel",
+  "@personRemindersNone": {
+    "description": "Page personne : résumé des rappels d'une personne qui n'en a aucun"
+  },
+  "personWishRemoveYear": "Retirer le vœu de {year}",
+  "@personWishRemoveYear": {
+    "description": "Page personne : infobulle et libellé TalkBack du × de l'année en cours, qui retire le vœu",
+    "placeholders": {
+      "year": { "type": "int" }
+    }
+  },
+  "wishMessageOwnCaption": "Votre message pour le {date}",
+  "@wishMessageOwnCaption": {
+    "description": "Page personne : légende de la bulle quand la personne a son propre message ; date sans année, « 24 octobre »",
+    "placeholders": {
+      "date": { "type": "String" }
     }
   }
 }

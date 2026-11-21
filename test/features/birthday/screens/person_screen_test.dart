@@ -20,6 +20,8 @@ import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/birthday/widgets/blossom_rain.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:an_ki/features/birthday/widgets/person_header.dart';
+import 'package:an_ki/features/birthday/widgets/person_reminders_tile.dart';
+import 'package:an_ki/features/birthday/widgets/wish_years.dart';
 import 'package:an_ki/features/birthday/widgets/wish_bubble.dart';
 import 'package:an_ki/features/birthday/widgets/wish_message_section.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -174,8 +176,15 @@ void main() {
       expect(find.widgetWithText(ActionChip, 'Famille'), findsOneWidget);
       // Hors du jour J et du lendemain, rien à souhaiter.
       expect(find.text('Souhaiter'), findsNothing);
-      expect(find.text('Pas encore souhaité avec AnKi'), findsOneWidget);
-      expect(choice(tester, "Comme d'habitude").selected, isTrue);
+      // Jamais souhaitée : pas de section des vœux, rien à se reprocher.
+      expect(find.byType(WishYears), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(PersonRemindersTile),
+          matching: find.text("Comme d'habitude"),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('the days in the orbit, no age, without a birth year', (
@@ -369,14 +378,10 @@ void main() {
     testWidgets('lists the years, the latest first', (tester) async {
       await pumpPage(tester, person: lea(wishedYears: [2024, 2026, 2025]));
 
-      final rows = tester
-          .widgetList<Text>(find.textContaining('Souhaité en'))
-          .map((text) => text.data);
-      expect(rows, [
-        'Souhaité en 2026',
-        'Souhaité en 2025',
-        'Souhaité en 2024',
-      ]);
+      final years = tester
+          .widgetList<Chip>(find.byType(Chip))
+          .map((chip) => (chip.label as Text).data);
+      expect(years, ['2026', '2025', '2024']);
     });
 
     testWidgets('undoes the wish of this year, with a way back', (
@@ -386,8 +391,9 @@ void main() {
 
       expect(find.text('Souhaité'), findsOneWidget);
       // Seul le vœu de l'anniversaire en cours s'annule.
-      expect(find.widgetWithText(TextButton, 'Retirer'), findsOneWidget);
-      await tester.tap(find.widgetWithText(TextButton, 'Retirer'));
+      expect(find.byTooltip('Retirer le vœu de 2025'), findsNothing);
+      await tester.ensureVisible(find.byTooltip('Retirer le vœu de 2026'));
+      await tester.tap(find.byTooltip('Retirer le vœu de 2026'));
       await tester.pumpAndSettle();
 
       expect(repository.unwished, [('lea', 2026)]);
@@ -411,7 +417,8 @@ void main() {
       );
       await pumpPage(tester, person: lea(day: 12, wishedYears: [2026]));
 
-      await tester.tap(find.widgetWithText(TextButton, 'Retirer'));
+      await tester.ensureVisible(find.byTooltip('Retirer le vœu de 2026'));
+      await tester.tap(find.byTooltip('Retirer le vœu de 2026'));
       await tester.pump();
 
       expect(
@@ -422,10 +429,28 @@ void main() {
   });
 
   group('reminders', () {
+    /// Ouvre la feuille des rappels depuis leur ligne.
+    Future<void> openReminders(WidgetTester tester) async {
+      await tester.ensureVisible(find.byType(PersonRemindersTile));
+      await tester.tap(find.byType(PersonRemindersTile));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('sum up on one line', (tester) async {
+      await pumpPage(
+        tester,
+        person: lea(reminders: {ReminderLead.weekBefore, ReminderLead.sameDay}),
+      );
+
+      expect(find.byType(ChoiceChip), findsNothing);
+      expect(find.text('7 jours avant · Le jour\u00a0J'), findsOneWidget);
+    });
+
     testWidgets('customised right away, from the usual cadence', (
       tester,
     ) async {
       await pumpPage(tester);
+      await openReminders(tester);
 
       await tester.ensureVisible(find.text('Personnalisés'));
       await tester.tap(find.text('Personnalisés'));
@@ -444,6 +469,7 @@ void main() {
         tester,
         person: lea(reminders: {ReminderLead.weekBefore, ReminderLead.sameDay}),
       );
+      await openReminders(tester);
 
       expect(find.text('Le jour J est toujours prévenu.'), findsOneWidget);
       await tester.ensureVisible(find.text('La veille'));
@@ -461,6 +487,7 @@ void main() {
 
     testWidgets('mutes a person with « Aucun »', (tester) async {
       await pumpPage(tester);
+      await openReminders(tester);
 
       await tester.ensureVisible(find.text('Aucun'));
       await tester.tap(find.text('Aucun'));
@@ -472,6 +499,8 @@ void main() {
 
     testWidgets('a muted person goes back to the usual', (tester) async {
       await pumpPage(tester, person: lea(reminders: const {}));
+      expect(find.text('Aucun rappel'), findsOneWidget);
+      await openReminders(tester);
 
       expect(choice(tester, 'Aucun').selected, isTrue);
       await tester.ensureVisible(find.text("Comme d'habitude"));

@@ -732,9 +732,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get personNeverWished => 'Pas encore souhaité avec AnKi';
-
-  @override
   String personWishRemoved(int year) {
     return 'Vœu de $year retiré';
   }
@@ -748,9 +745,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get personErrorTitle => 'Impossible d\'afficher cet anniversaire';
-
-  @override
-  String get personWishRemove => 'Retirer';
 
   @override
   String get personBackHome => 'Retour à l\'accueil';
@@ -1945,5 +1939,18 @@ class AppLocalizationsFr extends AppLocalizations {
       one: 'a eu $age an',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get personRemindersNone => 'Aucun rappel';
+
+  @override
+  String personWishRemoveYear(int year) {
+    return 'Retirer le vœu de $year';
+  }
+
+  @override
+  String wishMessageOwnCaption(String date) {
+    return 'Votre message pour le $date';
   }
 }

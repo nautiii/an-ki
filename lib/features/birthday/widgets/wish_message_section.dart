@@ -7,14 +7,15 @@ import 'package:an_ki/features/birthday/domain/birthday_wish_message.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
+import 'package:an_ki/features/birthday/widgets/birthday_display.dart';
 import 'package:an_ki/features/birthday/widgets/wish_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Message de vœu d'une personne sur sa page : celui qu'enverra
-/// « Souhaiter », le sien ou le vœu proposé par AnKi cette année. Un toucher
-/// ouvre [WishMessageSheet].
+/// « Souhaiter », le sien ou le vœu proposé par AnKi cette année, dans une
+/// bulle nuage comme celle du jour J. Un toucher ouvre [WishMessageSheet].
 class WishMessageSection extends ConsumerWidget {
   const WishMessageSection({super.key, required this.birthday});
 
@@ -29,68 +30,82 @@ class WishMessageSection extends ConsumerWidget {
       ref.watch(wishSuggestionsProvider(birthday)),
     );
     final theme = Theme.of(context);
-    final variant = theme.colorScheme.onSurfaceVariant;
+    final fill = theme.colorScheme.tertiaryContainer;
+    final onFill = theme.colorScheme.onTertiaryContainer;
     final custom = birthday.wishMessage;
+    const shape = RoundedSuperellipseBorder(
+      borderRadius: BorderRadius.all(Radius.circular(AppRadii.md)),
+    );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Un en-tête de section, comme les autres titres de la page.
-        Semantics(
-          container: true,
-          header: true,
-          child: Text(
-            l10n.wishMessageTitle,
-            style: theme.textTheme.labelLarge?.copyWith(color: variant),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Semantics(
-          button: true,
-          hint: l10n.wishMessageEdit,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(AppRadii.md),
-            onTap: () => unawaited(WishMessageSheet.show(context, birthday)),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                minHeight: kMinInteractiveDimension,
+    // Un nœud à lui : la bulle ne se fond pas dans ses voisines.
+    return Semantics(
+      container: true,
+      button: true,
+      hint: l10n.wishMessageEdit,
+      child: Material(
+        color: fill,
+        shape: shape,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => unawaited(WishMessageSheet.show(context, birthday)),
+          splashColor: onFill.withValues(alpha: 0.12),
+          highlightColor: onFill.withValues(alpha: 0.08),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: kMinInteractiveDimension,
+            ),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.xs,
+                AppSpacing.sm,
               ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            custom ?? suggested,
-                            // Un aperçu : TalkBack lit le message entier.
-                            maxLines: 4,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodyLarge,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Légende à 85 % : 5,1:1 (clair), 5,7:1 (sombre).
+                        Text(
+                          custom == null
+                              ? l10n.wishMessageSuggestedCaption
+                              : l10n.wishMessageOwnCaption(
+                                  birthday.formattedDate(
+                                    context,
+                                    includeYear: false,
+                                  ),
+                                ),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: onFill.withValues(alpha: 0.85),
                           ),
-                          if (custom == null)
-                            Text(
-                              l10n.wishMessageSuggestedCaption,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: variant,
-                              ),
-                            ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: AppSpacing.xxs),
+                        Text(
+                          custom ?? suggested,
+                          // Un aperçu : TalkBack lit le message entier.
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: onFill,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                    ExcludeSemantics(
-                      child: Icon(Icons.edit_rounded, color: variant),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    child: ExcludeSemantics(
+                      child: Icon(Icons.edit_rounded, color: onFill),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }

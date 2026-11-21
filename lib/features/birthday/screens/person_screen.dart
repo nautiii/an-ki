@@ -6,25 +6,22 @@ import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
-import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
-import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_wisher.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_reminders_picker.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
 import 'package:an_ki/features/birthday/widgets/person_header.dart';
+import 'package:an_ki/features/birthday/widgets/person_reminders_tile.dart';
+import 'package:an_ki/features/birthday/widgets/wish_years.dart';
 import 'package:an_ki/features/birthday/widgets/wish_bubble.dart';
 import 'package:an_ki/features/birthday/widgets/wish_message_section.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -91,7 +88,8 @@ class PersonScreen extends ConsumerWidget {
 }
 
 /// Contenu de la page : l'en-tête (et le vœu du jour J dedans), le vœu en
-/// retard du lendemain, les groupes, les rappels, le message, l'historique.
+/// retard du lendemain, les groupes, le message, les rappels, les années
+/// souhaitées.
 class _PersonDetails extends ConsumerWidget {
   const _PersonDetails({required this.birthday});
 
@@ -121,24 +119,19 @@ class _PersonDetails extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
           _GroupChips(categories: categories),
         ],
-        const SizedBox(height: AppSpacing.xl),
-        // Écrits aussitôt : la page n'a pas de bouton « Enregistrer ».
-        BirthdayRemindersPicker(
-          reminders: birthday.reminders,
-          onChanged: (reminders) => unawaited(
-            ref
-                .read(birthdayEditorProvider.notifier)
-                .setReminders(birthday.id, reminders),
-          ),
-        ),
+        const SizedBox(height: AppSpacing.lg),
         // Le jour du vœu, la bulle montre déjà ce message et la feuille des
         // autres permet d'écrire le sien : pas deux fois le même texte.
         if (!birthday.canWish(today) || birthday.isWished(today)) ...[
-          const SizedBox(height: AppSpacing.xl),
           WishMessageSection(birthday: birthday),
+          const SizedBox(height: AppSpacing.sm),
         ],
-        const SizedBox(height: AppSpacing.xl),
-        _WishHistory(birthday: birthday, today: today),
+        // La tâche la plus rare, sur une ligne : le choix s'ouvre en feuille.
+        PersonRemindersTile(birthday: birthday),
+        if (birthday.wishedYears.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.lg),
+          WishYears(birthday: birthday, today: today),
+        ],
       ],
     );
   }
@@ -227,119 +220,6 @@ class _BelatedWish extends ConsumerWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-/// Années où la personne a été souhaitée, de la plus récente à la plus
-/// ancienne. Le vœu de l'anniversaire en cours ([BirthdayWishes.wishYear])
-/// s'annule, avec « Annuler » pour revenir en arrière.
-class _WishHistory extends StatelessWidget {
-  const _WishHistory({required this.birthday, required this.today});
-
-  final Birthday birthday;
-  final DateTime today;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final textTheme = Theme.of(context).textTheme;
-    final success = context.ankiColors.success;
-    final years = [...birthday.wishedYears]..sort((a, b) => b - a);
-    final current = birthday.wishYear(today);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _SectionTitle(l10n.personWishes),
-        const SizedBox(height: AppSpacing.xs),
-        if (years.isEmpty)
-          Text(
-            l10n.personNeverWished,
-            style: textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        for (final year in years)
-          MergeSemantics(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                minHeight: kMinInteractiveDimension,
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.check_rounded, color: success.color),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      l10n.personWishedIn(year),
-                      style: textTheme.bodyLarge,
-                    ),
-                  ),
-                  if (year == current)
-                    TextButton(
-                      onPressed: () => _unwish(context, year),
-                      child: Text(l10n.personWishRemove),
-                    ),
-                ],
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  /// Retire le vœu de [year], avec « Annuler » qui le remet.
-  void _unwish(BuildContext context, int year) {
-    // Lu maintenant : la ligne disparaît avec le vœu.
-    final container = ProviderScope.containerOf(context, listen: false);
-    final l10n = context.l10n;
-    final accessible = MediaQuery.accessibleNavigationOf(context);
-    unawaited(HapticFeedback.lightImpact());
-    unawaited(
-      container
-          .read(birthdayEditorProvider.notifier)
-          .unmarkWished(birthday.id, year),
-    );
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(l10n.personWishRemoved(year)),
-          // Depuis Flutter 3.44, une snackbar avec action reste sinon ouverte.
-          persist: false,
-          duration: accessible ? undoDelay * 2 : undoDelay,
-          action: SnackBarAction(
-            label: l10n.undo,
-            onPressed: () => unawaited(
-              container
-                  .read(birthdayEditorProvider.notifier)
-                  .markWished(birthday.id, year),
-            ),
-          ),
-        ),
-      );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // Un nœud à lui : le titre seul est un en-tête, pas la section entière.
-    return Semantics(
-      container: true,
-      header: true,
-      child: Text(
-        text,
-        style: theme.textTheme.labelLarge?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
     );
   }
 }

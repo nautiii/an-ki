@@ -1172,17 +1172,11 @@ abstract class AppLocalizations {
   /// **'Vœux'**
   String get personWishes;
 
-  /// Page personne : une année où l'anniversaire a été souhaité
+  /// Page personne : une année souhaitée, lue par TalkBack sur sa pastille (« 2025 »)
   ///
   /// In fr, this message translates to:
   /// **'Souhaité en {year}'**
   String personWishedIn(int year);
-
-  /// No description provided for @personNeverWished.
-  ///
-  /// In fr, this message translates to:
-  /// **'Pas encore souhaité avec AnKi'**
-  String get personNeverWished;
 
   /// Snackbar après l'annulation d'un vœu depuis la page personne
   ///
@@ -1207,12 +1201,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Impossible d\'afficher cet anniversaire'**
   String get personErrorTitle;
-
-  /// Page personne : retire le vœu de l'année en cours de l'historique
-  ///
-  /// In fr, this message translates to:
-  /// **'Retirer'**
-  String get personWishRemove;
 
   /// No description provided for @personBackHome.
   ///
@@ -2767,6 +2755,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{age, plural, one{a eu {age} an} other{a eu {age} ans}}'**
   String belatedHadAge(int age);
+
+  /// Page personne : résumé des rappels d'une personne qui n'en a aucun
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun rappel'**
+  String get personRemindersNone;
+
+  /// Page personne : infobulle et libellé TalkBack du × de l'année en cours, qui retire le vœu
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer le vœu de {year}'**
+  String personWishRemoveYear(int year);
+
+  /// Page personne : légende de la bulle quand la personne a son propre message ; date sans année, « 24 octobre »
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre message pour le {date}'**
+  String wishMessageOwnCaption(String date);
 }
 
 class _AppLocalizationsDelegate

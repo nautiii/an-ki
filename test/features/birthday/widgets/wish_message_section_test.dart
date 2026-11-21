@@ -61,7 +61,6 @@ void main() {
     testWidgets('shows the default message, said so', (tester) async {
       await pump(tester, WishMessageSection(birthday: lea()));
 
-      expect(find.text('Message de vœux'), findsOneWidget);
       expect(find.text(fallback), findsOneWidget);
       expect(
         find.text('Proposé par AnKi, change chaque année'),
@@ -74,6 +73,8 @@ void main() {
 
       expect(find.text('Yo'), findsOneWidget);
       expect(find.text('Proposé par AnKi, change chaque année'), findsNothing);
+      // Le sien, pour le prochain anniversaire : sa date, sans l'année.
+      expect(find.textContaining('Votre message pour le '), findsOneWidget);
     });
 
     testWidgets('is a 48 dp button that opens the sheet', (tester) async {
@@ -88,7 +89,7 @@ void main() {
           hasTapAction: true,
           hasFocusAction: true,
           isFocusable: true,
-          label: '$fallback\nProposé par AnKi, change chaque année',
+          label: 'Proposé par AnKi, change chaque année\n$fallback',
           hint: 'Modifier le message de vœux',
         ),
       );

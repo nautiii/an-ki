@@ -1,5 +1,4 @@
 import 'package:an_ki/core/extensions/localization_extension.dart';
-import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/birthday/widgets/reminder_lead_display.dart';
 import 'package:an_ki/features/reminders/domain/reminder_plan.dart';
 import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
@@ -22,12 +21,7 @@ extension ReminderDisplay on BuildContext {
   /// Résumé d'un réglage : « 7 jours avant · Le jour J · 10:00 ».
   String reminderSchedule(ReminderPreferences preferences) =>
       l10n.remindersSchedule(
-        [
-          for (final lead in ReminderLead.values)
-            if (lead == ReminderLead.sameDay ||
-                preferences.leads.contains(lead))
-              reminderLead(lead),
-        ].join(' · '),
+        reminderLeads(preferences.leads),
         reminderTime(preferences),
       );
 

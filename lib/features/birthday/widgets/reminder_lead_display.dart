@@ -12,4 +12,12 @@ extension ReminderLeadDisplay on BuildContext {
     ReminderLead.dayBefore => l10n.reminderLeadDayBefore,
     ReminderLead.sameDay => l10n.reminderLeadSameDay,
   };
+
+  /// Moments d'un rappel dans l'ordre du temps, le jour J toujours compris :
+  /// « 7 jours avant · Le jour J ».
+  String reminderLeads(Iterable<ReminderLead> leads) => [
+    for (final lead in ReminderLead.values)
+      if (lead == ReminderLead.sameDay || leads.contains(lead))
+        reminderLead(lead),
+  ].join(' · ');
 }

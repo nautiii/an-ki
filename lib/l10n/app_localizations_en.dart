@@ -723,9 +723,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get personNeverWished => 'Not wished with AnKi yet';
-
-  @override
   String personWishRemoved(int year) {
     return '$year wish removed';
   }
@@ -739,9 +736,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get personErrorTitle => 'Can\'t show this birthday';
-
-  @override
-  String get personWishRemove => 'Remove';
 
   @override
   String get personBackHome => 'Back to home';
@@ -1908,5 +1902,18 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'turned $age',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get personRemindersNone => 'No reminders';
+
+  @override
+  String personWishRemoveYear(int year) {
+    return 'Remove the $year wish';
+  }
+
+  @override
+  String wishMessageOwnCaption(String date) {
+    return 'Your message for $date';
   }
 }
