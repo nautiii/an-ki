@@ -14,11 +14,29 @@ BirthdayCategory _category(
 }) => BirthdayCategory(id: id, name: name, icon: icon, tone: tone);
 
 void main() {
-  test('iconData is the MaterialIcons glyph of the stored code point', () {
-    final iconData = _category('x', icon: 0xe300).iconData;
+  group('iconData', () {
+    // Les icônes doivent être des constantes `Icons.*` : un `IconData` bâti à
+    // l'exécution casse l'élagage des icônes de la build release.
+    test('is the constant Material icon of a stored code point', () {
+      const stored = [
+        Icons.category,
+        Icons.label_rounded,
+        Icons.family_restroom_rounded,
+        Icons.pets_rounded,
+        Icons.sports_esports_rounded,
+      ];
+      for (final icon in stored) {
+        expect(
+          identical(_category('x', icon: icon.codePoint).iconData, icon),
+          isTrue,
+          reason: '0x${icon.codePoint.toRadixString(16)}',
+        );
+      }
+    });
 
-    expect(iconData.codePoint, 0xe300);
-    expect(iconData.fontFamily, 'MaterialIcons');
+    test('falls back to the default group icon for an unknown code', () {
+      expect(_category('x', icon: 0x10ffff).iconData, Icons.category);
+    });
   });
 
   test('toneIndex gives each known category its own tone', () {

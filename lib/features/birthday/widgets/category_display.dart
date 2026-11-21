@@ -7,9 +7,10 @@ import 'package:flutter/material.dart';
 
 /// Rendu d'une [BirthdayCategory] : icône, teinte et libellé traduit.
 extension CategoryDisplay on BirthdayCategory {
-  /// Icône Material de la catégorie.
-  // ignore: non_const_argument_for_const_parameter
-  IconData get iconData => IconData(icon, fontFamily: 'MaterialIcons');
+  /// Icône Material de la catégorie, retrouvée par son point de code parmi
+  /// les icônes qu'un groupe peut porter ; [Icons.category] pour un code
+  /// inconnu.
+  IconData get iconData => _iconsByCodePoint[icon] ?? Icons.category;
 
   /// Libellé traduit des catégories prédéfinies ; le nom saisi sinon.
   String localizedName(BuildContext context) {
@@ -60,3 +61,32 @@ extension CategoryDisplay on BirthdayCategory {
   TonalColors tones(BuildContext context) =>
       LabelTones.of(toneIndex, Theme.of(context).brightness);
 }
+
+/// Icônes qu'un groupe peut porter : celle d'un groupe sans icône, celle des
+/// groupes créés dans l'app, et celles que proposait l'ancien choix d'icône.
+/// Des constantes `Icons.*` : un `IconData` construit à l'exécution empêche
+/// l'élagage de la police d'icônes et fait échouer la build release.
+const _groupIcons = [
+  Icons.category,
+  Icons.label_rounded,
+  Icons.category_rounded,
+  Icons.group_rounded,
+  Icons.family_restroom_rounded,
+  Icons.work_rounded,
+  Icons.favorite_rounded,
+  Icons.contact_support_rounded,
+  Icons.star_rounded,
+  Icons.home_rounded,
+  Icons.school_rounded,
+  Icons.celebration_rounded,
+  Icons.share_rounded,
+  Icons.pets_rounded,
+  Icons.sports_martial_arts_rounded,
+  Icons.restaurant_rounded,
+  Icons.local_library_rounded,
+  Icons.sports_esports_rounded,
+];
+
+final _iconsByCodePoint = {
+  for (final icon in _groupIcons) icon.codePoint: icon,
+};
