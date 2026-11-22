@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/app/bootstrap/app_initializer.dart';
+import 'package:an_ki/app/bootstrap/launch_handler.dart';
 import 'package:an_ki/app/bootstrap/reminder_prompt.dart';
 import 'package:an_ki/app/modules/app_module.dart';
 import 'package:an_ki/app/modules/module_activation.dart';
@@ -98,8 +99,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       StatefulShellRoute(
-        builder: (_, _, shell) => AppInitializer(
-          child: ReminderPrompt(child: MainShell(navigationShell: shell)),
+        // Au-dessus d'AppInitializer : les entrées extérieures s'écoutent dès
+        // l'ouverture, avant le profil, que l'initialiseur attend.
+        builder: (_, _, shell) => LaunchHandler(
+          child: AppInitializer(
+            child: ReminderPrompt(child: MainShell(navigationShell: shell)),
+          ),
         ),
         navigatorContainerBuilder: (_, shell, branches) => ModuleBranches(
           currentIndex: shell.currentIndex,

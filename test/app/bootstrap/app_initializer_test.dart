@@ -1,34 +1,21 @@
 import 'dart:async';
 
 import 'package:an_ki/app/bootstrap/app_initializer.dart';
-import 'package:an_ki/core/providers/clock_provider.dart';
-import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
-import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/domain/guest_linked.dart';
 import 'package:an_ki/features/auth/providers/guest_links.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
-import 'package:an_ki/features/birthday/domain/birth_date.dart';
-import 'package:an_ki/features/birthday/domain/birthday.dart';
-import 'package:an_ki/features/birthday/screens/home_screen.dart';
-import 'package:an_ki/features/birthday/screens/person_screen.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
-import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart' as fam;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:an_ki/features/birthday/domain/wish_suggestions.dart';
-import 'package:an_ki/features/birthday/widgets/wish_text.dart';
-import 'package:an_ki/l10n/app_localizations.dart';
 
-import '../../support/app_harness.dart';
 import '../../support/fake_providers.dart';
-import '../../support/network_image_mock.dart';
 import '../../support/test_harness.dart';
 
 /// Dépôt dont le profil n'arrive que lorsque le test le décide ; il note les
@@ -309,171 +296,6 @@ void main() {
 
       expect(users.updated, isEmpty);
       expect(users.stored, guestProfile());
-    });
-  });
-
-  group('notification taps', () {
-    const lea = Birthday(
-      id: 'lea',
-      name: 'Léa',
-      surname: 'Martin',
-      date: BirthDate(month: 3, day: 12),
-    );
-    // Le jour J de Léa, 9 h : l'action de la notification J-0.
-    final now = DateTime(2026, 3, 12, 9);
-    final message = wishTexts(
-      lookupAppLocalizations(const Locale('fr')),
-      'Léa',
-      lea.wishSuggestions(now),
-    ).first;
-    const wishTap = NotificationTap(
-      payload: 'lea',
-      actionId: NotificationActions.wish,
-    );
-
-    /// L'app entière, connectée, avec le carnet de Léa.
-    Future<void> pumpSignedInApp(
-      WidgetTester tester, {
-      required SilentNotificationService notifications,
-      required FakeShareService share,
-    }) async {
-      await tester.pumpApp(
-        auth: FakeAuthRepository(user: MockUser()),
-        birthdays: const [lea],
-        notifications: notifications,
-        share: share,
-        overrides: [clockProvider.overrideWithValue(() => now)],
-      );
-      await tester.settleApp();
-    }
-
-    testWidgets('« Souhaiter » goes home and opens the share sheet', (
-      tester,
-    ) async {
-      final notifications = SilentNotificationService();
-      final share = FakeShareService();
-      await mockNetworkImages(() async {
-        await pumpSignedInApp(
-          tester,
-          notifications: notifications,
-          share: share,
-        );
-        // Les réglages s'ouvrent par-dessus l'onglet, comme dans l'app.
-        unawaited(tester.appRouter.push(AppRoutes.settings));
-        await tester.pumpAndSettle();
-        expect(find.byType(SettingsScreen), findsOneWidget);
-
-        notifications.tap(wishTap);
-        await tester.pumpAndSettle();
-
-        expect(find.byType(SettingsScreen), findsNothing);
-        expect(find.byType(HomeScreen), findsOneWidget);
-        expect(share.shared, [message]);
-        expect(find.text('Léa Martin a reçu vos vœux'), findsOneWidget);
-      });
-    });
-
-    testWidgets('wishes from the button that launched the app', (tester) async {
-      final share = FakeShareService();
-      await mockNetworkImages(() async {
-        await pumpSignedInApp(
-          tester,
-          notifications: SilentNotificationService(launch: wishTap),
-          share: share,
-        );
-
-        expect(share.shared, [message]);
-      });
-    });
-
-    testWidgets('a tap on the notification itself opens the person page', (
-      tester,
-    ) async {
-      final notifications = SilentNotificationService();
-      final share = FakeShareService();
-      await mockNetworkImages(() async {
-        await pumpSignedInApp(
-          tester,
-          notifications: notifications,
-          share: share,
-        );
-
-        notifications.tap(const NotificationTap(payload: 'lea'));
-        await tester.pumpAndSettle();
-
-        expect(find.byType(PersonScreen), findsOneWidget);
-        expect(find.text('Léa Martin'), findsOneWidget);
-        expect(share.shared, isEmpty);
-        // Retour : l'accueil, resté dessous.
-        await tester.tap(find.byType(BackButton));
-        await tester.pumpAndSettle();
-        expect(find.byType(HomeScreen), findsOneWidget);
-      });
-    });
-
-    testWidgets('never stacks the page of the person already open', (
-      tester,
-    ) async {
-      final notifications = SilentNotificationService();
-      await mockNetworkImages(() async {
-        await pumpSignedInApp(
-          tester,
-          notifications: notifications,
-          share: FakeShareService(),
-        );
-
-        notifications.tap(const NotificationTap(payload: 'lea'));
-        await tester.pumpAndSettle();
-        notifications.tap(const NotificationTap(payload: 'lea'));
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.byType(BackButton));
-        await tester.pumpAndSettle();
-        expect(find.byType(PersonScreen), findsNothing);
-        expect(find.byType(HomeScreen), findsOneWidget);
-      });
-    });
-
-    testWidgets('opens the person page from the tap that launched the app', (
-      tester,
-    ) async {
-      await mockNetworkImages(() async {
-        await pumpSignedInApp(
-          tester,
-          notifications: SilentNotificationService(
-            launch: const NotificationTap(payload: 'lea'),
-          ),
-          share: FakeShareService(),
-        );
-
-        expect(find.byType(PersonScreen), findsOneWidget);
-      });
-    });
-
-    testWidgets('ignores a tap naming no birthday, or one deleted since the '
-        'reminder', (tester) async {
-      final notifications = SilentNotificationService();
-      final share = FakeShareService();
-      await mockNetworkImages(() async {
-        await pumpSignedInApp(
-          tester,
-          notifications: notifications,
-          share: share,
-        );
-
-        notifications
-          ..tap(const NotificationTap(payload: null))
-          ..tap(
-            const NotificationTap(
-              payload: 'gone',
-              actionId: NotificationActions.wish,
-            ),
-          );
-        await tester.pumpAndSettle();
-
-        expect(share.shared, isEmpty);
-        expect(find.byType(PersonScreen), findsNothing);
-      });
     });
   });
 }

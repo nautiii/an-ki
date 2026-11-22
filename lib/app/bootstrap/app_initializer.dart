@@ -1,14 +1,9 @@
 import 'dart:async';
 
-import 'package:an_ki/core/routing/app_routes.dart';
-import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/domain/guest_linked.dart';
 import 'package:an_ki/features/auth/providers/guest_links.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
-import 'package:an_ki/features/birthday/domain/birthday.dart';
-import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
-import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/display_name.dart';
@@ -16,17 +11,15 @@ import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 /// Widget de bootstrap au niveau application, monté une fois l'utilisateur
 /// authentifié.
 ///
 /// Réagit au cycle de vie de la session : crée le profil Firestore au premier
 /// lancement d'un compte et attend le premier profil ; un invité qui se lie à Google prend
-/// les noms de ce compte. Le bouton « Souhaiter » d'une
-/// notification ramène à l'accueil et ouvre la feuille de partage dès que la
-/// personne est chargée ; toucher la notification ouvre sa page. Les données
-/// des features suivent la session seules ;
+/// les noms de ce compte. Les données des features suivent la session
+/// seules ; les entrées extérieures (notifications comprises) relèvent de
+/// `LaunchHandler` ;
 /// l'autorisation des notifications se demande en contexte
 /// (`ReminderPrompt`), jamais au lancement. Il vit dans le composition root
 /// `app/` car il dépend de plusieurs features — ce que `core/` ne doit
@@ -44,27 +37,9 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
   /// Compte dont le profil est en cours de création : évite les doublons.
   String? _creatingProfileFor;
 
-  /// Anniversaire à souhaiter, demandé par une notification, en attendant
-  /// que la liste le contienne.
-  String? _wishRequest;
-
-  StreamSubscription<NotificationTap>? _notificationTaps;
-
   @override
   void initState() {
     super.initState();
-    final notifications = ref.read(notificationServiceProvider);
-    _notificationTaps = notifications.taps.listen(_onNotificationTap);
-    unawaited(
-      notifications.launchTap().then((tap) {
-        if (tap != null && mounted) _onNotificationTap(tap);
-      }),
-    );
-    // Au premier chargement de la liste, la personne demandée apparaît.
-    ref.listenManual(
-      birthdaysListProvider,
-      (_, birthdays) => _fulfilWishRequest(birthdays),
-    );
     // Premier lancement d'un compte : pas encore de profil, on le crée (après
     // la frame, hors de la construction en cours).
     ref.listenManual(userProfileProvider, fireImmediately: true, (_, next) {
@@ -86,46 +61,6 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
     // Invité lié à Google : son profil prend les noms du compte Google.
     ref.listenManual(guestLinksProvider, (_, linked) {
       if (linked != null) unawaited(_takeGoogleNames(linked));
-    });
-  }
-
-  @override
-  void dispose() {
-    unawaited(_notificationTaps?.cancel());
-    super.dispose();
-  }
-
-  /// « Souhaiter » sur une notification : l'accueil, puis la feuille de
-  /// partage de la personne. Toucher la notification elle-même ouvre sa
-  /// page par-dessus l'écran en cours, qui la montre dès qu'elle est chargée ;
-  /// déjà ouverte, elle n'est pas empilée une seconde fois.
-  void _onNotificationTap(NotificationTap tap) {
-    final birthdayId = tap.payload;
-    if (birthdayId == null) return;
-    if (tap.actionId != NotificationActions.wish) {
-      final router = GoRouter.of(context);
-      final page = AppRoutes.person(birthdayId);
-      // `state` : la route du dessus, poussée comprise.
-      if (router.state.matchedLocation == page) return;
-      unawaited(router.push(page));
-      return;
-    }
-    _wishRequest = birthdayId;
-    GoRouter.of(context).go(AppRoutes.birthdays);
-    _fulfilWishRequest(ref.read(birthdaysListProvider));
-  }
-
-  /// Souhaite la personne demandée si [birthdays] la contient ; sinon la
-  /// demande attend la liste suivante (premier chargement).
-  void _fulfilWishRequest(List<Birthday> birthdays) {
-    final birthdayId = _wishRequest;
-    if (birthdayId == null) return;
-    final birthday = birthdays.where((b) => b.id == birthdayId).firstOrNull;
-    if (birthday == null) return;
-    _wishRequest = null;
-    // Après la frame : l'accueil est affiché sous la feuille de partage.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(wishBirthday(context, birthday));
     });
   }
 
