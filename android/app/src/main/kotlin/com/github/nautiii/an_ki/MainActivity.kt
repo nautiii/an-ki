@@ -9,6 +9,9 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterFragmentActivity() {
+    /** Numéro choisi pour une personne, appel et SMS (`PhoneContactService`). */
+    private var phoneContact: PhoneContactChannel? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // quick_actions rend le raccourci du lanceur qui a ouvert l'app tant
         // que son extra reste sur l'intent : recréée, ou rouverte depuis les
@@ -24,6 +27,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        phoneContact = PhoneContactChannel(this, flutterEngine.dartExecutor.binaryMessenger)
         // flutter_local_notifications ne dit pas si Android peut encore
         // afficher sa boîte de permission après un refus : sans elle, seuls
         // les réglages de l'app accordent les notifications
@@ -35,6 +39,19 @@ class MainActivity : FlutterFragmentActivity() {
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        phoneContact?.dispose()
+        phoneContact = null
+        super.cleanUpFlutterEngine(flutterEngine)
+    }
+
+    @Deprecated("Le sélecteur de contacts répond par startActivityForResult.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (phoneContact?.onActivityResult(requestCode, resultCode, data) == true) return
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     /**
