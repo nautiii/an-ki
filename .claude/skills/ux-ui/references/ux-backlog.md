@@ -319,7 +319,7 @@ holds the logo test.
 
 ## Suggested roadmap
 
-1. **Theme A « Lotus au clair de lune » + P2** shipped 2026-11-15; ux-ui skill evals run (iteration 1), criteria to tighten.
+1. **Theme A « Lotus au clair de lune » + P2** shipped 2026-11-15; ux-ui skill evals: iteration 2 on screens still to do, at a fixed commit (`evals/README.md`).
 2. **P7 + P8** capture and **P4 + P6** wish shipped 2026-11-20.
 3. ~~**P10** person page~~ (shipped); **P3** shortcuts shipped 2026-11-23; then the **P1** (widget) and **P5** (contact link) briefs.
 4. **B8, D17** — depth and polish (D29 if it matters).

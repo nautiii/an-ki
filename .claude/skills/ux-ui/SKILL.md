@@ -71,7 +71,10 @@ Project rules apply: `AGENTS.md` › House rules, `.claude/rules/ui.md` and `l10
 Who, which job, which flow. The ceremony follows `AGENTS.md` (local, structural, system). In UX
 terms: local = polish (spacing, color role, copy, a missing state, semantics); structural = a new
 pattern, flow or component, or a screen redesign (brief first); system = tokens/theme, navigation,
-identity, data model, auth, a new dependency (brief and explicit approval).
+identity, data model, auth, a new dependency (brief and explicit approval). Reading anything from
+the phone's contacts beyond names and birth dates (numbers, e-mails, photos) is a system change
+too, with its own brief: the import screen promises « AnKi ne lit que les noms et les dates
+d'anniversaire » (`contactsPrivacy`), and a faster flow is never worth breaking it silently.
 
 Vague request (« améliore l'app », « c'est moche »)? Offer 3–5 options from the backlog ranked by
 impact on the core jobs, with effort, and ask where to start — or start with the P0 items if told
@@ -93,14 +96,22 @@ to go ahead.
   measure, a convention users already know), not just its name.
 - For a redesign, prototype the candidates as snapshot scenes (any widget renders with the real
   theme and sample data — a throwaway file next to the runner in `build/ui_snapshots/_src/`) and
-  compare the images before committing to one.
+  compare the images side by side (`compare_boards_test.dart`) before committing to one.
 - Redesign or system change: present this brief (in French) and wait for the go:
 
 ```
-Problème · Pour qui / quelle tâche · Proposition (pattern + inspiration + pourquoi)
-Alternatives écartées · Maquette (capture du prototype, sinon ASCII)
+Problème (preuves : captures avant, audit) · Pour qui / quelle tâche
+Étapes avant → après, face au budget de la tâche (§O)
+Proposition (pattern + inspiration + pourquoi) · Alternatives écartées (grille)
+Maquette (chemins des captures du prototype, sinon ASCII)
+États (vide, chargement, erreur, hors ligne, succès, 200 %, 360×640) · Contrastes des nouveaux couples, clair / sombre
 Impact (fichiers, l10n, modèle, paquets, migration, tests) · Découpage en étapes livrables
+Vérifications (lancé · pas lancé, appareil) · Décisions numérotées, chacune avec son défaut
 ```
+
+Each line exists because a brief without it hid a gap: steps not counted, a state nobody drew, a
+pair never measured, a check claimed but not run. A line that doesn't apply says so in a few
+words (« pas de nouvel état ») rather than disappearing.
 
 ### 4. Build
 Order: tokens/theme → shared components (`core/common`, dumb) → screen → every state → motion and
@@ -163,6 +174,10 @@ flutter test build/ui_snapshots/_src/palette_audit_test.dart
   Second pass after your changes: same command with `UI_SNAPSHOT_LABEL=after`.
 - Prototypes: another file can `import 'ui_snapshot_test.dart';` and call `runUiSnapshots([...])`
   with its own scenes.
+- Comparison boards: edit the PLANCHES section of the copied `compare_boards_test.dart` (shots
+  as `<label>/<scene>/<variant>`, captions), run `flutter test
+  build/ui_snapshots/_src/compare_boards_test.dart`, read `build/ui_snapshots/boards/<board>.png`.
+  One board for before / after, one for the candidates on the same scene.
 - Read `build/ui_snapshots/<label>/<scene>.png` (contact sheet: light | dark | light-text200) and the
   printed audit; zoom with `<label>/<scene>/<variant>.png` (2×). Add `UiVariant.compact`
   (360×640, 1.3×) to hunt overflows.
