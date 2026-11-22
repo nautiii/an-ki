@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icônes des raccourcis du lanceur, de nuit : les rôles primaryContainer et
+     onPrimaryContainer du thème lotus (identity.md §3.1). -->
+<resources>
+    <color name="shortcut_background">#910034</color>
+    <color name="shortcut_glyph">#FFD9DD</color>
+</resources>

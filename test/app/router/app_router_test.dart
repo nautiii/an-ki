@@ -467,7 +467,7 @@ void main() {
 
     testWidgets('a path opened while the profile loads waits for it, then '
         'goes where the modules say', (tester) async {
-      final profiles = _LateProfile();
+      final profiles = LateProfileRepository();
       await mockNetworkImages(() async {
         await tester.pumpApp(
           auth: FakeAuthRepository(user: MockUser()),
@@ -493,7 +493,7 @@ void main() {
 
     testWidgets('a path of a module turned on stays once the profile says '
         'so', (tester) async {
-      final profiles = _LateProfile();
+      final profiles = LateProfileRepository();
       await mockNetworkImages(() async {
         await tester.pumpApp(
           auth: FakeAuthRepository(user: MockUser()),
@@ -558,15 +558,4 @@ void main() {
       });
     });
   });
-}
-
-/// Profil qui n'arrive qu'à l'appel d'[emit] : le démarrage d'un téléphone
-/// lent.
-class _LateProfile extends FakeUserRepository {
-  final _profile = StreamController<UserProfile?>.broadcast();
-
-  @override
-  Stream<UserProfile?> watchUser(String uid) => _profile.stream;
-
-  void emit(UserProfile profile) => _profile.add(profile);
 }

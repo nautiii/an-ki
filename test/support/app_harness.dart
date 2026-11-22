@@ -5,6 +5,7 @@ import 'package:an_ki/app/app.dart';
 import 'package:an_ki/app/bootstrap/notification_strings.dart';
 import 'package:an_ki/app/router/app_router.dart';
 import 'package:an_ki/core/providers/device_locales_provider.dart';
+import 'package:an_ki/core/services/app_shortcut_service.dart';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/core/services/device_settings.dart';
@@ -84,6 +85,37 @@ class SilentNotificationService extends Fake implements NotificationService {
   Future<NotificationTap?> launchTap() async => launch;
 }
 
+/// Raccourcis du lanceur sans plugin : rend [launch] comme raccourci de
+/// lancement, simule un toucher par [touch], relève les listes posées.
+class FakeAppShortcutService extends Fake implements AppShortcutService {
+  FakeAppShortcutService({this.launch});
+
+  /// Raccourci qui aurait lancé l'app.
+  String? launch;
+
+  /// Listes posées, dans l'ordre.
+  final List<List<AppShortcut>> sets = [];
+
+  final _actions = StreamController<String>.broadcast();
+
+  /// Simule un toucher pendant que l'app tourne.
+  void touch(String type) => _actions.add(type);
+
+  @override
+  Stream<String> get actions => _actions.stream;
+
+  @override
+  String? takeLaunchAction() {
+    final action = launch;
+    launch = null;
+    return action;
+  }
+
+  @override
+  Future<void> setShortcuts(List<AppShortcut> shortcuts) async =>
+      sets.add(shortcuts);
+}
+
 /// Profil du compte `fake-uid` des faux dépôts.
 const testProfile = UserProfile(
   id: 'fake-uid',
@@ -106,7 +138,7 @@ extension AppTesterExt on WidgetTester {
   /// L'app entière, routeur compris, sur un écran de la taille du harnais
   /// (800×1200) : la session de [auth], l'empreinte de [biometrics], des
   /// données factices (le carnet [birthdays], vide par défaut), des
-  /// notifications, un partage, un répertoire et des réglages d'appareil
+  /// notifications, des raccourcis du lanceur ([shortcuts]), un partage, un répertoire et des réglages d'appareil
   /// simulés ([notifications], [share], [contacts], [deviceSettings]).
   /// [overrides] s'ajoutent à ceux du harnais, pour des providers qu'il ne
   /// remplace pas déjà (le registre des modules, par exemple). [profile] est
@@ -120,6 +152,7 @@ extension AppTesterExt on WidgetTester {
     FakeBiometricService? biometrics,
     List<Birthday> birthdays = const [],
     SilentNotificationService? notifications,
+    FakeAppShortcutService? shortcuts,
     FakeShareService? share,
     FakeContactsService? contacts,
     FakeDeviceSettings? deviceSettings,
@@ -154,6 +187,9 @@ extension AppTesterExt on WidgetTester {
             notifications ?? SilentNotificationService(),
           ),
           localizedNotificationStrings,
+          appShortcutServiceProvider.overrideWithValue(
+            shortcuts ?? FakeAppShortcutService(),
+          ),
           ...moduleDataHooks,
           shareServiceProvider.overrideWithValue(share ?? FakeShareService()),
           contactsServiceProvider.overrideWithValue(

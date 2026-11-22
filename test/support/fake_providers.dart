@@ -1382,3 +1382,14 @@ class RecordingAniListCatalog extends Fake implements AniListCatalog {
     return answers[name] ?? const [];
   }
 }
+
+/// Profil qui n'arrive qu'à l'appel d'[emit] : le démarrage d'un téléphone
+/// lent.
+class LateProfileRepository extends FakeUserRepository {
+  final _profile = StreamController<UserProfile?>.broadcast();
+
+  @override
+  Stream<UserProfile?> watchUser(String uid) => _profile.stream;
+
+  void emit(UserProfile profile) => _profile.add(profile);
+}

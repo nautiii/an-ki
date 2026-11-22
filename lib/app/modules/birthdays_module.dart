@@ -47,6 +47,21 @@ final birthdaysModule = AppModule(
     label: (l10n) => l10n.addBirthday,
     onPressed: (context, _) => unawaited(AddBirthdaySheet.show(context)),
   ),
+  // Ajouter, puis Rechercher, sous « Souhaiter à … » quand il y en a un.
+  shortcuts: [
+    ModuleShortcut(
+      id: 'add',
+      icon: 'ic_shortcut_add',
+      label: (l10n) => l10n.addBirthday,
+      run: (context, _) => unawaited(AddBirthdaySheet.show(context)),
+    ),
+    ModuleShortcut(
+      id: 'search',
+      icon: 'ic_shortcut_search',
+      label: (l10n) => l10n.searchTooltip,
+      run: (context, _) => unawaited(context.push(AppRoutes.search)),
+    ),
+  ],
   effects: [reminderSyncProvider],
   // Les anniversaires, puis les groupes privés. La reprise d'un invité se fait
   // dans `GuestMerge`, qui écarte les doublons.

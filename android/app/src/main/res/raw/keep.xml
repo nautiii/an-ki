@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icônes des raccourcis du lanceur : nommées seulement depuis Dart
+     (quick_actions les cherche par nom), la réduction des ressources du build
+     release les retirerait. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_shortcut_*" />

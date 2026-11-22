@@ -1,17 +1,22 @@
 import 'dart:async';
 
 import 'package:an_ki/app/bootstrap/launch_request.dart';
+import 'package:an_ki/app/modules/app_module.dart';
+import 'package:an_ki/app/modules/module_registry.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/core/services/app_shortcut_service.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// Exécute ce que demandent les entrées extérieures à l'app ([LaunchRequest]) :
-/// celle qui l'a lancée, puis celles qui arrivent pendant qu'elle tourne.
+/// Exécute ce que demandent les entrées extérieures à l'app ([LaunchRequest]),
+/// notifications et raccourcis du lanceur : celle qui l'a lancée, puis celles
+/// qui arrivent pendant qu'elle tourne.
 ///
 /// Monté avec la coquille, donc seulement une fois l'app ouverte : au
 /// démarrage, une requête attend la connexion et l'empreinte ; hors session,
@@ -30,11 +35,25 @@ class _LaunchHandlerState extends ConsumerState<LaunchHandler> {
   /// Anniversaire à souhaiter, en attendant que la liste le contienne.
   String? _wishRequest;
 
+  /// Raccourci de module demandé, en attendant de savoir quels modules
+  /// sont actifs (profil chargé).
+  String? _shortcutRequest;
+
   StreamSubscription<NotificationTap>? _notificationTaps;
+  StreamSubscription<String>? _shortcutActions;
 
   @override
   void initState() {
     super.initState();
+    final shortcuts = ref.read(appShortcutServiceProvider);
+    _shortcutActions = shortcuts.actions.listen(_onShortcut);
+    final launchShortcut = shortcuts.takeLaunchAction();
+    if (launchShortcut != null) {
+      // Après la frame : le routeur ne se manipule pas pendant le montage.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _onShortcut(launchShortcut);
+      });
+    }
     final notifications = ref.read(notificationServiceProvider);
     _notificationTaps = notifications.taps.listen(_onNotificationTap);
     unawaited(
@@ -47,13 +66,21 @@ class _LaunchHandlerState extends ConsumerState<LaunchHandler> {
       birthdaysListProvider,
       (_, birthdays) => _fulfilWishRequest(birthdays),
     );
+    // Les modules actifs connus, le raccourci demandé trouve le sien.
+    ref.listenManual(
+      activeModulesProvider,
+      (_, active) => _fulfilShortcutRequest(active),
+    );
   }
 
   @override
   void dispose() {
     unawaited(_notificationTaps?.cancel());
+    unawaited(_shortcutActions?.cancel());
     super.dispose();
   }
+
+  void _onShortcut(String type) => _handle(LaunchRequest.fromShortcut(type));
 
   void _onNotificationTap(NotificationTap tap) {
     final request = LaunchRequest.fromNotification(tap);
@@ -75,6 +102,46 @@ class _LaunchHandlerState extends ConsumerState<LaunchHandler> {
         _wishRequest = birthdayId;
         GoRouter.of(context).go(AppRoutes.birthdays);
         _fulfilWishRequest(ref.read(birthdaysListProvider));
+      case ShortcutLaunch(:final shortcutId):
+        _shortcutRequest = shortcutId;
+        _fulfilShortcutRequest(ref.read(activeModulesProvider));
+    }
+  }
+
+  /// Exécute le raccourci demandé une fois les modules actifs connus
+  /// ([active] non null) : l'onglet de son module, puis son action après la
+  /// frame. Un raccourci d'un module éteint depuis, ou inconnu, est ignoré.
+  void _fulfilShortcutRequest(List<AppModule>? active) {
+    final shortcutId = _shortcutRequest;
+    if (shortcutId == null || active == null) return;
+    _shortcutRequest = null;
+    for (final module in active) {
+      for (final shortcut in module.shortcuts) {
+        if (shortcut.id != shortcutId) continue;
+        void open() {
+          if (!mounted) return;
+          // Une feuille ou un dialogue ouvert ne reste pas sous la nouvelle :
+          // le raccourci ne les empile pas (go ne retire que les pages).
+          Navigator.of(
+            context,
+            rootNavigator: true,
+          ).popUntil((route) => route.settings is Page<Object?>);
+          GoRouter.of(context).go(module.rootPath);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) shortcut.run(context, ref);
+          });
+        }
+
+        // Les modules peuvent devenir connus pendant une construction, où le
+        // routeur ne doit pas changer : après la frame, alors.
+        if (SchedulerBinding.instance.schedulerPhase ==
+            SchedulerPhase.persistentCallbacks) {
+          SchedulerBinding.instance.addPostFrameCallback((_) => open());
+        } else {
+          open();
+        }
+        return;
+      }
     }
   }
 

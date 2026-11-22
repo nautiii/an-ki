@@ -4,18 +4,25 @@ import 'package:an_ki/app/shell/main_shell.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/notification_service.dart';
+import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/wish_suggestions.dart';
+import 'package:an_ki/features/birthday/screens/birthday_search_screen.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/screens/person_screen.dart';
+import 'package:an_ki/features/birthday/widgets/add_birthday_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/wish_text.dart';
+import 'package:an_ki/features/books/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
+import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/app_harness.dart';
+import '../../support/fake_mobile_scanner_platform.dart';
 import '../../support/fake_providers.dart';
 import '../../support/network_image_mock.dart';
 
@@ -214,6 +221,157 @@ void main() {
         expect(share.shared, isEmpty);
         expect(find.byType(PersonScreen), findsNothing);
       });
+    });
+  });
+
+  group('launcher shortcuts', () {
+    setUp(FakeMobileScannerPlatform.install);
+
+    Future<void> pumpSignedInApp(
+      WidgetTester tester, {
+      required FakeAppShortcutService shortcuts,
+      UserProfile profile = testProfile,
+    }) async {
+      await tester.pumpApp(
+        auth: FakeAuthRepository(user: MockUser()),
+        profile: profile,
+        shortcuts: shortcuts,
+      );
+      await tester.settleApp();
+    }
+
+    testWidgets('« Ajouter » that launched the app opens the add sheet over '
+        'the agenda', (tester) async {
+      await mockNetworkImages(() async {
+        await pumpSignedInApp(
+          tester,
+          shortcuts: FakeAppShortcutService(launch: 'add'),
+        );
+
+        expect(find.byType(AddBirthdaySheet), findsOneWidget);
+        expect(find.byType(HomeScreen), findsOneWidget);
+      });
+    });
+
+    testWidgets('« Rechercher » goes home, then opens the search above it', (
+      tester,
+    ) async {
+      final shortcuts = FakeAppShortcutService();
+      await mockNetworkImages(() async {
+        await pumpSignedInApp(tester, shortcuts: shortcuts);
+        unawaited(tester.appRouter.push(AppRoutes.settings));
+        await tester.pumpAndSettle();
+
+        shortcuts.touch('search');
+        await tester.pumpAndSettle();
+
+        expect(find.byType(SettingsScreen), findsNothing);
+        expect(find.byType(BirthdaySearchScreen), findsOneWidget);
+        // Retour : l'accueil, resté dessous.
+        tester.appRouter.pop();
+        await tester.pumpAndSettle();
+        expect(find.byType(HomeScreen), findsOneWidget);
+      });
+    });
+
+    testWidgets('« Scanner un livre » opens the scanner when the books run', (
+      tester,
+    ) async {
+      await mockNetworkImages(() async {
+        await pumpSignedInApp(
+          tester,
+          profile: booksOnProfile,
+          shortcuts: FakeAppShortcutService(launch: 'scan'),
+        );
+
+        expect(find.byType(BookScannerScreen), findsOneWidget);
+      });
+    });
+
+    testWidgets('ignores the scanner of books turned off, or an unknown '
+        'shortcut', (tester) async {
+      final shortcuts = FakeAppShortcutService(launch: 'scan');
+      await mockNetworkImages(() async {
+        await pumpSignedInApp(tester, shortcuts: shortcuts);
+        shortcuts.touch('gone');
+        await tester.pumpAndSettle();
+
+        expect(find.byType(BookScannerScreen), findsNothing);
+        expect(find.byType(HomeScreen), findsOneWidget);
+      });
+    });
+
+    testWidgets('sets the shortcuts of the running modules once signed in', (
+      tester,
+    ) async {
+      final shortcuts = FakeAppShortcutService();
+      await mockNetworkImages(() async {
+        await pumpSignedInApp(
+          tester,
+          profile: booksOnProfile,
+          shortcuts: shortcuts,
+        );
+
+        expect(shortcuts.sets.last.map((s) => s.type), [
+          'add',
+          'search',
+          'scan',
+        ]);
+      });
+    });
+
+    testWidgets('a shortcut that launched the app waits for the profile '
+        'to know the modules', (tester) async {
+      final profiles = LateProfileRepository();
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          users: profiles,
+          shortcuts: FakeAppShortcutService(launch: 'scan'),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(BookScannerScreen), findsNothing);
+
+        profiles.emit(booksOnProfile);
+        await tester.settleApp();
+
+        expect(find.byType(BookScannerScreen), findsOneWidget);
+      });
+    });
+
+    testWidgets('« Ajouter » never stacks a second add sheet', (tester) async {
+      final shortcuts = FakeAppShortcutService(launch: 'add');
+      await mockNetworkImages(() async {
+        await pumpSignedInApp(tester, shortcuts: shortcuts);
+        expect(find.byType(AddBirthdaySheet), findsOneWidget);
+
+        shortcuts.touch('add');
+        await tester.pumpAndSettle();
+
+        expect(find.byType(AddBirthdaySheet), findsOneWidget);
+      });
+    });
+
+    testWidgets('sets nothing while the session is restored', (tester) async {
+      final shortcuts = FakeAppShortcutService();
+      await tester.pumpApp(
+        auth: FakeAuthRepository(user: MockUser()),
+        shortcuts: shortcuts,
+        overrides: [
+          authUserProvider.overrideWith((ref) => const Stream<User?>.empty()),
+        ],
+      );
+      await tester.pump();
+
+      expect(shortcuts.sets, isEmpty);
+    });
+
+    testWidgets('sets none while signed out', (tester) async {
+      final shortcuts = FakeAppShortcutService();
+      await tester.pumpApp(auth: FakeAuthRepository(), shortcuts: shortcuts);
+      await tester.settleApp();
+
+      expect(shortcuts.sets.last, isEmpty);
     });
   });
 }

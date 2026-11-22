@@ -2,7 +2,7 @@ import 'package:an_ki/core/services/notification_service.dart';
 import 'package:flutter/foundation.dart';
 
 /// Ce qu'une entrée extérieure à l'app demande en l'ouvrant : un toucher de
-/// notification, et bientôt un raccourci du lanceur ou le widget d'écran
+/// notification, un raccourci du lanceur, et bientôt le widget d'écran
 /// d'accueil. Chaque source se traduit en requête ; `LaunchHandler` les
 /// exécute toutes de la même façon, une fois l'app ouverte (connexion et
 /// empreinte passées).
@@ -18,6 +18,10 @@ sealed class const LaunchRequest() {
         ? WishLaunch(birthdayId)
         : PersonLaunch(birthdayId);
   }
+
+  /// Requête d'un raccourci du lanceur, d'après son type : celui d'un
+  /// module (`ModuleShortcut.id`).
+  static LaunchRequest fromShortcut(String type) => ShortcutLaunch(type);
 }
 
 /// Souhaiter l'anniversaire [birthdayId] : l'accueil, puis la feuille de
@@ -39,4 +43,16 @@ final class const PersonLaunch(final String birthdayId) extends LaunchRequest {
 
   @override
   int get hashCode => Object.hash(PersonLaunch, birthdayId);
+}
+
+/// Exécuter le raccourci de module [shortcutId] (« Ajouter », « Rechercher »,
+/// « Scanner un livre ») : l'onglet du module, puis son action.
+final class const ShortcutLaunch(final String shortcutId)
+    extends LaunchRequest {
+  @override
+  bool operator ==(Object other) =>
+      other is ShortcutLaunch && other.shortcutId == shortcutId;
+
+  @override
+  int get hashCode => Object.hash(ShortcutLaunch, shortcutId);
 }

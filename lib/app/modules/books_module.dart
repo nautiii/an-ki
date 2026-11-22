@@ -28,6 +28,14 @@ final booksModule = AppModule(
     label: (l10n) => l10n.scanBook,
     onPressed: (context, _) => unawaited(context.push(AppRoutes.booksScan)),
   ),
+  shortcuts: [
+    ModuleShortcut(
+      id: 'scan',
+      icon: 'ic_shortcut_scan',
+      label: (l10n) => l10n.scanBook,
+      run: (context, _) => unawaited(context.push(AppRoutes.booksScan)),
+    ),
+  ],
   buildBranch: (rootNavigatorKey) => StatefulShellBranch(
     routes: [
       GoRoute(

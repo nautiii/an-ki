@@ -1,4 +1,5 @@
 import 'package:an_ki/app/bootstrap/app_locale.dart';
+import 'package:an_ki/app/bootstrap/app_shortcuts.dart';
 import 'package:an_ki/app/modules/module_registry.dart';
 import 'package:an_ki/app/router/app_router.dart';
 import 'package:an_ki/core/providers/device_locales_provider.dart';
@@ -47,6 +48,8 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
       }
     }
     ref.watch(themeMemoryProvider);
+    // Les raccourcis du lanceur suivent la session, les modules et la langue.
+    ref.watch(appShortcutsSyncProvider);
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeProvider);
     final locale = ref.watch(appLocaleProvider);

@@ -40,4 +40,9 @@ void main() {
       );
     });
   });
+
+  test('a launcher shortcut asks for its module shortcut', () {
+    expect(LaunchRequest.fromShortcut('add'), const ShortcutLaunch('add'));
+    expect(const ShortcutLaunch('add'), isNot(const ShortcutLaunch('scan')));
+  });
 }

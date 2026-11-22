@@ -52,6 +52,10 @@ class const AppModule({
   /// de la barre ; null s'il n'en a pas.
   final ModuleAction? primaryAction,
 
+  /// Ses raccourcis du lanceur (appui long sur l'icône de l'app), du plus
+  /// fréquent au moins fréquent ; posés tant que le module est actif.
+  final List<ModuleShortcut> shortcuts = const [],
+
   /// Providers que l'app garde en vie tant que le module est actif : un
   /// provider que personne n'écoute est mis en pause.
   final List<ProviderListenable<Object?>> effects = const [],
@@ -68,6 +72,25 @@ class const ModuleAction({
   /// Ce que fait le bouton, lu par les lecteurs d'écran et en infobulle.
   required final String Function(AppLocalizations l10n) label,
   required final void Function(BuildContext context, WidgetRef ref) onPressed,
+});
+
+/// Raccourci du lanceur d'un module : l'app s'ouvre sur l'onglet du module,
+/// puis [run] agit.
+class const ModuleShortcut({
+  /// Identifiant stable, unique parmi tous les modules : le lanceur le rend
+  /// au toucher.
+  required final String id,
+
+  /// Ressource Android de son icône (`res/drawable/ic_shortcut_*`).
+  required final String icon,
+
+  /// Son libellé : le lanceur coupe le libellé long au-delà de 25
+  /// caractères ; quick_actions le donne aussi comme libellé court (raccourci
+  /// épinglé), où Android en conseille une dizaine.
+  required final String Function(AppLocalizations l10n) label,
+
+  /// Ce qu'il fait, l'onglet du module affiché.
+  required final void Function(BuildContext context, WidgetRef ref) run,
 });
 
 /// Données utilisateur d'un module, pour la suppression du compte et la
