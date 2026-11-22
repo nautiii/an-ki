@@ -17,12 +17,11 @@ import 'package:google_sign_in/google_sign_in.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Lu pendant l'initialisation : la première image a déjà le thème du
-  // dernier profil, sans passer par celui du système (ux D28). Un stockage
-  // qui ne répond pas ne retient pas le lancement : le thème système alors.
-  final rememberedTheme = const DeviceSettings().lastThemeMode().timeout(
-    const Duration(milliseconds: 500),
-    onTimeout: () => null,
-  );
+  // dernier profil, sans passer par celui du système (ux D28). La lecture
+  // attend son tour derrière les plugins (1,9 à 6,6 s mesurées à froid sur
+  // l'émulateur) mais a fini avant eux à chaque mesure : l'attente n'est
+  // bornée qu'après les initialisations, plus bas.
+  final rememberedTheme = const DeviceSettings().lastThemeMode();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseFirestore.instance.settings = const Settings(
@@ -34,12 +33,18 @@ void main() async {
   // Sans attendre : l'ouverture ne paie pas l'enregistrement.
   unawaited(registerBackgroundReplan());
 
+  // Un stockage qui ne répond toujours pas ne retient pas le lancement : le
+  // thème système alors.
+  final remembered = await rememberedTheme.timeout(
+    const Duration(milliseconds: 300),
+    onTimeout: () => null,
+  );
   runApp(
     ProviderScope(
       overrides: [
         localizedNotificationStrings,
         ...moduleDataHooks,
-        rememberedThemeModeProvider.overrideWithValue(await rememberedTheme),
+        rememberedThemeModeProvider.overrideWithValue(remembered),
       ],
       child: const App(),
     ),
