@@ -46,6 +46,7 @@ class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
         ref.watch(effect);
       }
     }
+    ref.watch(themeMemoryProvider);
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeProvider);
     final locale = ref.watch(appLocaleProvider);

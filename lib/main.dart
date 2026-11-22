@@ -5,7 +5,9 @@ import 'package:an_ki/app/bootstrap/background_replan.dart';
 import 'package:an_ki/app/bootstrap/notification_strings.dart';
 import 'package:an_ki/app/modules/module_data_hooks.dart';
 import 'package:an_ki/core/firebase_options.dart';
+import 'package:an_ki/core/services/device_settings.dart';
 import 'package:an_ki/core/services/notification_service.dart';
+import 'package:an_ki/features/user/providers/theme_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +16,13 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Lu pendant l'initialisation : la première image a déjà le thème du
+  // dernier profil, sans passer par celui du système (ux D28). Un stockage
+  // qui ne répond pas ne retient pas le lancement : le thème système alors.
+  final rememberedTheme = const DeviceSettings().lastThemeMode().timeout(
+    const Duration(milliseconds: 500),
+    onTimeout: () => null,
+  );
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseFirestore.instance.settings = const Settings(
@@ -27,7 +36,11 @@ void main() async {
 
   runApp(
     ProviderScope(
-      overrides: [localizedNotificationStrings, ...moduleDataHooks],
+      overrides: [
+        localizedNotificationStrings,
+        ...moduleDataHooks,
+        rememberedThemeModeProvider.overrideWithValue(await rememberedTheme),
+      ],
       child: const App(),
     ),
   );

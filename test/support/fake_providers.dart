@@ -30,6 +30,7 @@ import 'package:an_ki/features/reminders/domain/reminder_preferences.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_test/flutter_test.dart';
 
 class MockUser extends Fake implements firebase_auth.User {
@@ -1166,14 +1167,31 @@ class FakeBiometricService extends Fake implements BiometricService {
 }
 
 /// Réglages de l'appareil en mémoire : la carte « Rappels désactivés »
-/// masquée ou non ([remindersOffDismissedValue]) ; [failure] fait échouer
-/// l'enregistrement. Relève les masquages.
+/// masquée ou non ([remindersOffDismissedValue]), le dernier thème retenu
+/// ([themeMode]) ; [failure] fait échouer chaque enregistrement. Relève les
+/// masquages et les thèmes retenus ([keptThemeModes]).
 class FakeDeviceSettings extends Fake implements DeviceSettings {
-  FakeDeviceSettings({this.remindersOffDismissedValue = false, this.failure});
+  FakeDeviceSettings({
+    this.remindersOffDismissedValue = false,
+    this.themeMode,
+    this.failure,
+  });
 
   bool remindersOffDismissedValue;
+  ThemeMode? themeMode;
   final Exception? failure;
   int dismissals = 0;
+  final keptThemeModes = <ThemeMode>[];
+
+  @override
+  Future<ThemeMode?> lastThemeMode() async => themeMode;
+
+  @override
+  Future<void> keepThemeMode(ThemeMode mode) async {
+    keptThemeModes.add(mode);
+    if (failure case final error?) throw error;
+    themeMode = mode;
+  }
 
   @override
   Future<bool> remindersOffDismissed() async => remindersOffDismissedValue;

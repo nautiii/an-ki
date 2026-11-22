@@ -10,6 +10,7 @@ import 'package:an_ki/features/auth/screens/signup_screen.dart';
 import 'package:an_ki/features/auth/screens/welcome_screen.dart';
 import 'package:an_ki/features/settings/screens/settings_screen.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
+import 'package:an_ki/features/user/providers/theme_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,6 +45,45 @@ void main() {
 
     expect(find.byType(WelcomeScreen), findsNothing);
     expect(find.byType(MainShell), findsNothing);
+  });
+
+  group('starts in the theme of the last profile on this phone', () {
+    testWidgets('before the session and the profile are known', (tester) async {
+      await tester.pumpApp(
+        auth: _PendingAuthRepository(),
+        overrides: [
+          rememberedThemeModeProvider.overrideWithValue(ThemeMode.dark),
+        ],
+      );
+      await tester.pump();
+
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+        ThemeMode.dark,
+      );
+    });
+
+    testWidgets('and keeps the loaded profile theme for the next start', (
+      tester,
+    ) async {
+      await mockNetworkImages(() async {
+        final settings = FakeDeviceSettings();
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          profile: const UserProfile(
+            id: 'fake-uid',
+            name: 'Camille',
+            surname: 'Durand',
+            locale: 'fr',
+            theme: ThemePreference.dark,
+          ),
+          deviceSettings: settings,
+        );
+        await tester.settleApp();
+
+        expect(settings.keptThemeModes, [ThemeMode.dark]);
+      });
+    });
   });
 
   testWidgets('welcomes whoever is not signed in', (tester) async {
