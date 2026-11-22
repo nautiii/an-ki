@@ -6,7 +6,7 @@ import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/auth/domain/sign_up_draft.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/sign_up_names_provider.dart';
-import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
+import 'package:an_ki/features/auth/widgets/auth_error_snack_bar.dart';
 import 'package:an_ki/features/auth/widgets/auth_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -84,12 +84,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     if (next case AsyncError(:final error)) {
       if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
       ref.read(signUpNamesProvider.notifier).clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authErrorMessage(context, error)),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      showAuthErrorSnackBar(context, error);
     }
   }
 

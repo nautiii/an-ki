@@ -127,9 +127,14 @@ void main() {
       await tester.tap(find.text(google));
       await tester.pumpAndSettle();
 
+      final message = find.text(
+        "Quelque chose s'est mal passé. Réessayez dans un instant.",
+      );
+      expect(message, findsOneWidget);
+      // Lisible sur le fond d'erreur.
       expect(
-        find.text("Quelque chose s'est mal passé. Réessayez dans un instant."),
-        findsOneWidget,
+        tester.widget<Text>(message).style?.color,
+        Theme.of(tester.element(message)).colorScheme.onError,
       );
     });
 

@@ -134,9 +134,14 @@ void main() {
       await tester.tap(find.text('Se connecter').last);
       await tester.pumpAndSettle();
 
+      final message = find.text(
+        "Quelque chose s'est mal passé. Réessayez dans un instant.",
+      );
+      expect(message, findsOneWidget);
+      // Lisible sur le fond d'erreur.
       expect(
-        find.text("Quelque chose s'est mal passé. Réessayez dans un instant."),
-        findsOneWidget,
+        tester.widget<Text>(message).style?.color,
+        Theme.of(tester.element(message)).colorScheme.onError,
       );
       // Une erreur ne vibre pas : le message suffit.
       expect(haptics, isEmpty);

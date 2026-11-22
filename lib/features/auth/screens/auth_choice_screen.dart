@@ -7,7 +7,7 @@ import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/auth/domain/biometric_lock.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
-import 'package:an_ki/features/auth/widgets/auth_failure_text.dart';
+import 'package:an_ki/features/auth/widgets/auth_error_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -57,13 +57,7 @@ class _AuthChoiceScreenState extends ConsumerState<AuthChoiceScreen> {
   void _onAuthResult(AsyncValue<void>? _, AsyncValue<void> next) {
     if (next case AsyncError(:final error)) {
       if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Text(authErrorMessage(context, error)),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      showAuthErrorSnackBar(context, error);
     }
   }
 

@@ -90,9 +90,14 @@ void main() {
       await tester.tap(find.text("S'inscrire").last);
       await tester.pumpAndSettle();
 
+      final message = find.text(
+        "Quelque chose s'est mal passé. Réessayez dans un instant.",
+      );
+      expect(message, findsOneWidget);
+      // Lisible sur le fond d'erreur.
       expect(
-        find.text("Quelque chose s'est mal passé. Réessayez dans un instant."),
-        findsOneWidget,
+        tester.widget<Text>(message).style?.color,
+        Theme.of(tester.element(message)).colorScheme.onError,
       );
       // Inscription ratée : rien ne doit rester pour une connexion suivante.
       expect(container.read(signUpNamesProvider), isNull);
