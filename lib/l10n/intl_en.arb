@@ -498,5 +498,6 @@
   "belatedHadAge": "{age, plural, one{turned {age}} other{turned {age}}}",
   "personRemindersNone": "No reminders",
   "personWishRemoveYear": "Remove the {year} wish",
-  "wishMessageOwnCaption": "Your message for {date}"
+  "wishMessageOwnCaption": "Your message for {date}",
+  "shortcutWish": "Wish {name}"
 }

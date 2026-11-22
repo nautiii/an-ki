@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:an_ki/app/bootstrap/app_shortcuts.dart';
 import 'package:an_ki/app/bootstrap/notification_strings.dart';
 import 'package:an_ki/core/firebase_options.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/services/app_shortcut_service.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
@@ -102,6 +104,13 @@ Future<void> replanInBackground(ProviderContainer container) async {
   final strings = container.read(notificationStringsProvider);
 
   final notifications = container.read(notificationServiceProvider);
+  // Le raccourci « Souhaiter à … » du jour, même sans ouvrir l'app : la même
+  // liste que l'app poserait ([appShortcutsProvider]).
+  container.listen(appShortcutsProvider, (_, _) {});
+  final shortcuts = container.read(appShortcutsProvider);
+  if (shortcuts != null) {
+    await container.read(appShortcutServiceProvider).setShortcuts(shortcuts);
+  }
   await scheduleReminders(
     notifications,
     birthdays,

@@ -2773,6 +2773,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Votre message pour le {date}'**
   String wishMessageOwnCaption(String date);
+
+  /// Raccourci du lanceur (appui long sur l'icône) le jour J ou le lendemain ; prénom seul, jamais le nom
+  ///
+  /// In fr, this message translates to:
+  /// **'Souhaiter à {name}'**
+  String shortcutWish(String name);
 }
 
 class _AppLocalizationsDelegate

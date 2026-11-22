@@ -5,8 +5,12 @@ import 'package:an_ki/app/modules/app_module.dart';
 import 'package:an_ki/app/modules/birthdays_module.dart';
 import 'package:an_ki/app/modules/books_module.dart';
 import 'package:an_ki/app/modules/module_registry.dart';
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/services/app_shortcut_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/birthday/domain/birth_date.dart';
+import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/user/providers/locale_provider.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart' as fam;
@@ -19,6 +23,13 @@ import '../../support/app_harness.dart';
 
 final _fr = lookupAppLocalizations(const Locale('fr'));
 final _en = lookupAppLocalizations(const Locale('en'));
+
+const _lea = Birthday(
+  id: 'lea',
+  name: 'Léa',
+  surname: 'Martin',
+  date: BirthDate(month: 3, day: 12),
+);
 
 /// Module de test qui offre [count] raccourcis.
 AppModule _moduleWith(int count) => AppModule(
@@ -74,6 +85,33 @@ void main() {
       expect(shortcuts.last.icon, 'ic_shortcut_scan');
     });
 
+    test('« Souhaiter à … » comes first, with the first name only', () {
+      final fr = appShortcuts(
+        modules: [birthdaysModule, booksModule],
+        l10n: _fr,
+        toWish: _lea,
+      );
+      final en = appShortcuts(
+        modules: [birthdaysModule],
+        l10n: _en,
+        toWish: _lea,
+      );
+
+      expect(
+        fr.first,
+        const AppShortcut(
+          type: 'wish:lea',
+          label: 'Souhaiter à Léa',
+          icon: 'ic_shortcut_wish',
+        ),
+      );
+      expect(fr.map((s) => s.type), ['wish:lea', 'add', 'search', 'scan']);
+      expect(en.first.label, 'Wish Léa');
+      for (final shortcut in [...fr, ...en]) {
+        expect(shortcut.label, isNot(contains('Martin')));
+      }
+    });
+
     test('keeps at most four', () {
       final shortcuts = appShortcuts(
         modules: [birthdaysModule, _moduleWith(5)],
@@ -122,22 +160,27 @@ void main() {
   });
 
   group('appShortcutsProvider', () {
-    ProviderContainer container({String? uid, bool sessionKnown = true}) =>
-        ProviderContainer.test(
-          retry: (_, _) => null,
-          overrides: [
-            authUserProvider.overrideWithValue(
-              sessionKnown
-                  ? AsyncData(uid == null ? null : fam.MockUser(uid: uid))
-                  : const AsyncLoading(),
-            ),
-            runningModulesProvider.overrideWithValue([
-              birthdaysModule,
-              booksModule,
-            ]),
-            localeProvider.overrideWithValue(const Locale('fr')),
-          ],
-        );
+    ProviderContainer container({
+      String? uid,
+      bool sessionKnown = true,
+      List<Birthday> birthdays = const [],
+    }) => ProviderContainer.test(
+      retry: (_, _) => null,
+      overrides: [
+        birthdaysListProvider.overrideWithValue(birthdays),
+        todayProvider.overrideWithValue(DateTime(2026, 3, 12)),
+        authUserProvider.overrideWithValue(
+          sessionKnown
+              ? AsyncData(uid == null ? null : fam.MockUser(uid: uid))
+              : const AsyncLoading(),
+        ),
+        runningModulesProvider.overrideWithValue([
+          birthdaysModule,
+          booksModule,
+        ]),
+        localeProvider.overrideWithValue(const Locale('fr')),
+      ],
+    );
 
     test('sets none while signed out', () {
       expect(container().read(appShortcutsProvider), isEmpty);
@@ -160,11 +203,46 @@ void main() {
       ]);
     });
 
+    test('wishes the birthday of the day, then nobody once wished', () {
+      final today = container(uid: 'u1', birthdays: [_lea]);
+      final wished = container(
+        uid: 'u1',
+        birthdays: [
+          const Birthday(
+            id: 'lea',
+            name: 'Léa',
+            surname: 'Martin',
+            date: BirthDate(month: 3, day: 12),
+            wishedYears: [2026],
+          ),
+        ],
+      );
+
+      expect(today.read(appShortcutsProvider)!.first.label, 'Souhaiter à Léa');
+      expect(wished.read(appShortcutsProvider)!.first.type, 'add');
+    });
+
+    test('decides nothing while the birthdays load', () {
+      final c = ProviderContainer.test(
+        retry: (_, _) => null,
+        overrides: [
+          authUserProvider.overrideWithValue(
+            AsyncData(fam.MockUser(uid: 'u1')),
+          ),
+          birthdaysLoadingProvider.overrideWithValue(true),
+        ],
+      );
+
+      expect(c.read(appShortcutsProvider), isNull);
+    });
+
     test('the sync effect sets them on the service', () async {
       final service = FakeAppShortcutService();
       final c = ProviderContainer.test(
         retry: (_, _) => null,
         overrides: [
+          birthdaysListProvider.overrideWithValue(const []),
+          birthdaysLoadingProvider.overrideWithValue(false),
           authUserProvider.overrideWithValue(
             AsyncData(fam.MockUser(uid: 'u1')),
           ),

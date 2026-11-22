@@ -146,4 +146,69 @@ void main() {
       'zoe',
     ]);
   });
+
+  group('toWishNow', () {
+    Birthday person(
+      String id,
+      String name, {
+      int day = 17,
+      List<int> wished = const [],
+    }) => Birthday(
+      id: id,
+      name: name,
+      surname: 'Martin',
+      date: BirthDate(month: 10, day: day),
+      wishedYears: wished,
+    );
+    final today = DateTime(2026, 10, 17, 9);
+
+    test('picks the first of today by name, before yesterday', () {
+      final birthdays = [
+        person('yesterday', 'Anna', day: 16),
+        person('zoe', 'Zoé'),
+        person('emile', 'Émile'),
+      ];
+
+      expect(birthdays.toWishNow(today)?.id, 'emile');
+    });
+
+    test('moves on once wished, then to yesterday', () {
+      final birthdays = [
+        person('emile', 'Émile', wished: [2026]),
+        person('zoe', 'Zoé'),
+        person('yesterday', 'Anna', day: 16),
+      ];
+
+      expect(birthdays.toWishNow(today)?.id, 'zoe');
+      expect(
+        [
+          person('emile', 'Émile', wished: [2026]),
+          person('yesterday', 'Anna', day: 16),
+        ].toWishNow(today)?.id,
+        'yesterday',
+      );
+    });
+
+    test('is null when nobody is left to wish', () {
+      expect(
+        [
+          person('emile', 'Émile', wished: [2026]),
+          person('later', 'Léo', day: 20),
+          person('old', 'Bea', day: 15),
+        ].toWishNow(today),
+        isNull,
+      );
+    });
+
+    test('follows a 29 February on the 1st of March', () {
+      const leap = Birthday(
+        id: 'leap',
+        name: 'Léa',
+        surname: '',
+        date: BirthDate(month: 2, day: 29),
+      );
+
+      expect([leap].toWishNow(DateTime(2027, 3))?.id, 'leap');
+    });
+  });
 }

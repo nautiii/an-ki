@@ -45,4 +45,12 @@ void main() {
     expect(LaunchRequest.fromShortcut('add'), const ShortcutLaunch('add'));
     expect(const ShortcutLaunch('add'), isNot(const ShortcutLaunch('scan')));
   });
+
+  test('« Souhaiter à … » asks to wish its birthday', () {
+    expect(
+      LaunchRequest.fromShortcut(wishShortcutType('lea')),
+      const WishLaunch('lea'),
+    );
+    expect(wishShortcutType('lea'), 'wish:lea');
+  });
 }

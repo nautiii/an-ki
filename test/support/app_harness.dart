@@ -137,9 +137,10 @@ const booksOnProfile = UserProfile(
 extension AppTesterExt on WidgetTester {
   /// L'app entière, routeur compris, sur un écran de la taille du harnais
   /// (800×1200) : la session de [auth], l'empreinte de [biometrics], des
-  /// données factices (le carnet [birthdays], vide par défaut), des
-  /// notifications, des raccourcis du lanceur ([shortcuts]), un partage, un répertoire et des réglages d'appareil
-  /// simulés ([notifications], [share], [contacts], [deviceSettings]).
+  /// données factices (le carnet [birthdays], vide par défaut, ou le dépôt
+  /// [birthdayRepository]), des notifications, des raccourcis du lanceur, un
+  /// partage, un répertoire et des réglages d'appareil simulés
+  /// ([notifications], [shortcuts], [share], [contacts], [deviceSettings]).
   /// [overrides] s'ajoutent à ceux du harnais, pour des providers qu'il ne
   /// remplace pas déjà (le registre des modules, par exemple). [profile] est
   /// le profil stocké du compte (par défaut [testProfile]) : ses choix de
@@ -151,6 +152,7 @@ extension AppTesterExt on WidgetTester {
     UserRepository? users,
     FakeBiometricService? biometrics,
     List<Birthday> birthdays = const [],
+    BirthdayRepository? birthdayRepository,
     SilentNotificationService? notifications,
     FakeAppShortcutService? shortcuts,
     FakeShareService? share,
@@ -202,7 +204,8 @@ extension AppTesterExt on WidgetTester {
             users ?? RecordingUserRepository(stored: profile),
           ),
           birthdayRepositoryProvider.overrideWithValue(
-            RecordingBirthdayRepository(initial: birthdays),
+            birthdayRepository ??
+                RecordingBirthdayRepository(initial: birthdays),
           ),
           categoryRepositoryProvider.overrideWithValue(
             RecordingCategoryRepository(const []),

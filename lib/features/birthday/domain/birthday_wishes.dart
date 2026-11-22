@@ -35,12 +35,28 @@ extension BirthdayListWishes on Iterable<Birthday> {
   /// Anniversaires d'hier encore à souhaiter ([BirthdayWishes.isBelated]),
   /// par nom sans accents ni casse, puis par id : Firestore ne garantit aucun
   /// ordre d'une synchronisation à l'autre.
-  List<Birthday> belated(DateTime today) =>
-      [
-        for (final birthday in this)
-          if (birthday.isBelated(today)) birthday,
-      ]..sort((a, b) {
-        final byName = searchKey(a.fullName).compareTo(searchKey(b.fullName));
-        return byName != 0 ? byName : a.id.compareTo(b.id);
-      });
+  List<Birthday> belated(DateTime today) => [
+    for (final birthday in this)
+      if (birthday.isBelated(today)) birthday,
+  ]..sort(_byName);
+
+  /// Anniversaire à souhaiter maintenant : celui du jour pas encore
+  /// souhaité, sinon celui d'hier ([belated]) ; par nom sans accents ni
+  /// casse, puis par id ; null si personne.
+  Birthday? toWishNow(DateTime today) {
+    final day = DateTime(today.year, today.month, today.day);
+    final todays = [
+      for (final birthday in this)
+        if (birthday.lastOccurrence(today) == day && !birthday.isWished(today))
+          birthday,
+    ]..sort(_byName);
+    return todays.firstOrNull ?? belated(today).firstOrNull;
+  }
+}
+
+/// Ordre des listes de vœux : nom sans accents ni casse, puis id, car
+/// Firestore ne garantit aucun ordre d'une synchronisation à l'autre.
+int _byName(Birthday a, Birthday b) {
+  final byName = searchKey(a.fullName).compareTo(searchKey(b.fullName));
+  return byName != 0 ? byName : a.id.compareTo(b.id);
 }

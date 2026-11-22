@@ -4,6 +4,7 @@ import 'package:an_ki/app/bootstrap/background_replan.dart';
 import 'package:an_ki/app/bootstrap/notification_strings.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/providers/device_locales_provider.dart';
+import 'package:an_ki/core/services/app_shortcut_service.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
@@ -21,6 +22,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:workmanager/workmanager.dart';
 
+import '../../support/app_harness.dart';
 import '../../support/fake_providers.dart';
 
 /// Service de notifications qui garde les textes reçus et chaque plan ;
@@ -186,8 +188,12 @@ void main() {
     );
 
     late _RecordingNotificationService notifications;
+    late FakeAppShortcutService shortcuts;
 
-    setUp(() => notifications = _RecordingNotificationService());
+    setUp(() {
+      notifications = _RecordingNotificationService();
+      shortcuts = FakeAppShortcutService();
+    });
 
     // La vraie chaîne session → uid → dépôts, comme dans la tâche de fond.
     ProviderContainer makeContainer({
@@ -196,10 +202,12 @@ void main() {
       ReminderPreferencesRepository? preferences,
       UserRepository? users,
       List<Locale> device = const [Locale('fr', 'FR')],
+      DateTime? now,
     }) => ProviderContainer.test(
       retry: (_, _) => null,
       overrides: [
         notificationServiceProvider.overrideWithValue(notifications),
+        appShortcutServiceProvider.overrideWithValue(shortcuts),
         localizedNotificationStrings,
         authUserProvider.overrideWith((ref) => Stream.value(user)),
         birthdayRepositoryProvider.overrideWithValue(
@@ -211,7 +219,7 @@ void main() {
         userRepositoryProvider.overrideWithValue(
           users ?? RecordingUserRepository(),
         ),
-        clockProvider.overrideWithValue(() => DateTime(2026, 3, 1, 9)),
+        clockProvider.overrideWithValue(() => now ?? DateTime(2026, 3, 1, 9)),
         deviceLocalesProvider.overrideWithValue(device),
       ],
     );
@@ -265,6 +273,29 @@ void main() {
         expect(notifications.strings?.channelName, 'Birthdays');
       },
     );
+
+    test('sets the launcher shortcuts the app would, wish of the day '
+        'included', () async {
+      await replanInBackground(
+        makeContainer(
+          user: MockUser(uid: 'u1'),
+          users: profileIn('fr'),
+          now: DateTime(2026, 3, 12, 9),
+        ),
+      );
+
+      expect(shortcuts.sets.single.map((s) => s.label), [
+        'Souhaiter à Léa',
+        'Ajouter un anniversaire',
+        'Rechercher',
+      ]);
+    });
+
+    test('sets no shortcut when signed out', () async {
+      await replanInBackground(makeContainer());
+
+      expect(shortcuts.sets, isEmpty);
+    });
 
     test('follows the stored preferences', () async {
       await replanInBackground(

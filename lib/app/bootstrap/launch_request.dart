@@ -19,10 +19,20 @@ sealed class const LaunchRequest() {
         : PersonLaunch(birthdayId);
   }
 
-  /// Requête d'un raccourci du lanceur, d'après son type : celui d'un
-  /// module (`ModuleShortcut.id`).
-  static LaunchRequest fromShortcut(String type) => ShortcutLaunch(type);
+  /// Requête d'un raccourci du lanceur, d'après son type : « Souhaiter à … »
+  /// ([wishShortcutType]), sinon celui d'un module (`ModuleShortcut.id`).
+  static LaunchRequest fromShortcut(String type) {
+    if (type.startsWith(_wishShortcutPrefix)) {
+      return WishLaunch(type.substring(_wishShortcutPrefix.length));
+    }
+    return ShortcutLaunch(type);
+  }
 }
+
+const _wishShortcutPrefix = 'wish:';
+
+/// Type du raccourci « Souhaiter à … » de l'anniversaire [birthdayId].
+String wishShortcutType(String birthdayId) => '$_wishShortcutPrefix$birthdayId';
 
 /// Souhaiter l'anniversaire [birthdayId] : l'accueil, puis la feuille de
 /// partage dès que la personne est chargée.

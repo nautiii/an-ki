@@ -1953,4 +1953,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String wishMessageOwnCaption(String date) {
     return 'Votre message pour le $date';
   }
+
+  @override
+  String shortcutWish(String name) {
+    return 'Souhaiter à $name';
+  }
 }

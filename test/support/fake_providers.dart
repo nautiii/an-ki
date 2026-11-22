@@ -1393,3 +1393,17 @@ class LateProfileRepository extends FakeUserRepository {
 
   void emit(UserProfile profile) => _profile.add(profile);
 }
+
+/// Carnet qui n'arrive qu'à l'appel d'[emit] : une liste qui charge après
+/// l'ouverture de l'app.
+class LateBirthdayRepository extends RecordingBirthdayRepository {
+  final _birthdays = StreamController<List<Birthday>>.broadcast();
+
+  @override
+  Stream<List<Birthday>> watchBirthdays(String uid) {
+    watchedUids.add(uid);
+    return _birthdays.stream;
+  }
+
+  void emit(List<Birthday> birthdays) => _birthdays.add(birthdays);
+}

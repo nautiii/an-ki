@@ -1916,4 +1916,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String wishMessageOwnCaption(String date) {
     return 'Your message for $date';
   }
+
+  @override
+  String shortcutWish(String name) {
+    return 'Wish $name';
+  }
 }

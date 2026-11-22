@@ -1942,5 +1942,12 @@
     "placeholders": {
       "date": { "type": "String" }
     }
+  },
+  "shortcutWish": "Souhaiter à {name}",
+  "@shortcutWish": {
+    "description": "Raccourci du lanceur (appui long sur l'icône) le jour J ou le lendemain ; prénom seul, jamais le nom",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
   }
 }

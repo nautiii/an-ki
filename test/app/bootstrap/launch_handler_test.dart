@@ -366,6 +366,154 @@ void main() {
       expect(shortcuts.sets, isEmpty);
     });
 
+    testWidgets('« Souhaiter à Léa » that launched the app opens the share '
+        'sheet over the agenda', (tester) async {
+      const lea = Birthday(
+        id: 'lea',
+        name: 'Léa',
+        surname: 'Martin',
+        date: BirthDate(month: 3, day: 12),
+      );
+      final share = FakeShareService();
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          birthdays: const [lea],
+          shortcuts: FakeAppShortcutService(launch: 'wish:lea'),
+          share: share,
+          overrides: [
+            clockProvider.overrideWithValue(() => DateTime(2026, 3, 12, 9)),
+          ],
+        );
+        await tester.settleApp();
+
+        expect(find.byType(HomeScreen), findsOneWidget);
+        expect(share.shared, hasLength(1));
+      });
+    });
+
+    testWidgets('a wish pinned out of its days opens the person page', (
+      tester,
+    ) async {
+      const lea = Birthday(
+        id: 'lea',
+        name: 'Léa',
+        surname: 'Martin',
+        date: BirthDate(month: 3, day: 12),
+      );
+      final share = FakeShareService();
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          birthdays: const [lea],
+          shortcuts: FakeAppShortcutService(launch: 'wish:lea'),
+          share: share,
+          overrides: [
+            clockProvider.overrideWithValue(() => DateTime(2026, 4, 2, 9)),
+          ],
+        );
+        await tester.settleApp();
+
+        expect(find.byType(PersonScreen), findsOneWidget);
+        expect(share.shared, isEmpty);
+      });
+    });
+
+    testWidgets('a wish out of its days waits for the list, then opens the '
+        'person page', (tester) async {
+      const lea = Birthday(
+        id: 'lea',
+        name: 'Léa',
+        surname: 'Martin',
+        date: BirthDate(month: 3, day: 12),
+      );
+      final birthdays = LateBirthdayRepository();
+      final share = FakeShareService();
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          birthdayRepository: birthdays,
+          shortcuts: FakeAppShortcutService(launch: 'wish:lea'),
+          share: share,
+          overrides: [
+            clockProvider.overrideWithValue(() => DateTime(2026, 4, 2, 9)),
+          ],
+        );
+        // Le carnet charge : son squelette pulse, rien ne se pose.
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump(const Duration(seconds: 1));
+        expect(find.byType(PersonScreen), findsNothing);
+
+        birthdays.emit(const [lea]);
+        await tester.settleApp();
+
+        expect(find.byType(PersonScreen), findsOneWidget);
+        expect(share.shared, isEmpty);
+      });
+    });
+
+    testWidgets('drops a wish absent from the loaded list', (tester) async {
+      const lea = Birthday(
+        id: 'lea',
+        name: 'Léa',
+        surname: 'Martin',
+        date: BirthDate(month: 3, day: 12),
+      );
+      const tom = Birthday(
+        id: 'tom',
+        name: 'Tom',
+        surname: '',
+        date: BirthDate(month: 3, day: 12),
+      );
+      final birthdays = LateBirthdayRepository();
+      final share = FakeShareService();
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          birthdayRepository: birthdays,
+          shortcuts: FakeAppShortcutService(launch: 'wish:tom'),
+          share: share,
+          overrides: [
+            clockProvider.overrideWithValue(() => DateTime(2026, 3, 12, 9)),
+          ],
+        );
+        // Le carnet charge : son squelette pulse, rien ne se pose.
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump(const Duration(seconds: 1));
+        birthdays.emit(const [lea]);
+        await tester.settleApp();
+
+        // Tom revient plus tard (un autre appareil) : la demande est tombée.
+        birthdays.emit(const [lea, tom]);
+        await tester.settleApp();
+
+        expect(share.shared, isEmpty);
+      });
+    });
+
+    testWidgets('sets « Souhaiter à … » first on the birthday', (tester) async {
+      const lea = Birthday(
+        id: 'lea',
+        name: 'Léa',
+        surname: 'Martin',
+        date: BirthDate(month: 3, day: 12),
+      );
+      final shortcuts = FakeAppShortcutService();
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          birthdays: const [lea],
+          shortcuts: shortcuts,
+          overrides: [
+            clockProvider.overrideWithValue(() => DateTime(2026, 3, 12, 9)),
+          ],
+        );
+        await tester.settleApp();
+
+        expect(shortcuts.sets.last.first.label, 'Souhaiter à Léa');
+      });
+    });
+
     testWidgets('sets none while signed out', (tester) async {
       final shortcuts = FakeAppShortcutService();
       await tester.pumpApp(auth: FakeAuthRepository(), shortcuts: shortcuts);

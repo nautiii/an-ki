@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:an_ki/app/bootstrap/launch_request.dart';
 import 'package:an_ki/app/modules/app_module.dart';
 import 'package:an_ki/app/modules/module_registry.dart';
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/app_shortcut_service.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:flutter/scheduler.dart';
@@ -146,13 +148,33 @@ class _LaunchHandlerState extends ConsumerState<LaunchHandler> {
   }
 
   /// Souhaite la personne demandée si [birthdays] la contient ; sinon la
-  /// demande attend la liste suivante (premier chargement).
+  /// demande attend la liste suivante (premier chargement), ou tombe si la
+  /// liste chargée ne l'a pas.
   void _fulfilWishRequest(List<Birthday> birthdays) {
     final birthdayId = _wishRequest;
     if (birthdayId == null) return;
     final birthday = birthdays.where((b) => b.id == birthdayId).firstOrNull;
-    if (birthday == null) return;
+    if (birthday == null) {
+      // La liste chargée ne l'a pas (supprimée depuis) : rien à souhaiter.
+      if (ref.read(birthdaysProvider).hasValue) _wishRequest = null;
+      return;
+    }
     _wishRequest = null;
+    // Hors du jour J et du lendemain (un raccourci épinglé, une notification
+    // restée là) : sa page plutôt qu'un vœu à contretemps.
+    if (!birthday.canWish(ref.read(todayProvider))) {
+      // Appelé par l'écoute de la liste, qui peut tomber pendant une
+      // construction où le routeur ne doit pas changer : après la frame.
+      if (SchedulerBinding.instance.schedulerPhase ==
+          SchedulerPhase.persistentCallbacks) {
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _handle(PersonLaunch(birthday.id));
+        });
+      } else {
+        _handle(PersonLaunch(birthday.id));
+      }
+      return;
+    }
     // Après la frame : l'accueil est affiché sous la feuille de partage.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) unawaited(wishBirthday(context, birthday));
