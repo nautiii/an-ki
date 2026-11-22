@@ -63,7 +63,9 @@ extension CategoryDisplay on BirthdayCategory {
 }
 
 /// Icônes qu'un groupe peut porter : celle d'un groupe sans icône, celle des
-/// groupes créés dans l'app, et celles que proposait l'ancien choix d'icône.
+/// groupes créés dans l'app, celles que proposait l'ancien choix d'icône, et
+/// celles des groupes partagés et anciens saisis à la main dans la console
+/// (codes relevés dans Firestore le 2026-11-22).
 /// Des constantes `Icons.*` : un `IconData` construit à l'exécution empêche
 /// l'élagage de la police d'icônes et fait échouer la build release.
 const _groupIcons = [
@@ -85,6 +87,12 @@ const _groupIcons = [
   Icons.restaurant_rounded,
   Icons.local_library_rounded,
   Icons.sports_esports_rounded,
+  Icons.diversity_1_rounded,
+  Icons.work_outline_rounded,
+  Icons.sports_tennis_rounded,
+  Icons.diamond_rounded,
+  Icons.local_fire_department_rounded,
+  Icons.bed_rounded,
 ];
 
 final _iconsByCodePoint = {

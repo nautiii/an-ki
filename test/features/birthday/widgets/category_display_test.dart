@@ -34,6 +34,32 @@ void main() {
       }
     });
 
+    test('keeps the icons of the shared and older groups', () {
+      // Codes relevés dans Firestore (2026-11-22) : groupes partagés créés à
+      // la main dans la console et anciens groupes recopiés.
+      const stored = {
+        0xf0881: Icons.diversity_1_rounded, // Amis
+        0xf02c6: Icons.work_outline_rounded, // Travail
+        0xf624: Icons.category_rounded, // Autres
+        0xf7c6: Icons.group_rounded, // Famille
+        0xf01c8: Icons.sports_tennis_rounded, // Sport
+        0xf0306: Icons.diamond_rounded, // OG's
+        0xf86b: Icons.local_fire_department_rounded, // BFF
+        0xf5b4: Icons.bed_rounded, // Couple
+        0xf016a: Icons.share_rounded,
+        0xf012e: Icons.school_rounded,
+        0xf01bc: Icons.sports_esports_rounded,
+        0xf0077: Icons.pets_rounded,
+      };
+      for (final MapEntry(key: code, value: icon) in stored.entries) {
+        expect(
+          identical(_category('x', icon: code).iconData, icon),
+          isTrue,
+          reason: '0x${code.toRadixString(16)}',
+        );
+      }
+    });
+
     test('falls back to the default group icon for an unknown code', () {
       expect(_category('x', icon: 0x10ffff).iconData, Icons.category);
     });
