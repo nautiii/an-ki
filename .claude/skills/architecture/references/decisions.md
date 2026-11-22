@@ -20,6 +20,7 @@ when"; changing one is a **system** change (brief + approval) and updates this f
 - D13 Modules: a static registry in `app/`, activation in the profile
 - D14 Book metadata and release dates
 - D15 Series artwork from AniList
+- D16 Launcher shortcuts with quick_actions
 - Sources
 
 ---
@@ -387,6 +388,40 @@ from the phone with the series name only.
 
 **Revisit when** AniList limits or changes its API, wrong images show up in use, the shelf needs
 BD artwork, or the app is published (AniList's terms for commercial use).
+
+---
+
+## D16 — Launcher shortcuts with quick_actions
+
+**Decision.** The long-press shortcuts on the launcher icon (ux P3) go through `quick_actions`
+1.1.1 (flutter.dev), wrapped by `AppShortcutService` in `core/services/`. Every shortcut is
+dynamic: `app/` decides the list and its words, the service sets it, and hands back the one
+touched. A touched shortcut becomes a `LaunchRequest`, run by `LaunchHandler` like a
+notification tap (approved 2026-11-21).
+
+**Why.** Only a dynamic shortcut can name today's birthday (« Souhaiter à Léa ») and speak the
+app's language rather than the phone's. The plugin uses `ShortcutManagerCompat`, is registered in
+every Flutter engine (so workmanager's background isolate can refresh the list), and covers iOS.
+On Android its handler gets the launch shortcut during `initialize()`, awaited before `runApp`
+(iOS delivers it when the app becomes active; not verified).
+
+**Rejected.**
+- *Static `res/xml/shortcuts.xml`*: no package, but no dynamic shortcut, labels in the phone's
+  language duplicated outside the ARB files, shortcuts shown before sign-in, and actions such as
+  opening a sheet encoded as routes.
+- *A `ShortcutManagerCompat` channel in `MainActivity`*: full control (ranks, short and long
+  labels, pinning, disabled shortcuts), but Kotlin to maintain, Swift later for iOS, and the
+  channel is absent from the background isolate.
+
+**Limits.** No rank (the list order is used), one label for short and long, no pinning from the
+app, no disabled shortcut. Icons are drawable names (`res/drawable*/ic_shortcut_*`), adaptive on
+Android 8+. The plugin never checks `FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY`: an activity recreated
+from the recent apps after its process died would replay the launch shortcut, so `MainActivity`
+drops the plugin's extra in that case (its key is internal to the plugin: check it at each
+upgrade). Dynamic shortcuts outlive the session: `app/` sets none while signed out.
+
+**Revisit when** pinning a person to the home screen is wanted (with the home-screen widget, P1),
+or an upgrade of the plugin changes its launch intent.
 
 ---
 

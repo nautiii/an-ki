@@ -5,6 +5,7 @@ import 'package:an_ki/app/bootstrap/background_replan.dart';
 import 'package:an_ki/app/bootstrap/notification_strings.dart';
 import 'package:an_ki/app/modules/module_data_hooks.dart';
 import 'package:an_ki/core/firebase_options.dart';
+import 'package:an_ki/core/services/app_shortcut_service.dart';
 import 'package:an_ki/core/services/device_settings.dart';
 import 'package:an_ki/core/services/notification_service.dart';
 import 'package:an_ki/features/user/providers/theme_provider.dart';
@@ -29,6 +30,8 @@ void main() async {
   );
 
   await NotificationService.instance.initialize();
+  // Avant l'app : le plugin rend le raccourci du lanceur qui l'a ouverte.
+  await AppShortcutService.instance.initialize();
   await GoogleSignIn.instance.initialize();
   // Sans attendre : l'ouverture ne paie pas l'enregistrement.
   unawaited(registerBackgroundReplan());
