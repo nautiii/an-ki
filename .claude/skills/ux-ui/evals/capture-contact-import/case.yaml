@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: capture-contact-import
+expected_outcome: |
+  Starting from commit 2d9d96f, where the contact import screen already asks for access on
+  arrival, pre-checks every contact with a birthday, sorts them by next birthday and sets the
+  people AnKi already knows apart: a brief in French that walks the real flow from where import
+  starts (empty home, settings) to the agenda, counts its steps against the capture budget,
+  proposes the cut with prototype captures, designs the edge states, keeps the promise that
+  AnKi only reads names and birth dates, and waits for the go before touching lib/.

@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: wish-belated-catch-up
+expected_outcome: |
+  Starting from commit 2d9d96f, where the day after a birthday the home shows a « Hier »
+  card with a belated message and « a eu N ans » under the name: a brief in French that
+  finds why the person notices too late and hesitates, keeps wishing at one tap on the
+  common path, words every belated message without guilt, designs the states around a
+  missed birthday, bounds any new reminder, and waits for the go before touching lib/.

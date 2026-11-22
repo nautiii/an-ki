@@ -1,8 +1,0 @@
-schema_version: "1.1"
-name: capture-one-line-fast
-expected_outcome: |
-  A structural brief in French, with prototype captures, that cuts the steps of adding a
-  birthday: the add action moves into the thumb zone (a floating button beside the nav pill, not a
-  navigation tab), adding becomes one line parsed live (name and day/month, optional year, never an
-  invented age), the two-field form stays for editing, and the step count goes from 3 taps + 2
-  fields to about 1 tap + 1 line. It waits for the go before touching lib/.

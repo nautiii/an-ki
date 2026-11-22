@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: groups-page-identity
+expected_outcome: |
+  Starting from commit 2d9d96f, where Réglages › Anniversaires › Groupes lists the four
+  shared groups (locked) and the user's own, each with its count, and renames, recolours
+  or deletes a private one: a brief in French, with before and after captures in light and
+  dark, that gives the page the « Lotus au clair de lune » identity through its own
+  surfaces and the groups' tones, measures the new colour pairs, designs its states, keeps
+  the birthday's celebration signatures where they belong, and waits for the go.
