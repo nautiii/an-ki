@@ -160,7 +160,11 @@ class _ReminderPromptState extends ConsumerState<ReminderPrompt> {
       ),
       _ => SnackBar(content: Text(l10n.birthdaysAdded(added.count))),
     };
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    // Le dernier ajout remplace le message du précédent au lieu d'attendre
+    // derrière lui : plusieurs saisies de suite ne font pas de file.
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(snackBar);
   }
 
   @override

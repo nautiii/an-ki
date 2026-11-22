@@ -183,6 +183,35 @@ void main() {
       );
     });
 
+    testWidgets('a second birthday replaces the message of the first', (
+      tester,
+    ) async {
+      await pumpPrompt(tester, access: NotificationAccess.granted);
+
+      add(_byHand());
+      await settle(tester);
+      add(
+        const BirthdaysAdded(
+          count: 1,
+          imported: false,
+          first: false,
+          name: 'Tom Durand',
+          id: 'tom',
+        ),
+      );
+      await settle(tester);
+
+      // Pas de file d'attente : le dernier ajout se lit tout de suite.
+      expect(
+        find.text('Tom Durand est dans vos anniversaires'),
+        findsOneWidget,
+      );
+      expect(find.text('Léa Martin est dans vos anniversaires'), findsNothing);
+      await tester.pump(const Duration(seconds: 10));
+      await tester.pumpAndSettle();
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
     testWidgets('« Voir » opens the page of the person just added', (
       tester,
     ) async {
