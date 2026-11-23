@@ -4,12 +4,14 @@ import 'package:an_ki/core/common/orbit_countdown.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/core/services/phone_contact_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
 import 'package:an_ki/features/birthday/data/share_service.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/domain/contact_link.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
@@ -91,6 +93,7 @@ void main() {
     Birthday? person,
     String id = 'lea',
     RecordingBirthdayRepository? source,
+    Map<String, ContactLink> links = const {},
   }) => mockNetworkImages(() async {
     repository = source ?? RecordingBirthdayRepository();
     share = FakeShareService();
@@ -114,7 +117,10 @@ void main() {
         ),
         shareServiceProvider.overrideWithValue(share),
         contactLinkRepositoryProvider.overrideWithValue(
-          FakeContactLinkRepository(),
+          FakeContactLinkRepository(links: {'fake-uid': links}),
+        ),
+        phoneContactServiceProvider.overrideWithValue(
+          FakePhoneContactService(),
         ),
       ],
       routes: {
@@ -377,6 +383,39 @@ void main() {
       expect((suggestions.first as TemplateWish).belated, isTrue);
       expect(share.shared.single, wishTexts(fr, 'Léa', suggestions).first);
       expect(repository.wished, [('lea', 2026)]);
+    });
+
+    testWidgets('linked, the day itself: Message and Appeler once each', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        person: lea(day: 12),
+        links: const {
+          'lea': ContactLink(number: '0611111111', contactName: 'Léa'),
+        },
+      );
+
+      expect(find.text('Message'), findsOneWidget);
+      expect(find.byTooltip('Appeler'), findsOneWidget);
+      expect(find.text('Appeler'), findsNothing);
+      // La carte est là, sans ses propres boutons.
+      expect(find.byTooltip('Options du contact'), findsOneWidget);
+    });
+
+    testWidgets('linked, the day after: Message and Appeler once each', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        person: lea(day: 11),
+        links: const {
+          'lea': ContactLink(number: '0611111111', contactName: 'Léa'),
+        },
+      );
+
+      expect(find.text('Message'), findsOneWidget);
+      expect(find.text('Appeler'), findsOneWidget);
     });
 
     testWidgets('lists the years, the latest first', (tester) async {

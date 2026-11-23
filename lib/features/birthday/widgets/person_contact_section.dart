@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
+import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/domain/contact_link.dart';
 import 'package:an_ki/features/birthday/domain/contact_link_failure.dart';
 import 'package:an_ki/features/birthday/providers/contact_links.dart';
@@ -16,8 +19,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// - Non reliée : « Relier à un contact », avec ce qu'AnKi reçoit et où il le
 ///   garde, avant que le sélecteur ne s'ouvre.
-/// - Reliée : le contact et son numéro, « Message » et « Appeler » ; le menu
-///   change de contact ou délie (avec « Annuler »).
+/// - Reliée : le contact et son numéro, « Message » et « Appeler », sauf
+///   ceux que l'en-tête (jour J) ou le vœu en retard (lendemain) portent
+///   déjà tant que le vœu est à faire ; le menu change de contact ou délie
+///   (avec « Annuler »).
 ///
 /// Rien hors Android, où le sélecteur et les intents n'existent pas.
 class PersonContactSection extends ConsumerWidget {
@@ -50,13 +55,26 @@ class PersonContactSection extends ConsumerWidget {
     final picking = ref.watch(
       contactLinkerProvider.select((state) => state.isLoading),
     );
+    // Pas deux fois le même geste sur la page : les conditions mêmes de
+    // l'en-tête (« Message » et « Appeler » le jour J, `PersonHeader`) et du
+    // vœu en retard (« Message » le lendemain, `_BelatedWish`).
+    final today = ref.watch(todayProvider);
+    final wishToday =
+        birthday.daysUntilNext(today) == 0 && !birthday.isWished(today);
+    final belated = birthday.isBelated(today);
 
     // L'écart qui suit vit ici : sans section, pas d'espace vide.
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: link == null
           ? _LinkTile(birthdayId: birthday.id, picking: picking)
-          : _LinkedCard(birthdayId: birthday.id, link: link, picking: picking),
+          : _LinkedCard(
+              birthdayId: birthday.id,
+              link: link,
+              picking: picking,
+              showMessage: !(wishToday || belated),
+              showCall: !wishToday,
+            ),
     );
   }
 }
@@ -110,17 +128,25 @@ class _LinkTile extends ConsumerWidget {
   }
 }
 
-/// Le contact relié : qui, quel numéro, et les deux gestes.
+/// Le contact relié : qui, quel numéro, et les gestes que la page ne porte
+/// pas déjà ailleurs.
 class _LinkedCard extends ConsumerWidget {
   const _LinkedCard({
     required this.birthdayId,
     required this.link,
     required this.picking,
+    required this.showMessage,
+    required this.showCall,
   });
 
   final String birthdayId;
   final ContactLink link;
   final bool picking;
+
+  /// Faux quand l'en-tête (jour J) ou le vœu en retard (lendemain) porte
+  /// déjà le geste.
+  final bool showMessage;
+  final bool showCall;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -135,11 +161,12 @@ class _LinkedCard extends ConsumerWidget {
       shape: _shape,
       clipBehavior: Clip.antiAlias,
       child: Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(
+        // Sans rangée de boutons, la carte se referme comme elle s'ouvre.
+        padding: EdgeInsetsDirectional.fromSTEB(
           AppSpacing.md,
           AppSpacing.sm,
           AppSpacing.xxs,
-          AppSpacing.md,
+          showMessage || showCall ? AppSpacing.md : AppSpacing.sm,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -185,26 +212,31 @@ class _LinkedCard extends ConsumerWidget {
                 _LinkMenu(birthdayId: birthdayId, enabled: !picking),
               ],
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: AppSpacing.sm),
-              child: Wrap(
-                spacing: AppSpacing.xs,
-                runSpacing: AppSpacing.xs,
-                children: [
-                  FilledButton.tonalIcon(
-                    onPressed: () => unawaited(linker.message(link.number, '')),
-                    icon: const Icon(Icons.sms_rounded),
-                    label: Text(l10n.contactMessage),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => unawaited(linker.dial(link.number)),
-                    icon: const Icon(Icons.call_rounded),
-                    label: Text(l10n.contactCall),
-                  ),
-                ],
+            if (showMessage || showCall) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: AppSpacing.sm),
+                child: Wrap(
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xs,
+                  children: [
+                    if (showMessage)
+                      FilledButton.tonalIcon(
+                        onPressed: () =>
+                            unawaited(linker.message(link.number, '')),
+                        icon: const Icon(Icons.sms_rounded),
+                        label: Text(l10n.contactMessage),
+                      ),
+                    if (showCall)
+                      OutlinedButton.icon(
+                        onPressed: () => unawaited(linker.dial(link.number)),
+                        icon: const Icon(Icons.call_rounded),
+                        label: Text(l10n.contactCall),
+                      ),
+                  ],
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),

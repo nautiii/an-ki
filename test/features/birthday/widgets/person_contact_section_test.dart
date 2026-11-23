@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/services/phone_contact_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
@@ -32,10 +33,15 @@ void main() {
     phone = FakePhoneContactService();
   });
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    Birthday birthday = _lea,
+    DateTime? today,
+  }) async {
     await tester.pumpHarness(
-      const SingleChildScrollView(child: PersonContactSection(birthday: _lea)),
+      SingleChildScrollView(child: PersonContactSection(birthday: birthday)),
       overrides: [
+        clockProvider.overrideWithValue(() => today ?? DateTime(2026, 6, 2)),
         currentUidProvider.overrideWithValue('u1'),
         contactLinkRepositoryProvider.overrideWithValue(links),
         phoneContactServiceProvider.overrideWithValue(phone),
@@ -183,6 +189,64 @@ void main() {
     // Sans nom de contact, le numéro sert de titre.
     expect(find.text('0699999999'), findsOneWidget);
     expect(find.text('Léa M.'), findsNothing);
+  });
+
+  group('while the wish is to be made', () {
+    setUp(() => links.links['u1'] = {'lea': _link});
+
+    testWidgets('on the day, leaves Message and Appeler to the header', (
+      tester,
+    ) async {
+      await pump(tester, today: DateTime(2026, 10, 24));
+
+      expect(find.text('Léa M.'), findsOneWidget);
+      expect(find.text('Message'), findsNothing);
+      expect(find.text('Appeler'), findsNothing);
+      expect(find.byTooltip('Options du contact'), findsOneWidget);
+    });
+
+    testWidgets('the day after, leaves Message to the late wish', (
+      tester,
+    ) async {
+      await pump(tester, today: DateTime(2026, 10, 25));
+
+      expect(find.text('Message'), findsNothing);
+      expect(find.text('Appeler'), findsOneWidget);
+    });
+
+    testWidgets('the day after, once wished, shows both again', (tester) async {
+      await pump(
+        tester,
+        today: DateTime(2026, 10, 25),
+        birthday: const Birthday(
+          id: 'lea',
+          name: 'Léa',
+          surname: 'Martin',
+          date: BirthDate(year: 1990, month: 10, day: 24),
+          wishedYears: [2026],
+        ),
+      );
+
+      expect(find.text('Message'), findsOneWidget);
+      expect(find.text('Appeler'), findsOneWidget);
+    });
+
+    testWidgets('once wished, shows both again', (tester) async {
+      await pump(
+        tester,
+        today: DateTime(2026, 10, 24),
+        birthday: const Birthday(
+          id: 'lea',
+          name: 'Léa',
+          surname: 'Martin',
+          date: BirthDate(year: 1990, month: 10, day: 24),
+          wishedYears: [2026],
+        ),
+      );
+
+      expect(find.text('Message'), findsOneWidget);
+      expect(find.text('Appeler'), findsOneWidget);
+    });
   });
 
   testWidgets('shows nothing where phones cannot be linked', (tester) async {
