@@ -145,7 +145,9 @@ extension AppTesterExt on WidgetTester {
   /// remplace pas déjà (le registre des modules, par exemple). [profile] est
   /// le profil stocké du compte (par défaut [testProfile]) : ses choix de
   /// modules décident des onglets. [users] remplace le dépôt de profils
-  /// (un profil qui tarde, par exemple).
+  /// (un profil qui tarde, par exemple). L'app est au premier plan
+  /// (`resumed`), sauf [lifecycleKnown] faux : le système n'a pas encore dit
+  /// son état, comme au tout début d'un lancement à froid.
   Future<void> pumpApp({
     required FakeAuthRepository auth,
     UserProfile profile = testProfile,
@@ -160,7 +162,11 @@ extension AppTesterExt on WidgetTester {
     FakeDeviceSettings? deviceSettings,
     Locale deviceLocale = const Locale('fr', 'FR'),
     List<Override> overrides = const [],
+    bool lifecycleKnown = true,
   }) {
+    if (lifecycleKnown) {
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    }
     view.physicalSize = const Size(800, 1200);
     view.devicePixelRatio = 1.0;
     addTearDown(view.resetPhysicalSize);

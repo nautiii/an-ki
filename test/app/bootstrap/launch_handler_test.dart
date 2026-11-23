@@ -19,6 +19,7 @@ import 'package:an_ki/features/user/domain/user_profile.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/app_harness.dart';
@@ -270,6 +271,50 @@ void main() {
         // Retour : l'accueil, resté dessous.
         tester.appRouter.pop();
         await tester.pumpAndSettle();
+        expect(find.byType(HomeScreen), findsOneWidget);
+      });
+    });
+
+    testWidgets('waits for the app state before opening, so Android lets '
+        'the system back return home', (tester) async {
+      // Android ne rend le retour à Flutter que sur ce message.
+      final handlesBack = <Object?>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'SystemNavigator.setFrameworkHandlesBack') {
+            handlesBack.add(call.arguments);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      await mockNetworkImages(() async {
+        await tester.pumpApp(
+          auth: FakeAuthRepository(user: MockUser()),
+          shortcuts: FakeAppShortcutService(launch: 'search'),
+          lifecycleKnown: false,
+        );
+        await tester.settleApp();
+        expect(find.byType(BirthdaySearchScreen), findsNothing);
+
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(BirthdaySearchScreen), findsOneWidget);
+        expect(handlesBack.last, isTrue);
+
+        // Le retour du système, rendu à Flutter : l'accueil, resté dessous.
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(find.byType(BirthdaySearchScreen), findsNothing);
         expect(find.byType(HomeScreen), findsOneWidget);
       });
     });

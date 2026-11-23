@@ -23,6 +23,9 @@ import 'package:go_router/go_router.dart';
 /// Monté avec la coquille, donc seulement une fois l'app ouverte : au
 /// démarrage, une requête attend la connexion et l'empreinte ; hors session,
 /// celles qui arrivent sont perdues, et rien ne surgit après une inscription.
+/// Une requête attend aussi que le système donne l'état de l'app : avant, Flutter ne
+/// dit pas à Android qu'il gère le retour, et une page poussée là laisserait le
+/// bouton retour du système fermer l'app.
 /// Vit dans `app/` : il navigue entre les features.
 class LaunchHandler extends ConsumerStatefulWidget {
   final Widget child;
@@ -44,9 +47,14 @@ class _LaunchHandlerState extends ConsumerState<LaunchHandler> {
   StreamSubscription<NotificationTap>? _notificationTaps;
   StreamSubscription<String>? _shortcutActions;
 
+  /// Requêtes arrivées avant que le système ne donne l'état de l'app.
+  final List<LaunchRequest> _beforeLifecycle = [];
+  late final AppLifecycleListener _lifecycle;
+
   @override
   void initState() {
     super.initState();
+    _lifecycle = AppLifecycleListener(onStateChange: (_) => _flushWaiting());
     final shortcuts = ref.read(appShortcutServiceProvider);
     _shortcutActions = shortcuts.actions.listen(_onShortcut);
     final launchShortcut = shortcuts.takeLaunchAction();
@@ -79,6 +87,7 @@ class _LaunchHandlerState extends ConsumerState<LaunchHandler> {
   void dispose() {
     unawaited(_notificationTaps?.cancel());
     unawaited(_shortcutActions?.cancel());
+    _lifecycle.dispose();
     super.dispose();
   }
 
@@ -93,6 +102,10 @@ class _LaunchHandlerState extends ConsumerState<LaunchHandler> {
   /// page : par-dessus l'écran en cours, qui la montre dès qu'elle est
   /// chargée ; déjà ouverte, elle n'est pas empilée une seconde fois.
   void _handle(LaunchRequest request) {
+    if (!_lifecycleKnown) {
+      _beforeLifecycle.add(request);
+      return;
+    }
     switch (request) {
       case PersonLaunch(:final birthdayId):
         final router = GoRouter.of(context);
@@ -108,6 +121,21 @@ class _LaunchHandlerState extends ConsumerState<LaunchHandler> {
         _shortcutRequest = shortcutId;
         _fulfilShortcutRequest(ref.read(activeModulesProvider));
     }
+  }
+
+  /// Vrai dès que le système a dit l'état de l'app : c'est alors seulement que
+  /// WidgetsApp transmet à Android qui gère le retour (inconnu ou détachée, il
+  /// ne transmet rien, et rien n'est renvoyé ensuite).
+  bool get _lifecycleKnown => switch (WidgetsBinding.instance.lifecycleState) {
+    null || AppLifecycleState.detached => false,
+    _ => true,
+  };
+
+  void _flushWaiting() {
+    if (!mounted || !_lifecycleKnown || _beforeLifecycle.isEmpty) return;
+    final waiting = [..._beforeLifecycle];
+    _beforeLifecycle.clear();
+    waiting.forEach(_handle);
   }
 
   /// Exécute le raccourci demandé une fois les modules actifs connus
