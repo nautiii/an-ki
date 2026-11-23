@@ -310,10 +310,14 @@ full moon + « Aujourd'hui 🎉 », the age (S6), and S4 petals once per person 
   « Hier » card (`belated_wish.dart`) keeps its shape and adds « a eu 34 ans » under the name
   (never « 0 », never without a year); its message is belated (« Un peu en retard, mais joyeux
   anniversaire Hugo ! 🎉 »), never guilt — no « Désolé » (ux D15, Facebook).
-- Next, own brief: a link to the person's contact, opted in person by person — « Appeler »,
-  « Message » opening the conversation with the text ready (Google Contacts' action row): two
-  taps from the J-0 notification to a sent wish, but it touches the promise « AnKi ne lit que les
-  noms et les dates » (P5).
+- **Contact link** (P5, built 2026-11-23, decision D16; Google Contacts' action row). Opt-in per
+  person on their page: « Relier à un contact » says what AnKi keeps (« Vous choisissez un seul
+  numéro. Il reste sur ce téléphone. ») before the system picker opens; linked, « Message » and
+  « Appeler », the rare « Changer de contact » / « Délier » (undo, no dialog) in a menu. On J-0
+  and the day after the primary becomes « Message » (SMS, recipient and wish ready), with
+  « Appeler » and « Autre app » (share sheet); opening the app marks the wish, with « Annuler ».
+  Wish: 2 taps from the hero or the J-0 notification to a sent wish (was 4–6). Linking costs
+  2 taps and a search, once per person.
 - Later: « Idée cadeau » (B4, deferred by the maintainer).
 
 ## M. 2025–2026 trends — adopt, adapt or skip
@@ -355,7 +359,7 @@ common path; every brief that touches a job counts its steps before and after ag
 | Job | Budget (common path) | Measured 2026-11-14 | Levers |
 |-----|----------------------|---------------------|--------|
 | See who's next | 0 taps (widget), else 1 tap and < 1.5 s to the agenda | 1 tap; cold start never measured; a light flash in dark (D28) | widget (P1), one plum night from splash to agenda (P2), cached agenda |
-| Wish | 1 tap from the hero or the J-0 notification to a messaging app with a fitting message ready | 3–5 taps: share sheet → app → find the person → send; one message for everyone. 2026-11-20 (P4): 1 tap with a fitting message shown before sending; another message 2 taps without typing (was 4 and typing); the steps outside AnKi unchanged | contact link (P5) |
+| Wish | 1 tap from the hero or the J-0 notification to a messaging app with a fitting message ready | 3–5 taps: share sheet → app → find the person → send; one message for everyone. 2026-11-20 (P4): 1 tap with a fitting message shown before sending; another message 2 taps without typing (was 4 and typing); the steps outside AnKi unchanged | contact link (P5, built 2026-11-23: 2 taps from the hero or the J-0 « Souhaiter » to a sent SMS) |
 | Capture one | 1 tap + 1 line + Enter, ≤ 5 s, one-handed | 3 taps + 2 fields, « + » in the top-right corner | thumb-zone button (P7), one-line add (P8), app shortcut (P3) |
 | Capture many | ≤ 4 taps from the empty home to a full agenda | 4 taps: import, allow, import, reminders | contact suggestions (P9) |
 | Undo a mistake | 1 tap, never a confirmation | undo on delete and wish | keep |

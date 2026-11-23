@@ -191,8 +191,9 @@ first eraser that fails stops the run, and the profile and the account stay.
 | 1 | Anniversaires (`birthdaysModule.data`) | `birthday` where `uid ==` | query, then batches of deletes |
 | 2 | Anniversaires | `user/{uid}/categories` | query, then batches (a subcollection survives its parent) |
 | 3 | Livres (`booksModule.data`, `shelfDataEraserProvider`) | `user/{uid}/bookVolumes`, then `user/{uid}/bookSeries`, then legacy `books` where `uid ==` | server reads, then batches of deletes, one collection after the other |
-| 4 | — | `user/{uid}` | delete |
-| 5 | — | the Auth account | after the data, identity confirmed first (a guest that gets `requires-recent-login` is signed out) |
+| 4 | Anniversaires | the contact links of this phone (`contact_links_<uid>`, secure storage, not Firestore: decision D16) | best effort: a storage failure is logged, the deletion goes on |
+| 5 | — | `user/{uid}` | delete |
+| 6 | — | the Auth account | after the data, identity confirmed first (a guest that gets `requires-recent-login` is signed out) |
 
 Rules of the run:
 - The deletion queries read the server (`Source.server`): offline nothing starts, else a partial
@@ -203,6 +204,11 @@ Rules of the run:
   refuse); only the device's biometric token is cleared (a660627).
 - What survives: the older non-predefined `category/{id}` documents (`console.md` §10, last
   step, not done) and, after a takeover, the guest's empty anonymous Auth user.
+
+Not in Firestore on purpose: a person's link to a phone contact (P5) lives on the phone only,
+`flutter_secure_storage` key `contact_links_<uid>` (JSON `{birthday id: {number, name}}`), read
+and written by `ContactLinkRepository`. Another device, or this one after a reinstall, shows the
+person unlinked. Deleting a birthday forgets its link; a guest takeover moves the links (§10).
 
 Invariant: every per-user path in this file appears in this table. A new collection adds its
 `deleteAllUser…` method, a call in its module's eraser (`ModuleData.eraser`, in
@@ -258,6 +264,9 @@ would leave the guest's documents orphaned under a uid nobody opens again. They 
    owns, copies the rest under `user/{target}/…` with `set`, then deletes the guest's marked
    series and volumes; legacy `books` get the target `uid`, without the mark), and the guest
    profile is deleted.
+   Before those writes, the guest's contact links on this phone (§8) move to the target: a
+   moved record keeps its link, a duplicate's goes to the record kept
+   (`GuestMergePlan.keptFor`) unless that one has its own.
    A takeover that fails leaves `GuestMergeFailure.incomplete` and the guest profile in place.
    First of all, as soon as the account opens, the modules the guest had turned on
    (`modules.<id> = true` of the guest profile read at step 1) are turned on for the target

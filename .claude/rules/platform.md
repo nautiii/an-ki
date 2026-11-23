@@ -18,10 +18,13 @@ paths:
   upgrade: approval and its own `BUILD` commit.
 - Application id `com.github.nautiii.an_ki`; `minSdk`/`targetSdk` come from Flutter; core library
   desugaring stays on (flutter_local_notifications needs it).
-- `MainActivity` (a `FlutterFragmentActivity`, which `local_auth` needs) hosts one method channel,
-  `an_ki/notification_permission` (`canAskAgain`): what flutter_local_notifications doesn't
-  expose, read by `NotificationService` (`reminders.md`). Native code stays that small: a plugin
-  API that exists wins over a new channel.
+- `MainActivity` (a `FlutterFragmentActivity`, which `local_auth` needs) hosts two method
+  channels: `an_ki/notification_permission` (`canAskAgain`), what flutter_local_notifications
+  doesn't expose, read by `NotificationService` (`reminders.md`); and `an_ki/phone_contact`
+  (`PhoneContactChannel.kt`: `pickPhone`, `dial`, `sendSms`, results through `onActivityResult`),
+  read by `PhoneContactService`, because no plugin returns a picked number without
+  `READ_CONTACTS` (decision D16). Native code stays that small: a plugin API that exists wins
+  over a new channel.
 - `app/google-services.json` is tracked on purpose (client config, not a secret). A new signing
   key needs its SHA-1 registered in the Firebase console by the maintainer, or Google Sign-In
   fails.

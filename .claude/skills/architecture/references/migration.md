@@ -15,6 +15,13 @@ what you discover.
 ## 1. Not verified outside the tests
 
 Delete each line once done:
+- Contact link (P5, 2026-11-23, branch `claude/contact-link-348cd9`), on the maintainer's
+  phone: the system picker opens with no permission asked (even with contacts refused),
+  « Message » opens the SMS app with the number and the wish ready (Google Messages and the
+  phone's own app), « Appeler » the dialer without calling; the J-0 notification « Souhaiter »
+  of a linked person opens the SMS; the link survives an app restart and is gone after
+  « Délier », after deleting the person and after deleting the account; a guest that opens its
+  Google account keeps its links.
 - Modules the user turns on (B9 step 4, 2026-11-09), on the maintainer's phone with their real
   account: an existing profile (no `modules` field) opens on Anniversaires alone, no bar, its
   reminders still scheduled; Réglages › Modules turns Livres on (the bar and the « Livres » tab

@@ -389,6 +389,44 @@ from the phone with the series name only.
 **Revisit when** AniList limits or changes its API, wrong images show up in use, the shelf needs
 BD artwork, or the app is published (AniList's terms for commercial use).
 
+## D16 — Contact link: a number picked by the user, kept on this phone
+
+**Decision.** A person can be linked, one by one and only on the user's request, to one phone
+number picked in the system picker (P5). AnKi keeps that number, and the contact's display name,
+on this phone only: `flutter_secure_storage`, one entry per account (`contact_links_<uid>`), never
+Firestore. The pick and the two actions go through a small channel in `MainActivity`,
+`an_ki/phone_contact` (`PhoneContactChannel.kt`): `ACTION_PICK` on `Phone.CONTENT_TYPE` (Android
+grants read access to the chosen row only), `ACTION_DIAL` (opens the dialer, never calls) and
+`ACTION_SENDTO smsto:` with `sms_body`. No package, no permission. Linked, the wish goes by SMS
+(« Message »), the share sheet stays one tap away (« Autre app »), and opening the SMS app or the
+dialer marks the birthday wished, with « Annuler ». Approved 2026-11-21 with every default of
+the P5 brief.
+
+**Why.** The promise « AnKi ne lit que les noms et les dates » stays true for the import, and
+the link asks no global access: the picker shows the address book, AnKi gets one row. A number
+synced in Firestore would put a third party's phone number in the cloud (Play Data safety, the
+privacy policy) for a link the user rebuilds in two taps on a new phone.
+
+**Rejected.**
+- *`flutter_contacts` `native.showPicker`*: without `READ_CONTACTS` it returns the id and the
+  display name only on Android (2.6.0, `ShowPickerImpl.kt`); the numbers need the global
+  permission.
+- *A contact lookup key*: resolving it later needs `READ_CONTACTS` at every use.
+- *The number in Firestore* (multi-device, survives a new phone): third-party data in the cloud.
+- *`url_launcher`* for the dialer and the SMS: a package for two intents, when the channel exists
+  anyway for the picker.
+- *The Android 17 contact picker (`ACTION_PICK_CONTACTS`)*: needs compileSdk 37 and a device to
+  test on; the classic picker works without permission on every version.
+
+**How.** Account deletion erases the links of the account (best effort: a broken keystore never
+blocks a deletion); deleting a person forgets its link; a guest who opens a Google account on
+the same phone hands its links over (`takeOverContactLinks`, `GuestMergePlan.keptFor`), before
+the Firestore writes. iOS shows nothing (`PhoneContactService.isSupported`).
+
+**Revisit when** the app targets API 37 (Android 17 picker, Play's contacts policy), iOS is
+built, WhatsApp deep links (`wa.me`, E.164 numbers) are wanted, or users ask for the link to
+follow them to a new phone.
+
 ---
 
 ## D16 — Launcher shortcuts with quick_actions
