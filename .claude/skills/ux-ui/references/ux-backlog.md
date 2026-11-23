@@ -50,8 +50,7 @@ reads better as an agenda; a chatbot; streaks or guilt copy; moving familiar nav
 
 ### B9 — Livres module (approved 2026-11-08, built)
 Built 2026-11-09 to 2026-11-15 (modules, shelf, series page, burst scan, release dates,
-discovery card, earlier volumes; decisions D13–D15). Left:
-- **Deploy the `bookSeries` / `bookVolumes` rules** (step 6; firebase skill, `schema.md` §11).
+discovery card, earlier volumes; decisions D13–D15), its rules deployed. Left:
 - Phone checks in `migration.md` §1 — a real scan needs the phone's camera.
 - **Out of the lot**: Birthdays that can be turned off, a « Plus » tab, a disk cache for covers,
   summaries, a wishlist, prices, loans, sharing, export; a privacy policy before any publication.
@@ -114,7 +113,7 @@ Step 1 is in (workmanager, daily background replan on Android, `reminders.md`).
 ## Suggested roadmap
 
 1. **P1** widget brief; **P5** follow-ups (« Autre app » everywhere first).
-2. **B9** rules deploy and phone checks.
+2. **B9** phone checks.
 3. **B8** measure on the Honor, then step 2; **D17** with iOS.
 4. **P2** cold start on the phone; D29 if it matters.
 5. **B9-ext** release reminders, then **B4** gift ideas when the maintainer picks them up.

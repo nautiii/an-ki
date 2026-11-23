@@ -34,11 +34,10 @@ Delete each line once done:
   guest backup card when both show, « Nouveau · Livres » appears (never above the hero, never
   with an empty agenda); « Plus tard » hides it, and it stays hidden after a restart and on a
   second device; with the choice cleared in the console, « Essayer » turns Livres on and opens
-  the shelf (« Étagère indisponible » until the step 6 rules are deployed); TalkBack reads the
+  the shelf; TalkBack reads the
   title as a heading, then the message and both buttons.
-- Livres step 9, next volume release (2026-11-11, branch `claude/books-release-c62e6a`), once
-  the step 6 rules are deployed (before, every check's write is refused, silently on opening,
-  with a snackbar after a pull). On the phone, online: open Livres with a series whose next
+- Livres step 9, next volume release (2026-11-11, branch `claude/books-release-c62e6a`). On the
+  phone, online: open Livres with a series whose next
   volume has a BnF record (« Tome N paru · vous ne l'avez pas », « selon la BnF · vérifié le
   … ») and one without (« date inconnue », « rien à la BnF · vérifié le … »); pull down on a
   series; « Ajouter la date » (a day, then « Je ne connais que le mois »), « Modifier la date »,
@@ -46,8 +45,8 @@ Delete each line once done:
   any message. Google Books: a series whose next volume Google dates ahead of the BnF (One
   Piece 114, Sakamoto Days 24 at the time of writing) reads « Tome N · sortie le … », « selon
   Google Books · vérifié le … ».
-- Livres step 8, burst scanning and corrections (2026-11-11, branch `claude/books-burst-21d5db`),
-  once the step 6 rules are deployed. Seen on the emulator with the rules refused: the scanner
+- Livres step 8, burst scanning and corrections (2026-11-11, branch `claude/books-burst-21d5db`).
+  Seen on the emulator with the rules refused: the scanner
   page, « Saisir un ISBN » and its inline error, a typed ISBN stacking as « ISBN … · infos à
   compléter » (online and in airplane mode), the « Ajouter une série » sheet and its range
   error, « Terminé », dark and 200 %. **Never seen: a real barcode** (the emulator's camera
@@ -64,9 +63,8 @@ Delete each line once done:
   rename, merge with « Annuler », mark complete, delete with « Annuler ». Not observed on the
   emulator: the « Déjà dans votre collection » notice (2 s, maybe missed by the screenshot) and
   any write-refused snackbar.
-- Livres step 7, shelf and series pages (2026-11-10, branch `claude/books-shelf-c8be56`), once
-  the step 6 rules are deployed (before, every read of the shelf is refused and the tab shows
-  « Étagère indisponible »): on the phone, Livres on, an account with legacy `books` → the
+- Livres step 7, shelf and series pages (2026-11-10, branch `claude/books-shelf-c8be56`): on the
+  phone, Livres on, an account with legacy `books` → the
   shelf lists their series A to Z (cover, else initials; the last volume in big digits;
   « Prochain : tome N · date inconnue »; « Il vous manque … » where volumes are missing) and
   « À classer (n) » for the volumes without a series; search « pi » finds One Piece; a series
@@ -79,10 +77,7 @@ Delete each line once done:
   mode: the shelf still reads from the cache and the « Hors ligne · dates non actualisées »
   banner appears after ~3 s. TalkBack on a row reads « One Piece, dernier tome 108, … ».
 - Livres step 6, series and volumes in Firestore (2026-11-09, branch
-  `claude/books-firestore-ce51f6`). **The `bookSeries` and `bookVolumes` rules are proved in the
-  emulator but not deployed**: deploy them (firebase Workflow D) once the chain is on `main`,
-  before installing an APK built from it, else every scan and the legacy import are refused.
-  Then, on the phone (the emulator's camera can't present a barcode): scan a known manga (« One
+  `claude/books-firestore-ce51f6`), rules deployed (confirmed 2026-11-23). On the phone (the emulator's camera can't present a barcode): scan a known manga (« One
   Piece », a recent volume) → the sheet, « Ajouter », the volume in the carousel with its cover;
   in the console `user/{uid}/bookVolumes/{isbn}` with `seriesId`, `number`, `lookup: found`, and
   its `bookSeries` document; a second volume of the same series joins it. Scan in airplane mode

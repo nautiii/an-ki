@@ -275,8 +275,7 @@ would leave the guest's documents orphaned under a uid nobody opens again. They 
    (the `update` fails, logged).
 
 Rules (`rules.md` §1): the marked address may delete a marked document, and update a marked
-`birthday` or `books` document only to make it its own without the mark; it never reads them
-(the `bookSeries` and `bookVolumes` rules await their deploy, `rules.md` §1).
+`birthday` or `books` document only to make it its own without the mark; it never reads them.
 What stays: the empty anonymous Auth user; a move cut between steps 2 and 3 (app killed) leaves
 marked documents nobody claims; an unverified address (marks set, takeover refused:
 `GuestMergeFailure.incomplete`) leaves the documents marked; on a duplicate, the guest's photo,
@@ -285,7 +284,7 @@ marked documents nobody claims; an unverified address (marks set, takeover refus
 ## 11. `user/{uid}/bookSeries/{id}` — Livres series
 
 A series the user follows (One Piece, Blacksad…). Owner: the path. Rules: owner reads and writes;
-the marked address deletes a marked document (§10). Added 2026-11-09, rules **not deployed yet**
+the marked address deletes a marked document (§10). Added 2026-11-09, rules deployed
 (`rules.md` §1).
 
 | Field | Type | Meaning, default when absent |
