@@ -3,14 +3,20 @@ import 'package:an_ki/app/modules/module_data_hooks.dart';
 import 'package:an_ki/app/modules/module_registry.dart';
 import 'package:an_ki/core/providers/firebase_providers.dart';
 import 'package:an_ki/core/providers/user_data_hooks.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
+import 'package:an_ki/features/birthday/domain/contact_link.dart';
+import 'package:an_ki/features/birthday/domain/contact_link_failure.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/fake_providers.dart';
+
 void main() {
   late FakeFirebaseFirestore db;
+  late FakeContactLinkRepository links;
 
   /// Les crochets du registre, Anniversaires seul actif : un module désactivé
   /// garde ses données, qui partent avec le compte et suivent l'invité.
@@ -19,6 +25,7 @@ void main() {
     overrides: [
       firestoreProvider.overrideWithValue(db),
       activeModulesProvider.overrideWithValue([birthdaysModule]),
+      contactLinkRepositoryProvider.overrideWithValue(links),
       ...moduleDataHooks,
     ],
   );
@@ -33,6 +40,14 @@ void main() {
 
   setUp(() async {
     db = FakeFirebaseFirestore();
+    links = FakeContactLinkRepository(
+      links: {
+        'u1': {'b1': const ContactLink(number: '0611111111', contactName: '')},
+        'someone-else': {
+          'x': const ContactLink(number: '0622222222', contactName: ''),
+        },
+      },
+    );
     await db.collection('birthday').doc('b1').set({
       'uid': 'u1',
       'name': 'Léa',
@@ -89,8 +104,22 @@ void main() {
     expect(await exists('books', 'k1'), isFalse);
     expect((await shelfOf('u1', 'bookSeries').get()).docs, isEmpty);
     expect((await shelfOf('u1', 'bookVolumes').get()).docs, isEmpty);
+    // Les liaisons aux contacts de ce téléphone aussi.
+    expect(links.links['u1'], isNull);
     // Rien d'un autre compte.
     expect(await exists('books', 'k2'), isTrue);
+    expect(links.links['someone-else'], isNotNull);
+  });
+
+  test('a phone storage failure does not stop the account deletion', () async {
+    links.failure = ContactLinkFailure.storageFailed;
+    final erasers = makeContainer().read(userDataErasersProvider);
+
+    for (final erase in erasers) {
+      await erase('u1');
+    }
+
+    expect(await exists('birthday', 'b1'), isFalse);
   });
 
   test('moves the books of a guest, even with Books off', () async {

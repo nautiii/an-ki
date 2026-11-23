@@ -1,9 +1,11 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/domain/birthdays_added.dart';
+import 'package:an_ki/features/birthday/domain/contact_link.dart';
 import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/birthday/providers/birthday_additions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
@@ -31,11 +33,15 @@ void main() {
     RecordingBirthdayRepository repository, {
     String? uid = 'u1',
     List<Birthday> existing = const [],
+    FakeContactLinkRepository? links,
   }) {
     final container = ProviderContainer.test(
       retry: (_, _) => null,
       overrides: [
         birthdayRepositoryProvider.overrideWithValue(repository),
+        contactLinkRepositoryProvider.overrideWithValue(
+          links ?? FakeContactLinkRepository(),
+        ),
         currentUidProvider.overrideWithValue(uid),
         birthdaysProvider.overrideWithValue(AsyncData(existing)),
       ],
@@ -178,15 +184,44 @@ void main() {
     });
   });
 
-  test('drops a deletion started on another account', () async {
+  test('a deletion forgets the contact link on this phone', () async {
     final repo = RecordingBirthdayRepository();
-    final container = makeContainer(repo, uid: 'u2');
+    final links = FakeContactLinkRepository(
+      links: {
+        'u1': {
+          'id-1': const ContactLink(number: '0611111111', contactName: 'Léa'),
+          'id-2': const ContactLink(number: '0622222222', contactName: 'Tom'),
+        },
+      },
+    );
+    // Aucun écouteur des liaisons : une suppression depuis la liste.
+    final container = makeContainer(repo, links: links);
 
     await container
         .read(birthdayEditorProvider.notifier)
         .delete('id-1', uid: 'u1');
+    await pumpEventQueue();
+
+    expect(repo.deleted, ['id-1']);
+    expect(links.links['u1']?.keys, ['id-2']);
+  });
+
+  test('drops a deletion started on another account', () async {
+    final repo = RecordingBirthdayRepository();
+    final links = FakeContactLinkRepository(
+      links: {
+        'u2': {'id-1': const ContactLink(number: '06', contactName: '')},
+      },
+    );
+    final container = makeContainer(repo, uid: 'u2', links: links);
+
+    await container
+        .read(birthdayEditorProvider.notifier)
+        .delete('id-1', uid: 'u1');
+    await pumpEventQueue();
 
     expect(repo.deleted, isEmpty);
+    expect(links.links['u2']?.keys, ['id-1']);
     expect(container.read(birthdayEditorProvider), isA<AsyncData<void>>());
   });
 

@@ -19,6 +19,7 @@ import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/reminders/data/reminder_preferences_repository.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
@@ -199,6 +200,9 @@ extension AppTesterExt on WidgetTester {
             shortcuts ?? FakeAppShortcutService(),
           ),
           ...moduleDataHooks,
+          contactLinkRepositoryProvider.overrideWithValue(
+            FakeContactLinkRepository(),
+          ),
           shareServiceProvider.overrideWithValue(share ?? FakeShareService()),
           contactsServiceProvider.overrideWithValue(
             contacts ?? FakeContactsService(),

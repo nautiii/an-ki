@@ -5,9 +5,13 @@ import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/providers/auth_controller.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/contact_link.dart';
+import 'package:an_ki/features/birthday/domain/contact_link_failure.dart';
 import 'package:an_ki/features/birthday/domain/guest_merge_plan.dart';
+import 'package:an_ki/features/birthday/providers/contact_links.dart';
 import 'package:an_ki/features/settings/domain/guest_merge_failure.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
@@ -49,6 +53,7 @@ class GuestMerge extends AsyncNotifier<void> {
     final birthdays = ref.read(birthdayRepositoryProvider);
     final categories = ref.read(categoryRepositoryProvider);
     final users = ref.read(userRepositoryProvider);
+    final contactLinks = ref.read(contactLinkRepositoryProvider);
     final List<GuestDataTransfer> transfers;
     try {
       transfers = ref.read(guestDataTransfersProvider);
@@ -104,6 +109,10 @@ class GuestMerge extends AsyncNotifier<void> {
           target: await birthdays.fetchBirthdays(targetUid),
           targetGroups: await categories.fetchOwnCategories(targetUid),
         );
+        // Avant les écritures Firestore, qui n'aboutissent qu'à l'accusé du
+        // serveur : coupé en route, l'invité ne relira jamais ses liaisons,
+        // alors que les fiches arriveront au compte plus tard.
+        await _moveContactLinks(contactLinks, guestUid, targetUid, plan);
         await categories.takeOver(
           targetUid,
           guestUid: guestUid,
@@ -156,6 +165,36 @@ class GuestMerge extends AsyncNotifier<void> {
             ),
       );
     }
+  }
+
+  /// Passe au compte [targetUid] les liaisons aux contacts de l'invité
+  /// [guestUid], sur ce même téléphone : chacune suit sa fiche, reprise ou
+  /// gardée à la place d'un doublon ([GuestMergePlan.keptFor]), sans écraser
+  /// une liaison du compte. Au mieux : un échec du stockage de l'appareil
+  /// laisse ces liaisons à l'invité, sans arrêter la reprise.
+  Future<void> _moveContactLinks(
+    ContactLinkRepository repository,
+    String guestUid,
+    String targetUid,
+    GuestMergePlan plan,
+  ) async {
+    try {
+      final guest = await repository.fetchLinks(guestUid);
+      if (guest.isEmpty) return;
+      await repository.saveLinks(
+        targetUid,
+        takeOverContactLinks(
+          guest: guest,
+          target: await repository.fetchLinks(targetUid),
+          keptIds: {for (final id in plan.moves.keys) id: id, ...plan.keptFor},
+        ),
+      );
+      await repository.deleteAllUserLinks(guestUid);
+    } on ContactLinkFailure catch (error) {
+      debugPrint('[GuestMerge] contact links not moved: $error');
+    }
+    // Déjà lues pour le compte ouvert, avant ce report.
+    if (ref.mounted) ref.invalidate(contactLinksProvider);
   }
 
   /// Reprend l'issue publiée par `AuthController` : son échec, ou rien

@@ -33,6 +33,7 @@ void main() {
 
     expect(plan.moves, {'b1': <String>[], 'b2': <String>[]});
     expect(plan.duplicates, isEmpty);
+    expect(plan.keptFor, isEmpty);
     expect(plan.newGroups, isEmpty);
   });
 
@@ -47,6 +48,7 @@ void main() {
 
     expect(plan.moves, isEmpty);
     expect(plan.duplicates, ['b1']);
+    expect(plan.keptFor, {'b1': 't1'});
   });
 
   test('keeps one of two guest records of the same person', () {
@@ -59,6 +61,7 @@ void main() {
 
     expect(plan.moves.keys, ['b1']);
     expect(plan.duplicates, ['b2']);
+    expect(plan.keptFor, {'b2': 'b1'});
   });
 
   test('joins a guest group to the account one of the same name, else '

@@ -8,6 +8,7 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/settings/widgets/guest_backup_card.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -87,6 +88,9 @@ void main() {
       const GuestBackupCard(count: 12),
       overrides: [
         ...moduleDataHooks,
+        contactLinkRepositoryProvider.overrideWithValue(
+          FakeContactLinkRepository(),
+        ),
         ...authOverrides(auth),
         firestoreProvider.overrideWithValue(
           firestore ?? FakeFirebaseFirestore(),
@@ -282,6 +286,9 @@ void main() {
         ),
         overrides: [
           ...moduleDataHooks,
+          contactLinkRepositoryProvider.overrideWithValue(
+            FakeContactLinkRepository(),
+          ),
           ...authOverrides(auth),
           firestoreProvider.overrideWithValue(firestore),
           birthdayRepositoryProvider.overrideWithValue(
@@ -444,7 +451,13 @@ void main() {
   testWidgets('waits while saving', (tester) async {
     await tester.pumpHarness(
       const GuestBackupCard(count: 12),
-      overrides: [...loadingAuthOverrides(), ...moduleDataHooks],
+      overrides: [
+        ...loadingAuthOverrides(),
+        ...moduleDataHooks,
+        contactLinkRepositoryProvider.overrideWithValue(
+          FakeContactLinkRepository(),
+        ),
+      ],
     );
     await tester.pump();
 

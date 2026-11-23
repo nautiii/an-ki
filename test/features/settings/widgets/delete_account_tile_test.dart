@@ -12,6 +12,7 @@ import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/settings/widgets/delete_account_tile.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -47,6 +48,9 @@ void main() {
       const DeleteAccountTile(),
       overrides: [
         ...moduleDataHooks,
+        contactLinkRepositoryProvider.overrideWithValue(
+          FakeContactLinkRepository(),
+        ),
         authRepositoryProvider.overrideWithValue(auth),
         biometricServiceProvider.overrideWithValue(FakeBiometricService()),
         currentUidProvider.overrideWithValue('uid-1'),

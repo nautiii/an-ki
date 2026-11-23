@@ -17,6 +17,11 @@ class const GuestMergePlan({
   /// avait lui-même en double : effacés, la fiche gardée l'emporte.
   required final List<String> duplicates,
 
+  /// Chaque doublon de [duplicates] → la fiche gardée pour cette personne :
+  /// celle du compte, ou la première de l'invité. Ce qui ne vit que sur le
+  /// téléphone (la liaison à un contact) y passe.
+  required final Map<String, String> keptFor,
+
   /// Groupes de l'invité sans équivalent dans le compte : recréés chez lui,
   /// sous leur id.
   required final List<BirthdayCategory> newGroups,
@@ -29,6 +34,7 @@ class const GuestMergePlan({
         (move) => listEquals(other.moves[move.key], move.value),
       ) &&
       listEquals(other.duplicates, duplicates) &&
+      mapEquals(other.keptFor, keptFor) &&
       listEquals(other.newGroups, newGroups);
 
   @override
@@ -65,17 +71,22 @@ GuestMergePlan planGuestMerge({
   }
 
   final known = {
-    for (final birthday in target) personKey(birthday.fullName, birthday.date),
+    for (final birthday in target)
+      personKey(birthday.fullName, birthday.date): birthday.id,
   };
   final moves = <String, List<String>>{};
   final duplicates = <String>[];
+  final keptFor = <String, String>{};
   for (final birthday in guest) {
     // Deux fiches de l'invité pour la même personne : la seconde est un
     // doublon de la première.
-    if (!known.add(personKey(birthday.fullName, birthday.date))) {
+    final key = personKey(birthday.fullName, birthday.date);
+    if (known[key] case final kept?) {
       duplicates.add(birthday.id);
+      keptFor[birthday.id] = kept;
       continue;
     }
+    known[key] = birthday.id;
     moves[birthday.id] = {
       for (final id in birthday.categories) groupIds[id] ?? id,
     }.toList();
@@ -83,6 +94,7 @@ GuestMergePlan planGuestMerge({
   return GuestMergePlan(
     moves: moves,
     duplicates: duplicates,
+    keptFor: keptFor,
     newGroups: newGroups,
   );
 }

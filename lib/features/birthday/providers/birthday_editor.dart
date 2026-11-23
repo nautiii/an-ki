@@ -7,6 +7,7 @@ import 'package:an_ki/features/birthday/domain/birthdays_added.dart';
 import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/birthday/providers/birthday_additions.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/providers/contact_links.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Écritures sur les anniversaires (ViewModel des actions) et état de la
@@ -93,6 +94,16 @@ class BirthdayEditor extends AsyncNotifier<void> {
   /// une erreur sur une personne qu'il ne connaît pas).
   Future<void> delete(String birthdayId, {required String? uid}) async {
     if (uid == null || uid != ref.read(currentUidProvider)) return;
+    // La liaison au contact ne vit que sur ce téléphone : elle part avec la
+    // fiche, tout de suite (l'effacement Firestore attend le serveur). Au
+    // mieux : une liaison restée là n'est lue par personne, et part avec
+    // le compte.
+    unawaited(
+      ref
+          .read(contactLinksProvider.notifier)
+          .unlink(birthdayId)
+          .catchError((Object _) {}),
+    );
     await _write(
       (_) => ref.read(birthdayRepositoryProvider).deleteBirthday(birthdayId),
     );

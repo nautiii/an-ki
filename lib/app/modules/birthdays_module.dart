@@ -6,6 +6,8 @@ import 'package:an_ki/app/modules/module_discovery.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
+import 'package:an_ki/features/birthday/domain/contact_link_failure.dart';
 import 'package:an_ki/features/birthday/screens/home_screen.dart';
 import 'package:an_ki/features/birthday/widgets/add_birthday_sheet.dart';
 import 'package:an_ki/features/reminders/providers/reminder_sync_provider.dart';
@@ -63,15 +65,25 @@ final birthdaysModule = AppModule(
     ),
   ],
   effects: [reminderSyncProvider],
-  // Les anniversaires, puis les groupes privés. La reprise d'un invité se fait
-  // dans `GuestMerge`, qui écarte les doublons.
+  // Les anniversaires, les groupes privés, puis les liaisons aux contacts de
+  // ce téléphone. La reprise d'un invité se fait dans `GuestMerge`, qui
+  // écarte les doublons.
   data: ModuleData(
     eraser: (ref) {
       final birthdays = ref.watch(birthdayRepositoryProvider);
       final categories = ref.watch(categoryRepositoryProvider);
+      final contactLinks = ref.watch(contactLinkRepositoryProvider);
       return (uid) async {
         await birthdays.deleteAllUserBirthdays(uid);
         await categories.deleteAllUserCategories(uid);
+        // Au mieux : un stockage de l'appareil en panne n'empêche pas de
+        // supprimer le compte ; ses liaisons restent sous un uid disparu,
+        // que personne ne lit plus.
+        try {
+          await contactLinks.deleteAllUserLinks(uid);
+        } on ContactLinkFailure catch (error) {
+          debugPrint('[birthdaysModule] contact links not erased: $error');
+        }
       };
     },
   ),

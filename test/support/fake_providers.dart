@@ -4,12 +4,15 @@ import 'dart:ui';
 import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/core/services/device_settings.dart';
+import 'package:an_ki/core/services/phone_contact_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
 import 'package:an_ki/features/birthday/data/share_service.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/contact_link.dart';
 import 'package:an_ki/features/birthday/domain/birthday_draft.dart';
 import 'package:an_ki/features/birthday/domain/reminder_lead.dart';
 import 'package:an_ki/features/books/data/anilist_catalog.dart';
@@ -1259,6 +1262,8 @@ List<Object> get defaultTestOverrides => [
   authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
   biometricServiceProvider.overrideWithValue(FakeBiometricService()),
   shareServiceProvider.overrideWithValue(FakeShareService()),
+  contactLinkRepositoryProvider.overrideWithValue(FakeContactLinkRepository()),
+  phoneContactServiceProvider.overrideWithValue(FakePhoneContactService()),
 ];
 
 /// Réglage des rappels gardé en mémoire : chaque enregistrement est émis
@@ -1406,4 +1411,93 @@ class LateBirthdayRepository extends RecordingBirthdayRepository {
   }
 
   void emit(List<Birthday> birthdays) => _birthdays.add(birthdays);
+}
+
+/// Liaisons aux contacts en mémoire, par compte, comme le stockage chiffré
+/// du téléphone ; [failure] fait échouer chaque écriture.
+class FakeContactLinkRepository extends Fake implements ContactLinkRepository {
+  FakeContactLinkRepository({Map<String, Map<String, ContactLink>>? links})
+    : links = links ?? {};
+
+  /// Liaisons enregistrées : uid → id de fiche → liaison.
+  final Map<String, Map<String, ContactLink>> links;
+
+  /// Erreur levée par chaque écriture quand elle est définie.
+  Exception? failure;
+
+  /// Lecture retenue jusqu'à ce que le test complète ce `Completer`.
+  Completer<void>? pendingFetch;
+
+  int writes = 0;
+
+  @override
+  Future<Map<String, ContactLink>> fetchLinks(String uid) async {
+    await pendingFetch?.future;
+    return {...?links[uid]};
+  }
+
+  @override
+  Future<void> saveLinks(String uid, Map<String, ContactLink> links) async {
+    writes++;
+    if (failure case final error?) throw error;
+    if (links.isEmpty) {
+      this.links.remove(uid);
+    } else {
+      this.links[uid] = {...links};
+    }
+  }
+
+  @override
+  Future<void> deleteAllUserLinks(String uid) async {
+    writes++;
+    if (failure case final error?) throw error;
+    links.remove(uid);
+  }
+}
+
+/// Sélecteur, composeur et SMS simulés : [picked] au sélecteur (null =
+/// fermé sans choix), [opens] pour le composeur et les SMS ; relève les
+/// numéros composés et les SMS ouverts.
+class FakePhoneContactService extends Fake implements PhoneContactService {
+  FakePhoneContactService({
+    this.picked,
+    this.opens = true,
+    this.isSupported = true,
+  });
+
+  PickedPhone? picked;
+
+  /// Exception levée par le sélecteur quand elle est définie.
+  Exception? pickError;
+
+  /// Sélecteur ouvert jusqu'à ce que le test complète ce `Completer`.
+  Completer<PickedPhone?>? pendingPick;
+
+  bool opens;
+
+  @override
+  final bool isSupported;
+
+  int picks = 0;
+  final dialed = <String>[];
+  final texts = <(String, String)>[];
+
+  @override
+  Future<PickedPhone?> pickPhone() async {
+    picks++;
+    if (pickError case final error?) throw error;
+    return pendingPick?.future ?? picked;
+  }
+
+  @override
+  Future<bool> dial(String number) async {
+    dialed.add(number);
+    return opens;
+  }
+
+  @override
+  Future<bool> sendSms(String number, String body) async {
+    texts.add((number, body));
+    return opens;
+  }
 }

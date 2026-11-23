@@ -6,8 +6,12 @@ import 'package:an_ki/core/services/biometric_service.dart';
 import 'package:an_ki/features/auth/data/auth_repository.dart';
 import 'package:an_ki/features/auth/domain/auth_failure.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
+import 'package:an_ki/features/birthday/domain/contact_link.dart';
+import 'package:an_ki/features/birthday/domain/contact_link_failure.dart';
+import 'package:an_ki/features/birthday/providers/contact_links.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/shelf_takeover.dart';
 import 'package:an_ki/features/settings/domain/guest_merge_failure.dart';
@@ -80,9 +84,22 @@ class _FragileBooks extends BookshelfRepository {
   }
 }
 
+/// Dépôt réel dont la reprise des anniversaires échoue.
+class _FailingTakeOverBirthdays extends BirthdayRepository {
+  _FailingTakeOverBirthdays(FakeFirebaseFirestore db) : super(firestore: db);
+
+  @override
+  Future<void> takeOver(
+    String targetUid, {
+    required Map<String, List<String>> moves,
+    required Iterable<String> duplicates,
+  }) async => throw Exception('takeOver failed');
+}
+
 void main() {
   late FakeFirebaseFirestore db;
   late FakeAuthRepository auth;
+  late FakeContactLinkRepository links;
 
   CollectionReference<Map<String, dynamic>> groupsOf(String uid) =>
       db.collection('user').doc(uid).collection('categories');
@@ -122,6 +139,7 @@ void main() {
         firestoreProvider.overrideWithValue(db),
         authRepositoryProvider.overrideWithValue(auth),
         biometricServiceProvider.overrideWithValue(FakeBiometricService()),
+        contactLinkRepositoryProvider.overrideWithValue(links),
         if (birthdays != null)
           birthdayRepositoryProvider.overrideWithValue(birthdays),
         if (books != null) bookshelfRepositoryProvider.overrideWithValue(books),
@@ -134,6 +152,7 @@ void main() {
   setUp(() async {
     db = FakeFirebaseFirestore();
     auth = FakeAuthRepository(user: MockUser(uid: _guest, isAnonymous: true));
+    links = FakeContactLinkRepository();
     // Invité : Léa (déjà dans le compte), Tom, ses groupes, un livre, son
     // profil. Compte Google : Léa et son groupe « escalade ».
     await seedBirthday('b1', _guest, 'Léa', categories: ['g1']);
@@ -192,6 +211,64 @@ void main() {
     expect(book?['uid'], _target);
     expect(book?.containsKey('transferTo'), isFalse);
     expect((await db.collection('user').doc(_guest).get()).exists, isFalse);
+  });
+
+  group('contact links on this phone', () {
+    const leaGuest = ContactLink(number: '0611111111', contactName: 'Léa');
+    const leaTarget = ContactLink(number: '0699999999', contactName: 'Léa M');
+    const tom = ContactLink(number: '0622222222', contactName: 'Tom');
+
+    test('follow their record, the duplicate to the record kept', () async {
+      links.links[_guest] = {'b1': leaGuest, 'b2': tom};
+      final container = makeContainer();
+      container.listen(contactLinksProvider, (_, _) {});
+
+      await container.read(guestMergeProvider.notifier).merge();
+
+      // Léa (b1) est un doublon de t1 : sa liaison y passe ; Tom garde b2.
+      expect(links.links[_target], {'t1': leaGuest, 'b2': tom});
+      expect(links.links[_guest], isNull);
+      // Relues pour le compte ouvert, une fois la session passée à lui.
+      await pumpEventQueue();
+      expect(await container.read(contactLinksProvider.future), {
+        't1': leaGuest,
+        'b2': tom,
+      });
+    });
+
+    test('are moved even when the birthdays move stops halfway', () async {
+      links.links[_guest] = {'b2': tom};
+      final container = makeContainer(birthdays: _FailingTakeOverBirthdays(db));
+
+      await container.read(guestMergeProvider.notifier).merge();
+
+      expect(
+        container.read(guestMergeProvider).error,
+        GuestMergeFailure.incomplete,
+      );
+      expect(links.links[_target], {'b2': tom});
+    });
+
+    test('never replace a link the account already has', () async {
+      links.links[_guest] = {'b1': leaGuest};
+      links.links[_target] = {'t1': leaTarget};
+
+      await makeContainer().read(guestMergeProvider.notifier).merge();
+
+      expect(links.links[_target], {'t1': leaTarget});
+    });
+
+    test('a storage failure leaves them, the move goes on', () async {
+      links.links[_guest] = {'b2': tom};
+      links.failure = ContactLinkFailure.storageFailed;
+      final container = makeContainer();
+
+      final plan = await container.read(guestMergeProvider.notifier).merge();
+
+      expect(plan, isNotNull);
+      expect(container.read(guestMergeProvider), isA<AsyncData<void>>());
+      expect(links.links[_guest], {'b2': tom});
+    });
   });
 
   test('marks the guest data before signing in', () async {

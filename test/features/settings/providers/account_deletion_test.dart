@@ -12,6 +12,7 @@ import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/settings/providers/account_deletion.dart';
 import 'package:an_ki/features/user/data/user_repository.dart';
 import 'package:an_ki/features/user/domain/user_profile.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -40,6 +41,9 @@ void main() {
       retry: (_, _) => null,
       overrides: [
         ...moduleDataHooks,
+        contactLinkRepositoryProvider.overrideWithValue(
+          FakeContactLinkRepository(),
+        ),
         authRepositoryProvider.overrideWithValue(auth),
         biometricServiceProvider.overrideWithValue(FakeBiometricService()),
         birthdayRepositoryProvider.overrideWithValue(birthdays),
