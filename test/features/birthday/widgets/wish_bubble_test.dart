@@ -11,6 +11,7 @@ import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/birthday/widgets/wish_bubble.dart';
 import 'package:an_ki/features/birthday/widgets/wish_text.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -55,6 +56,9 @@ void main() {
           currentUidProvider.overrideWithValue('fake-uid'),
           birthdayRepositoryProvider.overrideWithValue(repository),
           shareServiceProvider.overrideWithValue(share),
+          contactLinkRepositoryProvider.overrideWithValue(
+            FakeContactLinkRepository(),
+          ),
         ],
       );
 

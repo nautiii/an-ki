@@ -34,6 +34,7 @@ import 'package:go_router/go_router.dart';
 import 'package:an_ki/features/birthday/domain/wish_suggestions.dart';
 import 'package:an_ki/features/birthday/widgets/wish_text.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
 
 import '../../../support/fake_providers.dart';
 import '../../../support/network_image_mock.dart';
@@ -112,6 +113,9 @@ void main() {
           ),
         ),
         shareServiceProvider.overrideWithValue(share),
+        contactLinkRepositoryProvider.overrideWithValue(
+          FakeContactLinkRepository(),
+        ),
       ],
       routes: {
         AppRoutes.birthdays: (_) => const Text('Accueil'),

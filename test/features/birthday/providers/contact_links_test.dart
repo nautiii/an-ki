@@ -255,6 +255,18 @@ void main() {
       expect(repository.links['u1'], {'b1': _lea});
     });
 
+    test('restore says when the link cannot be put back', () async {
+      repository.links['u1'] = {'b1': _lea};
+      final container = makeContainer();
+      final linker = container.read(contactLinkerProvider.notifier);
+      final removed = await linker.unlink('b1');
+      repository.failure = ContactLinkFailure.storageFailed;
+
+      expect(await linker.restore('b1', removed!), isFalse);
+      // Rien de publié : la snackbar d'« Annuler » le dit seule.
+      expect(container.read(contactLinkerProvider), isA<AsyncData<void>>());
+    });
+
     test('unlink returns null for a record that is not linked', () async {
       final container = makeContainer();
 

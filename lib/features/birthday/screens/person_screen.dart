@@ -11,6 +11,7 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_category.dart';
 import 'package:an_ki/features/birthday/domain/birthday_wishes.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
+import 'package:an_ki/features/birthday/providers/contact_links.dart';
 import 'package:an_ki/features/birthday/providers/birthday_wisher.dart';
 import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
@@ -174,8 +175,9 @@ class _GroupChips extends StatelessWidget {
 }
 
 /// Le lendemain, tant qu'il n'est pas souhaité : le message dans sa bulle,
-/// « Souhaiter » et « Déjà souhaité ». La bulle est en nuage : une
-/// information calme à côté de l'action en lotus.
+/// « Souhaiter » (« Message » par SMS, la personne reliée à son contact) et
+/// « Déjà souhaité ». La bulle est en nuage : une information calme à côté
+/// de l'action en lotus.
 class _BelatedWish extends ConsumerWidget {
   const _BelatedWish({required this.birthday});
 
@@ -188,6 +190,7 @@ class _BelatedWish extends ConsumerWidget {
       birthdayWisherProvider.select((state) => state.isLoading),
     );
     final scheme = Theme.of(context).colorScheme;
+    final linked = ref.watch(contactLinkProvider(birthday.id)) != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -213,8 +216,10 @@ class _BelatedWish extends ConsumerWidget {
                         birthday,
                         origin: shareOriginOf(buttonContext),
                       ),
-                icon: const Icon(Icons.send_rounded),
-                label: Text(context.l10n.wish),
+                icon: Icon(linked ? Icons.sms_rounded : Icons.send_rounded),
+                label: Text(
+                  linked ? context.l10n.contactMessage : context.l10n.wish,
+                ),
               ),
             ),
             TextButton(

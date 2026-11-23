@@ -134,13 +134,17 @@ class ContactLinker extends AsyncNotifier<void> {
     }
   }
 
-  /// Rétablit [link] sur [birthdayId] (« Annuler » après [unlink]).
-  Future<void> restore(String birthdayId, ContactLink link) async {
+  /// Rétablit [link] sur [birthdayId] (« Annuler » après [unlink]) ; faux
+  /// si l'écriture a échoué. L'échec n'est pas publié : la page a pu
+  /// disparaître, c'est la snackbar d'« Annuler » qui le dit.
+  Future<bool> restore(String birthdayId, ContactLink link) async {
     try {
       await ref.read(contactLinksProvider.notifier).link(birthdayId, link);
       _done();
-    } on ContactLinkFailure catch (failure, stackTrace) {
-      _fail(failure, stackTrace);
+      return true;
+    } on ContactLinkFailure {
+      _done();
+      return false;
     }
   }
 

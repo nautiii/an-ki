@@ -2,4 +2,7 @@
 enum WishFailure implements Exception {
   /// La feuille de partage du système n'a pas pu s'ouvrir.
   shareUnavailable,
+
+  /// Aucune app ne compose le numéro de la personne reliée.
+  dialUnavailable,
 }

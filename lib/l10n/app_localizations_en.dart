@@ -1961,4 +1961,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contactAppUnavailable => 'No app on this phone to call or text.';
+
+  @override
+  String get wishOtherApp => 'Other app';
 }

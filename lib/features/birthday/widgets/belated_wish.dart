@@ -9,6 +9,7 @@ import 'package:an_ki/features/birthday/domain/birthday.dart';
 import 'package:an_ki/features/birthday/domain/birthday_dates.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_wisher.dart';
+import 'package:an_ki/features/birthday/providers/contact_links.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -64,6 +65,8 @@ class _BelatedCard extends ConsumerWidget {
     final sharing = ref.watch(
       birthdayWisherProvider.select((state) => state.isLoading),
     );
+    // Reliée à son contact : le vœu part par SMS (P5).
+    final linked = ref.watch(contactLinkProvider(birthday.id)) != null;
     final picture = birthday.picture;
     // Né hier : pas de « 0 », comme sur le héros.
     final age = switch (birthday.reachedAge(ref.watch(todayProvider))) {
@@ -137,8 +140,8 @@ class _BelatedCard extends ConsumerWidget {
           padding: _wishPadding,
           minimumSize: const Size(64, kMinInteractiveDimension),
         ),
-        icon: const Icon(Icons.send_rounded),
-        label: Text(context.l10n.wish),
+        icon: Icon(linked ? Icons.sms_rounded : Icons.send_rounded),
+        label: Text(linked ? context.l10n.contactMessage : context.l10n.wish),
       ),
     );
     final alreadyWished = IconButton(

@@ -2851,6 +2851,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Aucune app pour appeler ou écrire sur ce téléphone.'**
   String get contactAppUnavailable;
+
+  /// Jour J, personne reliée à son contact : envoie le vœu par la feuille de partage plutôt que par SMS
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre app'**
+  String get wishOtherApp;
 }
 
 class _AppLocalizationsDelegate

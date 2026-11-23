@@ -139,6 +139,37 @@ void main() {
     expect(find.text('Léa M.'), findsOneWidget);
   });
 
+  testWidgets('says once when « Annuler » cannot put the link back', (
+    tester,
+  ) async {
+    links.links['u1'] = {'lea': _link};
+    await pump(tester);
+
+    await tester.tap(find.byTooltip('Options du contact'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Délier'));
+    await tester.pumpAndSettle();
+    links.failure = ContactLinkFailure.storageFailed;
+    await tester.tap(find.text('Annuler'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        "La liaison n'a pas pu être mise à jour sur ce téléphone. Réessayez.",
+      ),
+      findsOneWidget,
+    );
+    // Une seule snackbar : aucune autre en file derrière.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        "La liaison n'a pas pu être mise à jour sur ce téléphone. Réessayez.",
+      ),
+      findsNothing,
+    );
+  });
+
   testWidgets('changes the contact from the menu', (tester) async {
     links.links['u1'] = {'lea': _link};
     phone.picked = const PickedPhone(number: '0699999999', contactName: '');

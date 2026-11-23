@@ -3,13 +3,16 @@ import 'dart:typed_data';
 
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/core/services/phone_contact_service.dart';
 import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/category_repository.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
 import 'package:an_ki/features/birthday/data/share_service.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/domain/contact_link.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/widgets/belated_wish.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
@@ -50,10 +53,14 @@ void main() {
 
   late RecordingBirthdayRepository repository;
   late FakeShareService share;
+  late FakeContactLinkRepository links;
+  late FakePhoneContactService phone;
 
   setUp(() {
     repository = RecordingBirthdayRepository();
     share = FakeShareService();
+    links = FakeContactLinkRepository();
+    phone = FakePhoneContactService();
   });
 
   /// Les rappels d'hier sur la largeur utile d'un téléphone de 360 dp, ou
@@ -85,6 +92,8 @@ void main() {
         categoryRepositoryProvider.overrideWithValue(FakeCategoryRepository()),
         birthdayRepositoryProvider.overrideWithValue(repository),
         shareServiceProvider.overrideWithValue(share),
+        contactLinkRepositoryProvider.overrideWithValue(links),
+        phoneContactServiceProvider.overrideWithValue(phone),
       ],
       routes: {
         for (final birthday in birthdays)
@@ -92,6 +101,23 @@ void main() {
       },
     );
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('a person linked to a contact gets the late wish by SMS', (
+    tester,
+  ) async {
+    links.links['fake-uid'] = {
+      'nina': const ContactLink(number: '0611111111', contactName: 'Nina'),
+    };
+    await pumpBelated(tester, [bornOn(12, 31)]);
+
+    expect(find.text('Souhaiter'), findsNothing);
+    await tester.tap(find.text('Message'));
+    await tester.pump();
+
+    expect(phone.texts.single.$1, '0611111111');
+    expect(share.shared, isEmpty);
+    expect(repository.wished, [('nina', 2026)]);
   });
 
   testWidgets('shows nothing without a birthday yesterday', (tester) async {

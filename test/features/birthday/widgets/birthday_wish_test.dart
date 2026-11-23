@@ -1,11 +1,14 @@
 import 'dart:async';
 
 import 'package:an_ki/core/providers/clock_provider.dart';
+import 'package:an_ki/core/services/phone_contact_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
+import 'package:an_ki/features/birthday/data/contact_link_repository.dart';
 import 'package:an_ki/features/birthday/data/share_service.dart';
 import 'package:an_ki/features/birthday/domain/birth_date.dart';
 import 'package:an_ki/features/birthday/domain/birthday.dart';
+import 'package:an_ki/features/birthday/domain/contact_link.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:flutter/material.dart';
@@ -26,10 +29,14 @@ void main() {
   late RecordingBirthdayRepository repository;
   late FakeShareService share;
   late List<Object?> haptics;
+  late FakeContactLinkRepository links;
+  late FakePhoneContactService phone;
 
   setUp(() {
     repository = RecordingBirthdayRepository();
     share = FakeShareService();
+    links = FakeContactLinkRepository();
+    phone = FakePhoneContactService();
   });
 
   /// Les actions de [birthday] au jour [today] ; les vibrations demandées
@@ -47,8 +54,12 @@ void main() {
         currentUidProvider.overrideWithValue('fake-uid'),
         birthdayRepositoryProvider.overrideWithValue(repository),
         shareServiceProvider.overrideWithValue(share),
+        contactLinkRepositoryProvider.overrideWithValue(links),
+        phoneContactServiceProvider.overrideWithValue(phone),
       ],
     );
+    // La lecture des liaisons du téléphone.
+    await tester.pump();
   }
 
   group('Souhaiter', () {
@@ -193,5 +204,103 @@ void main() {
       tester.getSize(find.byType(WishedPill)).height,
       lessThan(kMinInteractiveDimension),
     );
+  });
+
+  group('a person linked to a contact', () {
+    setUp(() {
+      links.links['fake-uid'] = {
+        'lea': const ContactLink(number: '0611111111', contactName: 'Léa'),
+      };
+    });
+
+    testWidgets('« Message » opens the SMS with the wish ready', (
+      tester,
+    ) async {
+      await pumpActions(tester, today: DateTime(2026, 12, 31));
+
+      expect(find.text('Souhaiter'), findsNothing);
+      await tester.tap(find.text('Message'));
+      await tester.pump();
+
+      expect(phone.texts, [('0611111111', 'Bon anniversaire Léa ! 🎂')]);
+      expect(share.shared, isEmpty);
+      expect(repository.wished, [('lea', 2026)]);
+      expect(find.text('Léa Martin a reçu vos vœux'), findsOneWidget);
+    });
+
+    testWidgets('« Appeler » opens the dialer and counts as a wish', (
+      tester,
+    ) async {
+      await pumpActions(tester, today: DateTime(2026, 12, 31));
+
+      await tester.tap(find.byTooltip('Appeler'));
+      await tester.pump();
+
+      expect(phone.dialed, ['0611111111']);
+      expect(repository.wished, [('lea', 2026)]);
+    });
+
+    testWidgets('a wish started before the links are read goes by SMS', (
+      tester,
+    ) async {
+      // L'action « Souhaiter » de la notification, app ouverte à froid :
+      // rien n'a encore lu les liaisons du téléphone.
+      links.pendingFetch = Completer();
+      await tester.pumpHarness(
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => wishBirthday(context, lea),
+            child: const Text('go'),
+          ),
+        ),
+        overrides: [
+          clockProvider.overrideWithValue(() => DateTime(2026, 12, 31)),
+          currentUidProvider.overrideWithValue('fake-uid'),
+          birthdayRepositoryProvider.overrideWithValue(repository),
+          shareServiceProvider.overrideWithValue(share),
+          contactLinkRepositoryProvider.overrideWithValue(links),
+          phoneContactServiceProvider.overrideWithValue(phone),
+        ],
+      );
+
+      await tester.tap(find.text('go'));
+      await tester.pump();
+      links.pendingFetch!.complete();
+      await tester.pumpAndSettle();
+
+      expect(phone.texts.single.$1, '0611111111');
+      expect(share.shared, isEmpty);
+    });
+
+    testWidgets('« Autre app » keeps the share sheet', (tester) async {
+      await pumpActions(tester, today: DateTime(2026, 12, 31));
+
+      await tester.tap(find.text('Autre app'));
+      await tester.pump();
+
+      expect(share.shared, ['Bon anniversaire Léa ! 🎂']);
+      expect(phone.texts, isEmpty);
+    });
+
+    testWidgets('says when no app can call', (tester) async {
+      phone.opens = false;
+      await pumpActions(tester, today: DateTime(2026, 12, 31));
+
+      await tester.tap(find.byTooltip('Appeler'));
+      await tester.pump();
+
+      expect(
+        find.text('Aucune app pour appeler ou écrire sur ce téléphone.'),
+        findsOneWidget,
+      );
+      expect(repository.wished, isEmpty);
+    });
+
+    testWidgets('meets the tap target and label guidelines', (tester) async {
+      await pumpActions(tester, today: DateTime(2026, 12, 31));
+
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    });
   });
 }

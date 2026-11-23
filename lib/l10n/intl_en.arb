@@ -511,5 +511,6 @@
   "contactMessage": "Message",
   "contactLinkPickerUnavailable": "Couldn't open your contacts. Try again.",
   "contactLinkStorageFailed": "Couldn't update this link on this phone. Try again.",
-  "contactAppUnavailable": "No app on this phone to call or text."
+  "contactAppUnavailable": "No app on this phone to call or text.",
+  "wishOtherApp": "Other app"
 }

@@ -155,8 +155,8 @@ class _LinkedCard extends ConsumerWidget {
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
-                  // Lu d'un trait : « Léa Martin, 06 12 34 56 78, Relié sur
-                  // ce téléphone ».
+                  // Lu d'un trait : « Léa Martin, 06 12 34 56 78, Numéro gardé
+                  // sur ce téléphone ».
                   child: MergeSemantics(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,7 +274,16 @@ class _LinkMenu extends ConsumerWidget {
               _withLinker(
                 container,
                 (linker) => linker.restore(birthdayId, removed),
-              ),
+              ).then((restored) {
+                // La page a pu disparaître : l'échec se dit ici.
+                if (!restored) {
+                  messenger
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(content: Text(l10n.contactLinkStorageFailed)),
+                    );
+                }
+              }),
             ),
           ),
         ),

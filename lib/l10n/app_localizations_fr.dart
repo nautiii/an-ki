@@ -1999,4 +1999,7 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get contactAppUnavailable =>
       'Aucune app pour appeler ou écrire sur ce téléphone.';
+
+  @override
+  String get wishOtherApp => 'Autre app';
 }

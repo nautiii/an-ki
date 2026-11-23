@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:an_ki/core/services/phone_contact_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/birthday/data/birthday_repository.dart';
 import 'package:an_ki/features/birthday/data/share_service.dart';
@@ -14,10 +15,12 @@ import '../../../support/fake_providers.dart';
 void main() {
   late RecordingBirthdayRepository repository;
   late FakeShareService share;
+  late FakePhoneContactService phone;
 
   setUp(() {
     repository = RecordingBirthdayRepository();
     share = FakeShareService();
+    phone = FakePhoneContactService();
   });
 
   ProviderContainer makeContainer() {
@@ -27,6 +30,7 @@ void main() {
         birthdayRepositoryProvider.overrideWithValue(repository),
         currentUidProvider.overrideWithValue('u1'),
         shareServiceProvider.overrideWithValue(share),
+        phoneContactServiceProvider.overrideWithValue(phone),
       ],
     );
     // Provider autoDispose : un listener le garde en vie pendant le test.
@@ -86,5 +90,72 @@ void main() {
     share.pending!.complete(ShareOutcome.shared);
     expect(await first, isTrue);
     expect(share.shared, hasLength(1));
+  });
+
+  group('a person linked to a contact', () {
+    test('gets the wish by SMS, marked wished as the app opens', () async {
+      final container = makeContainer();
+
+      final wished = await container
+          .read(birthdayWisherProvider.notifier)
+          .wish(
+            birthdayId: 'lea',
+            year: 2026,
+            message: 'Joyeux anniversaire',
+            smsTo: '0611111111',
+          );
+
+      expect(wished, isTrue);
+      expect(phone.texts, [('0611111111', 'Joyeux anniversaire')]);
+      expect(share.shared, isEmpty);
+      expect(repository.wished, [('lea', 2026)]);
+    });
+
+    test('without an SMS app, falls back to the share sheet', () async {
+      phone.opens = false;
+      final container = makeContainer();
+
+      final wished = await container
+          .read(birthdayWisherProvider.notifier)
+          .wish(
+            birthdayId: 'lea',
+            year: 2026,
+            message: 'Joyeux anniversaire',
+            smsTo: '0611111111',
+          );
+
+      expect(wished, isTrue);
+      expect(share.shared, ['Joyeux anniversaire']);
+      expect(repository.wished, [('lea', 2026)]);
+    });
+
+    test('a call opens the dialer and counts as a wish', () async {
+      final container = makeContainer();
+
+      final called = await container
+          .read(birthdayWisherProvider.notifier)
+          .dial(birthdayId: 'lea', year: 2026, number: '0611111111');
+
+      expect(called, isTrue);
+      expect(phone.dialed, ['0611111111']);
+      expect(repository.wished, [('lea', 2026)]);
+    });
+
+    test('without a phone app, a call fails and marks nothing', () async {
+      phone.opens = false;
+      final container = makeContainer();
+
+      await expectLater(
+        container
+            .read(birthdayWisherProvider.notifier)
+            .dial(birthdayId: 'lea', year: 2026, number: '0611111111'),
+        throwsA(WishFailure.dialUnavailable),
+      );
+      expect(repository.wished, isEmpty);
+      expect(
+        container.read(birthdayWisherProvider).error,
+        WishFailure.dialUnavailable,
+      );
+    });
   });
 }

@@ -10,6 +10,7 @@ import 'package:an_ki/features/birthday/domain/wish_failure.dart';
 import 'package:an_ki/features/birthday/providers/birthday_editor.dart';
 import 'package:an_ki/features/birthday/providers/birthday_provider.dart';
 import 'package:an_ki/features/birthday/providers/birthday_wisher.dart';
+import 'package:an_ki/features/birthday/providers/contact_links.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_deletion.dart';
 import 'package:an_ki/features/birthday/widgets/wish_bubble.dart';
 import 'package:an_ki/features/birthday/widgets/wish_text.dart';
@@ -23,6 +24,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// « Souhaiter » qui l'envoie par la feuille de partage, ou « Déjà
 /// souhaité » quand c'est fait autrement. Une fois le vœu fait, le héros
 /// les retire.
+///
+/// Personne reliée à son contact (P5) : « Message » ouvre sa conversation
+/// SMS, texte prêt ; « Appeler » le composeur ; « Autre app » garde la
+/// feuille de partage (WhatsApp…).
 class WishActions extends ConsumerWidget {
   const WishActions({super.key, required this.birthday, required this.onColor});
 
@@ -37,6 +42,7 @@ class WishActions extends ConsumerWidget {
     final sharing = ref.watch(
       birthdayWisherProvider.select((state) => state.isLoading),
     );
+    final link = ref.watch(contactLinkProvider(birthday.id));
 
     final buttons = Wrap(
       spacing: AppSpacing.xs,
@@ -59,10 +65,38 @@ class WishActions extends ConsumerWidget {
               backgroundColor: onColor,
               foregroundColor: context.ankiColors.onCelebrationAction,
             ),
-            icon: const Icon(Icons.send_rounded),
-            label: Text(context.l10n.wish),
+            icon: Icon(link == null ? Icons.send_rounded : Icons.sms_rounded),
+            label: Text(
+              link == null ? context.l10n.wish : context.l10n.contactMessage,
+            ),
           ),
         ),
+        if (link != null) ...[
+          IconButton(
+            onPressed: sharing ? null : () => callToWish(context, birthday),
+            tooltip: context.l10n.contactCall,
+            style: IconButton.styleFrom(
+              foregroundColor: onColor,
+              // Le voile de la bulle : au plus 16 % (audit de palette).
+              backgroundColor: onColor.withValues(alpha: 0.16),
+            ),
+            icon: const Icon(Icons.call_rounded),
+          ),
+          Builder(
+            builder: (buttonContext) => TextButton(
+              onPressed: sharing
+                  ? null
+                  : () => wishBirthday(
+                      context,
+                      birthday,
+                      origin: shareOriginOf(buttonContext),
+                      share: true,
+                    ),
+              style: TextButton.styleFrom(foregroundColor: onColor),
+              child: Text(context.l10n.wishOtherApp),
+            ),
+          ),
+        ],
         TextButton(
           onPressed: () => markWishedWithUndo(context, birthday),
           style: TextButton.styleFrom(foregroundColor: onColor),
@@ -127,15 +161,17 @@ class WishedPill extends StatelessWidget {
   }
 }
 
-/// Souhaite [birthday] par la feuille de partage du système, avec [message]
-/// prêt (modifiable dans l'app choisie) : par défaut le premier vœu suggéré
-/// (le sien s'il en a un). Une app choisie le marque souhaité, avec
-/// « Annuler ». [origin] situe la feuille sur iPad.
+/// Souhaite [birthday] avec [message] prêt (modifiable dans l'app) : par
+/// défaut le premier vœu suggéré (le sien s'il en a un). Reliée à son
+/// contact, la personne reçoit un SMS (sa conversation s'ouvre) ; sinon, ou
+/// avec [share], la feuille de partage du système. L'app ouverte ou choisie
+/// le marque souhaité, avec « Annuler ». [origin] situe la feuille sur iPad.
 Future<void> wishBirthday(
   BuildContext context,
   Birthday birthday, {
   Rect? origin,
   String? message,
+  bool share = false,
 }) async {
   // Tout est lu avant d'ouvrir la feuille : le contexte peut disparaître
   // pendant qu'elle est ouverte.
@@ -152,7 +188,19 @@ Future<void> wishBirthday(
       ).first;
   // Garde le contrôleur en vie tant que la feuille est ouverte.
   final keepAlive = container.listen(birthdayWisherProvider, (_, _) {});
+  // Les liaisons attendues, pas lues telles quelles : ouverte à froid par la
+  // notification, l'app ne les a peut-être pas encore lues sur le téléphone.
+  final linksAlive = container.listen(contactLinksProvider, (_, _) {});
   try {
+    final links = container.read(contactLinksProvider);
+    final smsTo = share
+        ? null
+        : (links.hasValue
+                  ? links.requireValue
+                  : await container.read(
+                      contactLinksProvider.future,
+                    ))[birthday.id]
+              ?.number;
     final wished = await container
         .read(birthdayWisherProvider.notifier)
         .wish(
@@ -160,10 +208,33 @@ Future<void> wishBirthday(
           year: year,
           message: text,
           origin: origin,
+          smsTo: smsTo,
         );
     if (wished) announcer.wished(birthday, year);
-  } on WishFailure {
-    announcer.failed();
+  } on WishFailure catch (failure) {
+    announcer.failed(failure);
+  } finally {
+    keepAlive.close();
+    linksAlive.close();
+  }
+}
+
+/// Appelle [birthday], reliée à son contact : le composeur s'ouvre avec son
+/// numéro, et l'appel compte comme vœu, avec « Annuler ».
+Future<void> callToWish(BuildContext context, Birthday birthday) async {
+  final container = ProviderScope.containerOf(context, listen: false);
+  final number = container.read(contactLinkProvider(birthday.id))?.number;
+  if (number == null) return;
+  final announcer = _WishAnnouncer.of(context, container);
+  final year = birthday.wishYear(container.read(todayProvider));
+  final keepAlive = container.listen(birthdayWisherProvider, (_, _) {});
+  try {
+    final called = await container
+        .read(birthdayWisherProvider.notifier)
+        .dial(birthdayId: birthday.id, year: year, number: number);
+    if (called) announcer.wished(birthday, year);
+  } on WishFailure catch (failure) {
+    announcer.failed(failure);
   } finally {
     keepAlive.close();
   }
@@ -221,10 +292,17 @@ class _WishAnnouncer {
       );
   }
 
-  /// La feuille de partage ne s'est pas ouverte.
-  void failed() => messenger
+  /// La feuille de partage, ou le composeur, ne s'est pas ouvert.
+  void failed(WishFailure failure) => messenger
     ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(l10n.errorSharing)));
+    ..showSnackBar(
+      SnackBar(
+        content: Text(switch (failure) {
+          WishFailure.shareUnavailable => l10n.errorSharing,
+          WishFailure.dialUnavailable => l10n.contactAppUnavailable,
+        }),
+      ),
+    );
 }
 
 /// Rectangle du bouton touché, où pointe la feuille de partage sur iPad

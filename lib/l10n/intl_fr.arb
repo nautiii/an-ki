@@ -1997,5 +1997,9 @@
   "contactAppUnavailable": "Aucune app pour appeler ou écrire sur ce téléphone.",
   "@contactAppUnavailable": {
     "description": "Snackbar : ni composeur ni app de SMS"
+  },
+  "wishOtherApp": "Autre app",
+  "@wishOtherApp": {
+    "description": "Jour J, personne reliée à son contact : envoie le vœu par la feuille de partage plutôt que par SMS"
   }
 }
