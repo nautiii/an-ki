@@ -418,10 +418,15 @@ app, no disabled shortcut. Icons are drawable names (`res/drawable*/ic_shortcut_
 Android 8+. The plugin never checks `FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY`: an activity recreated
 from the recent apps after its process died would replay the launch shortcut, so `MainActivity`
 drops the plugin's extra in that case (its key is internal to the plugin: check it at each
-upgrade). Dynamic shortcuts outlive the session: `app/` sets none while signed out.
+upgrade). Dynamic shortcuts outlive the session: `app/` sets none while signed out, but a
+shortcut the user pinned to the home screen survives sign-out or an account switch (only
+`ShortcutManagerCompat.disableShortcuts`, out of the plugin's reach, would grey it out). The
+night colours (`values-night`) don't reach the emulator's launcher on 2026-11-23: its menu kept
+the day icons in dark mode (cause not established; the day icons stay readable there).
 
 **Revisit when** pinning a person to the home screen is wanted (with the home-screen widget, P1),
-or an upgrade of the plugin changes its launch intent.
+an upgrade of the plugin changes its launch intent, or a pinned « Souhaiter à … » must be disabled
+at sign-out.
 
 ---
 

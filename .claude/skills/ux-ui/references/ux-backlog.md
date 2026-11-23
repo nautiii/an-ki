@@ -42,7 +42,7 @@ for editing); P1 + P3 and P5 get their own briefs.
 | — | All | Primary `#BD0046` ≈ error `#BA1A1A`: cancel and destructive buttons, focused and erroneous fields look alike | Fixed by day 2026-11-15: error from a vermilion seed `#F4511E` (vibrant) → `#B02E00` (ΔE OKLab 5.6 → 8.4). By night still close: `#FFB5A0` vs `#FFB2BC`, ΔE 2.5 → 4.1, chroma capped at tone 80; option: dark error at tone 75 (`#FFA086`, ΔE 6.9) — decide after a device check |
 | — | Build | Release build fails: `IconData(icon, …)` built at run time in `category_display.dart:11` defeats icon tree-shaking (pre-existing) | Fixed 2026-11-22: a constant table of the icons a group can carry, `Icons.category` for an unknown code; `flutter build apk --release` passes; the codes of the shared and older hand-made groups, read from Firestore, are in the table (fb0dbcb); the 12 groups show their own icon on the emulator (2026-11-23) |
 | P10 | All | Person page redesign: header on the lotus gradient, action row (Souhaiter · Message), reminders on one line, wishes as a timeline of years | Shipped 2026-11-21: hero card header (before the day, J-0 with the wish inside, the day after « Hier »), tonal group chips, message in a cloud bubble, reminders on one line opening a sheet, years as mint chips; 1,140 → 565 dp for a full profile |
-| P1 + P3 | See who's next, capture | Home-screen widget (next birthdays, J-0 « Souhaiter »); app shortcuts (Ajouter, Rechercher, « Souhaiter à Léa ») | Own brief: packages `home_widget`, `quick_actions`, native Glance code |
+| P1 + P3 | See who's next, capture | Home-screen widget (next birthdays, J-0 « Souhaiter »); app shortcuts (Ajouter, Rechercher, « Souhaiter à Léa ») | P3 shipped 2026-11-23 on `claude/app-shortcuts-c19718` (00c9ad4, 38bbb48, 2c64ad1, d6c6d0d; D16): « Souhaiter à … » first on the day (or the day after, unwished), then Ajouter, Rechercher, Scanner un livre; checked on the emulator, from the app killed and in background. Open: system back on Rechercher launched cold leaves the app; night icons not shown by the emulator launcher; a pinned shortcut survives sign-out; biometric lock not checked on device. P1 (widget) still needs its brief: `home_widget`, native Glance code |
 | P5 | Wish | Link to the person's contact, opted in person by person: « Appeler », « Message » with the text ready | Own brief: data model, and the promise « AnKi ne lit que les noms et les dates » |
 | P9 | Capture | A suggestion when a phone contact gains a birthday | Later, once access is granted |
 | — | Capture | Android 17 contact picker: Play declaration for `READ_CONTACTS` (the bulk import justifies it); a single add through the picker | Watch: check that a birthday can be requested |
@@ -321,7 +321,7 @@ holds the logo test.
 
 1. **Theme A « Lotus au clair de lune » + P2** shipped 2026-11-15; ux-ui skill evals run (iteration 1), criteria to tighten.
 2. **P7 + P8** capture and **P4 + P6** wish shipped 2026-11-20.
-3. ~~**P10** person page~~ (shipped); then the **P1 + P3** (widget, shortcuts) and **P5** (contact link) briefs.
+3. ~~**P10** person page~~ (shipped); **P3** shortcuts shipped 2026-11-23; then the **P1** (widget) and **P5** (contact link) briefs.
 4. **B8, D17** — depth and polish (D29 if it matters).
 5. **B9 Livres** — approved 2026-11-08, in progress: modules, then series, shelf, burst scan,
    release dates, discovery card; **B9-ext** (release reminders) proposed after it.
