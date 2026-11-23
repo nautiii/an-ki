@@ -139,8 +139,9 @@ gotchas (§17).
   set in Réglages › Anniversaires (0746d3b). The app's language comes from the profile, not Android.
 - A theme switch while the app runs can leave dark status-bar icons on a dark screen: cold-start
   in dark mode before judging the bars. `theme dark` changes the app only when its theme is
-  « Système » (Réglages › Préférences); a dark profile with a light system flashes light at cold
-  start: known as ux D28, not a regression. Measure startup in release only (debug is JIT).
+  « Système » (Réglages › Préférences). A cold start opens in the theme of the last profile
+  loaded on the device (ux D28); only the first launch after install follows the system until
+  the profile loads. Measure startup in release only (debug is JIT).
 - `type` is ASCII only. `ui` and `tap` see only what Flutter exposes to accessibility: an
   unlabelled element is invisible to them, an accessibility finding in itself. A tile's
   semantics merge into one label (« Camille Martin / 15 mars »): tap any part of it.

@@ -40,7 +40,7 @@ for editing); P1 + P3 and P5 get their own briefs.
 | P4 + P6 | Wish | Three suggested wishes (age, tone by group, length), one tap to share; belated wish the day after (D15) | Shipped 2026-11-20 (062b1e0, 8ca95a2, ac30d0a): first message in a bubble above « Souhaiter », « Autres messages » sheet, FR + EN; P6 reduced by the maintainer to the belated message and « a eu 34 ans » on the « Hier » card (patterns §L). Not checked: light theme on device, real TalkBack |
 | P2 | See who's next | One plum night from the native splash to the agenda (D28), cold start measured | Shipped 2026-11-15 (7d1c995): splash and startup screen in plum night. Cold start **4.1 s** (median of 5, profile build, emulator) — over the < 2 s promise: measure on the phone, then profile the start |
 | — | All | Primary `#BD0046` ≈ error `#BA1A1A`: cancel and destructive buttons, focused and erroneous fields look alike | Fixed by day 2026-11-15: error from a vermilion seed `#F4511E` (vibrant) → `#B02E00` (ΔE OKLab 5.6 → 8.4). By night still close: `#FFB5A0` vs `#FFB2BC`, ΔE 2.5 → 4.1, chroma capped at tone 80; option: dark error at tone 75 (`#FFA086`, ΔE 6.9) — decide after a device check |
-| — | Build | Release build fails: `IconData(icon, …)` built at run time in `category_display.dart:11` defeats icon tree-shaking (pre-existing) | Open |
+| — | Build | Release build fails: `IconData(icon, …)` built at run time in `category_display.dart:11` defeats icon tree-shaking (pre-existing) | Fixed 2026-11-22: a constant table of the icons a group can carry, `Icons.category` for an unknown code; `flutter build apk --release` passes; the codes of the shared and older hand-made groups, read from Firestore, are in the table (fb0dbcb). Not re-checked on the emulator since |
 | P10 | All | Person page redesign: header on the lotus gradient, action row (Souhaiter · Message), reminders on one line, wishes as a timeline of years | Shipped 2026-11-21: hero card header (before the day, J-0 with the wish inside, the day after « Hier »), tonal group chips, message in a cloud bubble, reminders on one line opening a sheet, years as mint chips; 1,140 → 565 dp for a full profile |
 | P1 + P3 | See who's next, capture | Home-screen widget (next birthdays, J-0 « Souhaiter »); app shortcuts (Ajouter, Rechercher, « Souhaiter à Léa ») | Own brief: packages `home_widget`, `quick_actions`, native Glance code |
 | P5 | Wish | Link to the person's contact, opted in person by person: « Appeler », « Message » with the text ready | Own brief: data model, and the promise « AnKi ne lit que les noms et les dates » |
@@ -306,13 +306,12 @@ holds the logo test.
 
 - **D17 iOS wish button**: iOS notifications have no « Souhaiter » (Darwin categories are
   declared at initialization, before the texts are localized) → add a category once iOS builds.
-- **D28 light flash at cold start** (seen 2026-11-05 on the emulator, dark profile, light
-  system): native splash (#121318) → blank light screen → dark home. `_StartupScreen`
-  (`app/router/app_router.dart`) is an empty `Scaffold` painted with `ThemeMode.system`, since
-  `themeProvider` waits for the profile → paint it in the splash colour, or start from the last
-  theme kept on the device. Priority: medium, seen on every cold start. Half fixed (P2,
-  2026-11-15): splash and startup screen share the plum night, but while the profile loads the
-  home can still show a few frames in the system theme → keep the last theme on the device.
+- **D28 system-theme flash at cold start**: fixed (P2 2026-11-15, plum night from the splash;
+  2026-11-22, the phone keeps the theme of the last loaded profile in `DeviceSettings`, read by
+  `main` before the first frame; e9f5a04 bounds that read only after initialization, since it
+  queues 1.9-6.6 s behind the plugins). To check on the emulator (profile build, 3 cold
+  starts): the 944ed1a version still flashed light, e9f5a04 is not checked yet. Left: the very
+  first launch on a phone (nothing kept yet) follows the system until the profile loads.
 - **D29 guest details lost on a merge duplicate** (B5.5, 2026-11-05): when a guest's birthday
   matches one already in the Google account, the account's record wins and the guest's photo,
   wished years and own reminders on it are dropped → fill the account record's empty fields from
