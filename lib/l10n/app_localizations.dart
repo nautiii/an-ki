@@ -1040,10 +1040,10 @@ abstract class AppLocalizations {
   /// **'Ajouter à la main'**
   String get addByHand;
 
-  /// Sous l'invitation à importer : ce que lit AnKi dans le répertoire
+  /// Sous l'invitation à importer : ce que lit l'import dans le répertoire ; la liaison d'une personne a sa phrase à elle (contactLinkPrivacy)
   ///
   /// In fr, this message translates to:
-  /// **'AnKi ne lit que les noms et les dates d\'anniversaire.'**
+  /// **'L\'import ne lit que les noms et les dates d\'anniversaire.'**
   String get contactsPrivacy;
 
   /// No description provided for @bookTitle.
@@ -2779,6 +2779,78 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Souhaiter à {name}'**
   String shortcutWish(String name);
+
+  /// Page personne, non reliée : ouvre le sélecteur de numéros du système
+  ///
+  /// In fr, this message translates to:
+  /// **'Relier à un contact'**
+  String get contactLinkAction;
+
+  /// Sous « Relier à un contact » : ce qu'AnKi reçoit et où il le garde
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous choisissez un seul numéro. Il reste sur ce téléphone.'**
+  String get contactLinkPrivacy;
+
+  /// Page personne, reliée : sous le numéro, la liaison n'existe que sur cet appareil
+  ///
+  /// In fr, this message translates to:
+  /// **'Numéro gardé sur ce téléphone'**
+  String get contactLinkOnThisPhone;
+
+  /// Info-bulle du menu de la liaison (changer, délier)
+  ///
+  /// In fr, this message translates to:
+  /// **'Options du contact'**
+  String get contactLinkMenu;
+
+  /// Menu de la liaison : choisir un autre numéro
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer de contact'**
+  String get contactLinkChange;
+
+  /// Menu de la liaison : efface le numéro de ce téléphone
+  ///
+  /// In fr, this message translates to:
+  /// **'Délier'**
+  String get contactLinkRemove;
+
+  /// Snackbar après « Délier », avec Annuler
+  ///
+  /// In fr, this message translates to:
+  /// **'Contact délié : numéro effacé de ce téléphone.'**
+  String get contactLinkRemoved;
+
+  /// Bouton : ouvre le composeur avec le numéro relié (n'appelle pas tout seul)
+  ///
+  /// In fr, this message translates to:
+  /// **'Appeler'**
+  String get contactCall;
+
+  /// Bouton : ouvre la conversation SMS avec le numéro relié
+  ///
+  /// In fr, this message translates to:
+  /// **'Message'**
+  String get contactMessage;
+
+  /// Snackbar : le sélecteur de contacts ne s'est pas ouvert
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir vos contacts. Réessayez.'**
+  String get contactLinkPickerUnavailable;
+
+  /// Snackbar : la liaison n'a pas pu être écrite ou effacée (relier, changer, délier)
+  ///
+  /// In fr, this message translates to:
+  /// **'La liaison n\'a pas pu être mise à jour sur ce téléphone. Réessayez.'**
+  String get contactLinkStorageFailed;
+
+  /// Snackbar : ni composeur ni app de SMS
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune app pour appeler ou écrire sur ce téléphone.'**
+  String get contactAppUnavailable;
 }
 
 class _AppLocalizationsDelegate

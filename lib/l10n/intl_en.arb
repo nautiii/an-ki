@@ -172,7 +172,7 @@
   "emptyBirthdaysMessage": "Bring in your contacts' birthdays all at once, no typing.",
   "chooseFromContacts": "Choose from my contacts",
   "addByHand": "Add by hand",
-  "contactsPrivacy": "AnKi only reads names and birthdays.",
+  "contactsPrivacy": "Importing only reads names and birthdays.",
   "bookTitle": "Title",
   "bookUntitled": "Unknown title",
   "deleteAccount": "Delete my account",
@@ -499,5 +499,17 @@
   "personRemindersNone": "No reminders",
   "personWishRemoveYear": "Remove the {year} wish",
   "wishMessageOwnCaption": "Your message for {date}",
-  "shortcutWish": "Wish {name}"
+  "shortcutWish": "Wish {name}",
+  "contactLinkAction": "Link to a contact",
+  "contactLinkPrivacy": "You pick one number. It stays on this phone.",
+  "contactLinkOnThisPhone": "Number kept on this phone",
+  "contactLinkMenu": "Contact options",
+  "contactLinkChange": "Change contact",
+  "contactLinkRemove": "Unlink",
+  "contactLinkRemoved": "Contact unlinked: number erased from this phone.",
+  "contactCall": "Call",
+  "contactMessage": "Message",
+  "contactLinkPickerUnavailable": "Couldn't open your contacts. Try again.",
+  "contactLinkStorageFailed": "Couldn't update this link on this phone. Try again.",
+  "contactAppUnavailable": "No app on this phone to call or text."
 }

@@ -16,6 +16,7 @@ import 'package:an_ki/features/birthday/providers/category_provider.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_form_sheet.dart';
 import 'package:an_ki/features/birthday/widgets/birthday_wish.dart';
 import 'package:an_ki/features/birthday/widgets/category_display.dart';
+import 'package:an_ki/features/birthday/widgets/person_contact_section.dart';
 import 'package:an_ki/features/birthday/widgets/person_header.dart';
 import 'package:an_ki/features/birthday/widgets/person_reminders_tile.dart';
 import 'package:an_ki/features/birthday/widgets/wish_years.dart';
@@ -120,6 +121,9 @@ class _PersonDetails extends ConsumerWidget {
           _GroupChips(categories: categories),
         ],
         const SizedBox(height: AppSpacing.lg),
+        // Appeler ou écrire, une fois la personne reliée à son contact ;
+        // l'écart qui la suit est le sien (rien hors Android).
+        PersonContactSection(birthday: birthday),
         // Le jour du vœu, la bulle montre déjà ce message et la feuille des
         // autres permet d'écrire le sien : pas deux fois le même texte.
         if (!birthday.canWish(today) || birthday.isWished(today)) ...[

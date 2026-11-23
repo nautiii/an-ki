@@ -606,9 +606,9 @@
     "description": "Action principale de l'accueil vide : ouvre l'import des contacts"
   },
   "addByHand": "Ajouter à la main",
-  "contactsPrivacy": "AnKi ne lit que les noms et les dates d'anniversaire.",
+  "contactsPrivacy": "L'import ne lit que les noms et les dates d'anniversaire.",
   "@contactsPrivacy": {
-    "description": "Sous l'invitation à importer : ce que lit AnKi dans le répertoire"
+    "description": "Sous l'invitation à importer : ce que lit l'import dans le répertoire ; la liaison d'une personne a sa phrase à elle (contactLinkPrivacy)"
   },
   "bookTitle": "Titre",
   "bookUntitled": "Titre inconnu",
@@ -1949,5 +1949,53 @@
     "placeholders": {
       "name": { "type": "String" }
     }
+  },
+  "contactLinkAction": "Relier à un contact",
+  "@contactLinkAction": {
+    "description": "Page personne, non reliée : ouvre le sélecteur de numéros du système"
+  },
+  "contactLinkPrivacy": "Vous choisissez un seul numéro. Il reste sur ce téléphone.",
+  "@contactLinkPrivacy": {
+    "description": "Sous « Relier à un contact » : ce qu'AnKi reçoit et où il le garde"
+  },
+  "contactLinkOnThisPhone": "Numéro gardé sur ce téléphone",
+  "@contactLinkOnThisPhone": {
+    "description": "Page personne, reliée : sous le numéro, la liaison n'existe que sur cet appareil"
+  },
+  "contactLinkMenu": "Options du contact",
+  "@contactLinkMenu": {
+    "description": "Info-bulle du menu de la liaison (changer, délier)"
+  },
+  "contactLinkChange": "Changer de contact",
+  "@contactLinkChange": {
+    "description": "Menu de la liaison : choisir un autre numéro"
+  },
+  "contactLinkRemove": "Délier",
+  "@contactLinkRemove": {
+    "description": "Menu de la liaison : efface le numéro de ce téléphone"
+  },
+  "contactLinkRemoved": "Contact délié\u00a0: numéro effacé de ce téléphone.",
+  "@contactLinkRemoved": {
+    "description": "Snackbar après « Délier », avec Annuler"
+  },
+  "contactCall": "Appeler",
+  "@contactCall": {
+    "description": "Bouton : ouvre le composeur avec le numéro relié (n'appelle pas tout seul)"
+  },
+  "contactMessage": "Message",
+  "@contactMessage": {
+    "description": "Bouton : ouvre la conversation SMS avec le numéro relié"
+  },
+  "contactLinkPickerUnavailable": "Impossible d'ouvrir vos contacts. Réessayez.",
+  "@contactLinkPickerUnavailable": {
+    "description": "Snackbar : le sélecteur de contacts ne s'est pas ouvert"
+  },
+  "contactLinkStorageFailed": "La liaison n'a pas pu être mise à jour sur ce téléphone. Réessayez.",
+  "@contactLinkStorageFailed": {
+    "description": "Snackbar : la liaison n'a pas pu être écrite ou effacée (relier, changer, délier)"
+  },
+  "contactAppUnavailable": "Aucune app pour appeler ou écrire sur ce téléphone.",
+  "@contactAppUnavailable": {
+    "description": "Snackbar : ni composeur ni app de SMS"
   }
 }

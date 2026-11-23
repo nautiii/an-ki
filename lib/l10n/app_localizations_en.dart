@@ -610,7 +610,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addByHand => 'Add by hand';
 
   @override
-  String get contactsPrivacy => 'AnKi only reads names and birthdays.';
+  String get contactsPrivacy => 'Importing only reads names and birthdays.';
 
   @override
   String get bookTitle => 'Title';
@@ -1921,4 +1921,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String shortcutWish(String name) {
     return 'Wish $name';
   }
+
+  @override
+  String get contactLinkAction => 'Link to a contact';
+
+  @override
+  String get contactLinkPrivacy =>
+      'You pick one number. It stays on this phone.';
+
+  @override
+  String get contactLinkOnThisPhone => 'Number kept on this phone';
+
+  @override
+  String get contactLinkMenu => 'Contact options';
+
+  @override
+  String get contactLinkChange => 'Change contact';
+
+  @override
+  String get contactLinkRemove => 'Unlink';
+
+  @override
+  String get contactLinkRemoved =>
+      'Contact unlinked: number erased from this phone.';
+
+  @override
+  String get contactCall => 'Call';
+
+  @override
+  String get contactMessage => 'Message';
+
+  @override
+  String get contactLinkPickerUnavailable =>
+      'Couldn\'t open your contacts. Try again.';
+
+  @override
+  String get contactLinkStorageFailed =>
+      'Couldn\'t update this link on this phone. Try again.';
+
+  @override
+  String get contactAppUnavailable => 'No app on this phone to call or text.';
 }

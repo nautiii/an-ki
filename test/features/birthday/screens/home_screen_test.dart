@@ -100,7 +100,7 @@ void main() {
 
       expect(find.text('Qui voulez-vous fêter ?'), findsOneWidget);
       expect(
-        find.text("AnKi ne lit que les noms et les dates d'anniversaire."),
+        find.text("L'import ne lit que les noms et les dates d'anniversaire."),
         findsOneWidget,
       );
       expect(find.text('Prochain anniversaire'), findsNothing);

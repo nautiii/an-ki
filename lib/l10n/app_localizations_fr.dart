@@ -617,7 +617,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get contactsPrivacy =>
-      'AnKi ne lit que les noms et les dates d\'anniversaire.';
+      'L\'import ne lit que les noms et les dates d\'anniversaire.';
 
   @override
   String get bookTitle => 'Titre';
@@ -1958,4 +1958,45 @@ class AppLocalizationsFr extends AppLocalizations {
   String shortcutWish(String name) {
     return 'Souhaiter à $name';
   }
+
+  @override
+  String get contactLinkAction => 'Relier à un contact';
+
+  @override
+  String get contactLinkPrivacy =>
+      'Vous choisissez un seul numéro. Il reste sur ce téléphone.';
+
+  @override
+  String get contactLinkOnThisPhone => 'Numéro gardé sur ce téléphone';
+
+  @override
+  String get contactLinkMenu => 'Options du contact';
+
+  @override
+  String get contactLinkChange => 'Changer de contact';
+
+  @override
+  String get contactLinkRemove => 'Délier';
+
+  @override
+  String get contactLinkRemoved =>
+      'Contact délié : numéro effacé de ce téléphone.';
+
+  @override
+  String get contactCall => 'Appeler';
+
+  @override
+  String get contactMessage => 'Message';
+
+  @override
+  String get contactLinkPickerUnavailable =>
+      'Impossible d\'ouvrir vos contacts. Réessayez.';
+
+  @override
+  String get contactLinkStorageFailed =>
+      'La liaison n\'a pas pu être mise à jour sur ce téléphone. Réessayez.';
+
+  @override
+  String get contactAppUnavailable =>
+      'Aucune app pour appeler ou écrire sur ce téléphone.';
 }
