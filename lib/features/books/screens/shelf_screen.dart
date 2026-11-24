@@ -4,6 +4,7 @@ import 'package:an_ki/core/common/anki_avatar.dart';
 import 'package:an_ki/core/common/anki_empty_state.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/constants/app_assets.dart';
+import 'package:an_ki/core/extensions/focus_extension.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
@@ -124,7 +125,10 @@ class _ShelfAppBar extends ConsumerWidget {
           icon: const Icon(Icons.library_add_rounded),
         ),
         IconButton(
-          onPressed: () => unawaited(context.push(AppRoutes.settings)),
+          onPressed: () {
+            context.dismissKeyboard();
+            unawaited(context.push(AppRoutes.settings));
+          },
           tooltip: l10n.settings,
           icon: AnKiAvatar(name: name ?? '', radius: 16),
         ),
@@ -150,8 +154,12 @@ class _ShelfContent extends ConsumerWidget {
     final toBuy = ref.watch(shelfToBuyProvider).value ?? const [];
     final upcoming = ref.watch(upcomingReleasesProvider).value ?? const [];
     final browsing = query.isEmpty;
-    void open(ShelfEntry entry) =>
-        unawaited(context.push(AppRoutes.series(entry.series.id)));
+    void open(ShelfEntry entry) {
+      // La recherche rend le focus avant de partir : au retour, le clavier
+      // ne s'ouvre pas tout seul sur l'étagère.
+      context.dismissKeyboard();
+      unawaited(context.push(AppRoutes.series(entry.series.id)));
+    }
 
     final head = SliverList.list(
       children: [
@@ -301,7 +309,11 @@ class _InboxRow extends StatelessWidget {
     );
     final count = shelf.unclassified.length;
     final titles = words.inboxTitles(shelf.unclassified);
-    void open() => unawaited(context.push(AppRoutes.booksInbox));
+    void open() {
+      context.dismissKeyboard();
+      unawaited(context.push(AppRoutes.booksInbox));
+    }
+
     return Material(
       color: colorScheme.surfaceContainerHigh,
       shape: const RoundedSuperellipseBorder(
@@ -382,6 +394,7 @@ class _FirstRun extends StatelessWidget {
 
 /// Ouvre « Ajouter une série », puis la série ajoutée.
 Future<void> addSeriesByHand(BuildContext context) async {
+  context.dismissKeyboard();
   final id = await AddSeriesSheet.show(context);
   if (id == null || !context.mounted) return;
   await context.push(AppRoutes.series(id));

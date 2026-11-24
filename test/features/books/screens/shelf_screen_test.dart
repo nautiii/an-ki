@@ -308,6 +308,47 @@ void main() {
       expect(find.text('Page série'), findsOneWidget);
     });
 
+    testWidgets('back from the settings, the keyboard stays closed', (
+      tester,
+    ) async {
+      await pumpShelf(
+        tester,
+        filled(),
+        routes: {AppRoutes.settings: (_) => const BackButton()},
+      );
+      await tester.tap(find.byType(TextField));
+      await tester.pump();
+
+      await tester.tap(find.byTooltip('Paramètres'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+
+      final field = tester.widget<EditableText>(find.byType(EditableText));
+      expect(field.focusNode.hasFocus, isFalse);
+    });
+
+    testWidgets('back from a series, the keyboard stays closed', (
+      tester,
+    ) async {
+      await pumpShelf(
+        tester,
+        filled(),
+        routes: {AppRoutes.seriesPattern: (_) => const BackButton()},
+      );
+      await tester.tap(find.byType(TextField));
+      await tester.pump();
+      expect(tester.testTextInput.isVisible, isTrue);
+
+      await tester.tap(find.text('One Piece'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+
+      final field = tester.widget<EditableText>(find.byType(EditableText));
+      expect(field.focusNode.hasFocus, isFalse);
+    });
+
     testWidgets('the inbox card counts the volumes and opens the inbox', (
       tester,
     ) async {

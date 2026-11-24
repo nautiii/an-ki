@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:an_ki/app/modules/app_module.dart';
+import 'package:an_ki/core/extensions/focus_extension.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/books/providers/shelf_data_hooks.dart';
 import 'package:an_ki/features/books/screens/book_scanner_screen.dart';
@@ -26,7 +27,12 @@ final booksModule = AppModule(
   primaryAction: ModuleAction(
     icon: Icons.qr_code_scanner_rounded,
     label: (l10n) => l10n.scanBook,
-    onPressed: (context, _) => unawaited(context.push(AppRoutes.booksScan)),
+    onPressed: (context, _) {
+      // Une recherche en cours sur l'étagère : le clavier ne revient pas au
+      // retour du scanner.
+      context.dismissKeyboard();
+      unawaited(context.push(AppRoutes.booksScan));
+    },
   ),
   shortcuts: [
     ModuleShortcut(
