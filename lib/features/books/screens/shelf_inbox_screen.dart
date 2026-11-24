@@ -122,7 +122,11 @@ class _InboxTile extends StatelessWidget {
 
     // Au-delà de 150 % de texte, la ligne s'empile.
     final stacked = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
-    final cover = SeriesCover(name: volume.title, imageUrl: volume.imageUrl);
+    final cover = SeriesCover(
+      name: volume.title,
+      imageUrl: volume.imageUrl,
+      width: 48,
+    );
     final text = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -66,8 +66,87 @@ void main() {
 
     expect(find.text('One Piece'), findsOneWidget);
     expect(find.text('108'), findsOneWidget);
-    expect(find.text('Prochain : tome 109 · 3 décembre'), findsOneWidget);
+    expect(find.text('Tome 109 · 3 décembre'), findsOneWidget);
     expect(find.text('Il vous manque 13, 14'), findsOneWidget);
+  });
+
+  testWidgets('the status is tinted by what it asks, with its icon', (
+    tester,
+  ) async {
+    await pumpTile(tester);
+    final context = tester.element(find.byType(SeriesTile));
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // Une date à venir : le nuage.
+    expect(find.byIcon(Icons.event_rounded), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text('Tome 109 · 3 décembre')).style?.color,
+      colorScheme.tertiary,
+    );
+  });
+
+  testWidgets('a released volume is raspberry, a closed series done', (
+    tester,
+  ) async {
+    final released = shelfOf([
+      Series(
+        id: 's',
+        name: 'Naruto',
+        keys: const [],
+        complete: false,
+        next: NextVolumeInfo(
+          number: 2,
+          status: ReleaseStatus.released,
+          source: ReleaseSource.bnf,
+          checkedAt: DateTime(2026, 11),
+        ),
+      ),
+    ], const []).entries.single;
+    await pumpTile(tester, entry: released);
+    final colorScheme = Theme.of(tester.element(find.byType(SeriesTile)))
+        .colorScheme;
+
+    expect(find.byIcon(Icons.new_releases_rounded), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text('Tome 2 paru')).style?.color,
+      colorScheme.primary,
+    );
+  });
+
+  testWidgets('an unknown date stays neutral', (tester) async {
+    final unknown = shelfOf(
+      const [Series(id: 's', name: 'Naruto', keys: [], complete: false)],
+      [
+        Volume(
+          id: '1',
+          seriesId: 's',
+          number: 1,
+          title: 'T1',
+          authors: const [],
+          lookup: LookupState.found,
+          addedAt: DateTime(2026),
+        ),
+      ],
+    ).entries.single;
+    await pumpTile(tester, entry: unknown);
+    final colorScheme = Theme.of(tester.element(find.byType(SeriesTile)))
+        .colorScheme;
+
+    expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text('Tome 2 · date inconnue')).style?.color,
+      colorScheme.onSurfaceVariant,
+    );
+  });
+
+  testWidgets('a closed series says it is complete', (tester) async {
+    final closed = shelfOf(const [
+      Series(id: 's', name: 'Naruto', keys: [], complete: true),
+    ], const []).entries.single;
+    await pumpTile(tester, entry: closed);
+
+    expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
+    expect(find.text('Série terminée'), findsOneWidget);
   });
 
   testWidgets('an empty series has no big number', (tester) async {

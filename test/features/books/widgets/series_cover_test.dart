@@ -67,6 +67,33 @@ void main() {
       expect(tester.getSize(find.byType(SeriesCover)), const Size(96, 144));
     });
 
+    testWidgets('a large cover without an image carries the name', (
+      tester,
+    ) async {
+      await tester.pumpHarness(const SeriesCover(name: 'Blacksad', width: 140));
+
+      // Une jaquette : le nom composé, pas les initiales.
+      expect(find.text('Blacksad'), findsOneWidget);
+      expect(find.text('B'), findsNothing);
+    });
+
+    testWidgets('on lotus, the fallback takes the canvas', (tester) async {
+      await tester.pumpHarness(
+        const SeriesCover(name: 'Blacksad', width: 40, onLotus: true),
+      );
+
+      final context = tester.element(find.byType(SeriesCover));
+      final box = tester.widget<ColoredBox>(
+        find
+            .descendant(
+              of: find.byType(SeriesCover),
+              matching: find.byType(ColoredBox),
+            )
+            .first,
+      );
+      expect(box.color, Theme.of(context).colorScheme.surface);
+    });
+
     testWidgets('is left out of the semantics tree', (tester) async {
       final semantics = tester.ensureSemantics();
       await tester.pumpHarness(const SeriesCover(name: 'One Piece'));

@@ -982,15 +982,6 @@
       }
     }
   },
-  "shelfInboxHint": "{count, plural, =1{Un tome attend sa série} other{{count} tomes attendent leur série}}",
-  "@shelfInboxHint": {
-    "description": "Sous-titre de la carte « À classer » de l'étagère",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "shelfEmptyTitle": "Votre étagère vous attend",
   "@shelfEmptyTitle": {
     "description": "Étagère vide (premier lancement) : titre"
@@ -1015,7 +1006,7 @@
   "@seriesComplete": {
     "description": "Ligne d'une série close (étagère et page de la série)"
   },
-  "seriesNextOn": "Prochain\u00a0: tome {number} · {date}",
+  "seriesNextOn": "Tome {number} · {date}",
   "@seriesNextOn": {
     "description": "Ligne d'une série : prochain tome et sa date de sortie (« 3 décembre », « décembre 2026 »)",
     "placeholders": {
@@ -1027,7 +1018,7 @@
       }
     }
   },
-  "seriesNextReleased": "Prochain\u00a0: tome {number} · paru",
+  "seriesNextReleased": "Tome {number} paru",
   "@seriesNextReleased": {
     "description": "Ligne d'une série : le prochain tome est sorti",
     "placeholders": {
@@ -1036,7 +1027,7 @@
       }
     }
   },
-  "seriesNextUnknown": "Prochain\u00a0: tome {number} · date inconnue",
+  "seriesNextUnknown": "Tome {number} · date inconnue",
   "@seriesNextUnknown": {
     "description": "Ligne d'une série : aucune source ne connaît la date du prochain tome (jamais « non annoncé »)",
     "placeholders": {
@@ -1435,7 +1426,7 @@
   },
   "volumePublished": "Paru le {date}",
   "@volumePublished": {
-    "description": "Feuille d'un tome : date de parution au jour",
+    "description": "Date de parution au jour : feuille d'un tome, « À acheter » de l'étagère",
     "placeholders": {
       "date": {
         "type": "String"
@@ -1444,7 +1435,7 @@
   },
   "volumePublishedIn": "Paru en {period}",
   "@volumePublishedIn": {
-    "description": "Feuille d'un tome : date de parution au mois ou à l'année (« juin 2013 », « 2013 »)",
+    "description": "Date de parution au mois ou à l'année (« juin 2013 », « 2013 ») : feuille d'un tome, « À acheter » de l'étagère",
     "placeholders": {
       "period": {
         "type": "String"
@@ -1646,7 +1637,7 @@
   },
   "previousVolumesAdded": "{count, plural, one{{count} tome ajouté · infos en cours} other{{count} tomes ajoutés · infos en cours}}",
   "@previousVolumesAdded": {
-    "description": "Snackbar après « J'ai aussi les tomes … », avec Annuler ; leurs infos se cherchent ensuite",
+    "description": "Snackbar après « J'ai aussi les tomes … », « Acheté » ou « Je les ai », avec Annuler ; leurs infos se cherchent ensuite",
     "placeholders": {
       "count": {
         "type": "int"
@@ -2001,5 +1992,129 @@
   "wishOtherApp": "Autre app",
   "@wishOtherApp": {
     "description": "Jour J, personne reliée à son contact : envoie le vœu par la feuille de partage plutôt que par SMS"
+  },
+  "shelfToBuyTitle": "Paru · pas encore chez vous",
+  "@shelfToBuyTitle": {
+    "description": "Étagère : en-tête de la carte des tomes parus que l'utilisateur n'a pas"
+  },
+  "shelfVolumeOf": "{series} · tome {number}",
+  "@shelfVolumeOf": {
+    "description": "Étagère : une série et un de ses tomes (« À acheter », « Prochaines sorties »)",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "shelfReleased": "Paru",
+  "@shelfReleased": {
+    "description": "Étagère, « À acheter » : tome paru dont la date n'est pas connue"
+  },
+  "shelfBought": "Acheté",
+  "@shelfBought": {
+    "description": "Étagère, « À acheter » : bouton qui ajoute le tome paru à la série"
+  },
+  "a11yShelfBought": "Marquer {series} tome {number} comme acheté",
+  "@a11yShelfBought": {
+    "description": "TalkBack : bouton « Acheté » d'un tome paru",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "shelfUpcomingTitle": "Prochaines sorties",
+  "@shelfUpcomingTitle": {
+    "description": "Étagère : titre de la section des tomes annoncés et datés (trois au plus)"
+  },
+  "shelfReleaseIn": "{days, plural, =0{aujourd’hui} =1{demain} other{dans {days} jours}}",
+  "@shelfReleaseIn": {
+    "description": "Étagère, « Prochaines sorties » : dans combien de jours sort le tome",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "a11yShelfRelease": "{series}, tome {number}, sort le {date}, {when}",
+  "@a11yShelfRelease": {
+    "description": "TalkBack : une ligne de « Prochaines sorties » (date avec le jour de la semaine, puis « dans 9 jours »)",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "a11yShelfReleaseMonth": "{series}, tome {number}, sort en {month}",
+  "@a11yShelfReleaseMonth": {
+    "description": "TalkBack : une ligne de « Prochaines sorties » dont seul le mois est connu",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      },
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "shelfSeriesCount": "{count, plural, =1{1 série, de A à Z} other{{count} séries, de A à Z}}",
+  "@shelfSeriesCount": {
+    "description": "Étagère : libellé au-dessus de la liste des séries",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "a11yShelfInbox": "À classer, {count, plural, =1{1 tome} other{{count} tomes}}\u00a0: {titles}",
+  "@a11yShelfInbox": {
+    "description": "TalkBack : la ligne « À classer » de l'étagère, avec les titres des tomes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "titles": {
+        "type": "String"
+      }
+    }
+  },
+  "shelfInboxTitles": "{more, plural, =0{{titles}} =1{{titles} et 1 autre} other{{titles} et {more} autres}}",
+  "@shelfInboxTitles": {
+    "description": "Étagère, « À classer » : les premiers titres (séparés par des virgules), puis combien d'autres",
+    "placeholders": {
+      "titles": {
+        "type": "String"
+      },
+      "more": {
+        "type": "int"
+      }
+    }
+  },
+  "shelfToBuyMore": "{count, plural, =1{Voir 1 autre tome} other{Voir les {count} autres tomes}}",
+  "@shelfToBuyMore": {
+    "description": "Étagère, « À acheter » : déplie les tomes parus au-delà des trois premiers",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

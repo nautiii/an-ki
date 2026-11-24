@@ -113,20 +113,34 @@ void _hideThenWrite(
   );
 }
 
-/// « J'ai aussi les tomes précédents » du tome [volumeId], avec « Annuler » :
-/// les tomes sont ajoutés tout de suite (la série et ses trous suivent) et
-/// leurs infos se cherchent ensuite ; « Annuler » les retire. Rien quand il
-/// n'y a rien à ajouter.
-void addPreviousWithUndo(BuildContext context, String volumeId) {
+/// « J'ai aussi les tomes précédents » du tome [volumeId], avec « Annuler »
+/// ([addWithUndo]).
+void addPreviousWithUndo(BuildContext context, String volumeId) =>
+    addWithUndo(context, (editor) => editor.addPrevious(volumeId));
+
+/// « Acheté », « Je les ai » : les tomes [numbers] de la série [seriesId],
+/// avec « Annuler » ([addWithUndo]).
+void addNumbersWithUndo(
+  BuildContext context,
+  String seriesId,
+  List<int> numbers,
+) => addWithUndo(context, (editor) => editor.addNumbers(seriesId, numbers));
+
+/// Ajoute des tomes sans ISBN par [add], avec « Annuler » : les tomes sont
+/// ajoutés tout de suite (la série et ses trous suivent) et leurs infos se
+/// cherchent ensuite ; « Annuler » les retire. Rien quand il n'y a rien à
+/// ajouter.
+void addWithUndo(
+  BuildContext context,
+  List<String> Function(ShelfEditor editor) add,
+) {
   final container = ProviderScope.containerOf(context, listen: false);
   // Le compte de départ : « Annuler » après un changement de compte ne
   // retire rien (voir `ShelfEditor`).
   final uid = container.read(currentUidProvider);
   // L'éditeur est libéré sans auditeur : on le garde en vie jusqu'à la fin.
   final keepAlive = container.listen(shelfEditorProvider, (_, _) {});
-  final added = container
-      .read(shelfEditorProvider.notifier)
-      .addPrevious(volumeId);
+  final added = add(container.read(shelfEditorProvider.notifier));
   if (added.isEmpty) {
     keepAlive.close();
     return;

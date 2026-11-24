@@ -318,12 +318,37 @@ void main() {
       );
 
       expect(find.text('À classer (2)'), findsOneWidget);
-      expect(find.text('2 tomes attendent leur série'), findsOneWidget);
+      expect(find.textContaining('Titre loose'), findsOneWidget);
 
       await tester.tap(find.text('À classer (2)'));
       await tester.pumpAndSettle();
 
       expect(find.text('Page à classer'), findsOneWidget);
+    });
+
+    testWidgets('the inbox names three titles at most, read the same', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpShelf(
+        tester,
+        RecordingBookshelfRepository(
+          series: [_series('s1', 'Naruto')],
+          volumes: [
+            _volume('a', seriesId: 's1', number: 1),
+            for (var i = 1; i <= 5; i++)
+              _volume('l$i', at: DateTime(2026, 11, 10 - i)),
+          ],
+        ),
+      );
+
+      const titles = 'Titre l1, Titre l2, Titre l3 et 2 autres';
+      expect(find.text(titles), findsOneWidget);
+      expect(
+        find.bySemanticsLabel('À classer, 5 tomes : $titles'),
+        findsOneWidget,
+      );
+      semantics.dispose();
     });
 
     testWidgets('no inbox card when everything is sorted', (tester) async {
@@ -460,6 +485,106 @@ void main() {
         await tester.pump(const Duration(seconds: 1));
       }
       expect(find.byType(SnackBar), findsNothing);
+    });
+  });
+
+  group('agenda', () {
+    RecordingBookshelfRepository withReleased() => RecordingBookshelfRepository(
+      series: [
+        _series('s1', 'One Piece', next: next),
+        _series(
+          's2',
+          'Naruto',
+          next: NextVolumeInfo(
+            number: 2,
+            status: ReleaseStatus.released,
+            source: ReleaseSource.bnf,
+            checkedAt: DateTime(2026, 11, 8),
+          ),
+        ),
+      ],
+      volumes: [
+        _volume('a', seriesId: 's1', number: 1),
+        _volume('b', seriesId: 's2', number: 1),
+      ],
+    );
+
+    testWidgets('lists what is out, what comes next, then the series', (
+      tester,
+    ) async {
+      await pumpShelf(tester, withReleased());
+
+      expect(find.text('Paru · pas encore chez vous'), findsOneWidget);
+      expect(find.text('Naruto · tome 2'), findsOneWidget);
+      expect(find.text('Prochaines sorties'), findsOneWidget);
+      expect(find.text('One Piece · tome 109'), findsOneWidget);
+      expect(find.text('dans 25 jours'), findsOneWidget);
+      expect(find.text('2 séries, de A à Z'), findsOneWidget);
+    });
+
+    testWidgets('what to act on comes first, the series last', (tester) async {
+      await pumpShelf(tester, withReleased());
+
+      double top(String text) => tester.getTopLeft(find.text(text)).dy;
+      expect(
+        top('Paru · pas encore chez vous'),
+        lessThan(top('Prochaines sorties')),
+      );
+      expect(top('Prochaines sorties'), lessThan(top('2 séries, de A à Z')));
+    });
+
+    testWidgets('no upcoming section without a known date', (tester) async {
+      await pumpShelf(
+        tester,
+        RecordingBookshelfRepository(
+          series: [_series('s1', 'Naruto')],
+          volumes: [_volume('a', seriesId: 's1', number: 1)],
+        ),
+      );
+
+      expect(find.text('Prochaines sorties'), findsNothing);
+      expect(find.text('Paru · pas encore chez vous'), findsNothing);
+      expect(find.text('1 série, de A à Z'), findsOneWidget);
+    });
+
+    testWidgets('« Acheté » adds the volume, « Annuler » takes it back', (
+      tester,
+    ) async {
+      final repository = withReleased();
+      await pumpShelf(tester, repository);
+
+      await tester.tap(find.text('Acheté'));
+      await tester.pump();
+
+      expect(
+        repository.volumes
+            .where((v) => v.seriesId == 's2')
+            .map((v) => v.number),
+        unorderedEquals([1, 2]),
+      );
+      expect(find.textContaining('tome ajouté · infos'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      await tester.tap(find.text('Annuler'));
+      await tester.pumpAndSettle();
+
+      expect(
+        repository.volumes
+            .where((v) => v.seriesId == 's2')
+            .map((v) => v.number),
+        [1],
+      );
+    });
+
+    testWidgets('a search shows only the series', (tester) async {
+      await pumpShelf(tester, withReleased());
+
+      await tester.enterText(find.byType(TextField), 'nar');
+      await tester.pump();
+
+      expect(find.text('Paru · pas encore chez vous'), findsNothing);
+      expect(find.text('Prochaines sorties'), findsNothing);
+      expect(find.text('1 série, de A à Z'), findsOneWidget);
     });
   });
 

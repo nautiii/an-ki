@@ -99,8 +99,9 @@ void main() {
   ) async {
     await pumpSeries(tester, filled());
 
-    // Le nom est le titre de la barre et l'en-tête de la page.
-    expect(find.text('One Piece'), findsNWidgets(2));
+    // Le nom est le titre de la barre, l'en-tête de la page et la
+    // jaquette de repli (sans image).
+    expect(find.text('One Piece'), findsNWidgets(3));
     expect(find.text('Prochain'), findsOneWidget);
     expect(find.text('Tome 5 · sortie le 3 décembre'), findsOneWidget);
     expect(find.text('selon la BnF · vérifié le 8 nov.'), findsOneWidget);

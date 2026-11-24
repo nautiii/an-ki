@@ -1220,17 +1220,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String shelfInboxHint(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count tomes attendent leur série',
-      one: 'Un tome attend sa série',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get shelfEmptyTitle => 'Votre étagère vous attend';
 
   @override
@@ -1251,17 +1240,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String seriesNextOn(int number, String date) {
-    return 'Prochain : tome $number · $date';
+    return 'Tome $number · $date';
   }
 
   @override
   String seriesNextReleased(int number) {
-    return 'Prochain : tome $number · paru';
+    return 'Tome $number paru';
   }
 
   @override
   String seriesNextUnknown(int number) {
-    return 'Prochain : tome $number · date inconnue';
+    return 'Tome $number · date inconnue';
   }
 
   @override
@@ -2002,4 +1991,93 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get wishOtherApp => 'Autre app';
+
+  @override
+  String get shelfToBuyTitle => 'Paru · pas encore chez vous';
+
+  @override
+  String shelfVolumeOf(String series, int number) {
+    return '$series · tome $number';
+  }
+
+  @override
+  String get shelfReleased => 'Paru';
+
+  @override
+  String get shelfBought => 'Acheté';
+
+  @override
+  String a11yShelfBought(String series, int number) {
+    return 'Marquer $series tome $number comme acheté';
+  }
+
+  @override
+  String get shelfUpcomingTitle => 'Prochaines sorties';
+
+  @override
+  String shelfReleaseIn(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'dans $days jours',
+      one: 'demain',
+      zero: 'aujourd’hui',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String a11yShelfRelease(String series, int number, String date, String when) {
+    return '$series, tome $number, sort le $date, $when';
+  }
+
+  @override
+  String a11yShelfReleaseMonth(String series, int number, String month) {
+    return '$series, tome $number, sort en $month';
+  }
+
+  @override
+  String shelfSeriesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count séries, de A à Z',
+      one: '1 série, de A à Z',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String a11yShelfInbox(int count, String titles) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tomes',
+      one: '1 tome',
+    );
+    return 'À classer, $_temp0 : $titles';
+  }
+
+  @override
+  String shelfInboxTitles(String titles, int more) {
+    String _temp0 = intl.Intl.pluralLogic(
+      more,
+      locale: localeName,
+      other: '$titles et $more autres',
+      one: '$titles et 1 autre',
+      zero: '$titles',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shelfToBuyMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Voir les $count autres tomes',
+      one: 'Voir 1 autre tome',
+    );
+    return '$_temp0';
+  }
 }

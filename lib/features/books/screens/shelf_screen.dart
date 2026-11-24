@@ -5,6 +5,7 @@ import 'package:an_ki/core/common/anki_empty_state.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/books/domain/shelf.dart';
@@ -13,12 +14,16 @@ import 'package:an_ki/features/books/providers/shelf_editor.dart';
 import 'package:an_ki/features/books/providers/shelf_offline.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
 import 'package:an_ki/features/books/providers/shelf_view.dart';
+import 'package:an_ki/features/books/widgets/add_series_sheet.dart';
 import 'package:an_ki/features/books/widgets/offline_banner.dart';
+import 'package:an_ki/features/books/widgets/pending_completer.dart';
 import 'package:an_ki/features/books/widgets/series_tile.dart';
 import 'package:an_ki/features/books/widgets/shelf_display.dart';
+import 'package:an_ki/features/books/widgets/shelf_group.dart';
+import 'package:an_ki/features/books/widgets/shelf_undo.dart';
+import 'package:an_ki/features/books/widgets/to_buy_card.dart';
+import 'package:an_ki/features/books/widgets/upcoming_releases.dart';
 import 'package:an_ki/features/user/providers/user_provider.dart';
-import 'package:an_ki/features/books/widgets/pending_completer.dart';
-import 'package:an_ki/features/books/widgets/add_series_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -129,7 +134,8 @@ class _ShelfAppBar extends ConsumerWidget {
   }
 }
 
-/// Recherche, carte « À classer », puis les séries trouvées.
+/// Recherche, « À acheter », « À classer », « Prochaines sorties », puis
+/// toutes les séries de A à Z. Une recherche ne montre que les séries.
 class _ShelfContent extends ConsumerWidget {
   const _ShelfContent({required this.shelf});
 
@@ -138,9 +144,80 @@ class _ShelfContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final today = ref.watch(todayProvider);
     final query = ref.watch(shelfSearchProvider).trim();
     final series = ref.watch(shelfSeriesListProvider).value ?? const [];
-    final unclassified = shelf.unclassified.length;
+    final toBuy = ref.watch(shelfToBuyProvider).value ?? const [];
+    final upcoming = ref.watch(upcomingReleasesProvider).value ?? const [];
+    final browsing = query.isEmpty;
+    void open(ShelfEntry entry) =>
+        unawaited(context.push(AppRoutes.series(entry.series.id)));
+
+    final head = SliverList.list(
+      children: [
+        if (shelf.entries.isNotEmpty) ...[
+          const _ShelfSearchField(),
+          const SizedBox(height: AppSpacing.md),
+        ],
+        if (browsing && toBuy.isNotEmpty) ...[
+          ToBuyCard(
+            purchases: toBuy,
+            today: today,
+            onBought: (purchase) => addNumbersWithUndo(
+              context,
+              purchase.entry.series.id,
+              [purchase.number],
+            ),
+            onOpen: (purchase) => open(purchase.entry),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+        if (browsing && shelf.unclassified.isNotEmpty) ...[
+          _InboxRow(shelf: shelf),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+        if (browsing && upcoming.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.sm),
+          UpcomingReleases(
+            releases: upcoming,
+            today: today,
+            onOpen: (release) => open(release.entry),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+        if (series.isEmpty && !browsing)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+            child: Text(
+              l10n.shelfNoResults(query),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        if (series.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.sm),
+          ShelfSectionLabel(l10n.shelfSeriesCount(series.length)),
+          const SizedBox(height: AppSpacing.xs),
+        ],
+      ],
+    );
+    // Les séries se construisent au fil du défilement : une grande étagère
+    // ne charge pas toutes ses couvertures à l'ouverture.
+    final list = SliverList.builder(
+      itemCount: series.length,
+      itemBuilder: (context, index) {
+        final entry = series[index];
+        return ShelfGroupItem(
+          key: ValueKey(entry.series.id),
+          index: index,
+          count: series.length,
+          dividerIndent: AppSpacing.md + SeriesTile.coverWidth + AppSpacing.md,
+          child: SeriesTile(entry: entry, onTap: () => open(entry)),
+        );
+      },
+    );
 
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(
@@ -149,38 +226,7 @@ class _ShelfContent extends ConsumerWidget {
         AppSpacing.gutter,
         0,
       ),
-      sliver: SliverList.list(
-        children: [
-          if (shelf.entries.isNotEmpty) ...[
-            const _ShelfSearchField(),
-            const SizedBox(height: AppSpacing.md),
-          ],
-          if (unclassified > 0 && query.isEmpty) ...[
-            _InboxCard(count: unclassified),
-            const SizedBox(height: AppSpacing.md),
-          ],
-          if (series.isEmpty && query.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-              child: Text(
-                l10n.shelfNoResults(query),
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          for (final entry in series) ...[
-            SeriesTile(
-              key: ValueKey(entry.series.id),
-              entry: entry,
-              onTap: () =>
-                  unawaited(context.push(AppRoutes.series(entry.series.id))),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-        ],
-      ),
+      sliver: SliverMainAxisGroup(slivers: [head, list]),
     );
   }
 }
@@ -236,36 +282,77 @@ class _ShelfSearchFieldState extends ConsumerState<_ShelfSearchField> {
   }
 }
 
-/// « À classer (n) » : les tomes sans série ni numéro, ouverts d'un toucher.
-class _InboxCard extends StatelessWidget {
-  const _InboxCard({required this.count});
+/// « À classer (1) · Le Petit Prince » : une ligne compacte et neutre (le
+/// nuage ne parle que du temps à venir : seule l'icône est teintée), qui
+/// ouvre la boîte « À classer ».
+class _InboxRow extends StatelessWidget {
+  const _InboxRow({required this.shelf});
 
-  final int count;
+  final Shelf shelf;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
-    return Card(
-      margin: EdgeInsets.zero,
-      color: colorScheme.secondaryContainer,
-      child: ListTile(
-        onTap: () => unawaited(context.push(AppRoutes.booksInbox)),
-        leading: Icon(
-          Icons.inbox_rounded,
-          color: colorScheme.onSecondaryContainer,
-        ),
-        title: Text(
-          l10n.shelfInbox(count),
-          style: TextStyle(color: colorScheme.onSecondaryContainer),
-        ),
-        subtitle: Text(
-          l10n.shelfInboxHint(count),
-          style: TextStyle(color: colorScheme.onSecondaryContainer),
-        ),
-        trailing: Icon(
-          Icons.chevron_right_rounded,
-          color: colorScheme.onSecondaryContainer,
+    final textTheme = Theme.of(context).textTheme;
+    final words = ShelfWords(
+      l10n,
+      Localizations.localeOf(context).languageCode,
+    );
+    final count = shelf.unclassified.length;
+    final titles = words.inboxTitles(shelf.unclassified);
+    void open() => unawaited(context.push(AppRoutes.booksInbox));
+    return Material(
+      color: colorScheme.surfaceContainerHigh,
+      shape: const RoundedSuperellipseBorder(
+        borderRadius: BorderRadius.all(Radius.circular(AppRadii.lg)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Semantics(
+        button: true,
+        label: l10n.a11yShelfInbox(count, titles),
+        excludeSemantics: true,
+        onTap: open,
+        child: InkWell(
+          onTap: open,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: AppSpacing.xxl),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.inbox_rounded, color: colorScheme.tertiary),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.shelfInbox(count),
+                          style: textTheme.titleSmall,
+                        ),
+                        Text(
+                          titles,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -348,9 +435,11 @@ class _ShelfSkeleton extends StatelessWidget {
             children: [
               const SkeletonBox(height: 56, radius: AppRadii.xl),
               const SizedBox(height: AppSpacing.md),
+              const SkeletonBox(height: 88, radius: AppRadii.lg),
+              const SizedBox(height: AppSpacing.lg),
               for (var i = 0; i < 4; i++) ...[
-                const SkeletonBox(height: 96, radius: AppRadii.lg),
-                const SizedBox(height: AppSpacing.sm),
+                const SkeletonBox(height: 104, radius: AppRadii.lg),
+                const SizedBox(height: AppSpacing.xxs),
               ],
             ],
           ),

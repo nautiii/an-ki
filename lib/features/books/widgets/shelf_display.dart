@@ -2,6 +2,7 @@ import 'package:an_ki/features/books/domain/next_volume_status.dart';
 import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/shelf.dart';
+import 'package:an_ki/features/books/domain/shelf_agenda.dart';
 import 'package:an_ki/features/books/domain/shelf_failure.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
@@ -34,9 +35,9 @@ class ShelfWords {
         : DateFormat.yMMMMd(locale).format(value);
   }
 
-  /// Ligne « Prochain » d'une série : « Prochain : tome 109 · 3 décembre »,
-  /// « · paru », « · date inconnue » ; « Série terminée » pour une série
-  /// close. Jamais de date inventée.
+  /// Ligne de statut d'une série : « Tome 109 · 3 décembre », « Tome 109
+  /// paru », « Tome 109 · date inconnue » ; « Série terminée » pour une
+  /// série close. Jamais de date inventée.
   String nextLine(ShelfEntry entry, DateTime today) {
     final number = upcomingVolumeNumber(entry);
     final status = nextVolumeStatus(entry, today);
@@ -109,6 +110,61 @@ class ShelfWords {
     final date = entry.series.next!.date!;
     final text = releaseDate(date, today);
     return date.isMonthOnly ? month(text) : day(text);
+  }
+
+  /// Sous un tome de « À acheter » : « Paru le 3 novembre », « Paru en
+  /// octobre 2026 » pour un mois seul, « Paru » sans date.
+  String toBuyLine(ShelfPurchase purchase, DateTime today) {
+    final date = purchase.entry.series.next?.date;
+    if (date == null) return l10n.shelfReleased;
+    final text = releaseDate(date, today);
+    return date.isMonthOnly
+        ? l10n.volumePublishedIn(text)
+        : l10n.volumePublished(text);
+  }
+
+  /// Titres montrés de « À classer » : les [shownInboxTitles] premiers, puis
+  /// « et 4 autres ».
+  String inboxTitles(List<Volume> volumes) => l10n.shelfInboxTitles(
+    volumes.take(shownInboxTitles).map(volumeTitle).join(', '),
+    volumes.length > shownInboxTitles ? volumes.length - shownInboxTitles : 0,
+  );
+
+  /// Titres de « À classer » montrés, et lus par TalkBack, au plus.
+  static const int shownInboxTitles = 3;
+
+  /// Quand sort un tome de « Prochaines sorties » : « aujourd'hui »,
+  /// « demain », « dans 9 jours » ; « décembre 2026 » pour un mois seul.
+  String releaseIn(ReleaseDate date, DateTime today) {
+    final day = date.day;
+    if (day == null) return releaseDate(date, today);
+    final days = DateTime.utc(
+      date.year,
+      date.month,
+      day,
+    ).difference(DateTime.utc(today.year, today.month, today.day)).inDays;
+    return l10n.shelfReleaseIn(days);
+  }
+
+  /// Ce que TalkBack lit d'une ligne de « Prochaines sorties » : « One
+  /// Piece, tome 109, sort le mercredi 3 décembre, dans 9 jours ».
+  String releaseLabel(UpcomingRelease release, DateTime today) {
+    final date = release.date;
+    final name = release.entry.series.name;
+    final day = date.day;
+    if (day == null) {
+      return l10n.a11yShelfReleaseMonth(
+        name,
+        release.number,
+        releaseDate(date, today),
+      );
+    }
+    return l10n.a11yShelfRelease(
+      name,
+      release.number,
+      DateFormat.MMMMEEEEd(locale).format(DateTime(date.year, date.month, day)),
+      releaseIn(date, today),
+    );
   }
 
   /// « Il vous manque 13, 14 », « … et 4 autres » ; null sans trou.

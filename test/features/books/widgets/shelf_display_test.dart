@@ -1,6 +1,7 @@
 import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/shelf.dart';
+import 'package:an_ki/features/books/domain/shelf_agenda.dart';
 import 'package:an_ki/features/books/domain/shelf_failure.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/widgets/shelf_display.dart';
@@ -63,6 +64,112 @@ void main() {
     words = ShelfWords(AppLocalizations.of(context), 'fr');
   }
 
+  group('agenda', () {
+    testWidgets('toBuyLine says when the volume came out, if known', (
+      tester,
+    ) async {
+      await french(tester);
+      ShelfPurchase purchase(ReleaseDate? date) => ShelfPurchase(
+        entry: _entry(
+          next: _info(status: ReleaseStatus.released, date: date),
+        ),
+        number: 109,
+      );
+
+      expect(
+        words.toBuyLine(
+          purchase(const ReleaseDate(year: 2026, month: 11, day: 3)),
+          _today,
+        ),
+        'Paru le 3 novembre',
+      );
+      expect(words.toBuyLine(purchase(null), _today), 'Paru');
+      expect(
+        words.toBuyLine(
+          purchase(const ReleaseDate(year: 2026, month: 10)),
+          _today,
+        ),
+        'Paru en octobre 2026',
+      );
+    });
+
+    testWidgets('inboxTitles names three titles, then how many more', (
+      tester,
+    ) async {
+      await french(tester);
+      Volume loose(String title) => Volume(
+        id: title,
+        title: title,
+        authors: const [],
+        lookup: LookupState.found,
+        addedAt: DateTime(2026),
+      );
+
+      expect(words.inboxTitles([loose('Dune')]), 'Dune');
+      expect(
+        words.inboxTitles([for (final t in 'ABCD'.split('')) loose(t)]),
+        'A, B, C et 1 autre',
+      );
+      expect(
+        words.inboxTitles([for (final t in 'ABCDE'.split('')) loose(t)]),
+        'A, B, C et 2 autres',
+      );
+    });
+
+    testWidgets('releaseIn counts the days, or names the month', (
+      tester,
+    ) async {
+      await french(tester);
+
+      expect(
+        words.releaseIn(
+          const ReleaseDate(year: 2026, month: 11, day: 8),
+          _today,
+        ),
+        'aujourd’hui',
+      );
+      expect(
+        words.releaseIn(
+          const ReleaseDate(year: 2026, month: 11, day: 9),
+          _today,
+        ),
+        'demain',
+      );
+      expect(
+        words.releaseIn(
+          const ReleaseDate(year: 2026, month: 12, day: 3),
+          _today,
+        ),
+        'dans 25 jours',
+      );
+      expect(
+        words.releaseIn(const ReleaseDate(year: 2027, month: 1), _today),
+        'janvier 2027',
+      );
+    });
+
+    testWidgets('releaseLabel reads the day, then how soon', (tester) async {
+      await french(tester);
+      UpcomingRelease release(ReleaseDate date) =>
+          UpcomingRelease(entry: _entry(), number: 109, date: date);
+
+      expect(
+        words.releaseLabel(
+          release(const ReleaseDate(year: 2026, month: 12, day: 3)),
+          _today,
+        ),
+        'One Piece, tome 109, sort le jeudi 3 décembre, dans 25 jours',
+      );
+      expect(
+        words.releaseLabel(
+          release(const ReleaseDate(year: 2027, month: 1)),
+          _today,
+        ),
+        'One Piece, tome 109, sort en janvier 2027',
+      );
+    });
+  });
+
   group('nextLine', () {
     testWidgets('an announced day this year has no year', (tester) async {
       await french(tester);
@@ -70,7 +177,7 @@ void main() {
         next: _info(date: const ReleaseDate(year: 2026, month: 12, day: 3)),
       );
 
-      expect(words.nextLine(entry, _today), 'Prochain : tome 109 · 3 décembre');
+      expect(words.nextLine(entry, _today), 'Tome 109 · 3 décembre');
     });
 
     testWidgets('an announced day another year carries the year', (
@@ -81,10 +188,7 @@ void main() {
         next: _info(date: const ReleaseDate(year: 2027, month: 12, day: 3)),
       );
 
-      expect(
-        words.nextLine(entry, _today),
-        'Prochain : tome 109 · 3 décembre 2027',
-      );
+      expect(words.nextLine(entry, _today), 'Tome 109 · 3 décembre 2027');
     });
 
     testWidgets('a month only is said with its year', (tester) async {
@@ -93,17 +197,14 @@ void main() {
         next: _info(date: const ReleaseDate(year: 2027, month: 10)),
       );
 
-      expect(
-        words.nextLine(entry, _today),
-        'Prochain : tome 109 · octobre 2027',
-      );
+      expect(words.nextLine(entry, _today), 'Tome 109 · octobre 2027');
     });
 
     testWidgets('a released volume is said so', (tester) async {
       await french(tester);
       final entry = _entry(next: _info(status: ReleaseStatus.released));
 
-      expect(words.nextLine(entry, _today), 'Prochain : tome 109 · paru');
+      expect(words.nextLine(entry, _today), 'Tome 109 paru');
     });
 
     testWidgets('an unknown date is never replaced by a date', (tester) async {
@@ -115,7 +216,7 @@ void main() {
         _entry(next: _info(status: ReleaseStatus.unknown)),
       ]) {
         final line = words.nextLine(entry, _today);
-        expect(line, 'Prochain : tome 109 · date inconnue');
+        expect(line, 'Tome 109 · date inconnue');
         expect(line, isNot(contains('20')));
       }
     });

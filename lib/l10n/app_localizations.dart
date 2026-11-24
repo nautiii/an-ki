@@ -1850,12 +1850,6 @@ abstract class AppLocalizations {
   /// **'À classer ({count})'**
   String shelfInbox(int count);
 
-  /// Sous-titre de la carte « À classer » de l'étagère
-  ///
-  /// In fr, this message translates to:
-  /// **'{count, plural, =1{Un tome attend sa série} other{{count} tomes attendent leur série}}'**
-  String shelfInboxHint(int count);
-
   /// Étagère vide (premier lancement) : titre
   ///
   /// In fr, this message translates to:
@@ -1895,19 +1889,19 @@ abstract class AppLocalizations {
   /// Ligne d'une série : prochain tome et sa date de sortie (« 3 décembre », « décembre 2026 »)
   ///
   /// In fr, this message translates to:
-  /// **'Prochain : tome {number} · {date}'**
+  /// **'Tome {number} · {date}'**
   String seriesNextOn(int number, String date);
 
   /// Ligne d'une série : le prochain tome est sorti
   ///
   /// In fr, this message translates to:
-  /// **'Prochain : tome {number} · paru'**
+  /// **'Tome {number} paru'**
   String seriesNextReleased(int number);
 
   /// Ligne d'une série : aucune source ne connaît la date du prochain tome (jamais « non annoncé »)
   ///
   /// In fr, this message translates to:
-  /// **'Prochain : tome {number} · date inconnue'**
+  /// **'Tome {number} · date inconnue'**
   String seriesNextUnknown(int number);
 
   /// Trous d'une série : numéros séparés par des virgules (« 13, 14 »)
@@ -2252,13 +2246,13 @@ abstract class AppLocalizations {
   /// **'ISBN {isbn}'**
   String volumeIsbn(String isbn);
 
-  /// Feuille d'un tome : date de parution au jour
+  /// Date de parution au jour : feuille d'un tome, « À acheter » de l'étagère
   ///
   /// In fr, this message translates to:
   /// **'Paru le {date}'**
   String volumePublished(String date);
 
-  /// Feuille d'un tome : date de parution au mois ou à l'année (« juin 2013 », « 2013 »)
+  /// Date de parution au mois ou à l'année (« juin 2013 », « 2013 ») : feuille d'un tome, « À acheter » de l'étagère
   ///
   /// In fr, this message translates to:
   /// **'Paru en {period}'**
@@ -2444,7 +2438,7 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{J\'ai aussi le tome {number}} other{J\'ai aussi les {count} tomes manquants}}'**
   String previousVolumesMissing(int count, int number);
 
-  /// Snackbar après « J'ai aussi les tomes … », avec Annuler ; leurs infos se cherchent ensuite
+  /// Snackbar après « J'ai aussi les tomes … », « Acheté » ou « Je les ai », avec Annuler ; leurs infos se cherchent ensuite
   ///
   /// In fr, this message translates to:
   /// **'{count, plural, one{{count} tome ajouté · infos en cours} other{{count} tomes ajoutés · infos en cours}}'**
@@ -2857,6 +2851,84 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Autre app'**
   String get wishOtherApp;
+
+  /// Étagère : en-tête de la carte des tomes parus que l'utilisateur n'a pas
+  ///
+  /// In fr, this message translates to:
+  /// **'Paru · pas encore chez vous'**
+  String get shelfToBuyTitle;
+
+  /// Étagère : une série et un de ses tomes (« À acheter », « Prochaines sorties »)
+  ///
+  /// In fr, this message translates to:
+  /// **'{series} · tome {number}'**
+  String shelfVolumeOf(String series, int number);
+
+  /// Étagère, « À acheter » : tome paru dont la date n'est pas connue
+  ///
+  /// In fr, this message translates to:
+  /// **'Paru'**
+  String get shelfReleased;
+
+  /// Étagère, « À acheter » : bouton qui ajoute le tome paru à la série
+  ///
+  /// In fr, this message translates to:
+  /// **'Acheté'**
+  String get shelfBought;
+
+  /// TalkBack : bouton « Acheté » d'un tome paru
+  ///
+  /// In fr, this message translates to:
+  /// **'Marquer {series} tome {number} comme acheté'**
+  String a11yShelfBought(String series, int number);
+
+  /// Étagère : titre de la section des tomes annoncés et datés (trois au plus)
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochaines sorties'**
+  String get shelfUpcomingTitle;
+
+  /// Étagère, « Prochaines sorties » : dans combien de jours sort le tome
+  ///
+  /// In fr, this message translates to:
+  /// **'{days, plural, =0{aujourd’hui} =1{demain} other{dans {days} jours}}'**
+  String shelfReleaseIn(int days);
+
+  /// TalkBack : une ligne de « Prochaines sorties » (date avec le jour de la semaine, puis « dans 9 jours »)
+  ///
+  /// In fr, this message translates to:
+  /// **'{series}, tome {number}, sort le {date}, {when}'**
+  String a11yShelfRelease(String series, int number, String date, String when);
+
+  /// TalkBack : une ligne de « Prochaines sorties » dont seul le mois est connu
+  ///
+  /// In fr, this message translates to:
+  /// **'{series}, tome {number}, sort en {month}'**
+  String a11yShelfReleaseMonth(String series, int number, String month);
+
+  /// Étagère : libellé au-dessus de la liste des séries
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 série, de A à Z} other{{count} séries, de A à Z}}'**
+  String shelfSeriesCount(int count);
+
+  /// TalkBack : la ligne « À classer » de l'étagère, avec les titres des tomes
+  ///
+  /// In fr, this message translates to:
+  /// **'À classer, {count, plural, =1{1 tome} other{{count} tomes}} : {titles}'**
+  String a11yShelfInbox(int count, String titles);
+
+  /// Étagère, « À classer » : les premiers titres (séparés par des virgules), puis combien d'autres
+  ///
+  /// In fr, this message translates to:
+  /// **'{more, plural, =0{{titles}} =1{{titles} et 1 autre} other{{titles} et {more} autres}}'**
+  String shelfInboxTitles(String titles, int more);
+
+  /// Étagère, « À acheter » : déplie les tomes parus au-delà des trois premiers
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Voir 1 autre tome} other{Voir les {count} autres tomes}}'**
+  String shelfToBuyMore(int count);
 }
 
 class _AppLocalizationsDelegate
