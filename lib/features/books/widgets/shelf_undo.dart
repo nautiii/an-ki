@@ -23,7 +23,7 @@ void deleteSeriesWithUndo(BuildContext context, ShelfEntry entry) {
   _hideThenWrite(
     context,
     pendingProvider: pendingSeriesRemovalsProvider,
-    id: series.id,
+    ids: [series.id],
     message: context.l10n.seriesDeleted(series.name, entry.volumes.length),
     write: (editor, uid) => editor.deleteSeries(series.id, uid: uid),
   );
@@ -39,7 +39,7 @@ void mergeSeriesWithUndo(
 }) => _hideThenWrite(
   context,
   pendingProvider: pendingSeriesRemovalsProvider,
-  id: source.series.id,
+  ids: [source.series.id],
   message: context.l10n.seriesMerged(source.series.name, target.series.name),
   write: (editor, uid) => editor.mergeSeries(
     sourceId: source.series.id,
@@ -56,20 +56,34 @@ void removeVolumeWithUndo(
 }) => _hideThenWrite(
   context,
   pendingProvider: pendingVolumeRemovalsProvider,
-  id: volume.id,
+  ids: [volume.id],
   message: context.l10n.volumeRemoved(title),
   write: (editor, uid) => editor.removeVolume(volume.id, uid: uid),
 );
 
-/// Masque [id] ([pendingProvider]), propose « Annuler », puis écrit [write]
+/// Retire les tomes [volumeIds] (le ticket du scanner), avec « Annuler » ;
+/// [message] est le texte de la snackbar.
+void removeVolumesWithUndo(
+  BuildContext context,
+  List<String> volumeIds, {
+  required String message,
+}) => _hideThenWrite(
+  context,
+  pendingProvider: pendingVolumeRemovalsProvider,
+  ids: volumeIds,
+  message: message,
+  write: (editor, uid) => editor.removeVolumes(volumeIds, uid: uid),
+);
+
+/// Masque [ids] ([pendingProvider]), propose « Annuler », puis écrit [write]
 /// si personne n'a annulé. Tout est lu maintenant : la page qui agit (feuille
 /// refermée, série quittée) n'existe sans doute plus à la fermeture de la
-/// snackbar. L'id reste masqué jusqu'à la fin de l'écriture : le flux de
+/// snackbar. Les ids restent masqués jusqu'à la fin de l'écriture : le flux de
 /// Firestore le retire de lui-même, un échec le rend visible à nouveau.
 void _hideThenWrite(
   BuildContext context, {
   required NotifierProvider<PendingIds, Set<String>> pendingProvider,
-  required String id,
+  required List<String> ids,
   required String message,
   required Future<void> Function(ShelfEditor editor, String? uid) write,
 }) {
@@ -84,7 +98,7 @@ void _hideThenWrite(
   final accessible = MediaQuery.accessibleNavigationOf(context);
 
   unawaited(HapticFeedback.mediumImpact());
-  pending.hide(id);
+  ids.forEach(pending.hide);
   final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
   unawaited(
     messenger
@@ -96,7 +110,7 @@ void _hideThenWrite(
             duration: accessible ? shelfUndoDelay * 2 : shelfUndoDelay,
             action: SnackBarAction(
               label: l10n.undo,
-              onPressed: () => pending.restore(id),
+              onPressed: () => ids.forEach(pending.restore),
             ),
           ),
         )
@@ -105,7 +119,7 @@ void _hideThenWrite(
           try {
             if (reason == SnackBarClosedReason.action) return;
             await write(container.read(shelfEditorProvider.notifier), uid);
-            pending.restore(id);
+            ids.forEach(pending.restore);
           } finally {
             keepAlive.close();
           }

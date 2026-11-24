@@ -2096,4 +2096,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get a11yHolesShowHint => 'show on the shelf';
+
+  @override
+  String get burstSessionTitle => 'This session';
+
+  @override
+  String burstGroupLine(int count, String numbers) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '+$count · volumes $numbers',
+      one: '+1 · volume $numbers',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String a11yBurstGroup(String series, int count, String numbers) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count volumes added',
+      one: '1 volume added',
+    );
+    return '$series, $_temp0: $numbers';
+  }
+
+  @override
+  String burstRemove(String title) {
+    return 'Remove $title';
+  }
+
+  @override
+  String get burstEmpty => 'Scanned volumes land here, grouped by series.';
+
+  @override
+  String burstGroupRemoved(String series, int count, String numbers) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'volumes $numbers removed',
+      one: 'volume $numbers removed',
+    );
+    return '$series, $_temp0 from the collection';
+  }
+
+  @override
+  String a11yBurstRemoveGroup(String series, int count, String numbers) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remove volumes $numbers of $series',
+      one: 'Remove volume $numbers of $series',
+    );
+    return '$_temp0';
+  }
 }

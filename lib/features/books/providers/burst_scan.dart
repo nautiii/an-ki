@@ -45,8 +45,10 @@ class const BurstRow({
   required final String isbn,
   required final BurstRowStatus status,
 
-  /// Nom de sa série ([BurstRowStatus.classified]).
+  /// Sa série ([BurstRowStatus.classified]) : id, nom et image.
+  final String? seriesId,
   final String? seriesName,
+  final String? coverUrl,
   final int? number,
 
   /// Titre trouvé (vide tant qu'il est en attente).
@@ -61,7 +63,9 @@ class const BurstRow({
       other is BurstRow &&
       other.isbn == isbn &&
       other.status == status &&
+      other.seriesId == seriesId &&
       other.seriesName == seriesName &&
+      other.coverUrl == coverUrl &&
       other.number == number &&
       other.title == title &&
       listEquals(other.missingPrevious, missingPrevious);
@@ -70,7 +74,9 @@ class const BurstRow({
   int get hashCode => Object.hash(
     isbn,
     status,
+    seriesId,
     seriesName,
+    coverUrl,
     number,
     title,
     Object.hashAll(missingPrevious),
@@ -187,9 +193,18 @@ final burstScanProvider = NotifierProvider.autoDispose<BurstScan, List<String>>(
 final burstRowsProvider = Provider.autoDispose<List<BurstRow>>((ref) {
   final shelf = ref.watch(shelfProvider).value;
   final hidden = ref.watch(pendingVolumeRemovalsProvider);
+  // Une série supprimée ou fusionnée depuis sa page attend « Annuler » : ses
+  // tomes ne sont pas « en attente », ils partent avec elle.
+  final hiddenSeries = ref.watch(pendingSeriesRemovalsProvider);
+  final leaving = {
+    for (final volume
+        in ref.watch(bookVolumesProvider).value ?? const <Volume>[])
+      if (hiddenSeries.contains(volume.seriesId)) volume.id,
+  };
   return [
     for (final isbn in ref.watch(burstScanProvider))
-      if (!hidden.contains(isbn)) burstRowOf(isbn, shelf),
+      if (!hidden.contains(isbn) && !leaving.contains(isbn))
+        burstRowOf(isbn, shelf),
   ];
 });
 
@@ -210,7 +225,9 @@ BurstRow burstRowOf(String isbn, Shelf? shelf) {
           return BurstRow(
             isbn: isbn,
             status: BurstRowStatus.classified,
+            seriesId: entry.series.id,
             seriesName: entry.series.name,
+            coverUrl: entry.coverUrl,
             number: volume.number,
             title: volume.title,
             missingPrevious: missingBefore(entry, volume.number!),
@@ -244,4 +261,49 @@ Volume? _volumeOf(Shelf shelf, String isbn) {
   ];
   return volumes.where((v) => v.id == isbn).firstOrNull ??
       volumes.where((v) => v.isbn == isbn).firstOrNull;
+}
+
+/// Un groupe du ticket de la rafale : les tomes d'une même série, ou un tome
+/// seul pas encore rangé.
+class const BurstGroup({
+  /// Du plus récent au plus ancien, comme la rafale.
+  required final List<BurstRow> rows,
+}) {
+  /// Vrai pour les tomes rangés d'une série.
+  bool get isSeries => rows.first.status == BurstRowStatus.classified;
+
+  /// Numéros des tomes, croissants (un groupe de série).
+  List<int> get numbers => [for (final row in rows) ?row.number]..sort();
+
+  @override
+  bool operator ==(Object other) =>
+      other is BurstGroup && listEquals(other.rows, rows);
+
+  @override
+  int get hashCode => Object.hashAll(rows);
+}
+
+/// Les lignes [rows] de la rafale en groupes : les tomes rangés par série, à
+/// la place du plus récent de la série ; les autres un par un, à leur place.
+List<BurstGroup> burstGroupsOf(List<BurstRow> rows) {
+  final bySeries = <String, List<BurstRow>>{};
+  final order = <Object>[];
+  for (final row in rows) {
+    final seriesId = row.seriesId;
+    if (row.status == BurstRowStatus.classified && seriesId != null) {
+      final group = bySeries[seriesId];
+      if (group == null) {
+        bySeries[seriesId] = [row];
+        order.add(seriesId);
+      } else {
+        group.add(row);
+      }
+    } else {
+      order.add(row);
+    }
+  }
+  return [
+    for (final key in order)
+      BurstGroup(rows: key is String ? bySeries[key]! : [key as BurstRow]),
+  ];
 }

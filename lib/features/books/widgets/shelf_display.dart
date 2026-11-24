@@ -219,11 +219,7 @@ class ShelfWords {
   }
 
   /// « 13 », « 13 et 14 », « 13, 14 et 15 ».
-  String numberList(List<int> numbers) {
-    if (numbers.length == 1) return '${numbers.single}';
-    final head = numbers.sublist(0, numbers.length - 1).join(', ');
-    return l10n.numberListLast(head, '${numbers.last}');
-  }
+  String numberList(List<int> numbers) => numberListOf(l10n, numbers);
 
   /// Titre d'un tome : le sien, sinon « Tome 12 » s'il est numéroté, sinon
   /// son ISBN (scanné hors ligne), sinon « Titre inconnu ».
@@ -258,6 +254,13 @@ class ShelfWords {
   /// problème de réseau).
   String loadError(Object? error) =>
       error == ShelfFailure.offline ? l10n.errorNetwork : l10n.errorUnknown;
+}
+
+/// « 13 », « 13 et 14 », « 13, 14 et 15 ».
+String numberListOf(AppLocalizations l10n, List<int> numbers) {
+  if (numbers.length == 1) return '${numbers.single}';
+  final head = numbers.sublist(0, numbers.length - 1).join(', ');
+  return l10n.numberListLast(head, '${numbers.last}');
 }
 
 /// Le bouton « les tomes précédents » pour les numéros [missing] (non vide,

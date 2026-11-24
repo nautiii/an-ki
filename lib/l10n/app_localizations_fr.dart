@@ -2134,4 +2134,60 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get a11yHolesShowHint => 'afficher dans le rayon';
+
+  @override
+  String get burstSessionTitle => 'Cette session';
+
+  @override
+  String burstGroupLine(int count, String numbers) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '+$count · tomes $numbers',
+      one: '+1 · tome $numbers',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String a11yBurstGroup(String series, int count, String numbers) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tomes ajoutés',
+      one: '1 tome ajouté',
+    );
+    return '$series, $_temp0 : $numbers';
+  }
+
+  @override
+  String burstRemove(String title) {
+    return 'Retirer $title';
+  }
+
+  @override
+  String get burstEmpty =>
+      'Les tomes scannés s\'ajoutent ici, rangés par série.';
+
+  @override
+  String burstGroupRemoved(String series, int count, String numbers) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'tomes $numbers retirés',
+      one: 'tome $numbers retiré',
+    );
+    return '$series, $_temp0 de la collection';
+  }
+
+  @override
+  String a11yBurstRemoveGroup(String series, int count, String numbers) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Retirer les tomes $numbers de $series',
+      one: 'Retirer le tome $numbers de $series',
+    );
+    return '$_temp0';
+  }
 }

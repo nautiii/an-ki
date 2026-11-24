@@ -2977,6 +2977,48 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'afficher dans le rayon'**
   String get a11yHolesShowHint;
+
+  /// Scanner : titre du ticket des tomes ajoutés depuis son ouverture
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette session'**
+  String get burstSessionTitle;
+
+  /// Scanner : les tomes d'une série ajoutés pendant la session (« 107 et 108 »)
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{+1 · tome {numbers}} other{+{count} · tomes {numbers}}}'**
+  String burstGroupLine(int count, String numbers);
+
+  /// TalkBack : un groupe du ticket du scanner ; un toucher ouvre la série
+  ///
+  /// In fr, this message translates to:
+  /// **'{series}, {count, plural, =1{1 tome ajouté} other{{count} tomes ajoutés}} : {numbers}'**
+  String a11yBurstGroup(String series, int count, String numbers);
+
+  /// Scanner : infobulle du bouton qui retire un ou des tomes de la session (« One Piece 107 et 108 »)
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer {title}'**
+  String burstRemove(String title);
+
+  /// Scanner : ticket vide, avant le premier scan
+  ///
+  /// In fr, this message translates to:
+  /// **'Les tomes scannés s\'ajoutent ici, rangés par série.'**
+  String get burstEmpty;
+
+  /// Scanner : snackbar après le retrait des tomes d'une série de la session, avec Annuler
+  ///
+  /// In fr, this message translates to:
+  /// **'{series}, {count, plural, =1{tome {numbers} retiré} other{tomes {numbers} retirés}} de la collection'**
+  String burstGroupRemoved(String series, int count, String numbers);
+
+  /// Scanner : infobulle du bouton qui retire les tomes d'une série de la session
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Retirer le tome {numbers} de {series}} other{Retirer les tomes {numbers} de {series}}}'**
+  String a11yBurstRemoveGroup(String series, int count, String numbers);
 }
 
 class _AppLocalizationsDelegate

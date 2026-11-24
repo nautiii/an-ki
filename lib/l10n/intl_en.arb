@@ -532,5 +532,12 @@
   "seriesHaveHoles": "{count, plural, =1{I have it} other{I have them}}",
   "a11ySeriesHaveHoles": "{count, plural, =1{I have the missing volume} other{I have the {count} missing volumes}}",
   "a11ySpineAddHint": "mark as bought",
-  "a11yHolesShowHint": "show on the shelf"
+  "a11yHolesShowHint": "show on the shelf",
+  "burstSessionTitle": "This session",
+  "burstGroupLine": "{count, plural, =1{+1 · volume {numbers}} other{+{count} · volumes {numbers}}}",
+  "a11yBurstGroup": "{series}, {count, plural, =1{1 volume added} other{{count} volumes added}}: {numbers}",
+  "burstRemove": "Remove {title}",
+  "burstEmpty": "Scanned volumes land here, grouped by series.",
+  "burstGroupRemoved": "{series}, {count, plural, =1{volume {numbers} removed} other{volumes {numbers} removed}} from the collection",
+  "a11yBurstRemoveGroup": "{count, plural, =1{Remove volume {numbers} of {series}} other{Remove volumes {numbers} of {series}}}"
 }

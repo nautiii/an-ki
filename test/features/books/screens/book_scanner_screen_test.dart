@@ -1,3 +1,4 @@
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/services/contacts_service.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
@@ -10,6 +11,7 @@ import 'package:an_ki/features/books/domain/volume_identification.dart';
 import 'package:an_ki/features/books/providers/volume_lookup.dart';
 import 'package:an_ki/features/books/screens/book_scanner_screen.dart';
 import 'package:an_ki/features/books/widgets/classify_sheet.dart';
+import 'package:an_ki/features/books/widgets/isbn_entry_sheet.dart';
 import 'package:an_ki/features/books/widgets/volume_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -95,14 +97,18 @@ void main() {
     ) async {
       await pumpScreen(tester);
 
-      expect(find.text('Scanner un livre'), findsOneWidget);
+      expect(find.text('Cette session'), findsOneWidget);
+      expect(
+        find.text("Les tomes scannés s'ajoutent ici, rangés par série."),
+        findsOneWidget,
+      );
       expect(find.text('Visez le code-barres au dos du livre'), findsOneWidget);
       expect(find.text('Saisir un ISBN'), findsOneWidget);
       expect(find.text('Terminé'), findsOneWidget);
     });
 
-    testWidgets('the camera keeps running and each volume stacks, newest '
-        'first, with one light vibration each', (tester) async {
+    testWidgets('the camera keeps running and the volumes of a series '
+        'group together, with one light vibration each', (tester) async {
       final haptics = recordHaptics(tester);
       final repo = RecordingBookshelfRepository();
       await pumpScreen(tester, repo: repo);
@@ -115,12 +121,8 @@ void main() {
       await settle(tester);
 
       expect(platform.stopCalls, 0);
-      expect(find.text('One Piece · tome 109'), findsOneWidget);
-      expect(find.text('One Piece · tome 108'), findsOneWidget);
-      expect(
-        tester.getTopLeft(find.text('One Piece · tome 109')).dy,
-        lessThan(tester.getTopLeft(find.text('One Piece · tome 108')).dy),
-      );
+      expect(find.text('One Piece'), findsOneWidget);
+      expect(find.text('+2 · tomes 108 et 109'), findsOneWidget);
       expect(find.text('2 tomes ajoutés'), findsOneWidget);
       expect(haptics, [
         'HapticFeedbackType.lightImpact',
@@ -129,32 +131,33 @@ void main() {
       expect(repo.volumes, hasLength(2));
     });
 
-    testWidgets('a row pushed down by a new one keeps its check, no replay', (
+    testWidgets('a group is removed with « Annuler » to bring it back', (
       tester,
     ) async {
-      await pumpScreen(tester);
+      final repo = RecordingBookshelfRepository();
+      await pumpScreen(tester, repo: repo);
       detect(tester, _isbn);
       await settle(tester);
-
-      // La coche d'une ligne : l'état de son animation.
-      State checkOf(String text) => tester.state(
-        find.descendant(
-          of: find.ancestor(
-            of: find.text(text),
-            matching: find.byType(ListTile),
-          ),
-          matching: find.byType(TweenAnimationBuilder<double>),
-        ),
-      );
-      final before = checkOf('One Piece · tome 108');
-
       detect(tester, _other);
       await settle(tester);
 
-      // La ligne a descendu d'un cran sans être recréée : sa coche ne
-      // repart pas de zéro.
-      expect(find.text('One Piece · tome 109'), findsOneWidget);
-      expect(checkOf('One Piece · tome 108'), same(before));
+      await tester.tap(
+        find.byTooltip('Retirer les tomes 108 et 109 de One Piece'),
+      );
+      await tester.pump();
+
+      // Masqués aussitôt, écrits à la fin du délai sans « Annuler ».
+      expect(find.text('+2 · tomes 108 et 109'), findsNothing);
+      expect(
+        find.text('One Piece, tomes 108 et 109 retirés de la collection'),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.text('Annuler'));
+      await settle(tester);
+
+      expect(find.text('+2 · tomes 108 et 109'), findsOneWidget);
+      expect(repo.volumes, hasLength(2));
     });
 
     testWidgets('a volume already owned says so, without vibrating', (
@@ -274,12 +277,51 @@ void main() {
       expect(find.byType(ClassifySheet), findsOneWidget);
     });
 
-    testWidgets('tapping an added volume opens its sheet', (tester) async {
-      await pumpScreen(tester);
+    testWidgets('tapping a series group opens its page', (tester) async {
+      await tester.pumpHarness(
+        const BookScannerScreen(),
+        overrides: [
+          bookshelfRepositoryProvider.overrideWithValue(
+            RecordingBookshelfRepository(series: const [_series]),
+          ),
+          volumeLookupProvider.overrideWithValue(
+            RecordingVolumeLookup(found: _onePiece),
+          ),
+          currentUidProvider.overrideWithValue('fake-uid'),
+        ],
+        routes: {AppRoutes.seriesPattern: (_) => const Text('Page série')},
+      );
+      await tester.pump();
 
       detect(tester, _isbn);
       await settle(tester);
-      await tester.tap(find.text('One Piece · tome 108'));
+      await tester.tap(find.text('+1 · tome 108'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Page série'), findsOneWidget);
+      // La caméra s'arrête sous la page : rien ne s'ajoute à l'insu.
+      expect(platform.stopCalls, 1);
+    });
+
+    testWidgets('sheets opened from the scanner are dark too', (tester) async {
+      await pumpScreen(tester);
+
+      await tester.tap(find.text('Saisir un ISBN'));
+      await tester.pumpAndSettle();
+
+      final sheet = tester.element(find.byType(IsbnEntrySheet));
+      expect(Theme.of(sheet).brightness, Brightness.dark);
+    });
+
+    testWidgets('a volume not shelved yet opens its sheet', (tester) async {
+      await pumpScreen(
+        tester,
+        lookup: RecordingVolumeLookup(failure: BookFailure.network),
+      );
+
+      detect(tester, _isbn);
+      await settle(tester);
+      await tester.tap(find.textContaining('infos à compléter'));
       await tester.pumpAndSettle();
 
       expect(find.byType(VolumeSheet), findsOneWidget);
@@ -340,7 +382,7 @@ void main() {
       await settle(tester);
       await tester.pumpAndSettle();
 
-      expect(find.text('One Piece · tome 108'), findsOneWidget);
+      expect(find.text('+1 · tome 108'), findsOneWidget);
       expect(repo.volumes.single.id, _isbn);
     });
 
@@ -376,21 +418,22 @@ void main() {
       handle.dispose();
     });
 
-    testWidgets('with reduced motion, the check appears without animating', (
-      tester,
-    ) async {
-      tester.platformDispatcher.accessibilityFeaturesTestValue =
-          const FakeAccessibilityFeatures(disableAnimations: true);
-      addTearDown(
-        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
-      );
+    testWidgets('always dark, whatever the app theme', (tester) async {
       await pumpScreen(tester);
 
+      final context = tester.element(find.text('Cette session'));
+      expect(Theme.of(context).brightness, Brightness.dark);
+    });
+
+    testWidgets('holds at 200 % text', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await pumpScreen(tester);
       detect(tester, _isbn);
       await settle(tester);
 
-      expect(find.byType(TweenAnimationBuilder<double>), findsNothing);
-      expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      expect(find.text('+1 · tome 108'), findsOneWidget);
     });
   });
 

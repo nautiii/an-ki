@@ -1,14 +1,19 @@
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 
 import 'package:an_ki/core/common/anki_empty_state.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/services/contacts_service.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
+import 'package:an_ki/core/theme/anki_colors.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
+import 'package:an_ki/core/theme/themes.dart';
 import 'package:an_ki/features/books/domain/isbn.dart';
 import 'package:an_ki/features/books/providers/burst_scan.dart';
 import 'package:an_ki/features/books/providers/shelf_view.dart';
-import 'package:an_ki/features/books/widgets/burst_list.dart';
+import 'package:an_ki/features/books/widgets/burst_ticket.dart';
 import 'package:an_ki/features/books/widgets/classify_sheet.dart';
+import 'package:an_ki/features/books/widgets/glass_circle.dart';
 import 'package:an_ki/features/books/widgets/isbn_entry_sheet.dart';
 import 'package:an_ki/features/books/widgets/pending_completer.dart';
 import 'package:an_ki/features/books/widgets/shelf_undo.dart';
@@ -19,11 +24,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-/// Scanner d'ISBN en rafale, page poussée au-dessus de l'onglet Livres : la
-/// caméra ne tourne que tant qu'elle est ouverte, et reste ouverte d'un livre
-/// à l'autre. Chaque nouveau tome est écrit aussitôt (hors ligne compris) et
-/// s'empile en bas, le plus récent en haut ; une vibration légère et une
-/// coche le confirment. Un tome déjà possédé le dit, sans vibrer.
+/// Scanner d'ISBN en rafale, page poussée au-dessus de l'onglet Livres,
+/// toujours en sombre : la caméra ne tourne que tant qu'elle est ouverte, et
+/// reste ouverte d'un livre à l'autre. Chaque nouveau tome est écrit aussitôt
+/// (hors ligne compris) et entre dans le ticket « Cette session », rangé par
+/// série ; une vibration légère le confirme. Un tome déjà possédé le dit,
+/// sans vibrer.
 ///
 /// Replis : la lampe, « Saisir un ISBN » ; « Terminé » revient à l'étagère.
 /// Caméra refusée ou indisponible : un état à nous, traduit, avec de quoi la
@@ -90,7 +96,8 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
     }
   }
 
-  Future<void> _typeIsbn() async {
+  /// [context] : celui du thème sombre, que la feuille reprend.
+  Future<void> _typeIsbn(BuildContext context) async {
     final isbn = await IsbnEntrySheet.show(context);
     if (isbn == null || !mounted) return;
     _handle(ref.read(burstScanProvider.notifier).scan(isbn, typed: true));
@@ -125,8 +132,9 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
   }
 
   /// Correction d'un tome de la rafale : « Introuvable » s'ouvre sur son
-  /// classement, les autres sur leur feuille (classer, retirer).
-  void _open(BurstRow row) {
+  /// classement, les autres sur leur feuille (classer, retirer). [context] :
+  /// celui du thème sombre, que la feuille reprend.
+  void _open(BuildContext context, BurstRow row) {
     if (row.status == BurstRowStatus.notFound) {
       final volume = ref.read(volumeByIdProvider(row.isbn)).value;
       if (volume != null) {
@@ -137,100 +145,195 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
     unawaited(VolumeSheet.show(context, row.isbn));
   }
 
+  /// Retire les tomes [rows] de la session, avec « Annuler » (un scan
+  /// d'erreur, un doublon).
+  void _remove(List<BurstRow> rows) => removeVolumesWithUndo(context, [
+    for (final row in rows) row.isbn,
+  ], message: burstRemovedText(context.l10n, rows));
+
+  /// Ouvre la page de la série [seriesId] : la caméra s'arrête dessous (elle
+  /// ajouterait des tomes sans qu'on le voie) et repart au retour.
+  Future<void> _openSeries(BuildContext context, String seriesId) async {
+    await controller.stop();
+    if (!context.mounted) return;
+    await context.push(AppRoutes.series(seriesId));
+    if (mounted) await _startCamera();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Toujours la nuit, quel que soit le thème de l'app, comme une app photo :
+    // la caméra est l'image, l'interface s'efface autour.
+    return Theme(
+      data: AppTheme.dark,
+      child: Builder(builder: _buildDark),
+    );
+  }
+
+  Widget _buildDark(BuildContext context) {
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
     final rows = ref.watch(burstRowsProvider);
-    final height = MediaQuery.sizeOf(context).height;
+    // Grand texte ou écran court : le ticket prend la place, la caméra n'a
+    // besoin que du code-barres.
+    final compact =
+        MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5 ||
+        MediaQuery.sizeOf(context).height < 700;
 
-    return PendingCompleter(
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.scanBook),
-          actions: [
-            _TorchButton(controller: controller),
-            const SizedBox(width: AppSpacing.xs),
-          ],
-        ),
-        body: SafeArea(
-          top: false,
-          child: Column(
+    // Sans barre d'application : les icônes de la barre d'état restent
+    // claires sur la caméra, quel que soit le thème de l'app.
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: PendingCompleter(
+        child: Scaffold(
+          backgroundColor: colorScheme.scrim,
+          body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.gutter,
-                    AppSpacing.xs,
-                    AppSpacing.gutter,
-                    0,
-                  ),
-                  child: ClipRSuperellipse(
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(AppRadii.lg),
+                flex: compact ? 38 : 55,
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md,
+                      AppSpacing.xs,
+                      AppSpacing.md,
+                      AppSpacing.md,
                     ),
-                    child: MobileScanner(
-                      controller: controller,
-                      onDetect: _onDetect,
-                      errorBuilder: (context, error) => _CameraError(
-                        denied:
-                            error.errorCode ==
-                            MobileScannerErrorCode.permissionDenied,
-                        onRetry: () => unawaited(_startCamera()),
-                        onOpenSettings: () => unawaited(
-                          ref.read(contactsServiceProvider).openAppSettings(),
-                        ),
+                    child: ClipRSuperellipse(
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(AppRadii.lg),
                       ),
-                      overlayBuilder: (context, _) => _Viewfinder(
-                        hint: l10n.scanHint,
-                        colorScheme: colorScheme,
+                      child: MobileScanner(
+                        controller: controller,
+                        onDetect: _onDetect,
+                        errorBuilder: (context, error) => _CameraError(
+                          denied:
+                              error.errorCode ==
+                              MobileScannerErrorCode.permissionDenied,
+                          onRetry: () => unawaited(_startCamera()),
+                          onOpenSettings: () => unawaited(
+                            ref.read(contactsServiceProvider).openAppSettings(),
+                          ),
+                        ),
+                        overlayBuilder: (context, _) => _Overlay(
+                          hint: l10n.scanHint,
+                          controller: controller,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-              if (rows.isNotEmpty)
-                // La caméra garde la plus grande part : la liste défile.
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxHeight: height * 0.4),
-                  child: BurstList(
-                    rows: rows,
-                    onOpen: _open,
-                    // Un tome scanné a son ISBN pour id.
-                    onAddPrevious: (row) =>
-                        addPreviousWithUndo(context, row.isbn),
+              Expanded(
+                flex: compact ? 62 : 45,
+                child: DecoratedBox(
+                  decoration: ShapeDecoration(
+                    color: colorScheme.surface,
+                    shape: const RoundedSuperellipseBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(AppRadii.xl),
+                      ),
+                    ),
                   ),
-                ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.gutter,
-                  AppSpacing.sm,
-                  AppSpacing.gutter,
-                  AppSpacing.md,
-                ),
-                // Côte à côte, ou l'un sous l'autre à 200 %.
-                child: OverflowBar(
-                  alignment: MainAxisAlignment.spaceBetween,
-                  overflowAlignment: OverflowBarAlignment.end,
-                  overflowSpacing: AppSpacing.xs,
-                  spacing: AppSpacing.sm,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: () => unawaited(_typeIsbn()),
-                      icon: const Icon(Icons.keyboard_rounded),
-                      label: Text(l10n.isbnEntryTitle),
+                  child: SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.gutter,
+                        AppSpacing.lg,
+                        AppSpacing.gutter,
+                        AppSpacing.md,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: BurstTicket(
+                              rows: rows,
+                              onOpenSeries: (id) =>
+                                  unawaited(_openSeries(context, id)),
+                              onOpenRow: (row) => _open(context, row),
+                              // Un tome scanné a son ISBN pour id.
+                              onAddPrevious: (row) =>
+                                  addPreviousWithUndo(context, row.isbn),
+                              onRemove: _remove,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          // Côte à côte, ou l'un sous l'autre à 200 %.
+                          OverflowBar(
+                            alignment: MainAxisAlignment.spaceBetween,
+                            overflowAlignment: OverflowBarAlignment.end,
+                            overflowSpacing: AppSpacing.xs,
+                            spacing: AppSpacing.sm,
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: () => unawaited(_typeIsbn(context)),
+                                icon: const Icon(Icons.keyboard_rounded),
+                                label: Text(l10n.isbnEntryTitle),
+                              ),
+                              FilledButton(
+                                onPressed: () => context.pop(),
+                                child: Text(l10n.scanDone),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                    FilledButton(
-                      onPressed: () => context.pop(),
-                      child: Text(l10n.scanDone),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Sur l'image de la caméra : retour et lampe sur des ronds de verre, le
+/// viseur aux quatre coins, la consigne dans une pilule de verre.
+class _Overlay extends StatelessWidget {
+  const _Overlay({required this.hint, required this.controller});
+
+  final String hint;
+  final MobileScannerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.xs),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const GlassCircle(child: BackButton()),
+              const Spacer(),
+              _TorchButton(controller: controller),
+            ],
+          ),
+          Expanded(
+            // Une caméra réduite (grand texte, écran court) réduit le viseur.
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: ExcludeSemantics(
+                  child: CustomPaint(
+                    size: const Size(240, 144),
+                    painter: _ViewfinderPainter(colorScheme.primaryFixed),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Paysage et grand texte : la consigne cède la place au viseur.
+          Flexible(child: _GlassPill(text: hint)),
+        ],
       ),
     );
   }
@@ -253,68 +356,97 @@ class _TorchButton extends StatelessWidget {
           return const SizedBox.shrink();
         }
         final on = torch == TorchState.on;
-        return IconButton(
-          onPressed: () => unawaited(controller.toggleTorch()),
-          isSelected: on,
-          tooltip: on ? l10n.torchOff : l10n.torchOn,
-          icon: const Icon(Icons.flashlight_on_outlined),
-          selectedIcon: const Icon(Icons.flashlight_on_rounded),
+        return GlassCircle(
+          child: IconButton(
+            onPressed: () => unawaited(controller.toggleTorch()),
+            isSelected: on,
+            tooltip: on ? l10n.torchOff : l10n.torchOn,
+            icon: const Icon(Icons.flashlight_on_outlined),
+            selectedIcon: const Icon(Icons.flashlight_on_rounded),
+          ),
         );
       },
     );
   }
 }
 
-/// Viseur clair sur l'image de la caméra, quel que soit le thème (les rôles
-/// « fixed » ne changent pas en sombre), et la consigne dessous.
-class _Viewfinder extends StatelessWidget {
-  const _Viewfinder({required this.hint, required this.colorScheme});
+/// Les quatre coins du viseur, arrondis.
+class _ViewfinderPainter extends CustomPainter {
+  const _ViewfinderPainter(this.color);
 
-  final String hint;
-  final ColorScheme colorScheme;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const arm = 28.0;
+    const radius = 12.0;
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+    void corner(Offset origin, double sx, double sy) {
+      final path = Path()
+        ..moveTo(origin.dx, origin.dy + sy * arm)
+        ..lineTo(origin.dx, origin.dy + sy * radius)
+        ..quadraticBezierTo(
+          origin.dx,
+          origin.dy,
+          origin.dx + sx * radius,
+          origin.dy,
+        )
+        ..lineTo(origin.dx + sx * arm, origin.dy);
+      canvas.drawPath(path, paint);
+    }
+
+    corner(Offset.zero, 1, 1);
+    corner(Offset(size.width, 0), -1, 1);
+    corner(Offset(0, size.height), 1, -1);
+    corner(Offset(size.width, size.height), -1, -1);
+  }
+
+  @override
+  bool shouldRepaint(_ViewfinderPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+/// La consigne, dans une pilule de verre sur la caméra.
+class _GlassPill extends StatelessWidget {
+  const _GlassPill({required this.text});
+
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Center(
-          child: DecoratedBox(
-            decoration: ShapeDecoration(
-              shape: RoundedSuperellipseBorder(
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(AppRadii.sm),
-                ),
-                side: BorderSide(color: colorScheme.primaryFixed, width: 2),
-              ),
+    final colors = context.ankiColors;
+    return ClipPath(
+      clipper: const ShapeBorderClipper(shape: StadiumBorder()),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: DecoratedBox(
+          decoration: ShapeDecoration(
+            // Le verre seul laisse passer un dos de livre blanc : posé sur un
+            // voile, le texte reste lisible.
+            color: Color.alphaBlend(
+              colors.glass,
+              Theme.of(context).colorScheme.scrim.withValues(alpha: 0.6),
             ),
-            child: const SizedBox(width: 240, height: 144),
+            shape: StadiumBorder(side: BorderSide(color: colors.glassBorder)),
           ),
-        ),
-        Align(
-          alignment: Alignment.bottomCenter,
           child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: DecoratedBox(
-              decoration: ShapeDecoration(
-                color: colorScheme.scrim.withValues(alpha: 0.6),
-                shape: const StadiumBorder(),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.xs,
-                ),
-                child: Text(
-                  hint,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium
-                      ?.copyWith(color: colorScheme.primaryFixed),
-                ),
-              ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.xs,
+            ),
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }

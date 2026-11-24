@@ -2181,5 +2181,79 @@
   "a11yHolesShowHint": "afficher dans le rayon",
   "@a11yHolesShowHint": {
     "description": "TalkBack : action de « Il vous manque … », qui fait défiler le rayon jusqu'au premier trou"
+  },
+  "burstSessionTitle": "Cette session",
+  "@burstSessionTitle": {
+    "description": "Scanner : titre du ticket des tomes ajoutés depuis son ouverture"
+  },
+  "burstGroupLine": "{count, plural, =1{+1 · tome {numbers}} other{+{count} · tomes {numbers}}}",
+  "@burstGroupLine": {
+    "description": "Scanner : les tomes d'une série ajoutés pendant la session (« 107 et 108 »)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "numbers": {
+        "type": "String"
+      }
+    }
+  },
+  "a11yBurstGroup": "{series}, {count, plural, =1{1 tome ajouté} other{{count} tomes ajoutés}}\u00a0: {numbers}",
+  "@a11yBurstGroup": {
+    "description": "TalkBack : un groupe du ticket du scanner ; un toucher ouvre la série",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "numbers": {
+        "type": "String"
+      }
+    }
+  },
+  "burstRemove": "Retirer {title}",
+  "@burstRemove": {
+    "description": "Scanner : infobulle du bouton qui retire un ou des tomes de la session (« One Piece 107 et 108 »)",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "burstEmpty": "Les tomes scannés s'ajoutent ici, rangés par série.",
+  "@burstEmpty": {
+    "description": "Scanner : ticket vide, avant le premier scan"
+  },
+  "burstGroupRemoved": "{series}, {count, plural, =1{tome {numbers} retiré} other{tomes {numbers} retirés}} de la collection",
+  "@burstGroupRemoved": {
+    "description": "Scanner : snackbar après le retrait des tomes d'une série de la session, avec Annuler",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "numbers": {
+        "type": "String"
+      }
+    }
+  },
+  "a11yBurstRemoveGroup": "{count, plural, =1{Retirer le tome {numbers} de {series}} other{Retirer les tomes {numbers} de {series}}}",
+  "@a11yBurstRemoveGroup": {
+    "description": "Scanner : infobulle du bouton qui retire les tomes d'une série de la session",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "numbers": {
+        "type": "String"
+      }
+    }
   }
 }

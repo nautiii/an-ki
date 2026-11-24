@@ -6,6 +6,7 @@ import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/book_metadata.dart';
 import 'package:an_ki/features/books/domain/series.dart';
+import 'package:an_ki/features/books/domain/shelf.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/domain/volume_guess.dart';
 import 'package:an_ki/features/books/domain/volume_identification.dart';
@@ -317,6 +318,71 @@ void main() {
     test('pending while the shelf has not loaded', () {
       expect(burstRowOf(_isbn, null).status, BurstRowStatus.pending);
     });
+
+    test('a shelved volume carries its series and cover', () {
+      final row = burstRowOf(_isbn, shelfOf([_series], [_owned(_isbn)]));
+
+      expect(
+        (row.status, row.seriesId, row.seriesName),
+        (BurstRowStatus.classified, 's1', 'One Piece'),
+      );
+      expect(
+        row.coverUrl,
+        shelfOf([_series], [_owned(_isbn)]).entries.single.coverUrl,
+      );
+    });
+  });
+
+  group('burstGroupsOf', () {
+    BurstRow shelved(String isbn, String seriesId, int number) => BurstRow(
+      isbn: isbn,
+      status: BurstRowStatus.classified,
+      seriesId: seriesId,
+      seriesName: seriesId,
+      number: number,
+    );
+
+    test('groups the volumes of a series where its newest one was', () {
+      final op109 = shelved('a', 'op', 109);
+      const loose = BurstRow(isbn: 'b', status: BurstRowStatus.pending);
+      final naruto = shelved('c', 'naruto', 3);
+      final op108 = shelved('d', 'op', 108);
+
+      final groups = burstGroupsOf([op109, loose, naruto, op108]);
+
+      expect(groups, [
+        BurstGroup(rows: [op109, op108]),
+        const BurstGroup(rows: [loose]),
+        BurstGroup(rows: [naruto]),
+      ]);
+      expect(groups.first.isSeries, isTrue);
+      expect(groups.first.numbers, [108, 109]);
+      expect(groups[1].isSeries, isFalse);
+    });
+
+    test('nothing to group in an empty burst', () {
+      expect(burstGroupsOf(const []), isEmpty);
+    });
+  });
+
+  test('a series deleted meanwhile leaves the burst until restored', () async {
+    shelf = RecordingBookshelfRepository(series: [_series]);
+    final container = await makeContainer();
+    container.listen(burstRowsProvider, (_, _) {});
+    await settle(container);
+    burstOf(container).scan(_isbn);
+    await settle(container);
+    expect(container.read(burstRowsProvider).single.seriesId, 's1');
+
+    final pending = container.read(pendingSeriesRemovalsProvider.notifier)
+      ..hide('s1');
+    await settle(container);
+    // Ni « infos à compléter » : il part avec sa série.
+    expect(container.read(burstRowsProvider), isEmpty);
+
+    pending.restore('s1');
+    await settle(container);
+    expect(container.read(burstRowsProvider).single.seriesId, 's1');
   });
 
   test('a volume of a series waiting for « Annuler » is ignored', () async {
