@@ -258,7 +258,7 @@ void main() {
       container.listen(volumeByIdProvider('a'), (_, _) {});
       await load(container);
 
-      await repository.deleteVolume('u1', 'a');
+      await repository.deleteVolumes('u1', ['a']);
       await pumpEventQueue();
 
       expect(container.read(volumeByIdProvider('a')).requireValue, isNull);

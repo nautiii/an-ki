@@ -91,6 +91,25 @@ void main() {
   });
 
   group('addScanned', () {
+    test('a series deleted with its last volume is created again by the '
+        'next scan', () async {
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      await editor.addScanned(_isbn);
+      await pumpEventQueue();
+      final first = shelf.createdSeries.single;
+      await editor.removeVolumes([_isbn]);
+      expect(shelf.series, isEmpty);
+
+      await editor.addScanned(_other);
+
+      expect(shelf.createdSeries, hasLength(2));
+      expect(shelf.series.single.id, isNot(first.id));
+      expect(shelf.volumes.single.seriesId, shelf.series.single.id);
+    });
+
     test(
       'writes the volume pending, then completes it in a new series',
       () async {
@@ -1338,6 +1357,131 @@ void main() {
       await editorOf(container).classify(_isbn);
 
       expect(shelf.volumes, hasLength(2));
+    });
+
+    group('a series leaves with its last volume', () {
+      Volume numbered(String id, String seriesId, int number) => Volume(
+        id: id,
+        seriesId: seriesId,
+        number: number,
+        title: id,
+        authors: const [],
+        lookup: LookupState.found,
+        addedAt: _now,
+      );
+
+      setUp(() {
+        shelf = RecordingBookshelfRepository(
+          series: const [onePiece, onePieceFr],
+          volumes: [
+            numbered('op1', 's1', 1),
+            numbered('op2', 's1', 2),
+            numbered('fr4', 's2', 4),
+          ],
+        );
+      });
+
+      test('removing the only volume deletes its series', () async {
+        final container = makeContainer();
+        await settle(container);
+        final editor = editorOf(container);
+
+        expect(editor.seriesEmptiedByRemoval(['fr4']), ['s2']);
+        await editor.removeVolume('fr4');
+
+        expect(shelf.series.map((s) => s.id), ['s1']);
+      });
+
+      test('removing one volume of several keeps the series', () async {
+        final container = makeContainer();
+        await settle(container);
+        final editor = editorOf(container);
+
+        expect(editor.seriesEmptiedByRemoval(['op1']), isEmpty);
+        await editor.removeVolume('op1');
+
+        expect(shelf.series, hasLength(2));
+      });
+
+      test('removing every volume of a series at once deletes it', () async {
+        final container = makeContainer();
+        await settle(container);
+
+        await editorOf(container).removeVolumes(['op1', 'op2']);
+
+        expect(shelf.series.map((s) => s.id), ['s2']);
+      });
+
+      test('moving the last volume away deletes the series it left', () async {
+        final container = makeContainer();
+        await settle(container);
+
+        await editorOf(container).classify('fr4', seriesId: 's1', number: 4);
+
+        expect(shelf.series.map((s) => s.id), ['s1']);
+        expect(shelf.volumes.where((v) => v.seriesId == 's1'), hasLength(3));
+      });
+
+      test('back to « À classer », the emptied series goes too', () async {
+        final container = makeContainer();
+        await settle(container);
+
+        await editorOf(container).classify('fr4');
+
+        expect(shelf.series.map((s) => s.id), ['s1']);
+        expect(shelf.volumes, hasLength(3));
+      });
+
+      test('renumbered in its own series, the series stays', () async {
+        final container = makeContainer();
+        await settle(container);
+
+        await editorOf(container).classify('fr4', seriesId: 's2', number: 5);
+
+        expect(shelf.series, hasLength(2));
+      });
+
+      test('« Annuler » of « Acheté » keeps the series', () async {
+        final container = makeContainer();
+        await settle(container);
+        final editor = editorOf(container);
+
+        final added = editor.addNumbers('s2', [5]);
+        await editor.removeVolumes(added);
+
+        expect(shelf.series, hasLength(2));
+      });
+
+      test('a volume added but not yet shown keeps its series', () async {
+        final container = makeContainer();
+        await settle(container);
+        final editor = editorOf(container);
+
+        // Écrit, mais le flux ne le montre pas encore.
+        editor.addNumbers('s2', [5]);
+
+        expect(editor.seriesEmptiedByRemoval(['fr4']), isEmpty);
+      });
+
+      test('hiding: a volume already being removed counts as gone', () async {
+        final container = makeContainer();
+        await settle(container);
+        final editor = editorOf(container);
+        container.read(pendingVolumeRemovalsProvider.notifier).hide('op1');
+
+        expect(editor.seriesEmptiedByRemoval(['op2']), isEmpty);
+        expect(editor.seriesEmptiedByRemoval(['op2'], hiding: true), ['s1']);
+      });
+
+      test('another account during « Annuler »: nothing is deleted', () async {
+        final container = makeContainer();
+        await settle(container);
+
+        await editorOf(container).removeVolume('fr4', uid: 'someone-else');
+
+        expect(shelf.series, hasLength(2));
+        expect(shelf.volumes, hasLength(3));
+      });
     });
 
     test('a volume added by hand moved onto a number keeps both', () async {

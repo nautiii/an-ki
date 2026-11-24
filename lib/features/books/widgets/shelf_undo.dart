@@ -57,6 +57,7 @@ void removeVolumeWithUndo(
   context,
   pendingProvider: pendingVolumeRemovalsProvider,
   ids: [volume.id],
+  emptiedSeries: _emptiedBy(context, [volume.id]),
   message: context.l10n.volumeRemoved(title),
   write: (editor, uid) => editor.removeVolume(volume.id, uid: uid),
 );
@@ -71,11 +72,20 @@ void removeVolumesWithUndo(
   context,
   pendingProvider: pendingVolumeRemovalsProvider,
   ids: volumeIds,
+  emptiedSeries: _emptiedBy(context, volumeIds),
   message: message,
   write: (editor, uid) => editor.removeVolumes(volumeIds, uid: uid),
 );
 
-/// Masque [ids] ([pendingProvider]), propose « Annuler », puis écrit [write]
+/// Les séries que le retrait de [volumeIds] laisse sans tome : elles partent
+/// avec eux (`ShelfEditor.removeVolumes`), masquées dès maintenant.
+List<String> _emptiedBy(BuildContext context, List<String> volumeIds) =>
+    ProviderScope.containerOf(context, listen: false)
+        .read(shelfEditorProvider.notifier)
+        .seriesEmptiedByRemoval(volumeIds, hiding: true);
+
+/// Masque [ids] ([pendingProvider]) et les séries [emptiedSeries] qui partent
+/// avec eux, propose « Annuler », puis écrit [write]
 /// si personne n'a annulé. Tout est lu maintenant : la page qui agit (feuille
 /// refermée, série quittée) n'existe sans doute plus à la fermeture de la
 /// snackbar. Les ids restent masqués jusqu'à la fin de l'écriture : le flux de
@@ -84,6 +94,7 @@ void _hideThenWrite(
   BuildContext context, {
   required NotifierProvider<PendingIds, Set<String>> pendingProvider,
   required List<String> ids,
+  List<String> emptiedSeries = const [],
   required String message,
   required Future<void> Function(ShelfEditor editor, String? uid) write,
 }) {
@@ -92,6 +103,7 @@ void _hideThenWrite(
   // l'écriture (voir `ShelfEditor`).
   final uid = container.read(currentUidProvider);
   final pending = container.read(pendingProvider.notifier);
+  final pendingSeries = container.read(pendingSeriesRemovalsProvider.notifier);
   // L'éditeur est libéré sans auditeur : on le garde en vie jusqu'à la fin.
   final keepAlive = container.listen(shelfEditorProvider, (_, _) {});
   final l10n = context.l10n;
@@ -99,6 +111,7 @@ void _hideThenWrite(
 
   unawaited(HapticFeedback.mediumImpact());
   ids.forEach(pending.hide);
+  emptiedSeries.forEach(pendingSeries.hide);
   final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
   unawaited(
     messenger
@@ -110,7 +123,10 @@ void _hideThenWrite(
             duration: accessible ? shelfUndoDelay * 2 : shelfUndoDelay,
             action: SnackBarAction(
               label: l10n.undo,
-              onPressed: () => ids.forEach(pending.restore),
+              onPressed: () {
+                ids.forEach(pending.restore);
+                emptiedSeries.forEach(pendingSeries.restore);
+              },
             ),
           ),
         )
@@ -120,6 +136,7 @@ void _hideThenWrite(
             if (reason == SnackBarClosedReason.action) return;
             await write(container.read(shelfEditorProvider.notifier), uid);
             ids.forEach(pending.restore);
+            emptiedSeries.forEach(pendingSeries.restore);
           } finally {
             keepAlive.close();
           }

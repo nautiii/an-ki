@@ -82,14 +82,9 @@ Shelf shelfOf(List<Series> series, List<Volume> volumes) {
   final unclassified = <Volume>[];
   for (final volume in volumes) {
     final seriesId = volume.seriesId;
-    final number = volume.number;
     // Un numéro hors de 1 à [maxVolumeNumber] (document corrompu, saisie
     // ancienne) ne doit pas créer des milliers de trous : à classer.
-    if (seriesId != null &&
-        number != null &&
-        number >= 1 &&
-        number <= maxVolumeNumber &&
-        byId.containsKey(seriesId)) {
+    if (seriesId != null && isFiled(volume) && byId.containsKey(seriesId)) {
       grouped.putIfAbsent(seriesId, () => []).add(volume);
     } else {
       unclassified.add(volume);
@@ -149,6 +144,35 @@ ShelfEntry _entryOf(Series series, List<Volume> numbered) {
     nextToBuy: nextToBuy,
     coverUrl: coverUrl,
   );
+}
+
+/// Vrai quand [volume] se range dans sa série : une série et un numéro de 1
+/// à [maxVolumeNumber]. Sinon l'étagère le montre « à classer ».
+bool isFiled(Volume volume) {
+  final number = volume.number;
+  return volume.seriesId != null &&
+      number != null &&
+      number >= 1 &&
+      number <= maxVolumeNumber;
+}
+
+/// Les séries que le départ des tomes [leaving] (retirés, ou rangés
+/// ailleurs) laisse sans aucun tome : celles d'un tome qui part, qu'aucun
+/// autre tome rangé de [volumes] ([isFiled]) ne porte plus. Une série
+/// n'existe pas sans tome : elle part avec son dernier.
+List<String> seriesEmptiedBy(List<Volume> volumes, Set<String> leaving) {
+  final left = {
+    for (final volume in volumes)
+      if (leaving.contains(volume.id)) ?volume.seriesId,
+  };
+  final kept = {
+    for (final volume in volumes)
+      if (!leaving.contains(volume.id) && isFiled(volume)) ?volume.seriesId,
+  };
+  return [
+    for (final id in left)
+      if (!kept.contains(id)) id,
+  ];
 }
 
 /// Tous les tomes de [shelf], rangés ou non, le plus récemment ajouté d'abord.

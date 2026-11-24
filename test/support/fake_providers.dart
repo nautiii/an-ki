@@ -645,8 +645,14 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
   });
 
   @override
-  Future<void> deleteVolumes(String uid, List<String> volumeIds) =>
-      _write(() => volumeIds.forEach(_volumes.remove));
+  Future<void> deleteVolumes(
+    String uid,
+    List<String> volumeIds, {
+    List<String> emptiedSeries = const [],
+  }) => _write(() {
+    volumeIds.forEach(_volumes.remove);
+    emptiedSeries.forEach(_series.remove);
+  });
 
   @override
   Future<void> createSeries(
@@ -665,8 +671,10 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
     required String? seriesId,
     required int? number,
     List<String> replacing = const [],
+    List<String> emptiedSeries = const [],
   }) => _write(() {
     replacing.forEach(_volumes.remove);
+    emptiedSeries.forEach(_series.remove);
     final volume = _volumes[volumeId]!;
     _volumes[volumeId] = Volume(
       id: volume.id,
@@ -682,10 +690,6 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
       addedAt: volume.addedAt,
     );
   });
-
-  @override
-  Future<void> deleteVolume(String uid, String volumeId) =>
-      _write(() => _volumes.remove(volumeId));
 
   @override
   String newVolumeId(String uid) => 'volume-${_nextId++}';

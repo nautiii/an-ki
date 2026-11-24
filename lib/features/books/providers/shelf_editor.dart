@@ -289,9 +289,11 @@ class ShelfEditor extends AsyncNotifier<void> {
 
   /// Range le tome [volumeId] dans [seriesId] au numéro [number] ; sans série,
   /// il redevient « à classer » (et perd son numéro). Un tome scanné remplace
-  /// ceux de ce numéro ajoutés à la main ([replacedBy]), dans le même lot.
+  /// ceux de ce numéro ajoutés à la main ([replacedBy]) ; la série qu'il
+  /// quitte part avec lui s'il en était le dernier tome ([seriesEmptiedBy]) ;
+  /// le tout dans le même lot.
   Future<void> classify(String volumeId, {String? seriesId, int? number}) {
-    final known = [..._volumes(), ..._queued.values];
+    final known = _known();
     final volume = known.where((v) => v.id == volumeId).firstOrNull;
     final replacing = switch ((volume, seriesId, number)) {
       (final volume?, final seriesId?, final number?) => replacedBy(
@@ -302,7 +304,13 @@ class ShelfEditor extends AsyncNotifier<void> {
       ),
       _ => const <String>[],
     };
+    // Renuméroté dans sa série, il ne la quitte pas.
+    final emptied = [
+      for (final id in seriesEmptiedBy(known, {volumeId}))
+        if (id != seriesId) id,
+    ];
     _queued.removeWhere((id, _) => replacing.contains(id));
+    _forgetSeries(emptied);
     return _write(
       (repository, uid) => repository.classifyVolume(
         uid,
@@ -310,16 +318,33 @@ class ShelfEditor extends AsyncNotifier<void> {
         seriesId: seriesId,
         number: seriesId == null ? null : number,
         replacing: replacing,
+        emptiedSeries: emptied,
       ),
     );
   }
 
-  /// Retire le tome [volumeId]. [uid] : voir [_write] (écriture différée par
-  /// « Annuler »).
-  Future<void> removeVolume(String volumeId, {String? uid}) => _write(
-    (repository, uid) => repository.deleteVolume(uid, volumeId),
-    startedBy: uid,
-  );
+  /// Les séries que le retrait des tomes [volumeIds] laisserait sans tome
+  /// ([seriesEmptiedBy]). [hiding] : pour les masquer avec eux pendant
+  /// « Annuler » ; les autres tomes en attente de retrait comptent alors
+  /// comme partis (deux retraits coup sur coup vident la série à l'écran).
+  List<String> seriesEmptiedByRemoval(
+    List<String> volumeIds, {
+    bool hiding = false,
+  }) {
+    final ids = volumeIds.toSet();
+    final pending = hiding
+        ? ref.read(pendingVolumeRemovalsProvider)
+        : const <String>{};
+    return seriesEmptiedBy([
+      for (final volume in _known())
+        if (ids.contains(volume.id) || !pending.contains(volume.id)) volume,
+    ], ids);
+  }
+
+  /// Retire le tome [volumeId], et sa série s'il en était le dernier tome.
+  /// [uid] : voir [_write] (écriture différée par « Annuler »).
+  Future<void> removeVolume(String volumeId, {String? uid}) =>
+      removeVolumes([volumeId], uid: uid);
 
   /// « J'ai aussi les tomes précédents » : ajoute à la série du tome
   /// [volumeId] les numéros qu'elle n'a pas avant le sien
@@ -434,12 +459,17 @@ class ShelfEditor extends AsyncNotifier<void> {
     return series.id;
   }
 
-  /// Retire les tomes [volumeIds] (« Annuler » de [addNumbers]). [uid] :
-  /// voir [_write].
+  /// Retire les tomes [volumeIds] (le ticket du scanner, « Annuler » de
+  /// [addNumbers]), et les séries qu'ils laissent sans tome
+  /// ([seriesEmptiedBy]), calculées au moment d'écrire. [uid] : voir
+  /// [_write].
   Future<void> removeVolumes(List<String> volumeIds, {String? uid}) {
+    final emptied = seriesEmptiedByRemoval(volumeIds);
     _queued.removeWhere((id, _) => volumeIds.contains(id));
+    _forgetSeries(emptied);
     return _write(
-      (repository, uid) => repository.deleteVolumes(uid, volumeIds),
+      (repository, uid) =>
+          repository.deleteVolumes(uid, volumeIds, emptiedSeries: emptied),
       startedBy: uid,
     );
   }
@@ -489,6 +519,7 @@ class ShelfEditor extends AsyncNotifier<void> {
     String? uid,
   }) {
     final source = _series().where((s) => s.id == sourceId).firstOrNull;
+    _forgetSeries([sourceId]);
     return _write(
       (repository, uid) => repository.mergeSeries(
         uid,
@@ -501,10 +532,13 @@ class ShelfEditor extends AsyncNotifier<void> {
   }
 
   /// Supprime la série [seriesId] avec tous ses tomes.
-  Future<void> deleteSeries(String seriesId, {String? uid}) => _write(
-    (repository, uid) => repository.deleteSeries(uid, seriesId),
-    startedBy: uid,
-  );
+  Future<void> deleteSeries(String seriesId, {String? uid}) {
+    _forgetSeries([seriesId]);
+    return _write(
+      (repository, uid) => repository.deleteSeries(uid, seriesId),
+      startedBy: uid,
+    );
+  }
 
   Future<void> setComplete(
     String seriesId, {
@@ -559,6 +593,27 @@ class ShelfEditor extends AsyncNotifier<void> {
   }
 
   List<Volume> _volumes() => ref.read(bookVolumesProvider).value ?? const [];
+
+  /// Les tomes connus : le flux, plus ceux que l'éditeur vient d'ajouter et
+  /// qu'il ne montre pas encore (la copie du flux d'abord : celle de la file
+  /// ne suit pas un classement).
+  List<Volume> _known() {
+    final volumes = _volumes();
+    final shown = {for (final volume in volumes) volume.id};
+    return [
+      ...volumes,
+      for (final volume in _queued.values)
+        if (!shown.contains(volume.id)) volume,
+    ];
+  }
+
+  /// Oublie les séries [seriesIds] que cet éditeur avait créées : supprimées,
+  /// un scan suivant de même clé en crée une nouvelle au lieu d'y ranger son
+  /// tome sans série.
+  void _forgetSeries(List<String> seriesIds) {
+    if (seriesIds.isEmpty) return;
+    _createdSeries.removeWhere((_, series) => seriesIds.contains(series.id));
+  }
 
   List<Series> _series() => [
     ...?ref.read(bookSeriesProvider).value,

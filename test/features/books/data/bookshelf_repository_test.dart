@@ -308,12 +308,56 @@ void main() {
         await repository.completeVolume('u1', completed);
         expect((await repository.fetchShelf('u1')).volumes, [completed]);
 
-        await repository.deleteVolume('u1', 'p1');
+        await repository.deleteVolumes('u1', ['p1']);
         await expectLater(
           repository.completeVolume('u1', completed),
           throwsA(isA<ShelfFailure>()),
         );
         expect((await volumesOf('u1').doc('p1').get()).exists, isFalse);
+      },
+    );
+
+    test('a removal or a move takes the series it empties', () async {
+      await seriesOf('u1').doc('s1').set({'name': 'One Piece'});
+      await seriesOf('u1').doc('s2').set({'name': 'Blacksad'});
+      await repository.saveScannedVolume('u1', _volume('v1'));
+      await repository.saveScannedVolume('u1', _volume('v2'));
+
+      await repository.deleteVolumes('u1', ['v1'], emptiedSeries: ['s1']);
+      expect((await seriesOf('u1').doc('s1').get()).exists, isFalse);
+      expect((await volumesOf('u1').doc('v1').get()).exists, isFalse);
+
+      await repository.classifyVolume(
+        'u1',
+        'v2',
+        seriesId: null,
+        number: null,
+        emptiedSeries: ['s2'],
+      );
+      expect((await seriesOf('u1').doc('s2').get()).exists, isFalse);
+      expect((await volumesOf('u1').doc('v2').get()).exists, isTrue);
+    });
+
+    test(
+      'a move replaces and empties in one batch, for its user only',
+      () async {
+        await seriesOf('u1').doc('s1').set({'name': 'One Piece'});
+        await seriesOf('u2').doc('s1').set({'name': 'One Piece'});
+        await repository.saveScannedVolume('u1', _volume('v1'));
+        await repository.saveScannedVolume('u1', _volume('by-hand'));
+
+        await repository.classifyVolume(
+          'u1',
+          'v1',
+          seriesId: 's9',
+          number: 3,
+          replacing: ['by-hand'],
+          emptiedSeries: ['s1'],
+        );
+
+        expect((await volumesOf('u1').doc('by-hand').get()).exists, isFalse);
+        expect((await seriesOf('u1').doc('s1').get()).exists, isFalse);
+        expect((await seriesOf('u2').doc('s1').get()).exists, isTrue);
       },
     );
 
@@ -358,7 +402,7 @@ void main() {
       expect(data.containsKey('seriesId'), isFalse);
       expect(data.containsKey('number'), isFalse);
 
-      await repository.deleteVolume('u1', 'v1');
+      await repository.deleteVolumes('u1', ['v1']);
       expect((await volumesOf('u1').doc('v1').get()).exists, isFalse);
     });
 
@@ -403,7 +447,7 @@ void main() {
         throwsA(ShelfFailure.denied),
       );
       await expectLater(
-        repository.deleteVolume('u1', 'v1'),
+        repository.deleteVolumes('u1', ['v1']),
         throwsA(ShelfFailure.failed),
       );
     });

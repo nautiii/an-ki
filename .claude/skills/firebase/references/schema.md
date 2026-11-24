@@ -302,7 +302,8 @@ the marked address deletes a marked document (§10). Added 2026-11-09, rules dep
   `keys` with `arrayUnion`), `mergeSeries` (the target's `keys` with `arrayUnion`, the source
   deleted, in the batch that moves its volumes), `setSeriesComplete`, `setNextVolume` (`next`,
   `FieldValue.delete()` to clear), `setSeriesArtwork` (`artwork`, the whole map),
-  `applyLegacyImport`, `takeOver` (§10); erased by
+  `applyLegacyImport`, `takeOver` (§10); deleted with its last filed volume by `deleteVolumes`
+  and `classifyVolume` (`emptiedSeries`, §12); erased by
   `deleteAllUserData`.
 - Read by `watchSeries` (whole subcollection, stream; `bookSeriesProvider`) and `fetchShelf`
   (server read: import, takeover).
@@ -328,7 +329,7 @@ série », « J'ai aussi les tomes … ») has a client id (`newVolumeId`), even
 
 - No summary or description (size, Google APIs terms §5(e)(1)).
 - Written by `saveScannedVolume` (`set` with merge, known fields only: a pending rescan erases
-  nothing), `classifyVolume` (`update`, `FieldValue.delete()` to unclassify), `deleteVolume`,
+  nothing), `classifyVolume` (`update`, `FieldValue.delete()` to unclassify), `deleteVolumes`,
   `mergeSeries` (`seriesId`), `applyLegacyImport`, `takeOver` (§10); erased by
   `deleteAllUserData`. A new series and the volume that opens it go in one batch
   (`saveScannedVolume(withSeries:)`). `ShelfEditor.addScanned`, already identified (today's
@@ -345,8 +346,11 @@ série », « J'ai aussi les tomes … ») has a client id (`newVolumeId`), even
   without title; BnF error → the pass stops; Google error → stays pending. A scanned volume placed
   at a number already held by a volume that was not scanned replaces it in the same batch
   (`saveScannedVolume(replacing:)`); two scanned editions of a number both stay.
-  `addManualVolumes` writes the volumes added without scanning; `deleteVolumes` removes them
-  (« Annuler »).
+  `addManualVolumes` writes the volumes added without scanning; `deleteVolumes` removes volumes
+  (the volume sheet, the scanner ticket, « Annuler »). A series never outlives its last filed
+  volume: a removal (`deleteVolumes(emptiedSeries:)`) or a move to another series or back to
+  « À classer » (`classifyVolume(emptiedSeries:)`) deletes the `bookSeries` document it
+  empties in the same batch (`seriesEmptiedBy`).
 - Read by `watchVolumes` (whole subcollection, stream; `bookVolumesProvider`, joined with the
   series by `shelfOf` in `shelfProvider`), `fetchShelf` (server read) and `mergeSeries` (`where
   seriesId ==`, cache or server).

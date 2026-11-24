@@ -135,7 +135,8 @@ class BookshelfRepository {
 
   /// Range le tome [volumeId] dans [seriesId] au numéro [number] ; null efface
   /// le champ (sans série : « à classer »). [replacing] : les tomes qu'il
-  /// remplace (même série, même numéro, non scannés), retirés dans le même
+  /// remplace (même série, même numéro, non scannés) ; [emptiedSeries] : la
+  /// série qu'il quitte, s'il en était le dernier tome ; retirés dans le même
   /// lot.
   Future<void> classifyVolume(
     String uid,
@@ -143,30 +144,43 @@ class BookshelfRepository {
     required String? seriesId,
     required int? number,
     List<String> replacing = const [],
+    List<String> emptiedSeries = const [],
   }) => _guard(() {
     final fields = <String, Object>{
       'seriesId': seriesId ?? FieldValue.delete(),
       'number': number ?? FieldValue.delete(),
     };
     final volumeDoc = _volumes(uid).doc(volumeId);
-    if (replacing.isEmpty) return volumeDoc.update(fields);
+    if (replacing.isEmpty && emptiedSeries.isEmpty) {
+      return volumeDoc.update(fields);
+    }
     return _firestore.writeInBatches(<void Function(WriteBatch)>[
       (batch) => batch.update(volumeDoc, fields),
       for (final id in replacing)
         (batch) => batch.delete(_volumes(uid).doc(id)),
+      for (final id in emptiedSeries)
+        (batch) => batch.delete(_series(uid).doc(id)),
     ], (batch, write) => write(batch));
   });
 
-  Future<void> deleteVolume(String uid, String volumeId) =>
-      _guard(() => _volumes(uid).doc(volumeId).delete());
-
-  /// Retire les tomes [volumeIds], par lots (`writeInBatches`).
-  Future<void> deleteVolumes(String uid, List<String> volumeIds) => _guard(
-    () => _firestore.writeInBatches(<void Function(WriteBatch)>[
+  /// Retire les tomes [volumeIds], puis les séries [emptiedSeries] qu'ils
+  /// laissent sans tome, par lots (`writeInBatches`).
+  Future<void> deleteVolumes(
+    String uid,
+    List<String> volumeIds, {
+    List<String> emptiedSeries = const [],
+  }) => _guard(() {
+    // Un seul document : une suppression simple, comme `classifyVolume`.
+    if (volumeIds.length == 1 && emptiedSeries.isEmpty) {
+      return _volumes(uid).doc(volumeIds.single).delete();
+    }
+    return _firestore.writeInBatches(<void Function(WriteBatch)>[
       for (final id in volumeIds)
         (batch) => batch.delete(_volumes(uid).doc(id)),
-    ], (batch, write) => write(batch)),
-  );
+      for (final id in emptiedSeries)
+        (batch) => batch.delete(_series(uid).doc(id)),
+    ], (batch, write) => write(batch));
+  });
 
   /// Id d'un tome ajouté à la main (sans ISBN), tiré côté client.
   String newVolumeId(String uid) => _volumes(uid).doc().id;

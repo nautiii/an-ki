@@ -2,11 +2,13 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
+import 'package:an_ki/features/books/providers/shelf_providers.dart';
 import 'package:an_ki/features/books/providers/volume_lookup.dart';
 import 'package:an_ki/features/books/widgets/classify_sheet.dart';
 import 'package:an_ki/features/books/widgets/shelf_undo.dart';
 import 'package:an_ki/features/books/widgets/volume_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
@@ -66,6 +68,11 @@ void main() {
     await tester.tap(find.text('Ouvrir'));
     await tester.pumpAndSettle();
   }
+
+  /// Les séries masquées le temps de « Annuler ».
+  Set<String> hiddenSeries(WidgetTester tester) =>
+      ProviderScope.containerOf(tester.element(find.text('Ouvrir')))
+          .read(pendingSeriesRemovalsProvider);
 
   /// Laisse la snackbar se fermer d'elle-même, puis les écritures partir.
   Future<void> letUndoExpire(WidgetTester tester) async {
@@ -221,10 +228,13 @@ void main() {
     expect(find.text('Annuler'), findsOneWidget);
     expect(repository.volumes, hasLength(1));
     expect(haptics, ['HapticFeedbackType.mediumImpact']);
+    // Son dernier tome : la série part avec lui, masquée dès maintenant.
+    expect(hiddenSeries(tester), {'s1'});
 
     await letUndoExpire(tester);
 
     expect(repository.volumes, isEmpty);
+    expect(repository.series, isEmpty);
   });
 
   testWidgets('"Annuler" keeps the volume', (tester) async {
@@ -242,6 +252,8 @@ void main() {
     await letUndoExpire(tester);
 
     expect(repository.volumes.single.id, 'v1');
+    expect(repository.series, hasLength(1));
+    expect(hiddenSeries(tester), isEmpty);
   });
 
   testWidgets('closes by itself when the volume disappears elsewhere', (
@@ -256,7 +268,7 @@ void main() {
     );
     expect(find.byType(VolumeSheet), findsOneWidget);
 
-    await repository.deleteVolume('fake-uid', 'v1');
+    await repository.deleteVolumes('fake-uid', ['v1']);
     await tester.pumpAndSettle();
 
     expect(find.byType(VolumeSheet), findsNothing);

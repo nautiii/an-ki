@@ -307,4 +307,33 @@ void main() {
       old,
     ]);
   });
+
+  group('seriesEmptiedBy', () {
+    test('a series leaves with its last volume', () {
+      final volumes = [
+        ...owning('op', [1]),
+        ...owning('bs', [1, 2]),
+        volume('loose'),
+      ];
+
+      expect(seriesEmptiedBy(volumes, {'op-1'}), ['op']);
+      expect(seriesEmptiedBy(volumes, {'bs-1'}), isEmpty);
+      expect(seriesEmptiedBy(volumes, {'bs-1', 'bs-2', 'op-1'}).toSet(), {
+        'bs',
+        'op',
+      });
+      expect(seriesEmptiedBy(volumes, {'loose'}), isEmpty);
+    });
+
+    test('a volume carrying the series without a number does not keep '
+        'it', () {
+      final volumes = [
+        ...owning('op', [1]),
+        volume('odd', seriesId: 'op'),
+      ];
+
+      // L'étagère le montre « à classer » : la série serait vide.
+      expect(seriesEmptiedBy(volumes, {'op-1'}), ['op']);
+    });
+  });
 }
