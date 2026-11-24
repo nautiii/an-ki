@@ -108,7 +108,7 @@ by night, they are the only cue.
 | **Raspberry** = `primary` | lotus seed `#FFB6BF` | *Act here*, *this is selected* | The one filled action of a screen, links, focus, selected states, the S6 numerals |
 | **Lotus** = `primaryContainer`, `secondaryContainer` | same seed | Warmth, the person, gentle emphasis | Tonal buttons, selected chips, the nav indicator, avatars' default tone |
 | **Plum red** | `icon.png` blossoms `#FF1E32` | *The day itself* | J-0 only: the celebration gradient's end (hero, later the widget). Never a button outside J-0, never an error |
-| **Cloud** = `tertiary*` | `icon.png` cloud `#C5DEFF` | Calm, information, time ahead | The hero gradient's end, informational cards and badges; never an action |
+| **Cloud** = `tertiary*` | `icon.png` cloud `#C5DEFF` | Calm, information, time ahead | The hero gradient's end, dates to come (release date tiles, the announced next volume); never an action, never a to-do (Livres « À classer » is a neutral row, only its icon is cloud) |
 | **Moonlight** (lavender) | `lune.png` `#D0D0F8` → `AnKiColors.moonlight` | The moon | Orbit moon and arc, mascot, search highlight |
 | **Blossom** | lotus `#F88898` → `AnKiColors.blossom` | The day's small marks | J-0 cake and orbit in agenda rows |
 | **Mint** | leaf `#70D8B8` → `AnKiColors.success` | Done, « souhaité ✓ » | Success states, the wished check |
@@ -251,10 +251,21 @@ lg 24 · xl 32 · xxl 48`.
 - Light shadow for floating elements: `colorScheme.primary` or `shadow` at 8–14 %, blur 24,
   offset (0, 8) — a blush glow rather than a grey smudge.
 - Dark: no shadow; lift with a higher container tone + hairline border.
-- **Glass** (nav pill, floating toolbars only): `BackdropFilter` blur σ 16–20 + fill
+- **Glass** (nav pill, floating toolbars, icon buttons over an image: `GlassCircle` on the
+  series header and the scanner camera): `BackdropFilter` blur σ 16–20 + fill
   `surfaceContainer` at 70–80 % (light) / 60–70 % (dark) + hairline `outlineVariant`. Never glass
-  on text-heavy surfaces (legibility). Aligns with iOS 26 *Liquid Glass* and M3 Expressive floating
-  toolbars without depending on either.
+  on text-heavy surfaces (legibility); a hint over the camera sits on glass blended over `scrim`
+  at 60 %, readable on a white book back. Aligns with iOS 26 *Liquid Glass* and M3 Expressive
+  floating toolbars without depending on either.
+- **Cover header** (Livres series page): the series cover blurred (σ 32, `cacheWidth` 64) under a
+  surface veil from 55 % to 100 %, the sharp cover centred on it; without an image, a lotus band
+  (`secondaryContainer` → surface) and a lotus « jacket » cover that carries the name.
+- **Always-dark camera**: the scanner wraps itself in `AppTheme.dark` whatever the app theme, like
+  a camera app; sheets it opens take its dark context, status-bar icons stay light.
+- **Spines** (Livres « Vos tomes »): owned volumes use `AnKiColors.spine` / `onSpine`, every other
+  one `spineAlt`, bordered by `spineEdge` (light: `secondary`, 6:1 on the surface — the pale lotus
+  container measured 1.2:1; dark: `secondaryContainer` with an `outline` edge); a missing volume
+  is an `outline` slot with « + », the announced next one is cloud.
 
 ## 8. Motion
 

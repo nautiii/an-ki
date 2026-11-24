@@ -26,7 +26,7 @@ import them from `package:an_ki/core/...`, extend them there, never fork them pe
 | File | Provides |
 |------|----------|
 | `lib/core/theme/app_tokens.dart` | `AppSpacing`, `AppRadii`, `AppMotion`, `context.reduceMotion`, `context.motion(d)` |
-| `lib/core/theme/anki_colors.dart` | `AnKiColors` ThemeExtension (hero, celebration, blossom, success, moonlight, glass, shadow), `TonalColors.fromSeed/of`, `context.ankiColors` (safe fallback when the extension is missing) |
+| `lib/core/theme/anki_colors.dart` | `AnKiColors` ThemeExtension (hero, celebration, blossom, success, moonlight, glass, shadow, spine/onSpine/spineEdge/spineAlt), `TonalColors.fromSeed/of`, `context.ankiColors` (safe fallback when the extension is missing) |
 | `lib/core/theme/label_tones.dart` | `LabelTones.of(index, brightness)` — accessible tonal pair per user label (categories: `category.tones(context)`) |
 | `lib/core/common/orbit_countdown.dart` | `OrbitCountdown(daysLeft:, child:)` — signature S3 (home hero, agenda rows, person header); `diameter`, `maxTextScale`, `extentOf(context)` for layout maths |
 | `lib/core/common/anki_empty_state.dart` | `AnKiEmptyState` — illustration, title, message, primary/secondary CTA |

@@ -52,6 +52,16 @@ reads better as an agenda; a chatbot; streaks or guilt copy; moving familiar nav
 Built 2026-11-09 to 2026-11-15 (modules, shelf, series page, burst scan, release dates,
 discovery card, earlier volumes; decisions D13–D15), its rules deployed. Left:
 - Phone checks in `migration.md` §1 — a real scan needs the phone's camera.
+- **Redesign 2026-11-24** (brief approved with its defaults, 8d67a6d → 9d8f622): the shelf leads
+  with « À acheter » (« Acheté » in one tap) and « Prochaines sorties », then one grouped list
+  « N séries, de A à Z »; the series page has a blurred cover header, a next-volume card and a
+  shelf of spines (« Il vous manque … », « Je les ai »); the scanner is always dark with a
+  « Cette session » ticket grouped by series; « À classer » offers a one-tap suggestion
+  (`suggestPlacement`). Emulator checked for the shelf and the series page. Left:
+  - the sheets (volume, add series, classify, release date, ISBN) keep their old look;
+  - a suggestion into an existing series doesn't check whether that number is already owned
+    (a second edition is filed silently);
+  - a real scan on the phone with the new scanner.
 - **Out of the lot**: Birthdays that can be turned off, a « Plus » tab, a disk cache for covers,
   summaries, a wishlist, prices, loans, sharing, export; a privacy policy before any publication.
 
