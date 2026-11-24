@@ -2255,5 +2255,77 @@
         "type": "String"
       }
     }
+  },
+  "inboxIntro": "AnKi propose un rangement\u00a0: un toucher suffit.",
+  "@inboxIntro": {
+    "description": "« À classer » : phrase d'introduction au-dessus des tomes"
+  },
+  "inboxPlaceIn": "Ranger dans {series} · t.\u00a0{number}",
+  "@inboxPlaceIn": {
+    "description": "« À classer » : bouton de la suggestion, une série existante (« t. 13 » : tome 13)",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "a11yInboxPlaceIn": "Ranger dans {series}, tome {number}",
+  "@a11yInboxPlaceIn": {
+    "description": "TalkBack : bouton de la suggestion, une série existante",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "inboxCreateSeries": "{number, plural, =1{Créer «\u00a0{series}\u00a0»} other{Créer «\u00a0{series}\u00a0» · t.\u00a0{number}}}",
+  "@inboxCreateSeries": {
+    "description": "« À classer » : bouton de la suggestion, une série à créer",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "a11yInboxCreateSeries": "Créer la série {series}, tome {number}",
+  "@a11yInboxCreateSeries": {
+    "description": "TalkBack : bouton de la suggestion, une série à créer",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "inboxOtherSeries": "Autre série",
+  "@inboxOtherSeries": {
+    "description": "« À classer » : infobulle du bouton qui ouvre le classement complet"
+  },
+  "inboxPlaced": "Rangé dans {series} · tome {number}",
+  "@inboxPlaced": {
+    "description": "« À classer » : snackbar après une suggestion acceptée, avec « Voir »",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "inboxSeeSeries": "Voir",
+  "@inboxSeeSeries": {
+    "description": "« À classer » : action de la snackbar, ouvre la série où le tome a été rangé"
   }
 }

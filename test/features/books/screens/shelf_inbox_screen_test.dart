@@ -1,4 +1,5 @@
 import 'package:an_ki/core/common/skeleton_box.dart';
+import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
@@ -10,10 +11,12 @@ import 'package:an_ki/features/books/providers/volume_lookup.dart';
 import 'package:an_ki/features/books/screens/shelf_inbox_screen.dart';
 import 'package:an_ki/features/books/widgets/classify_sheet.dart';
 import 'package:an_ki/features/books/widgets/volume_sheet.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/fake_providers.dart';
+import '../../../support/haptics.dart';
 import '../../../support/test_harness.dart';
 
 Volume _volume(
@@ -59,8 +62,9 @@ void main() {
 
   Future<void> pumpInbox(
     WidgetTester tester,
-    BookshelfRepository repository,
-  ) async {
+    BookshelfRepository repository, {
+    Map<String, WidgetBuilder>? routes,
+  }) async {
     await tester.pumpHarness(
       const ShelfInboxScreen(),
       overrides: [
@@ -72,6 +76,7 @@ void main() {
           RecordingVolumeLookup(failure: BookFailure.network),
         ),
       ],
+      routes: routes,
     );
     await tester.pumpAndSettle();
   }
@@ -108,6 +113,124 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(ClassifySheet), findsOneWidget);
+  });
+
+  testWidgets('a suggested series takes the volume in one tap', (tester) async {
+    final repository = RecordingBookshelfRepository(
+      series: const [
+        Series(
+          id: 's1',
+          name: 'One Piece',
+          keys: ['one piece'],
+          complete: false,
+        ),
+      ],
+      volumes: [_volume('op', title: 'One Piece - Tome 13')],
+    );
+    final haptics = recordHaptics(tester);
+    await pumpInbox(
+      tester,
+      repository,
+      routes: {AppRoutes.series('s1'): (_) => const Text('Page série')},
+    );
+
+    expect(
+      find.text('AnKi propose un rangement : un toucher suffit.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Ranger dans One Piece · t. 13'));
+    await tester.pump();
+
+    final volume = repository.volumes.single;
+    expect((volume.seriesId, volume.number), ('s1', 13));
+    expect(find.text('Rangé dans One Piece · tome 13'), findsOneWidget);
+    expect(haptics, ['HapticFeedbackType.lightImpact']);
+    // La ligne est partie ; « Voir » ouvre quand même la série.
+    expect(find.text('One Piece - Tome 13'), findsNothing);
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.text('Voir'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Page série'), findsOneWidget);
+  });
+
+  testWidgets('no promise of a suggestion when there is none', (tester) async {
+    await pumpInbox(
+      tester,
+      RecordingBookshelfRepository(
+        volumes: [_volume('new', lookup: LookupState.pending)],
+      ),
+    );
+
+    expect(find.textContaining('AnKi propose'), findsNothing);
+    expect(find.text('Classer'), findsOneWidget);
+  });
+
+  testWidgets('a guessed number shows on « Créer »', (tester) async {
+    await pumpInbox(
+      tester,
+      RecordingBookshelfRepository(
+        volumes: [_volume('n', title: 'Naruto - Tome 13')],
+      ),
+    );
+
+    expect(
+      find.text('Créer «\u00a0Naruto\u00a0» · t.\u00a013'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a long suggestion wraps at 200 % text', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await pumpInbox(
+      tester,
+      RecordingBookshelfRepository(
+        volumes: [_volume('a', title: "L'Atelier des sorciers - Tome 12")],
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(
+      find.text("Créer «\u00a0L'Atelier des sorciers\u00a0» · t.\u00a012"),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a new series is created for the volume', (tester) async {
+    final repository = filled();
+    await pumpInbox(tester, repository);
+
+    await tester.tap(find.text('Créer «\u00a0Vieux tome\u00a0»'));
+    await tester.pump();
+
+    final created = repository.createdSeries.single;
+    expect(created.name, 'Vieux tome');
+    expect(
+      repository.volumes.singleWhere((v) => v.id == 'old').seriesId,
+      created.id,
+    );
+  });
+
+  testWidgets('« Autre série » opens the whole classification', (tester) async {
+    await pumpInbox(tester, filled());
+
+    await tester.tap(find.byTooltip('Autre série'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ClassifySheet), findsOneWidget);
+  });
+
+  testWidgets('the suggestion is read in full', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpInbox(tester, filled());
+
+    expect(
+      find.bySemanticsLabel('Créer la série Vieux tome, tome 1'),
+      findsOneWidget,
+    );
+    expect(find.bySemanticsLabel('Vieux tome, Oda'), findsOneWidget);
+    semantics.dispose();
   });
 
   testWidgets('the row opens the whole volume', (tester) async {

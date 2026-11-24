@@ -328,6 +328,37 @@ void main() {
     });
   });
 
+  group('inboxHasSuggestionProvider', () {
+    test('true when a volume to sort has a suggestion', () async {
+      final container = makeContainer();
+      container.listen(inboxHasSuggestionProvider, (_, _) {});
+      expect(container.read(inboxHasSuggestionProvider), isFalse);
+      await load(container);
+
+      // « Titre loose » : une nouvelle série de ce nom.
+      expect(container.read(inboxHasSuggestionProvider), isTrue);
+    });
+
+    test('false when no volume to sort has a title', () async {
+      repository = RecordingBookshelfRepository(
+        volumes: [
+          Volume(
+            id: 'blank',
+            title: '',
+            authors: const [],
+            lookup: LookupState.pending,
+            addedAt: DateTime(2026, 11, 9),
+          ),
+        ],
+      );
+      final container = makeContainer();
+      container.listen(inboxHasSuggestionProvider, (_, _) {});
+      await load(container);
+
+      expect(container.read(inboxHasSuggestionProvider), isFalse);
+    });
+  });
+
   group('placementSuggestionProvider', () {
     test('suggests a place for a volume to sort', () async {
       repository = RecordingBookshelfRepository(

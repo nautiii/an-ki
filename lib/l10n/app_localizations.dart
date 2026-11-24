@@ -3019,6 +3019,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count, plural, =1{Retirer le tome {numbers} de {series}} other{Retirer les tomes {numbers} de {series}}}'**
   String a11yBurstRemoveGroup(String series, int count, String numbers);
+
+  /// « À classer » : phrase d'introduction au-dessus des tomes
+  ///
+  /// In fr, this message translates to:
+  /// **'AnKi propose un rangement : un toucher suffit.'**
+  String get inboxIntro;
+
+  /// « À classer » : bouton de la suggestion, une série existante (« t. 13 » : tome 13)
+  ///
+  /// In fr, this message translates to:
+  /// **'Ranger dans {series} · t. {number}'**
+  String inboxPlaceIn(String series, int number);
+
+  /// TalkBack : bouton de la suggestion, une série existante
+  ///
+  /// In fr, this message translates to:
+  /// **'Ranger dans {series}, tome {number}'**
+  String a11yInboxPlaceIn(String series, int number);
+
+  /// « À classer » : bouton de la suggestion, une série à créer
+  ///
+  /// In fr, this message translates to:
+  /// **'{number, plural, =1{Créer « {series} »} other{Créer « {series} » · t. {number}}}'**
+  String inboxCreateSeries(String series, int number);
+
+  /// TalkBack : bouton de la suggestion, une série à créer
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer la série {series}, tome {number}'**
+  String a11yInboxCreateSeries(String series, int number);
+
+  /// « À classer » : infobulle du bouton qui ouvre le classement complet
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre série'**
+  String get inboxOtherSeries;
+
+  /// « À classer » : snackbar après une suggestion acceptée, avec « Voir »
+  ///
+  /// In fr, this message translates to:
+  /// **'Rangé dans {series} · tome {number}'**
+  String inboxPlaced(String series, int number);
+
+  /// « À classer » : action de la snackbar, ouvre la série où le tome a été rangé
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir'**
+  String get inboxSeeSeries;
 }
 
 class _AppLocalizationsDelegate

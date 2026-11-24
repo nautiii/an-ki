@@ -539,5 +539,13 @@
   "burstRemove": "Remove {title}",
   "burstEmpty": "Scanned volumes land here, grouped by series.",
   "burstGroupRemoved": "{series}, {count, plural, =1{volume {numbers} removed} other{volumes {numbers} removed}} from the collection",
-  "a11yBurstRemoveGroup": "{count, plural, =1{Remove volume {numbers} of {series}} other{Remove volumes {numbers} of {series}}}"
+  "a11yBurstRemoveGroup": "{count, plural, =1{Remove volume {numbers} of {series}} other{Remove volumes {numbers} of {series}}}",
+  "inboxIntro": "AnKi suggests where each one goes: one tap is enough.",
+  "inboxPlaceIn": "File in {series} · vol. {number}",
+  "a11yInboxPlaceIn": "File in {series}, volume {number}",
+  "inboxCreateSeries": "{number, plural, =1{Create “{series}”} other{Create “{series}” · vol. {number}}}",
+  "a11yInboxCreateSeries": "Create the series {series}, volume {number}",
+  "inboxOtherSeries": "Another series",
+  "inboxPlaced": "Filed in {series} · volume {number}",
+  "inboxSeeSeries": "View"
 }

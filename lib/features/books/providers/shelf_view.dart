@@ -100,6 +100,16 @@ final upcomingReleasesProvider =
           .whenData((shelf) => upcomingReleasesOf(shelf.entries, today));
     });
 
+/// Vrai quand « À classer » a au moins une suggestion à faire : sa phrase
+/// d'introduction ne promet rien qui n'est pas là (tomes sans titre).
+final inboxHasSuggestionProvider = Provider.autoDispose<bool>((ref) {
+  final shelf = ref.watch(shelfProvider).value;
+  if (shelf == null) return false;
+  return shelf.unclassified.any(
+    (volume) => suggestPlacement(volume, shelf.entries) != null,
+  );
+});
+
 /// Où « À classer » propose de ranger le tome [volumeId]
 /// ([suggestPlacement]) ; null tant que l'étagère n'est pas lue, pour un
 /// tome sans titre ou qui n'est plus à classer.

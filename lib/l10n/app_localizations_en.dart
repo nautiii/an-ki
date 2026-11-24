@@ -2151,4 +2151,45 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get inboxIntro =>
+      'AnKi suggests where each one goes: one tap is enough.';
+
+  @override
+  String inboxPlaceIn(String series, int number) {
+    return 'File in $series · vol. $number';
+  }
+
+  @override
+  String a11yInboxPlaceIn(String series, int number) {
+    return 'File in $series, volume $number';
+  }
+
+  @override
+  String inboxCreateSeries(String series, int number) {
+    String _temp0 = intl.Intl.pluralLogic(
+      number,
+      locale: localeName,
+      other: 'Create “$series” · vol. $number',
+      one: 'Create “$series”',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String a11yInboxCreateSeries(String series, int number) {
+    return 'Create the series $series, volume $number';
+  }
+
+  @override
+  String get inboxOtherSeries => 'Another series';
+
+  @override
+  String inboxPlaced(String series, int number) {
+    return 'Filed in $series · volume $number';
+  }
+
+  @override
+  String get inboxSeeSeries => 'View';
 }

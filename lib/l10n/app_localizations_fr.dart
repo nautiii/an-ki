@@ -2190,4 +2190,44 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get inboxIntro => 'AnKi propose un rangement : un toucher suffit.';
+
+  @override
+  String inboxPlaceIn(String series, int number) {
+    return 'Ranger dans $series · t. $number';
+  }
+
+  @override
+  String a11yInboxPlaceIn(String series, int number) {
+    return 'Ranger dans $series, tome $number';
+  }
+
+  @override
+  String inboxCreateSeries(String series, int number) {
+    String _temp0 = intl.Intl.pluralLogic(
+      number,
+      locale: localeName,
+      other: 'Créer « $series » · t. $number',
+      one: 'Créer « $series »',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String a11yInboxCreateSeries(String series, int number) {
+    return 'Créer la série $series, tome $number';
+  }
+
+  @override
+  String get inboxOtherSeries => 'Autre série';
+
+  @override
+  String inboxPlaced(String series, int number) {
+    return 'Rangé dans $series · tome $number';
+  }
+
+  @override
+  String get inboxSeeSeries => 'Voir';
 }
