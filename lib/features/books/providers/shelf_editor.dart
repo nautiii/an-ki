@@ -6,6 +6,7 @@ import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/book_metadata.dart';
 import 'package:an_ki/features/books/domain/isbn.dart';
+import 'package:an_ki/features/books/domain/placement_suggestion.dart';
 import 'package:an_ki/features/books/domain/release_check.dart';
 import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/domain/series.dart';
@@ -15,6 +16,7 @@ import 'package:an_ki/features/books/domain/shelf_failure.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/domain/volume_backfill.dart';
 import 'package:an_ki/features/books/domain/volume_identification.dart';
+import 'package:an_ki/features/books/domain/volume_number.dart';
 import 'package:an_ki/features/books/domain/volume_placement.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
 import 'package:an_ki/features/books/providers/volume_lookup.dart';
@@ -236,13 +238,7 @@ class ShelfEditor extends AsyncNotifier<void> {
     final key = seriesKey(trimmed);
     if (uid == null || key.isEmpty) return null;
     final repository = ref.read(bookshelfRepositoryProvider);
-    // Une série dont la suppression attend « Annuler » ne compte plus : ses
-    // tomes partiraient avec elle.
-    final hidden = ref.read(pendingSeriesRemovalsProvider);
-    final existing = findSeriesByKey([
-      for (final series in _series())
-        if (!hidden.contains(series.id)) series,
-    ], key);
+    final existing = findSeriesByKey(_visibleSeries(), key);
     final target =
         existing ??
         Series(
@@ -312,37 +308,46 @@ class ShelfEditor extends AsyncNotifier<void> {
 
   /// « J'ai aussi les tomes précédents » : ajoute à la série du tome
   /// [volumeId] les numéros qu'elle n'a pas avant le sien
-  /// ([missingBefore]), sans ISBN et en attente, aussitôt (hors ligne
-  /// compris), puis lance leur recherche ([completePending]). Renvoie leurs
-  /// ids, pour « Annuler » ; vide quand il n'y a rien à ajouter (tome à
-  /// classer, aucun trou avant lui) ou hors session.
+  /// ([missingBefore]), comme [addNumbers]. Renvoie leurs ids, pour
+  /// « Annuler » ; vide quand il n'y a rien à ajouter (tome à classer, aucun
+  /// trou avant lui) ou hors session.
   List<String> addPrevious(String volumeId) {
-    final uid = ref.read(currentUidProvider);
-    if (uid == null) return const [];
     final volume = _volumes().where((v) => v.id == volumeId).firstOrNull;
     final seriesId = volume?.seriesId;
     final number = volume?.number;
     if (seriesId == null || number == null) return const [];
-    final entry = shelfOf(
-      _series(),
-      _volumes(),
-    ).entries.where((entry) => entry.series.id == seriesId).firstOrNull;
+    final entry = _entryOf(seriesId);
     if (entry == null) return const [];
-    // Déjà ajoutés, mais pas encore montrés par le flux (double toucher,
-    // deux lignes d'une même série) : pas de doublon.
-    final queued = {
+    return addNumbers(seriesId, missingBefore(entry, number));
+  }
+
+  /// « Acheté », « Je les ai » : ajoute à la série [seriesId] les tomes
+  /// [numbers] qu'elle n'a pas, sans ISBN et en attente, aussitôt (hors ligne
+  /// compris), puis lance leur recherche par série et numéro
+  /// ([completePending]). Renvoie leurs ids, pour « Annuler » ; vide quand il
+  /// n'y a rien à ajouter (série inconnue, numéros déjà là ou hors de 1 à
+  /// `maxVolumeNumber`) ou hors session.
+  List<String> addNumbers(String seriesId, List<int> numbers) {
+    final uid = ref.read(currentUidProvider);
+    if (uid == null) return const [];
+    final entry = _entryOf(seriesId);
+    if (entry == null) return const [];
+    // Déjà possédés, ou ajoutés mais pas encore montrés par le flux (double
+    // toucher, deux lignes d'une même série) : pas de doublon.
+    final taken = {
+      ...entry.owned,
       for (final volume in _queued.values)
         if (volume.seriesId == seriesId) ?volume.number,
     };
     final repository = ref.read(bookshelfRepositoryProvider);
     final now = ref.read(clockProvider)();
     final volumes = [
-      for (final missing in missingBefore(entry, number))
-        if (!queued.contains(missing))
+      for (final number in {...numbers})
+        if (number >= 1 && number <= maxVolumeNumber && !taken.contains(number))
           Volume(
             id: repository.newVolumeId(uid),
             seriesId: seriesId,
-            number: missing,
+            number: number,
             title: '',
             authors: const [],
             lookup: LookupState.pending,
@@ -357,7 +362,64 @@ class ShelfEditor extends AsyncNotifier<void> {
     return [for (final volume in volumes) volume.id];
   }
 
-  /// Retire les tomes [volumeIds] (« Annuler » de [addPrevious]). [uid] :
+  /// Accepte la proposition [suggestion] de « À classer » : range le tome
+  /// [volumeId] dans sa série, ou dans celle qui porte la clé de son nom
+  /// (créée entre-temps par un autre toucher), sinon dans une nouvelle série
+  /// créée dans le même lot. Une série qui attend « Annuler » de sa
+  /// suppression ne compte plus. Renvoie l'id de la série ; null pour un tome
+  /// inconnu, un nom vide ou hors session.
+  String? place(String volumeId, PlacementSuggestion suggestion) {
+    final uid = ref.read(currentUidProvider);
+    final volume = _volumes().where((v) => v.id == volumeId).firstOrNull;
+    if (uid == null || volume == null) return null;
+    final visible = _visibleSeries();
+    final name = suggestion.seriesName.trim();
+    final key = seriesKey(name);
+    final existing =
+        visible.where((s) => s.id == suggestion.series?.id).firstOrNull ??
+        (key.isEmpty ? null : findSeriesByKey(visible, key));
+    if (existing != null) {
+      unawaited(
+        classify(volumeId, seriesId: existing.id, number: suggestion.number),
+      );
+      return existing.id;
+    }
+    if (key.isEmpty) return null;
+    final repository = ref.read(bookshelfRepositoryProvider);
+    final series = Series(
+      id: repository.newSeriesId(uid),
+      name: name,
+      keys: [key],
+      complete: false,
+    );
+    _createdSeries[key] = series;
+    final placed = Volume(
+      id: volume.id,
+      seriesId: series.id,
+      number: suggestion.number,
+      isbn: volume.isbn,
+      title: volume.title,
+      authors: volume.authors,
+      imageUrl: volume.imageUrl,
+      publisher: volume.publisher,
+      publishedDate: volume.publishedDate,
+      lookup: volume.lookup,
+      addedAt: volume.addedAt,
+    );
+    final now = ref.read(clockProvider)();
+    unawaited(
+      _write(
+        (repository, uid) => repository.saveScannedVolume(
+          uid,
+          placed,
+          withSeries: (series: series, createdAt: now),
+        ),
+      ),
+    );
+    return series.id;
+  }
+
+  /// Retire les tomes [volumeIds] (« Annuler » de [addNumbers]). [uid] :
   /// voir [_write].
   Future<void> removeVolumes(List<String> volumeIds, {String? uid}) {
     _queued.removeWhere((id, _) => volumeIds.contains(id));
@@ -459,6 +521,27 @@ class ShelfEditor extends AsyncNotifier<void> {
   );
 
   // --- Interne ---
+
+  /// Les séries connues, sans celles dont la suppression attend « Annuler » :
+  /// leurs tomes partiraient avec elles.
+  List<Series> _visibleSeries() {
+    final hidden = ref.read(pendingSeriesRemovalsProvider);
+    return [
+      for (final series in _series())
+        if (!hidden.contains(series.id)) series,
+    ];
+  }
+
+  /// La série [seriesId] telle que l'écran la montre : sans les tomes ni les
+  /// séries qui attendent « Annuler » de leur retrait ; null quand elle n'y
+  /// est pas.
+  ShelfEntry? _entryOf(String seriesId) {
+    final hidden = ref.read(pendingVolumeRemovalsProvider);
+    return shelfOf(_visibleSeries(), [
+      for (final volume in _volumes())
+        if (!hidden.contains(volume.id)) volume,
+    ]).entries.where((entry) => entry.series.id == seriesId).firstOrNull;
+  }
 
   List<Volume> _volumes() => ref.read(bookVolumesProvider).value ?? const [];
 

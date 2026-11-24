@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
+import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/shelf_failure.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
@@ -82,6 +84,7 @@ void main() {
       overrides: [
         bookshelfRepositoryProvider.overrideWithValue(shelf ?? repository),
         currentUidProvider.overrideWith((ref) => ref.watch(_uidProvider)),
+        todayProvider.overrideWithValue(DateTime(2026, 11, 24)),
       ],
     );
     return container;
@@ -259,6 +262,104 @@ void main() {
       await pumpEventQueue();
 
       expect(container.read(volumeByIdProvider('a')).requireValue, isNull);
+    });
+  });
+
+  group('agenda', () {
+    NextVolumeInfo next(ReleaseStatus status, {ReleaseDate? date}) =>
+        NextVolumeInfo(
+          number: 2,
+          status: status,
+          date: date,
+          source: ReleaseSource.bnf,
+          checkedAt: DateTime(2026, 11),
+        );
+
+    test('« À acheter » lists the released volumes the shelf lacks', () async {
+      repository = RecordingBookshelfRepository(
+        series: [
+          Series(
+            id: 's1',
+            name: 'One Piece',
+            keys: const ['one piece'],
+            complete: false,
+            next: next(ReleaseStatus.released),
+          ),
+          _asterix,
+        ],
+        volumes: [_volume('a', seriesId: 's1', number: 1)],
+      );
+      final container = makeContainer();
+      container.listen(shelfToBuyProvider, (_, _) {});
+      await load(container);
+
+      final toBuy = container.read(shelfToBuyProvider).requireValue;
+      expect(
+        [for (final p in toBuy) (p.entry.series.id, p.number)],
+        [('s1', 2)],
+      );
+    });
+
+    test('« Prochaines sorties » lists the dated announcements', () async {
+      repository = RecordingBookshelfRepository(
+        series: [
+          Series(
+            id: 's1',
+            name: 'One Piece',
+            keys: const ['one piece'],
+            complete: false,
+            next: next(
+              ReleaseStatus.announced,
+              date: const ReleaseDate(year: 2026, month: 12, day: 3),
+            ),
+          ),
+          _asterix,
+        ],
+      );
+      final container = makeContainer();
+      container.listen(upcomingReleasesProvider, (_, _) {});
+      await load(container);
+
+      final upcoming = container.read(upcomingReleasesProvider).requireValue;
+      expect(
+        [for (final r in upcoming) (r.entry.series.id, r.number, r.date.iso)],
+        [('s1', 2, '2026-12-03')],
+      );
+    });
+  });
+
+  group('placementSuggestionProvider', () {
+    test('suggests a place for a volume to sort', () async {
+      repository = RecordingBookshelfRepository(
+        series: const [_onePiece],
+        volumes: [
+          Volume(
+            id: 'loose',
+            title: 'One Piece - Tome 7',
+            authors: const [],
+            lookup: LookupState.found,
+            addedAt: DateTime(2026, 11, 9),
+          ),
+        ],
+      );
+      final container = makeContainer();
+      container.listen(placementSuggestionProvider('loose'), (_, _) {});
+      await load(container);
+
+      final suggestion = container.read(placementSuggestionProvider('loose'));
+      expect((suggestion?.series, suggestion?.number), (_onePiece, 7));
+    });
+
+    test('null for a classified, unknown or not yet read volume', () async {
+      final container = makeContainer();
+      container
+        ..listen(placementSuggestionProvider('a'), (_, _) {})
+        ..listen(placementSuggestionProvider('nope'), (_, _) {});
+      expect(container.read(placementSuggestionProvider('a')), isNull);
+      await load(container);
+
+      expect(container.read(placementSuggestionProvider('a')), isNull);
+      expect(container.read(placementSuggestionProvider('nope')), isNull);
     });
   });
 }

@@ -5,6 +5,7 @@ import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
 import 'package:an_ki/features/books/domain/book_metadata.dart';
+import 'package:an_ki/features/books/domain/placement_suggestion.dart';
 import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/shelf_failure.dart';
@@ -12,6 +13,7 @@ import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/domain/volume_backfill.dart';
 import 'package:an_ki/features/books/domain/volume_guess.dart';
 import 'package:an_ki/features/books/domain/volume_identification.dart';
+import 'package:an_ki/features/books/domain/volume_number.dart';
 import 'package:an_ki/features/books/providers/shelf_editor.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
 
@@ -782,6 +784,72 @@ void main() {
       expect(shelf.volumes, hasLength(3));
     });
 
+    test(
+      'addNumbers adds the numbers the series lacks, then their records',
+      () async {
+        shelf = RecordingBookshelfRepository(
+          series: [onePiece],
+          volumes: [scanned(_isbn, 3, publisher: 'Glénat')],
+        );
+        lookup = RecordingVolumeLookup(numbered: {('One Piece', 4): tome(4)});
+        final container = makeContainer();
+        await settle(container);
+
+        // « Acheté » : le tome paru ; le 3 est déjà là, 0 et au-delà du maximum n'existent pas.
+        final added = editorOf(container)
+            .addNumbers('s1', [4, 3, 4, 0, maxVolumeNumber + 1]);
+
+        expect(added, hasLength(1));
+        await pumpEventQueue(times: 200);
+        final fourth = shelf.volumes.singleWhere((v) => v.number == 4);
+        expect(fourth.id, added.single);
+        expect(
+          (fourth.title, fourth.lookup, fourth.seriesId),
+          ('One Piece - Tome 4', LookupState.found, 's1'),
+        );
+        expect(lookup.searched, [('One Piece', 4, true)]);
+      },
+    );
+
+    test('addNumbers: twice adds once, an unknown series nothing', () async {
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [scanned(_isbn, 3)],
+      );
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      expect(editor.addNumbers('s1', [1, 2]), hasLength(2));
+      expect(editor.addNumbers('s1', [1, 2]), isEmpty);
+      expect(editor.addNumbers('unknown', [1]), isEmpty);
+      await pumpEventQueue(times: 200);
+
+      expect(shelf.volumes, hasLength(3));
+    });
+
+    test('addNumbers adds back a volume whose removal is pending', () async {
+      shelf = RecordingBookshelfRepository(
+        series: [onePiece],
+        volumes: [scanned(_isbn, 3), scanned(_other, 4)],
+      );
+      final container = makeContainer();
+      await settle(container);
+      container.read(pendingVolumeRemovalsProvider.notifier).hide(_other);
+
+      // Le tome 4 est retiré (« Annuler » possible) : « Acheté » le rajoute.
+      expect(editorOf(container).addNumbers('s1', [4]), hasLength(1));
+    });
+
+    test('addNumbers: signed out, nothing is written', () async {
+      shelf = RecordingBookshelfRepository(series: [onePiece]);
+      final container = makeContainer(uid: null);
+
+      expect(editorOf(container).addNumbers('s1', [1]), isEmpty);
+      await pumpEventQueue();
+      expect(shelf.volumes, isEmpty);
+    });
+
     test('added during a pass, searched in the next one', () async {
       shelf = RecordingBookshelfRepository(
         series: [onePiece],
@@ -1139,6 +1207,146 @@ void main() {
         );
       },
     );
+
+    test('place puts a volume in the suggested series', () async {
+      final container = makeContainer();
+      await settle(container);
+
+      final seriesId = editorOf(container).place(
+        'v1',
+        const PlacementSuggestion(
+          series: onePiece,
+          seriesName: 'One Piece',
+          number: 7,
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(seriesId, 's1');
+      expect(
+        (shelf.volumes.single.seriesId, shelf.volumes.single.number),
+        ('s1', 7),
+      );
+      expect(shelf.createdSeries, isEmpty);
+    });
+
+    test('place creates the suggested series first', () async {
+      final container = makeContainer();
+      await settle(container);
+
+      final seriesId = editorOf(container).place(
+        'v1',
+        const PlacementSuggestion(seriesName: 'Blacksad', number: 7),
+      );
+      await pumpEventQueue();
+
+      final created = shelf.createdSeries.single;
+      expect((created.id, created.name), (seriesId, 'Blacksad'));
+      expect(
+        (shelf.volumes.single.seriesId, shelf.volumes.single.number),
+        (seriesId, 7),
+      );
+    });
+
+    Volume loose(String id, String title) => Volume(
+      id: id,
+      title: title,
+      authors: const [],
+      lookup: LookupState.found,
+      addedAt: _now,
+    );
+
+    test('place twice in a new series creates it once', () async {
+      shelf = RecordingBookshelfRepository(
+        volumes: [
+          loose('b6', 'Blacksad tome 6'),
+          loose('b7', 'Blacksad tome 7'),
+        ],
+      );
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      final first = editor.place(
+        'b6',
+        const PlacementSuggestion(seriesName: 'Blacksad', number: 6),
+      );
+      final second = editor.place(
+        'b7',
+        const PlacementSuggestion(seriesName: 'Blacksad', number: 7),
+      );
+      await pumpEventQueue();
+
+      expect(second, first);
+      expect(shelf.createdSeries, hasLength(1));
+      expect(
+        {for (final v in shelf.volumes) (v.seriesId, v.number)},
+        {(first, 6), (first, 7)},
+      );
+    });
+
+    test('place never uses a series whose removal is pending', () async {
+      final container = makeContainer();
+      await settle(container);
+      container.read(pendingSeriesRemovalsProvider.notifier).hide('s1');
+
+      final seriesId = editorOf(container).place(
+        'v1',
+        const PlacementSuggestion(
+          series: onePiece,
+          seriesName: 'One Piece',
+          number: 7,
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(seriesId, isNot('s1'));
+      expect(shelf.createdSeries.single.name, 'One Piece');
+      expect(shelf.volumes.single.seriesId, seriesId);
+    });
+
+    test('place: an unknown volume, nothing is written', () async {
+      final container = makeContainer();
+      await settle(container);
+
+      expect(
+        editorOf(container).place(
+          'nope',
+          const PlacementSuggestion(seriesName: 'Blacksad', number: 7),
+        ),
+        isNull,
+      );
+      await pumpEventQueue();
+      expect(shelf.createdSeries, isEmpty);
+    });
+
+    test('place: signed out, nothing is written', () async {
+      final container = makeContainer(uid: null);
+
+      final editor = editorOf(container);
+
+      expect(
+        editor.place(
+          'v1',
+          const PlacementSuggestion(seriesName: 'Blacksad', number: 7),
+        ),
+        isNull,
+      );
+      expect(
+        editor.place(
+          'v1',
+          const PlacementSuggestion(
+            series: onePiece,
+            seriesName: 'One Piece',
+            number: 7,
+          ),
+        ),
+        isNull,
+      );
+      await pumpEventQueue();
+      expect(shelf.createdSeries, isEmpty);
+      expect(shelf.volumes.single.seriesId, 's2');
+    });
 
     test('removes a volume', () async {
       final container = makeContainer();

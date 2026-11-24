@@ -711,4 +711,38 @@ void main() {
       );
     });
   });
+
+  group('isOutsideNumbering', () {
+    test('a box set, a special, several or a half volume', () {
+      for (final title in [
+        'One Piece - Coffret',
+        'Naruto Hors-série',
+        'Tomes 1 à 3',
+        'Tome 10.5',
+        'Vol. 3,5',
+        'Naruto T.3.5',
+        'Spirou Numéro 10.5',
+        'T1-T3',
+        'Tome 1 et 2',
+        'Jujutsu Kaisen - Tome 0',
+        'One Piece - Tome 9999',
+      ]) {
+        expect(isOutsideNumbering(title), isTrue, reason: title);
+      }
+    });
+
+    test('a single volume or a plain title', () {
+      for (final title in [
+        'One Piece - Tome 7',
+        'Le Petit Prince',
+        'One Piece T.3',
+        '20th Century Boys',
+        'Tome 7. 2e partie',
+        'Tome 3 : 1.5 million',
+        'Tome 5 - 2 cœurs',
+      ]) {
+        expect(isOutsideNumbering(title), isFalse, reason: title);
+      }
+    });
+  });
 }

@@ -255,6 +255,35 @@ final _excluded = RegExp(
   unicode: true,
 );
 
+/// Vrai quand [title] décrit un livre hors de la numérotation d'une série :
+/// un coffret, un hors-série, plusieurs tomes (« Tomes 1 à 3 »), un décimal
+/// (« Tome 10.5 »), un numéro hors de 1 à [maxVolumeNumber] (« Tome 0 »).
+/// `guessVolume` n'en devine rien ; on ne propose pas non plus d'en faire
+/// une série.
+bool isOutsideNumbering(String title) {
+  final cleaned = _clean(title);
+  if (_excluded.hasMatch(cleaned) || _decimalVolume.hasMatch(cleaned)) {
+    return true;
+  }
+  for (final match in _marker.allMatches(cleaned)) {
+    final number = int.tryParse(match.group(2)!);
+    if (number != null && (number < 1 || number > maxVolumeNumber)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/// Un repère de [_marker] suivi d'un décimal : « Tome 10.5 », « Vol. 3,5 »,
+/// « Numéro 10.5 ».
+final _decimalVolume = RegExp(
+  r"(?<![\p{L}\p{N}'’])"
+  r'(?:tome|volume|vol\.?|t\.?|n[°º]|no\.|num[ée]ro|#)'
+  r'\s*(?:[.:#]\s*)?\d{1,4}[.,]\d',
+  caseSensitive: false,
+  unicode: true,
+);
+
 final _bareNumber = RegExp(r'^\d{1,4}$');
 
 /// Longueur au-delà de laquelle un titre n'est plus lu : aucun titre réel ne

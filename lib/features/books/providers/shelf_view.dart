@@ -1,5 +1,8 @@
+import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/features/auth/providers/session_providers.dart';
+import 'package:an_ki/features/books/domain/placement_suggestion.dart';
 import 'package:an_ki/features/books/domain/shelf.dart';
+import 'package:an_ki/features/books/domain/shelf_agenda.dart';
 import 'package:an_ki/features/books/domain/shelf_search.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/domain/volume_backfill.dart';
@@ -76,3 +79,36 @@ final missingPreviousProvider = Provider.autoDispose.family<List<int>, String>((
   }
   return const [];
 });
+
+/// « À acheter » de l'étagère ([toBuyOf]) : le tome paru que chaque série
+/// n'a pas, recalculé chaque jour.
+final shelfToBuyProvider =
+    Provider.autoDispose<AsyncValue<List<ShelfPurchase>>>((ref) {
+      final today = ref.watch(todayProvider);
+      return ref
+          .watch(shelfProvider)
+          .whenData((shelf) => toBuyOf(shelf.entries, today));
+    });
+
+/// « Prochaines sorties » de l'étagère ([upcomingReleasesOf]) : trois au
+/// plus ; vide quand aucune date n'est connue (la section ne s'affiche pas).
+final upcomingReleasesProvider =
+    Provider.autoDispose<AsyncValue<List<UpcomingRelease>>>((ref) {
+      final today = ref.watch(todayProvider);
+      return ref
+          .watch(shelfProvider)
+          .whenData((shelf) => upcomingReleasesOf(shelf.entries, today));
+    });
+
+/// Où « À classer » propose de ranger le tome [volumeId]
+/// ([suggestPlacement]) ; null tant que l'étagère n'est pas lue, pour un
+/// tome sans titre ou qui n'est plus à classer.
+final placementSuggestionProvider = Provider.autoDispose
+    .family<PlacementSuggestion?, String>((ref, volumeId) {
+      final shelf = ref.watch(shelfProvider).value;
+      if (shelf == null) return null;
+      final volume = shelf.unclassified
+          .where((volume) => volume.id == volumeId)
+          .firstOrNull;
+      return volume == null ? null : suggestPlacement(volume, shelf.entries);
+    });
