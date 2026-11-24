@@ -2200,6 +2200,20 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String inboxAlreadyOwned(String series, int number) {
+    return 'Tome $number déjà dans $series';
+  }
+
+  @override
+  String a11yInboxAlreadyOwned(String series, int number) {
+    return 'Tome $number déjà dans $series, choisir où ranger ce tome';
+  }
+
+  @override
+  String get classifyDuplicateHint =>
+      'Vous avez déjà ce tome, il comptera comme un deuxième exemplaire.';
+
+  @override
   String a11yInboxPlaceIn(String series, int number) {
     return 'Ranger dans $series, tome $number';
   }

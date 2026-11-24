@@ -6,6 +6,7 @@ import 'package:an_ki/features/books/domain/series_key.dart';
 import 'package:an_ki/features/books/domain/shelf.dart';
 import 'package:an_ki/features/books/domain/shelf_search.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
+import 'package:an_ki/features/books/domain/volume_backfill.dart';
 import 'package:an_ki/features/books/domain/volume_number.dart';
 import 'package:an_ki/features/books/domain/volume_placement.dart';
 import 'package:an_ki/features/books/providers/shelf_editor.dart';
@@ -18,19 +19,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// numéro. Écriture optimiste : la feuille se ferme aussitôt, l'étagère
 /// annonce un échec.
 class ClassifySheet extends ConsumerStatefulWidget {
-  const ClassifySheet({super.key, required this.volume});
+  const ClassifySheet({
+    super.key,
+    required this.volume,
+    this.seriesId,
+    this.number,
+  });
 
   final Volume volume;
 
-  static Future<void> show(BuildContext context, Volume volume) =>
-      showModalBottomSheet<void>(
-        context: context,
-        useRootNavigator: true,
-        isScrollControlled: true,
-        useSafeArea: true,
-        showDragHandle: true,
-        builder: (_) => ClassifySheet(volume: volume),
-      );
+  /// Série et numéro proposés (une suggestion d'« À classer ») ; sinon ceux
+  /// du tome.
+  final String? seriesId;
+  final int? number;
+
+  static Future<void> show(
+    BuildContext context,
+    Volume volume, {
+    String? seriesId,
+    int? number,
+  }) => showModalBottomSheet<void>(
+    context: context,
+    useRootNavigator: true,
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: true,
+    builder: (_) =>
+        ClassifySheet(volume: volume, seriesId: seriesId, number: number),
+  );
 
   @override
   ConsumerState<ClassifySheet> createState() => _ClassifySheetState();
@@ -42,9 +58,11 @@ const _newSeries = '';
 class _ClassifySheetState extends ConsumerState<ClassifySheet> {
   /// Série choisie ; celle du tome si elle existe encore (lue au premier
   /// rendu, l'étagère étant déjà chargée).
-  late String? _seriesId = _existingSeries(widget.volume.seriesId);
+  late String? _seriesId = _existingSeries(
+    widget.seriesId ?? widget.volume.seriesId,
+  );
   late final _number = TextEditingController(
-    text: widget.volume.number?.toString() ?? '',
+    text: (widget.number ?? widget.volume.number)?.toString() ?? '',
   );
   final _name = TextEditingController();
 
@@ -105,6 +123,27 @@ class _ClassifySheetState extends ConsumerState<ClassifySheet> {
     return existing?.id ?? editor.createSeries(_name.text);
   }
 
+  /// Vrai quand le numéro saisi, dans la série existante choisie, ferait un
+  /// deuxième exemplaire (`wouldDuplicate`) : permis, mais dit.
+  bool _duplicate(List<ShelfEntry> entries) {
+    final number = _parsedNumber;
+    // Une « nouvelle » série dont le nom existe déjà la rejoint
+    // ([_newSeriesId]) : son numéro compte aussi.
+    final seriesId = _seriesId == _newSeries
+        ? findSeriesByKey([
+            for (final e in entries) e.series,
+          ], seriesKey(_name.text))?.id
+        : _seriesId;
+    final entry = entries.where((e) => e.series.id == seriesId).firstOrNull;
+    if (number == null || entry == null) return false;
+    return wouldDuplicate(
+      entry.volumes,
+      widget.volume,
+      seriesId: entry.series.id,
+      number: number,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -117,6 +156,7 @@ class _ClassifySheetState extends ConsumerState<ClassifySheet> {
     final numberError = _number.text.isNotEmpty && _parsedNumber == null
         ? l10n.classifyNumberError(maxVolumeNumber)
         : null;
+    final duplicate = _duplicate(entries);
     final maxHeight = MediaQuery.sizeOf(context).height * 0.85;
 
     return Padding(
@@ -209,6 +249,8 @@ class _ClassifySheetState extends ConsumerState<ClassifySheet> {
                     decoration: InputDecoration(
                       labelText: l10n.classifyNumberLabel,
                       errorText: numberError,
+                      helperText: duplicate ? l10n.classifyDuplicateHint : null,
+                      helperMaxLines: 3,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),

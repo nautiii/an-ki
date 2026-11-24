@@ -288,16 +288,31 @@ class ShelfEditor extends AsyncNotifier<void> {
   // --- Corrections ---
 
   /// Range le tome [volumeId] dans [seriesId] au numéro [number] ; sans série,
-  /// il redevient « à classer » (et perd son numéro).
-  Future<void> classify(String volumeId, {String? seriesId, int? number}) =>
-      _write(
-        (repository, uid) => repository.classifyVolume(
-          uid,
-          volumeId,
-          seriesId: seriesId,
-          number: seriesId == null ? null : number,
-        ),
-      );
+  /// il redevient « à classer » (et perd son numéro). Un tome scanné remplace
+  /// ceux de ce numéro ajoutés à la main ([replacedBy]), dans le même lot.
+  Future<void> classify(String volumeId, {String? seriesId, int? number}) {
+    final known = [..._volumes(), ..._queued.values];
+    final volume = known.where((v) => v.id == volumeId).firstOrNull;
+    final replacing = switch ((volume, seriesId, number)) {
+      (final volume?, final seriesId?, final number?) => replacedBy(
+        known,
+        volume,
+        seriesId: seriesId,
+        number: number,
+      ),
+      _ => const <String>[],
+    };
+    _queued.removeWhere((id, _) => replacing.contains(id));
+    return _write(
+      (repository, uid) => repository.classifyVolume(
+        uid,
+        volumeId,
+        seriesId: seriesId,
+        number: seriesId == null ? null : number,
+        replacing: replacing,
+      ),
+    );
+  }
 
   /// Retire le tome [volumeId]. [uid] : voir [_write] (écriture différée par
   /// « Annuler »).

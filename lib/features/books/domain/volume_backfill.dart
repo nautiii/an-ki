@@ -159,3 +159,44 @@ List<String> replacedByScan(
         volume.id != volume.isbn)
       volume.id,
 ];
+
+/// Les tomes de [volumes] que [volume], rangé au numéro [number] de
+/// [seriesId], remplace : ceux de [replacedByScan] s'il a été scanné (son id
+/// est son ISBN), aucun sinon.
+List<String> replacedBy(
+  List<Volume> volumes,
+  Volume volume, {
+  required String seriesId,
+  required int number,
+}) => volume.id == volume.isbn
+    ? replacedByScan(
+        volumes,
+        seriesId: seriesId,
+        number: number,
+        scannedId: volume.id,
+      )
+    : const [];
+
+/// Vrai quand [volume], rangé au numéro [number] de [seriesId], y
+/// rejoindrait un autre exemplaire, un de ceux de [volumes] qu'il ne remplace
+/// pas ([replacedBy]) : ce serait une deuxième édition.
+bool wouldDuplicate(
+  List<Volume> volumes,
+  Volume volume, {
+  required String seriesId,
+  required int number,
+}) {
+  final replaced = replacedBy(
+    volumes,
+    volume,
+    seriesId: seriesId,
+    number: number,
+  ).toSet();
+  return volumes.any(
+    (other) =>
+        other.id != volume.id &&
+        other.seriesId == seriesId &&
+        other.number == number &&
+        !replaced.contains(other.id),
+  );
+}

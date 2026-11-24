@@ -3032,6 +3032,24 @@ abstract class AppLocalizations {
   /// **'Ranger dans {series} · t. {number}'**
   String inboxPlaceIn(String series, int number);
 
+  /// « À classer » : la suggestion vise un tome déjà possédé ; le bouton ouvre le classement au lieu de ranger
+  ///
+  /// In fr, this message translates to:
+  /// **'Tome {number} déjà dans {series}'**
+  String inboxAlreadyOwned(String series, int number);
+
+  /// TalkBack : bouton de la suggestion quand le tome est déjà possédé, il ouvre le classement
+  ///
+  /// In fr, this message translates to:
+  /// **'Tome {number} déjà dans {series}, choisir où ranger ce tome'**
+  String a11yInboxAlreadyOwned(String series, int number);
+
+  /// Feuille de classement : la série choisie a déjà ce numéro
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez déjà ce tome, il comptera comme un deuxième exemplaire.'**
+  String get classifyDuplicateHint;
+
   /// TalkBack : bouton de la suggestion, une série existante
   ///
   /// In fr, this message translates to:

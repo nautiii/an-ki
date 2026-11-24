@@ -215,6 +215,29 @@ class _InboxTile extends ConsumerWidget {
         icon: const Icon(Icons.drive_file_move_rounded),
         label: Text(l10n.volumeSort),
       ),
+      // Ce numéro est déjà là : pas d'un toucher, le classement s'ouvre
+      // prérempli et dit qu'il ferait un deuxième exemplaire.
+      final suggestion when suggestion.alreadyOwned => FilledButton.tonalIcon(
+        onPressed: () => unawaited(
+          ClassifySheet.show(
+            context,
+            volume,
+            seriesId: suggestion.series?.id,
+            number: suggestion.number,
+          ),
+        ),
+        icon: const Icon(Icons.drive_file_move_rounded),
+        label: Semantics(
+          label: l10n.a11yInboxAlreadyOwned(
+            suggestion.seriesName,
+            suggestion.number,
+          ),
+          excludeSemantics: true,
+          child: Text(
+            l10n.inboxAlreadyOwned(suggestion.seriesName, suggestion.number),
+          ),
+        ),
+      ),
       final suggestion => FilledButton.tonalIcon(
         onPressed: () => _accept(context, ref, suggestion),
         icon: Icon(
@@ -264,7 +287,8 @@ class _InboxTile extends ConsumerWidget {
             Row(
               children: [
                 Flexible(child: primary),
-                if (suggestion != null) ...[
+                // Déjà possédé, le bouton ouvre le classement : pas de « ⋯ ».
+                if (suggestion != null && !suggestion.alreadyOwned) ...[
                   const SizedBox(width: AppSpacing.xxs),
                   IconButton(
                     onPressed: () =>

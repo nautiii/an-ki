@@ -3,6 +3,7 @@ import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/series_key.dart';
 import 'package:an_ki/features/books/domain/shelf.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
+import 'package:an_ki/features/books/domain/volume_backfill.dart';
 import 'package:an_ki/features/books/domain/volume_guess.dart';
 import 'package:an_ki/features/books/domain/volume_placement.dart';
 
@@ -18,6 +19,11 @@ class const PlacementSuggestion({
 
   /// Numéro proposé pour le tome.
   required final int number,
+
+  /// Vrai quand [series] a déjà un exemplaire de ce numéro que le tome ne
+  /// remplacerait pas (`wouldDuplicate`) : l'accepter d'un toucher ferait une
+  /// deuxième édition sans le dire.
+  final bool alreadyOwned = false,
 }) {
   /// Vrai quand la série est à créer.
   bool get isNew => series == null;
@@ -27,10 +33,11 @@ class const PlacementSuggestion({
       other is PlacementSuggestion &&
       other.series == series &&
       other.seriesName == seriesName &&
-      other.number == number;
+      other.number == number &&
+      other.alreadyOwned == alreadyOwned;
 
   @override
-  int get hashCode => Object.hash(series, seriesName, number);
+  int get hashCode => Object.hash(series, seriesName, number, alreadyOwned);
 }
 
 /// La meilleure supposition pour ranger [volume] parmi [entries], même
@@ -60,6 +67,9 @@ PlacementSuggestion? suggestPlacement(Volume volume, List<ShelfEntry> entries) {
         series: existing,
         seriesName: existing?.name ?? guess.seriesName.trim(),
         number: guess.number,
+        alreadyOwned:
+            existing != null &&
+            _owned(volume, _entryOf(entries, existing), guess.number),
       );
     }
   }
@@ -72,13 +82,27 @@ PlacementSuggestion? suggestPlacement(Volume volume, List<ShelfEntry> entries) {
   if (existing == null) {
     return PlacementSuggestion(seriesName: name, number: 1);
   }
-  final entry = entries.firstWhere((entry) => entry.series.id == existing.id);
+  final entry = _entryOf(entries, existing);
+  final number = entry.nextToBuy ?? (entry.last ?? 0) + 1;
   return PlacementSuggestion(
     series: existing,
     seriesName: existing.name,
-    number: entry.nextToBuy ?? (entry.last ?? 0) + 1,
+    number: number,
+    alreadyOwned: _owned(volume, entry, number),
   );
 }
+
+ShelfEntry _entryOf(List<ShelfEntry> entries, Series series) =>
+    entries.firstWhere((entry) => entry.series.id == series.id);
+
+/// Vrai quand ranger [volume] au numéro [number] de [entry] ferait un second
+/// exemplaire (`wouldDuplicate`).
+bool _owned(Volume volume, ShelfEntry entry, int number) => wouldDuplicate(
+  entry.volumes,
+  volume,
+  seriesId: entry.series.id,
+  number: number,
+);
 
 /// Le titre avant son sous-titre : `volumeTitleOf` les joint par « : ».
 String _withoutSubtitle(String title) {

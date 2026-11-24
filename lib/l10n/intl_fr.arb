@@ -2272,6 +2272,34 @@
       }
     }
   },
+  "inboxAlreadyOwned": "Tome {number} déjà dans {series}",
+  "@inboxAlreadyOwned": {
+    "description": "« À classer » : la suggestion vise un tome déjà possédé ; le bouton ouvre le classement au lieu de ranger",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "a11yInboxAlreadyOwned": "Tome {number} déjà dans {series}, choisir où ranger ce tome",
+  "@a11yInboxAlreadyOwned": {
+    "description": "TalkBack : bouton de la suggestion quand le tome est déjà possédé, il ouvre le classement",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "classifyDuplicateHint":"Vous avez déjà ce tome, il comptera comme un deuxième exemplaire.",
+  "@classifyDuplicateHint": {
+    "description": "Feuille de classement : la série choisie a déjà ce numéro"
+  },
   "a11yInboxPlaceIn": "Ranger dans {series}, tome {number}",
   "@a11yInboxPlaceIn": {
     "description": "TalkBack : bouton de la suggestion, une série existante",

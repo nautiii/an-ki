@@ -664,7 +664,9 @@ class RecordingBookshelfRepository extends FakeBookshelfRepository {
     String volumeId, {
     required String? seriesId,
     required int? number,
+    List<String> replacing = const [],
   }) => _write(() {
+    replacing.forEach(_volumes.remove);
     final volume = _volumes[volumeId]!;
     _volumes[volumeId] = Volume(
       id: volume.id,

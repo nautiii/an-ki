@@ -45,6 +45,67 @@ void main() {
       );
     });
 
+    group('alreadyOwned', () {
+      Volume scanned(String isbn, String title, {String? seriesId}) => Volume(
+        id: isbn,
+        isbn: isbn,
+        seriesId: seriesId,
+        number: seriesId == null ? null : 2,
+        title: title,
+        authors: const [],
+        lookup: LookupState.found,
+        addedAt: DateTime(2026),
+      );
+
+      test('a scanned copy of that number: a second edition', () {
+        final shelf = shelfOf(
+          [spy],
+          [scanned('9782505075000', 'Spy 2', seriesId: 'spy')],
+        ).entries;
+
+        final suggestion = suggestPlacement(
+          scanned('9782505075017', 'SPY x FAMILY - Tome 2'),
+          shelf,
+        );
+
+        expect((suggestion?.number, suggestion?.alreadyOwned), (2, true));
+      });
+
+      test('a copy added by hand is replaced by a scanned volume', () {
+        // `entries` ajoute des tomes à la main (leur id n'est pas un ISBN).
+        final shelf = entries({
+          spy: [1, 2],
+        });
+
+        expect(
+          suggestPlacement(
+            scanned('9782505075017', 'SPY x FAMILY - Tome 2'),
+            shelf,
+          )?.alreadyOwned,
+          isFalse,
+        );
+        expect(
+          suggestPlacement(
+            volume('SPY x FAMILY - Tome 2'),
+            shelf,
+          )?.alreadyOwned,
+          isTrue,
+        );
+      });
+
+      test('a number the series lacks is free', () {
+        expect(
+          suggestPlacement(
+            volume('SPY x FAMILY - Tome 13'),
+            entries({
+              spy: [1, 2],
+            }),
+          )?.alreadyOwned,
+          isFalse,
+        );
+      });
+    });
+
     test('offers even a doubtful guess (roman numeral)', () {
       final suggestion = suggestPlacement(
         volume('Blacksad tome VII'),

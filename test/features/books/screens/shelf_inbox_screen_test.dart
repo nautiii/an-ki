@@ -154,6 +154,53 @@ void main() {
     expect(find.text('Page série'), findsOneWidget);
   });
 
+  testWidgets('an owned number is never filed in one tap', (tester) async {
+    Volume scanned(String isbn, {String title = '', int? number}) => Volume(
+      id: isbn,
+      isbn: isbn,
+      seriesId: number == null ? null : 's1',
+      number: number,
+      title: title,
+      authors: const [],
+      lookup: LookupState.found,
+      addedAt: DateTime(2026, 11, 9),
+    );
+    final repository = RecordingBookshelfRepository(
+      series: const [
+        Series(
+          id: 's1',
+          name: 'One Piece',
+          keys: ['one piece'],
+          complete: false,
+        ),
+      ],
+      volumes: [
+        scanned('9782723400001', number: 13),
+        scanned('9782723400002', title: 'One Piece - Tome 13'),
+      ],
+    );
+    await pumpInbox(tester, repository);
+
+    expect(find.byTooltip('Autre série'), findsNothing);
+    expect(
+      find.bySemanticsLabel(
+        'Tome 13 déjà dans One Piece, choisir où ranger ce tome',
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Tome 13 déjà dans One Piece'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ClassifySheet), findsOneWidget);
+    expect(
+      find.text(
+        'Vous avez déjà ce tome, il comptera comme un deuxième exemplaire.',
+      ),
+      findsOneWidget,
+    );
+    expect(repository.volumes.where((v) => v.seriesId == null), hasLength(1));
+  });
+
   testWidgets('no promise of a suggestion when there is none', (tester) async {
     await pumpInbox(
       tester,

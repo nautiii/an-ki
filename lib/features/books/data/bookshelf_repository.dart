@@ -134,18 +134,28 @@ class BookshelfRepository {
       _guard(() => _volumes(uid).doc(volume.id).update(_volumeToMap(volume)));
 
   /// Range le tome [volumeId] dans [seriesId] au numéro [number] ; null efface
-  /// le champ (sans série : « à classer »).
+  /// le champ (sans série : « à classer »). [replacing] : les tomes qu'il
+  /// remplace (même série, même numéro, non scannés), retirés dans le même
+  /// lot.
   Future<void> classifyVolume(
     String uid,
     String volumeId, {
     required String? seriesId,
     required int? number,
-  }) => _guard(
-    () => _volumes(uid).doc(volumeId).update({
+    List<String> replacing = const [],
+  }) => _guard(() {
+    final fields = <String, Object>{
       'seriesId': seriesId ?? FieldValue.delete(),
       'number': number ?? FieldValue.delete(),
-    }),
-  );
+    };
+    final volumeDoc = _volumes(uid).doc(volumeId);
+    if (replacing.isEmpty) return volumeDoc.update(fields);
+    return _firestore.writeInBatches(<void Function(WriteBatch)>[
+      (batch) => batch.update(volumeDoc, fields),
+      for (final id in replacing)
+        (batch) => batch.delete(_volumes(uid).doc(id)),
+    ], (batch, write) => write(batch));
+  });
 
   Future<void> deleteVolume(String uid, String volumeId) =>
       _guard(() => _volumes(uid).doc(volumeId).delete());

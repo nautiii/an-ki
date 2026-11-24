@@ -25,14 +25,20 @@ final _loose = Volume(
 void main() {
   late RecordingBookshelfRepository repository;
 
-  Future<void> openSheet(WidgetTester tester, {Volume? volume}) async {
+  Future<void> openSheet(
+    WidgetTester tester, {
+    Volume? volume,
+    List<Volume> others = const [],
+    String? seriesId,
+    int? number,
+  }) async {
     repository = RecordingBookshelfRepository(
       series: [
         _series('s1', 'One Piece'),
         _series('s2', 'Astérix'),
         _series('s3', 'Blacksad'),
       ],
-      volumes: [volume ?? _loose],
+      volumes: [volume ?? _loose, ...others],
     );
     await tester.pumpHarness(
       // L'étagère est chargée avant la feuille, comme sur ses écrans.
@@ -40,7 +46,12 @@ void main() {
         builder: (context, ref, _) {
           ref.watch(shelfProvider);
           return TextButton(
-            onPressed: () => ClassifySheet.show(context, volume ?? _loose),
+            onPressed: () => ClassifySheet.show(
+              context,
+              volume ?? _loose,
+              seriesId: seriesId,
+              number: number,
+            ),
             child: const Text('Ouvrir'),
           );
         },
@@ -206,6 +217,125 @@ void main() {
       find.widgetWithText(FilledButton, 'Ranger'),
     );
     expect(button.onPressed, isNull);
+  });
+
+  testWidgets('says when the number is already owned', (tester) async {
+    const hint =
+        'Vous avez déjà ce tome, il comptera comme un deuxième exemplaire.';
+    // Un tome 7 de Blacksad est déjà là.
+    await openSheet(
+      tester,
+      others: [
+        Volume(
+          id: 'b7',
+          seriesId: 's3',
+          number: 7,
+          title: 'T7',
+          authors: const [],
+          lookup: LookupState.found,
+          addedAt: DateTime(2026),
+        ),
+      ],
+    );
+    await tester.tap(find.text('Blacksad'));
+    await tester.enterText(field('Numéro du tome'), '8');
+    await tester.pump();
+    expect(find.text(hint), findsNothing);
+
+    await tester.enterText(field('Numéro du tome'), '7');
+    await tester.pump();
+    expect(find.text(hint), findsOneWidget);
+    // Permis : un deuxième exemplaire reste un choix.
+    await tester.tap(find.widgetWithText(FilledButton, 'Ranger'));
+    await tester.pumpAndSettle();
+    expect(
+      [for (final v in repository.volumes) (v.seriesId, v.number)],
+      [('s3', 7), ('s3', 7)],
+    );
+  });
+
+  testWidgets('a "new" series that exists says its number is owned', (
+    tester,
+  ) async {
+    await openSheet(
+      tester,
+      others: [
+        Volume(
+          id: 'b7',
+          seriesId: 's3',
+          number: 7,
+          title: 'T7',
+          authors: const [],
+          lookup: LookupState.found,
+          addedAt: DateTime(2026),
+        ),
+      ],
+    );
+    await tester.tap(find.text('Nouvelle série'));
+    await tester.pumpAndSettle();
+    await tester.enterText(field('Nom de la série'), 'blacksad');
+    await tester.enterText(field('Numéro du tome'), '7');
+    await tester.pump();
+
+    expect(
+      find.text(
+        'Vous avez déjà ce tome, il comptera comme un deuxième exemplaire.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a scanned volume replaces one added by hand, no hint', (
+    tester,
+  ) async {
+    await openSheet(
+      tester,
+      volume: Volume(
+        id: '9782344059562',
+        isbn: '9782344059562',
+        title: 'Blacksad 7',
+        authors: const [],
+        lookup: LookupState.found,
+        addedAt: DateTime(2026),
+      ),
+      others: [
+        Volume(
+          id: 'by-hand',
+          seriesId: 's3',
+          number: 7,
+          title: '',
+          authors: const [],
+          lookup: LookupState.found,
+          addedAt: DateTime(2026),
+        ),
+      ],
+    );
+    await tester.tap(find.text('Blacksad'));
+    await tester.enterText(field('Numéro du tome'), '7');
+    await tester.pump();
+    expect(
+      find.text(
+        'Vous avez déjà ce tome, il comptera comme un deuxième exemplaire.',
+      ),
+      findsNothing,
+    );
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Ranger'));
+    await tester.pumpAndSettle();
+    expect(
+      [for (final v in repository.volumes) (v.id, v.seriesId, v.number)],
+      [('9782344059562', 's3', 7)],
+    );
+  });
+
+  testWidgets('starts on a suggested series and number', (tester) async {
+    await openSheet(tester, seriesId: 's2', number: 3);
+
+    expect(find.text('3'), findsOneWidget);
+    final selected = tester.widget<RadioGroup<String>>(
+      find.byType(RadioGroup<String>),
+    );
+    expect(selected.groupValue, 's2');
   });
 
   testWidgets('starts on the current series and number', (tester) async {

@@ -362,6 +362,25 @@ void main() {
       expect((await volumesOf('u1').doc('v1').get()).exists, isFalse);
     });
 
+    test('classifying a volume removes the ones it replaces', () async {
+      await repository.saveScannedVolume('u1', _volume('v1'));
+      await repository.saveScannedVolume('u1', _volume('by-hand'));
+      await repository.saveScannedVolume('u1', _volume('kept'));
+
+      await repository.classifyVolume(
+        'u1',
+        'v1',
+        seriesId: 's1',
+        number: 4,
+        replacing: ['by-hand'],
+      );
+
+      final data = (await volumesOf('u1').doc('v1').get()).data()!;
+      expect((data['seriesId'], data['number']), ('s1', 4));
+      expect((await volumesOf('u1').doc('by-hand').get()).exists, isFalse);
+      expect((await volumesOf('u1').doc('kept').get()).exists, isTrue);
+    });
+
     test('translates Firestore errors into shelf failures', () async {
       await repository.saveScannedVolume('u1', _volume('v1'));
       final doc = volumesOf('u1').doc('v1');

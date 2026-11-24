@@ -317,6 +317,42 @@ void main() {
       );
     });
 
+    test('replacedBy: only a scanned volume replaces', () {
+      final volumes = [volume('by-hand', number: 3)];
+      final scanned = volume('9782344059562', isbn: '9782344059562');
+
+      expect(replacedBy(volumes, scanned, seriesId: 'op', number: 3), [
+        'by-hand',
+      ]);
+      expect(
+        replacedBy(volumes, volume('other'), seriesId: 'op', number: 3),
+        isEmpty,
+      );
+    });
+
+    test('wouldDuplicate: another copy it does not replace', () {
+      final scanned = volume('9782344059562', isbn: '9782344059562');
+      final byHand = volume('by-hand', number: 3);
+      final copy = volume('9782723488525', number: 3, isbn: '9782723488525');
+
+      expect(
+        wouldDuplicate([byHand], scanned, seriesId: 'op', number: 3),
+        isFalse,
+      );
+      expect(
+        wouldDuplicate([byHand, copy], scanned, seriesId: 'op', number: 3),
+        isTrue,
+      );
+      expect(
+        wouldDuplicate([byHand], volume('other'), seriesId: 'op', number: 3),
+        isTrue,
+      );
+      expect(
+        wouldDuplicate([byHand], scanned, seriesId: 'op', number: 4),
+        isFalse,
+      );
+    });
+
     test('never the scanned volume itself', () {
       expect(
         replacedByScan(

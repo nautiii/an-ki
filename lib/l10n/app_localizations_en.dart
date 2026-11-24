@@ -2162,6 +2162,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String inboxAlreadyOwned(String series, int number) {
+    return 'Volume $number already in $series';
+  }
+
+  @override
+  String a11yInboxAlreadyOwned(String series, int number) {
+    return 'Volume $number already in $series, choose where to file this one';
+  }
+
+  @override
+  String get classifyDuplicateHint =>
+      'You already own this volume, it will count as a second copy.';
+
+  @override
   String a11yInboxPlaceIn(String series, int number) {
     return 'File in $series, volume $number';
   }

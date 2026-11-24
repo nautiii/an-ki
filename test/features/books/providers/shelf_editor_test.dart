@@ -1230,6 +1230,138 @@ void main() {
       expect(shelf.createdSeries, isEmpty);
     });
 
+    test('a scanned volume placed on a number bought by hand replaces '
+        'it', () async {
+      final scanned = Volume(
+        id: _isbn,
+        isbn: _isbn,
+        title: 'One Piece 7',
+        authors: const [],
+        lookup: LookupState.found,
+        addedAt: _now,
+      );
+      final byHand = Volume(
+        id: 'by-hand',
+        seriesId: 's1',
+        number: 7,
+        title: '',
+        authors: const [],
+        lookup: LookupState.found,
+        addedAt: _now,
+      );
+      shelf = RecordingBookshelfRepository(
+        series: const [onePiece],
+        volumes: [scanned, byHand],
+      );
+      final container = makeContainer();
+      await settle(container);
+
+      editorOf(container).place(
+        _isbn,
+        const PlacementSuggestion(
+          series: onePiece,
+          seriesName: 'One Piece',
+          number: 7,
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(
+        [for (final v in shelf.volumes) (v.id, v.seriesId, v.number)],
+        [(_isbn, 's1', 7)],
+      );
+    });
+
+    test('a scanned volume replaces a number bought by hand before the '
+        'stream shows it', () async {
+      final scanned = Volume(
+        id: _isbn,
+        isbn: _isbn,
+        title: 'One Piece 7',
+        authors: const [],
+        lookup: LookupState.found,
+        addedAt: _now,
+      );
+      shelf = RecordingBookshelfRepository(
+        series: const [onePiece],
+        volumes: [scanned],
+      );
+      final container = makeContainer();
+      await settle(container);
+      final editor = editorOf(container);
+
+      final added = editor.addNumbers('s1', [7]);
+      editor.place(
+        _isbn,
+        const PlacementSuggestion(
+          series: onePiece,
+          seriesName: 'One Piece',
+          number: 7,
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(added, hasLength(1));
+      expect(
+        [for (final v in shelf.volumes) (v.id, v.seriesId, v.number)],
+        [(_isbn, 's1', 7)],
+      );
+    });
+
+    test('back to « À classer », nothing is replaced', () async {
+      final scanned = Volume(
+        id: _isbn,
+        isbn: _isbn,
+        seriesId: 's1',
+        number: 7,
+        title: 'One Piece 7',
+        authors: const [],
+        lookup: LookupState.found,
+        addedAt: _now,
+      );
+      final byHand = Volume(
+        id: 'by-hand',
+        seriesId: 's1',
+        number: 7,
+        title: '',
+        authors: const [],
+        lookup: LookupState.found,
+        addedAt: _now,
+      );
+      shelf = RecordingBookshelfRepository(
+        series: const [onePiece],
+        volumes: [scanned, byHand],
+      );
+      final container = makeContainer();
+      await settle(container);
+
+      await editorOf(container).classify(_isbn);
+
+      expect(shelf.volumes, hasLength(2));
+    });
+
+    test('a volume added by hand moved onto a number keeps both', () async {
+      final byHand = Volume(
+        id: 'by-hand',
+        seriesId: 's2',
+        number: 1,
+        title: '',
+        authors: const [],
+        lookup: LookupState.found,
+        addedAt: _now,
+      );
+      shelf = RecordingBookshelfRepository(
+        series: const [onePiece, onePieceFr],
+        volumes: [volume, byHand],
+      );
+      final container = makeContainer();
+      await settle(container);
+
+      await editorOf(container).classify('by-hand', seriesId: 's2', number: 4);
+
+      expect(shelf.volumes, hasLength(2));
+    });
+
     test('place creates the suggested series first', () async {
       final container = makeContainer();
       await settle(container);
