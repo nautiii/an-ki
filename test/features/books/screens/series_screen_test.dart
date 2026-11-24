@@ -14,8 +14,10 @@ import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/providers/shelf_offline.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
 import 'package:an_ki/features/books/screens/series_screen.dart';
+import 'package:an_ki/features/books/widgets/glass_circle.dart';
 import 'package:an_ki/features/books/widgets/offline_banner.dart';
 import 'package:an_ki/features/books/widgets/release_date_sheet.dart';
+import 'package:an_ki/features/books/widgets/series_actions.dart';
 import 'package:an_ki/features/books/widgets/volume_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -94,21 +96,181 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('shows the header, the next card, the holes and the grid', (
+  testWidgets('shows the header, the next card, the shelf and the holes', (
     tester,
   ) async {
     await pumpSeries(tester, filled());
 
-    // Le nom est le titre de la barre, l'en-tête de la page et la
-    // jaquette de repli (sans image).
-    expect(find.text('One Piece'), findsNWidgets(3));
-    expect(find.text('Prochain'), findsOneWidget);
-    expect(find.text('Tome 5 · sortie le 3 décembre'), findsOneWidget);
+    // Le nom est l'en-tête de la page et la jaquette de repli (sans image).
+    expect(find.text('One Piece'), findsNWidgets(2));
+    expect(find.text('3 tomes sur 4'), findsOneWidget);
+    expect(find.text('dernier tome'), findsOneWidget);
+    expect(find.text('Prochain · tome 5'), findsOneWidget);
+    expect(find.text('3 décembre'), findsOneWidget);
+    expect(find.text('dans 25 jours'), findsOneWidget);
     expect(find.text('selon la BnF · vérifié le 8 nov.'), findsOneWidget);
-    expect(find.text('Il vous manque'), findsOneWidget);
-    expect(find.widgetWithText(Chip, 'Tome 3'), findsOneWidget);
     expect(find.text('Vos tomes'), findsOneWidget);
-    expect(find.text('4'), findsWidgets);
+    expect(find.text('Il vous manque 3'), findsOneWidget);
+    expect(find.text("Je l'ai"), findsOneWidget);
+    expect(find.bySemanticsLabel('Tome 3, manquant'), findsOneWidget);
+    expect(find.bySemanticsLabel('Tome 4, possédé'), findsOneWidget);
+  });
+
+  testWidgets('« Je l\'ai » adds the missing volumes, « Annuler » too', (
+    tester,
+  ) async {
+    final repository = filled();
+    await pumpSeries(tester, repository);
+
+    await tester.tap(find.text("Je l'ai"));
+    await tester.pump();
+
+    expect(
+      repository.volumes.map((v) => v.number),
+      unorderedEquals([1, 2, 3, 4]),
+    );
+    expect(find.textContaining('tome ajouté · infos'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 500));
+
+    await tester.tap(find.text('Annuler'));
+    await tester.pumpAndSettle();
+
+    expect(repository.volumes.map((v) => v.number), unorderedEquals([1, 2, 4]));
+  });
+
+  testWidgets('« Il vous manque » scrolls the shelf to the first gap', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpSeries(
+      tester,
+      RecordingBookshelfRepository(
+        series: [
+          const Series(
+            id: 's1',
+            name: 'One Piece',
+            keys: ['one piece'],
+            complete: false,
+          ),
+        ],
+        volumes: [
+          for (var n = 1; n <= 60; n++)
+            if (n != 2) _volume(n),
+        ],
+      ),
+    );
+
+    expect(find.bySemanticsLabel('Tome 2, manquant'), findsNothing);
+    expect(
+      tester.getSemantics(find.text('Il vous manque 2')),
+      matchesSemantics(
+        label: 'Il vous manque 2',
+        onTapHint: 'afficher dans le rayon',
+        isButton: true,
+        hasTapAction: true,
+        hasFocusAction: true,
+        hasEnabledState: true,
+        isEnabled: true,
+        isFocusable: true,
+      ),
+    );
+
+    await tester.tap(find.text('Il vous manque 2'));
+    await tester.pumpAndSettle();
+
+    expect(find.bySemanticsLabel('Tome 2, manquant'), findsOneWidget);
+    semantics.dispose();
+  });
+
+  testWidgets('back and menu sit on glass circles', (tester) async {
+    await pumpSeries(tester, filled());
+
+    expect(
+      find.descendant(
+        of: find.byType(GlassCircle),
+        matching: find.byType(SeriesMenu),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(GlassCircle),
+        matching: find.byType(BackButton),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a passed date stays editable on a released volume', (
+    tester,
+  ) async {
+    await pumpSeries(
+      tester,
+      RecordingBookshelfRepository(
+        series: [
+          Series(
+            id: 's1',
+            name: 'One Piece',
+            keys: const ['one piece'],
+            complete: false,
+            next: NextVolumeInfo(
+              number: 5,
+              status: ReleaseStatus.announced,
+              date: const ReleaseDate(year: 2026, month: 11, day: 3),
+              source: ReleaseSource.user,
+              checkedAt: DateTime(2026, 10),
+            ),
+          ),
+        ],
+        volumes: [_volume(1), _volume(2), _volume(3), _volume(4)],
+      ),
+    );
+
+    expect(find.text('Le tome 5 est paru'), findsOneWidget);
+    await tester.tap(find.text('Modifier la date'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ReleaseDateSheet), findsOneWidget);
+  });
+
+  testWidgets('a missing spine marks that volume bought', (tester) async {
+    final repository = filled();
+    await pumpSeries(tester, repository);
+
+    await tester.tap(find.bySemanticsLabel('Tome 3, manquant'));
+    await tester.pump();
+
+    expect(
+      repository.volumes.map((v) => v.number),
+      unorderedEquals([1, 2, 3, 4]),
+    );
+  });
+
+  testWidgets('a released volume offers « Je l\'ai acheté »', (tester) async {
+    final repository = RecordingBookshelfRepository(
+      series: [
+        Series(
+          id: 's1',
+          name: 'One Piece',
+          keys: const ['one piece'],
+          complete: false,
+          next: NextVolumeInfo(
+            number: 5,
+            status: ReleaseStatus.released,
+            source: ReleaseSource.bnf,
+            checkedAt: DateTime(2026, 11, 8),
+          ),
+        ),
+      ],
+      volumes: [_volume(1), _volume(2), _volume(3), _volume(4)],
+    );
+    await pumpSeries(tester, repository);
+
+    expect(find.text('Le tome 5 est paru'), findsOneWidget);
+    await tester.tap(find.text("Je l'ai acheté"));
+    await tester.pump();
+
+    expect(repository.volumes.map((v) => v.number), contains(5));
   });
 
   group('release date', () {
@@ -213,7 +375,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(bnf.asked, [('One Piece', 5)]);
-      expect(find.text("Tome 5 paru · vous ne l'avez pas"), findsOneWidget);
+      expect(find.text('Le tome 5 est paru'), findsOneWidget);
       expect(find.text('selon la BnF · vérifié le 8 nov.'), findsOneWidget);
     });
 
@@ -257,7 +419,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(google.asked, [('One Piece', 5)]);
-      expect(find.text('Tome 5 · sortie le 2 décembre'), findsOneWidget);
+      expect(find.text('2 décembre'), findsOneWidget);
       expect(
         find.text('selon Google Books · vérifié le 8 nov.'),
         findsOneWidget,
@@ -279,7 +441,7 @@ void main() {
         find.text('Pas de connexion. Vérifiez votre réseau et réessayez.'),
         findsOneWidget,
       );
-      expect(find.text('Tome 5 · sortie le 3 décembre'), findsOneWidget);
+      expect(find.text('3 décembre'), findsOneWidget);
 
       bnf.failure = BookFailure.unavailable;
       await tester.fling(
@@ -305,10 +467,10 @@ void main() {
       find.text('Aucun tome de cette série pour l\'instant.'),
       findsOneWidget,
     );
-    expect(find.text('Il vous manque'), findsNothing);
+    expect(find.textContaining('Il vous manque'), findsNothing);
   });
 
-  testWidgets('a volume of the grid opens its sheet', (tester) async {
+  testWidgets('a volume of the shelf opens its sheet', (tester) async {
     await pumpSeries(tester, filled());
 
     await tester.tap(find.bySemanticsLabel('Tome 2, possédé'));

@@ -365,7 +365,6 @@
   "a11yNextUnknown": "next volume {number}, date unknown",
   "a11yNextComplete": "series complete",
   "a11ySeriesHoles": "{count, plural, =1{you're missing volume {numbers}} other{you're missing volumes {numbers}}}",
-  "nextCardTitle": "Next",
   "nextCardReleased": "Volume {number} is out · you don't have it",
   "nextCardAnnounced": "Volume {number} · out on {date}",
   "nextCardAnnouncedMonth": "Volume {number} · out in {month}",
@@ -384,7 +383,6 @@
   "releaseSheetPick": "Pick a date",
   "releaseSheetMonthOnly": "I only know the month",
   "releaseSheetClear": "Clear the date",
-  "seriesHolesTitle": "You're missing",
   "seriesHoleChip": "Volume {number}",
   "seriesVolumesTitle": "Your volumes",
   "seriesVolumeOwned": "Volume {number}, owned",
@@ -524,5 +522,15 @@
   "shelfSeriesCount": "{count, plural, =1{1 series, A to Z} other{{count} series, A to Z}}",
   "a11yShelfInbox": "To sort, {count, plural, =1{1 volume} other{{count} volumes}}: {titles}",
   "shelfInboxTitles": "{more, plural, =0{{titles}} =1{{titles} and 1 more} other{{titles} and {more} more}}",
-  "shelfToBuyMore": "{count, plural, =1{Show 1 more volume} other{Show {count} more volumes}}"
+  "shelfToBuyMore": "{count, plural, =1{Show 1 more volume} other{Show {count} more volumes}}",
+  "seriesLastVolumeCaption": "last volume",
+  "seriesOwnedOf": "{last, plural, =1{{owned} of 1 volume} other{{owned} of {last} volumes}}",
+  "nextCardHeading": "Next · volume {number}",
+  "nextCardOut": "Volume {number} is out",
+  "seriesBought": "I bought it",
+  "a11ySeriesBought": "I bought volume {number}",
+  "seriesHaveHoles": "{count, plural, =1{I have it} other{I have them}}",
+  "a11ySeriesHaveHoles": "{count, plural, =1{I have the missing volume} other{I have the {count} missing volumes}}",
+  "a11ySpineAddHint": "mark as bought",
+  "a11yHolesShowHint": "show on the shelf"
 }

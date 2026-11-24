@@ -1970,12 +1970,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{il vous manque le tome {numbers}} other{il vous manque les tomes {numbers}}}'**
   String a11ySeriesHoles(int count, String numbers);
 
-  /// Page d'une série : titre de la carte du prochain tome
-  ///
-  /// In fr, this message translates to:
-  /// **'Prochain'**
-  String get nextCardTitle;
-
   /// Carte « Prochain » : le tome est sorti
   ///
   /// In fr, this message translates to:
@@ -2084,13 +2078,7 @@ abstract class AppLocalizations {
   /// **'Effacer la date'**
   String get releaseSheetClear;
 
-  /// Page d'une série : titre des tomes manquants (puces)
-  ///
-  /// In fr, this message translates to:
-  /// **'Il vous manque'**
-  String get seriesHolesTitle;
-
-  /// Puce d'un tome manquant ; aussi le titre d'un tome sans titre
+  /// Titre de repli d'un tome numéroté sans titre (« Tome 12 »)
   ///
   /// In fr, this message translates to:
   /// **'Tome {number}'**
@@ -2929,6 +2917,66 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count, plural, =1{Voir 1 autre tome} other{Voir les {count} autres tomes}}'**
   String shelfToBuyMore(int count);
+
+  /// Page d'une série : légende sous le dernier tome en gros chiffres
+  ///
+  /// In fr, this message translates to:
+  /// **'dernier tome'**
+  String get seriesLastVolumeCaption;
+
+  /// Page d'une série : combien de tomes on possède jusqu'au dernier
+  ///
+  /// In fr, this message translates to:
+  /// **'{owned, plural, =1{1 tome sur {last}} other{{owned} tomes sur {last}}}'**
+  String seriesOwnedOf(int owned, int last);
+
+  /// Page d'une série : titre de la carte du prochain tome annoncé
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochain · tome {number}'**
+  String nextCardHeading(int number);
+
+  /// Page d'une série : le prochain tome est sorti et on ne l'a pas
+  ///
+  /// In fr, this message translates to:
+  /// **'Le tome {number} est paru'**
+  String nextCardOut(int number);
+
+  /// Page d'une série : bouton qui ajoute le tome paru
+  ///
+  /// In fr, this message translates to:
+  /// **'Je l\'ai acheté'**
+  String get seriesBought;
+
+  /// TalkBack : bouton « Je l'ai acheté » de la page d'une série
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'ai acheté le tome {number}'**
+  String a11ySeriesBought(int number);
+
+  /// Page d'une série : bouton qui ajoute les tomes manquants
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Je l\'ai} other{Je les ai}}'**
+  String seriesHaveHoles(int count);
+
+  /// TalkBack : bouton « Je les ai » de la page d'une série
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{J\'ai le tome manquant} other{J\'ai les {count} tomes manquants}}'**
+  String a11ySeriesHaveHoles(int count);
+
+  /// TalkBack : action d'un tome manquant sur le rayon d'une série
+  ///
+  /// In fr, this message translates to:
+  /// **'marquer comme acheté'**
+  String get a11ySpineAddHint;
+
+  /// TalkBack : action de « Il vous manque … », qui fait défiler le rayon jusqu'au premier trou
+  ///
+  /// In fr, this message translates to:
+  /// **'afficher dans le rayon'**
+  String get a11yHolesShowHint;
 }
 
 class _AppLocalizationsDelegate

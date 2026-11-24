@@ -1140,10 +1140,6 @@
       }
     }
   },
-  "nextCardTitle": "Prochain",
-  "@nextCardTitle": {
-    "description": "Page d'une série : titre de la carte du prochain tome"
-  },
   "nextCardReleased": "Tome {number} paru · vous ne l'avez pas",
   "@nextCardReleased": {
     "description": "Carte « Prochain » : le tome est sorti",
@@ -1265,13 +1261,9 @@
   "@releaseSheetClear": {
     "description": "Feuille de saisie de la date de sortie : retirer la date saisie"
   },
-  "seriesHolesTitle": "Il vous manque",
-  "@seriesHolesTitle": {
-    "description": "Page d'une série : titre des tomes manquants (puces)"
-  },
   "seriesHoleChip": "Tome {number}",
   "@seriesHoleChip": {
-    "description": "Puce d'un tome manquant ; aussi le titre d'un tome sans titre",
+    "description": "Titre de repli d'un tome numéroté sans titre (« Tome 12 »)",
     "placeholders": {
       "number": {
         "type": "int"
@@ -2116,5 +2108,78 @@
         "type": "int"
       }
     }
+  },
+  "seriesLastVolumeCaption": "dernier tome",
+  "@seriesLastVolumeCaption": {
+    "description": "Page d'une série : légende sous le dernier tome en gros chiffres"
+  },
+  "seriesOwnedOf": "{owned, plural, =1{1 tome sur {last}} other{{owned} tomes sur {last}}}",
+  "@seriesOwnedOf": {
+    "description": "Page d'une série : combien de tomes on possède jusqu'au dernier",
+    "placeholders": {
+      "owned": {
+        "type": "int"
+      },
+      "last": {
+        "type": "int"
+      }
+    }
+  },
+  "nextCardHeading": "Prochain · tome {number}",
+  "@nextCardHeading": {
+    "description": "Page d'une série : titre de la carte du prochain tome annoncé",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "nextCardOut": "Le tome {number} est paru",
+  "@nextCardOut": {
+    "description": "Page d'une série : le prochain tome est sorti et on ne l'a pas",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "seriesBought": "Je l'ai acheté",
+  "@seriesBought": {
+    "description": "Page d'une série : bouton qui ajoute le tome paru"
+  },
+  "a11ySeriesBought": "J'ai acheté le tome {number}",
+  "@a11ySeriesBought": {
+    "description": "TalkBack : bouton « Je l'ai acheté » de la page d'une série",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "seriesHaveHoles": "{count, plural, =1{Je l'ai} other{Je les ai}}",
+  "@seriesHaveHoles": {
+    "description": "Page d'une série : bouton qui ajoute les tomes manquants",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "a11ySeriesHaveHoles": "{count, plural, =1{J'ai le tome manquant} other{J'ai les {count} tomes manquants}}",
+  "@a11ySeriesHaveHoles": {
+    "description": "TalkBack : bouton « Je les ai » de la page d'une série",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "a11ySpineAddHint": "marquer comme acheté",
+  "@a11ySpineAddHint": {
+    "description": "TalkBack : action d'un tome manquant sur le rayon d'une série"
+  },
+  "a11yHolesShowHint": "afficher dans le rayon",
+  "@a11yHolesShowHint": {
+    "description": "TalkBack : action de « Il vous manque … », qui fait défiler le rayon jusqu'au premier trou"
   }
 }

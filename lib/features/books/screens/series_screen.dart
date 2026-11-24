@@ -1,4 +1,5 @@
 import 'package:an_ki/core/common/anki_empty_state.dart';
+import 'package:an_ki/features/books/widgets/glass_circle.dart';
 import 'package:an_ki/core/common/skeleton_box.dart';
 import 'package:an_ki/core/constants/app_assets.dart';
 import 'package:an_ki/core/extensions/localization_extension.dart';
@@ -6,28 +7,27 @@ import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/routing/app_routes.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/books/domain/book_failure.dart';
-import 'package:an_ki/features/books/domain/next_volume_status.dart';
-import 'package:an_ki/features/books/domain/release_check.dart';
 import 'package:an_ki/features/books/domain/shelf.dart';
 import 'package:an_ki/features/books/providers/release_check.dart';
 import 'package:an_ki/features/books/providers/shelf_offline.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
 import 'package:an_ki/features/books/providers/shelf_view.dart';
+import 'package:an_ki/features/books/widgets/next_volume_card.dart';
 import 'package:an_ki/features/books/widgets/offline_banner.dart';
-import 'package:an_ki/features/books/widgets/release_date_sheet.dart';
-import 'package:an_ki/features/books/widgets/series_actions.dart';
-import 'package:an_ki/features/books/widgets/series_cover.dart';
-import 'package:an_ki/features/books/widgets/series_tile.dart';
-import 'package:an_ki/features/books/widgets/shelf_display.dart';
-import 'package:an_ki/features/books/widgets/volume_grid.dart';
 import 'package:an_ki/features/books/widgets/pending_completer.dart';
+import 'package:an_ki/features/books/widgets/series_actions.dart';
+import 'package:an_ki/features/books/widgets/series_header.dart';
+import 'package:an_ki/features/books/widgets/shelf_display.dart';
+import 'package:an_ki/features/books/widgets/shelf_undo.dart';
+import 'package:an_ki/features/books/widgets/spine_shelf.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// Page d'une série : couverture, nom, dernier tome en gros chiffres ; la
-/// carte « Prochain » ; les tomes manquants ; la grille des numéros. Son menu
-/// renomme, fusionne, marque terminée ou supprime la série.
+/// Page d'une série : la couverture floutée en fond, la couverture nette, le
+/// nom et le dernier tome ; le prochain tome ; « Vos tomes », un rayon de
+/// dos ; ce qui manque, avec « Je les ai ». Son menu renomme, fusionne,
+/// marque terminée ou supprime la série.
 ///
 /// Un id inconnu (série supprimée, fusionnée, d'un autre compte) a son propre
 /// message ; une série qui disparaît pendant qu'on la regarde ferme la page.
@@ -67,6 +67,13 @@ class SeriesScreen extends ConsumerWidget {
         ..showSnackBar(SnackBar(content: Text(message)));
     });
 
+    if (entry case AsyncValue(hasError: false, hasValue: true, :final value)
+        when value != null) {
+      return PendingCompleter(
+        child: _SeriesDetails(entry: value, offline: offline),
+      );
+    }
+
     final Widget body = switch (entry) {
       AsyncValue(hasError: true, :final error) => _Message(
         illustration: Icon(
@@ -84,8 +91,6 @@ class SeriesScreen extends ConsumerWidget {
           ..invalidate(bookSeriesProvider)
           ..invalidate(bookVolumesProvider),
       ),
-      AsyncValue(hasValue: true, :final value) when value != null =>
-        _SeriesDetails(entry: value, offline: offline),
       AsyncValue(hasValue: true) => _Message(
         illustration: Image.asset(AppAssets.moon),
         title: l10n.seriesMissingTitle,
@@ -98,276 +103,203 @@ class SeriesScreen extends ConsumerWidget {
 
     return PendingCompleter(
       child: Scaffold(
-        appBar: AppBar(
-          // Le nom de la série reste lisible au défilement, et pour TalkBack.
-          title: switch (entry.value) {
-            final value? => Text(value.series.name),
-            null => null,
-          },
-          actions: [
-            if (entry.value case final value?) SeriesMenu(entry: value),
-            const SizedBox(width: AppSpacing.xs),
-          ],
-        ),
+        appBar: AppBar(),
         body: SafeArea(top: false, child: body),
       ),
     );
   }
 }
 
-class _SeriesDetails extends ConsumerWidget {
+/// La série lue : l'en-tête sous une barre transparente (retour et menu sur
+/// des ronds de verre), puis le prochain tome, le rayon et les trous.
+class _SeriesDetails extends ConsumerStatefulWidget {
   const _SeriesDetails({required this.entry, required this.offline});
 
   final ShelfEntry entry;
   final bool offline;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final today = ref.watch(todayProvider);
-    final words = ShelfWords(
-      l10n,
-      Localizations.localeOf(context).languageCode,
-    );
+  ConsumerState<_SeriesDetails> createState() => _SeriesDetailsState();
+}
 
-    return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(releaseCheckProvider.notifier).checkSeries(entry.series.id),
-      child: CustomScrollView(
-        // Tirable même quand la page tient dans l'écran.
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          if (offline) const SliverToBoxAdapter(child: OfflineBanner()),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.gutter,
-              AppSpacing.xs,
-              AppSpacing.gutter,
-              0,
-            ),
-            sliver: SliverList.list(
-              children: [
-                _Header(entry: entry, today: today, words: words),
-                const SizedBox(height: AppSpacing.lg),
-                _NextCard(entry: entry, today: today, words: words),
-                if (entry.holes.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  _SectionTitle(l10n.seriesHolesTitle),
-                  const SizedBox(height: AppSpacing.xs),
-                  Wrap(
-                    spacing: AppSpacing.xs,
-                    runSpacing: AppSpacing.xs,
-                    children: [
-                      for (final hole in entry.holes)
-                        Chip(label: Text(l10n.seriesHoleChip(hole))),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.lg),
-                _SectionTitle(l10n.seriesVolumesTitle),
-                const SizedBox(height: AppSpacing.xs),
-                if (entry.last == null)
-                  Text(
-                    l10n.seriesNoVolume,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          if (entry.last != null)
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.gutter,
-              ),
-              sliver: VolumeGrid(entry: entry),
-            ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
+class _SeriesDetailsState extends ConsumerState<_SeriesDetails> {
+  final _shelf = GlobalKey<SpineShelfState>();
+
+  void _add(List<int> numbers) =>
+      addNumbersWithUndo(context, widget.entry.series.id, numbers);
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final today = ref.watch(todayProvider);
+    final entry = widget.entry;
+    final topInset = MediaQuery.paddingOf(context).top + kToolbarHeight;
+    final canPop = Navigator.of(context).canPop();
+
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        forceMaterialTransparency: true,
+        automaticallyImplyLeading: false,
+        // Le rond de verre à 8 dp du bord, comme le menu en face.
+        leadingWidth: AppSpacing.xxl + AppSpacing.xs,
+        leading: canPop
+            ? const Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: GlassCircle(child: BackButton()),
+              )
+            : null,
+        actions: [
+          GlassCircle(child: SeriesMenu(entry: entry)),
+          const SizedBox(width: AppSpacing.xs),
         ],
       ),
-    );
-  }
-}
-
-/// Couverture, nom et dernier tome ; lus d'un trait par TalkBack.
-class _Header extends StatelessWidget {
-  const _Header({
-    required this.entry,
-    required this.today,
-    required this.words,
-  });
-
-  final ShelfEntry entry;
-  final DateTime today;
-  final ShelfWords words;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final last = entry.last;
-    final stacked = MediaQuery.textScalerOf(context).scale(16) / 16 > 1.5;
-    final cover = SeriesCover(
-      name: entry.series.name,
-      imageUrl: entry.coverUrl,
-      width: 96,
-    );
-    final name = Text(entry.series.name, style: theme.textTheme.headlineSmall);
-    final number = last == null
-        ? null
-        : LastVolumeNumber(number: last, large: true);
-    final label = [
-      entry.series.name,
-      if (last != null) context.l10n.a11ySeriesLast(last),
-    ].join(', ');
-
-    return Semantics(
-      header: true,
-      label: label,
-      excludeSemantics: true,
-      child: stacked
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [cover, const Spacer(), ?number]),
-                const SizedBox(height: AppSpacing.md),
-                name,
-              ],
-            )
-          : Row(
-              children: [
-                cover,
-                const SizedBox(width: AppSpacing.md),
-                Expanded(child: name),
-                if (number != null) ...[
-                  const SizedBox(width: AppSpacing.sm),
-                  number,
-                ],
-              ],
+      body: RefreshIndicator(
+        edgeOffset: topInset,
+        onRefresh: () => ref
+            .read(releaseCheckProvider.notifier)
+            .checkSeries(entry.series.id),
+        child: CustomScrollView(
+          // Tirable même quand la page tient dans l'écran.
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: SeriesHeader(entry: entry, topInset: topInset),
             ),
-    );
-  }
-}
-
-/// « Prochain » : le statut du prochain tome, puis sa source et la date de
-/// vérification quand une source a répondu ; « Ajouter la date » (ou
-/// « Modifier la date » pour une date saisie) tant que la série est ouverte.
-class _NextCard extends StatelessWidget {
-  const _NextCard({
-    required this.entry,
-    required this.today,
-    required this.words,
-  });
-
-  final ShelfEntry entry;
-  final DateTime today;
-  final ShelfWords words;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final status = nextVolumeStatus(entry, today);
-    final source = words.nextSource(entry, today);
-    final icon = switch (status) {
-      NextVolumeStatus.complete => Icons.check_circle_outline_rounded,
-      NextVolumeStatus.released => Icons.new_releases_outlined,
-      NextVolumeStatus.announced => Icons.event_rounded,
-      NextVolumeStatus.unknown => Icons.help_outline_rounded,
-    };
-
-    final card = MergeSemantics(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: colorScheme.primary),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.l10n.nextCardTitle,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+            SliverSafeArea(
+              top: false,
+              sliver: SliverMainAxisGroup(
+                slivers: [
+                  if (widget.offline)
+                    const SliverToBoxAdapter(child: OfflineBanner()),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.gutter,
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    words.nextCard(entry, today),
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  if (source != null) ...[
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      source,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                    sliver: SliverToBoxAdapter(
+                      child: NextVolumeCard(
+                        entry: entry,
+                        today: today,
+                        onBought: (number) => _add([number]),
                       ),
                     ),
-                  ],
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.gutter,
+                      AppSpacing.xl,
+                      AppSpacing.gutter,
+                      AppSpacing.sm,
+                    ),
+                    sliver: SliverToBoxAdapter(
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          l10n.seriesVolumesTitle,
+                          style: textTheme.titleMedium,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: entry.last == null
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.gutter,
+                            ),
+                            child: Text(
+                              l10n.seriesNoVolume,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          )
+                        : SpineShelf(
+                            key: _shelf,
+                            entry: entry,
+                            today: today,
+                            onAdd: (number) => _add([number]),
+                          ),
+                  ),
+                  if (entry.holes.isNotEmpty)
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.gutter,
+                        AppSpacing.md,
+                        AppSpacing.gutter,
+                        0,
+                      ),
+                      sliver: SliverToBoxAdapter(
+                        child: _Holes(
+                          entry: entry,
+                          onShow: () =>
+                              _shelf.currentState?.show(entry.holes.first),
+                          onHave: () => _add(entry.holes),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
+            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
           ],
         ),
       ),
     );
-    final number = upcomingVolumeNumber(entry);
-    final open = number != null && status != NextVolumeStatus.complete;
-    final entered = open ? enteredDateOf(entry) : null;
-    return Card(
-      margin: EdgeInsets.zero,
-      color: colorScheme.surfaceContainerHigh,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          card,
-          if (open)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xs,
-                0,
-                AppSpacing.xs,
-                AppSpacing.xs,
-              ),
-              child: Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: TextButton.icon(
-                  onPressed: () => ReleaseDateSheet.show(
-                    context,
-                    seriesId: entry.series.id,
-                    number: number,
-                    current: entered,
-                  ),
-                  icon: const Icon(Icons.edit_calendar_rounded),
-                  label: Text(
-                    entered == null
-                        ? context.l10n.nextDateAdd
-                        : context.l10n.nextDateEdit,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
+/// « Il vous manque 13, 14 » (un toucher fait défiler le rayon jusqu'au
+/// premier) et « Je les ai ».
+class _Holes extends StatelessWidget {
+  const _Holes({
+    required this.entry,
+    required this.onShow,
+    required this.onHave,
+  });
 
-  final String text;
+  final ShelfEntry entry;
+  final VoidCallback onShow;
+  final VoidCallback onHave;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    header: true,
-    child: Text(text, style: Theme.of(context).textTheme.titleMedium),
-  );
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final words = ShelfWords(
+      l10n,
+      Localizations.localeOf(context).languageCode,
+    );
+    final count = entry.holes.length;
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
+      children: [
+        TextButton(
+          onPressed: onShow,
+          style: TextButton.styleFrom(
+            foregroundColor: Theme.of(context).colorScheme.onSurface,
+            textStyle: Theme.of(context).textTheme.bodyLarge,
+          ),
+          child: Semantics(
+            onTapHint: l10n.a11yHolesShowHint,
+            child: Text(words.holesLine(entry.holes)!),
+          ),
+        ),
+        FilledButton.tonalIcon(
+          onPressed: onHave,
+          icon: const Icon(Icons.check_rounded),
+          label: Semantics(
+            label: l10n.a11ySeriesHaveHoles(count),
+            excludeSemantics: true,
+            child: Text(l10n.seriesHaveHoles(count)),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 /// Message plein écran (erreur, série introuvable) avec son action.
@@ -400,7 +332,7 @@ class _Message extends StatelessWidget {
   );
 }
 
-/// Squelette : l'en-tête et la carte « Prochain ».
+/// Squelette : la couverture centrée, le nom, la carte du prochain tome.
 class _LoadingHeader extends StatelessWidget {
   const _LoadingHeader();
 
@@ -416,15 +348,15 @@ class _LoadingHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Row(
-            children: [
-              SkeletonBox(width: 96, height: 144, radius: AppRadii.md),
-              SizedBox(width: AppSpacing.md),
-              Expanded(child: SkeletonBox(height: 32)),
-            ],
+          SkeletonBox(
+            width: SeriesHeader.coverWidth,
+            height: SeriesHeader.coverWidth * 1.5,
+            radius: AppRadii.md,
           ),
+          SizedBox(height: AppSpacing.md),
+          SkeletonBox(width: 200, height: 32),
           SizedBox(height: AppSpacing.lg),
-          SkeletonBox(height: 88, radius: AppRadii.lg),
+          SkeletonBox(height: 120, radius: AppRadii.lg),
         ],
       ),
     ),

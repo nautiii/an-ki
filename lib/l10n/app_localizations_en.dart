@@ -1299,9 +1299,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get nextCardTitle => 'Next';
-
-  @override
   String nextCardReleased(int number) {
     return 'Volume $number is out · you don\'t have it';
   }
@@ -1372,9 +1369,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releaseSheetClear => 'Clear the date';
-
-  @override
-  String get seriesHolesTitle => 'You\'re missing';
 
   @override
   String seriesHoleChip(int number) {
@@ -2042,4 +2036,64 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get seriesLastVolumeCaption => 'last volume';
+
+  @override
+  String seriesOwnedOf(int owned, int last) {
+    String _temp0 = intl.Intl.pluralLogic(
+      last,
+      locale: localeName,
+      other: '$owned of $last volumes',
+      one: '$owned of 1 volume',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String nextCardHeading(int number) {
+    return 'Next · volume $number';
+  }
+
+  @override
+  String nextCardOut(int number) {
+    return 'Volume $number is out';
+  }
+
+  @override
+  String get seriesBought => 'I bought it';
+
+  @override
+  String a11ySeriesBought(int number) {
+    return 'I bought volume $number';
+  }
+
+  @override
+  String seriesHaveHoles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'I have them',
+      one: 'I have it',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String a11ySeriesHaveHoles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'I have the $count missing volumes',
+      one: 'I have the missing volume',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get a11ySpineAddHint => 'mark as bought';
+
+  @override
+  String get a11yHolesShowHint => 'show on the shelf';
 }

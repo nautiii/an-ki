@@ -91,6 +91,32 @@ void main() {
     }
   });
 
+  test('owned spines stand out from the surface, their number readable', () {
+    for (final scheme in [light, dark]) {
+      final colors = AnKiColors.from(scheme);
+      // Le dos (clair) ou son bord (sombre) dessine le livre : 3:1 au moins.
+      expect(
+        math.max(
+          _contrast(colors.spine, scheme.surface),
+          _contrast(colors.spineEdge, scheme.surface),
+        ),
+        greaterThanOrEqualTo(3),
+      );
+      for (final fill in [colors.spine, colors.spineAlt]) {
+        expect(_contrast(colors.onSpine, fill), greaterThanOrEqualTo(4.5));
+      }
+    }
+    final day = AnKiColors.from(light);
+    final nightColors = AnKiColors.from(dark);
+    expect(day.spine, light.secondary);
+    expect(nightColors.spine, dark.secondaryContainer);
+    expect(day.lerp(nightColors, 1).spineEdge, nightColors.spineEdge);
+    expect(day.lerp(nightColors, 1).spineAlt, nightColors.spineAlt);
+    expect(day.copyWith(spineAlt: const Color(0xFF000000)).spineAlt.a, 1);
+    const red = Color(0xFFFF0000);
+    expect(day.copyWith(spine: red, onSpine: red, spineEdge: red).spine, red);
+  });
+
   test('petals take three tones per theme, softer at night', () {
     final day = AnKiColors.from(light);
     final nightColors = AnKiColors.from(dark);

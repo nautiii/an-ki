@@ -64,6 +64,10 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
     required this.glass,
     required this.glassBorder,
     required this.floatingShadow,
+    required this.spine,
+    required this.onSpine,
+    required this.spineEdge,
+    required this.spineAlt,
   });
 
   /// Rose lotus de l'icône : graine du thème.
@@ -159,6 +163,18 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
                 offset: const Offset(0, 8),
               ),
             ],
+      // Dos possédés du rayon : en clair, le lotus pâle se perdait sur la
+      // toile (1,2:1) ; le lotus profond tient 6:1. La nuit, le conteneur
+      // lotus garde sa douceur et un filet en dessine le bord.
+      spine: isDark ? scheme.secondaryContainer : scheme.secondary,
+      onSpine: isDark ? scheme.onSecondaryContainer : scheme.onSecondary,
+      spineEdge: isDark ? scheme.outline : scheme.secondary,
+      // Un dos sur deux un ton plus profond : des livres, pas un aplat.
+      spineAlt: Color.lerp(
+        isDark ? scheme.secondaryContainer : scheme.secondary,
+        isDark ? scheme.onSecondaryContainer : scheme.onSecondary,
+        0.08,
+      )!,
     );
   }
 
@@ -189,6 +205,15 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
   /// Ombre des éléments flottants : teintée en clair, aucune en sombre.
   final List<BoxShadow> floatingShadow;
 
+  /// Dos d'un tome possédé sur le rayon d'une série, son numéro et son bord
+  /// (≥ 3:1 sur la surface : le bord dessine le livre la nuit).
+  final Color spine;
+  final Color onSpine;
+  final Color spineEdge;
+
+  /// Un dos sur deux, un ton plus profond que [spine] ; [onSpine] dessus.
+  final Color spineAlt;
+
   @override
   AnKiColors copyWith({
     LinearGradient? hero,
@@ -203,6 +228,10 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
     Color? glass,
     Color? glassBorder,
     List<BoxShadow>? floatingShadow,
+    Color? spine,
+    Color? onSpine,
+    Color? spineEdge,
+    Color? spineAlt,
   }) {
     return AnKiColors(
       hero: hero ?? this.hero,
@@ -217,6 +246,10 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
       glass: glass ?? this.glass,
       glassBorder: glassBorder ?? this.glassBorder,
       floatingShadow: floatingShadow ?? this.floatingShadow,
+      spine: spine ?? this.spine,
+      onSpine: onSpine ?? this.onSpine,
+      spineEdge: spineEdge ?? this.spineEdge,
+      spineAlt: spineAlt ?? this.spineAlt,
     );
   }
 
@@ -248,6 +281,10 @@ class AnKiColors extends ThemeExtension<AnKiColors> {
         other.floatingShadow,
         t,
       )!,
+      spine: Color.lerp(spine, other.spine, t)!,
+      onSpine: Color.lerp(onSpine, other.onSpine, t)!,
+      spineEdge: Color.lerp(spineEdge, other.spineEdge, t)!,
+      spineAlt: Color.lerp(spineAlt, other.spineAlt, t)!,
     );
   }
 }
