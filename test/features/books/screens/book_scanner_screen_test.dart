@@ -160,6 +160,40 @@ void main() {
       expect(repo.volumes, hasLength(2));
     });
 
+    testWidgets('a typed ISBN already owned says so after the sheet closes', (
+      tester,
+    ) async {
+      final repo = RecordingBookshelfRepository(
+        series: [_series],
+        volumes: [_owned],
+      );
+      await pumpScreen(tester, repo: repo);
+      await settle(tester);
+
+      await tester.tap(find.text('Saisir un ISBN'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), _isbn);
+      await tester.pump();
+      await tester.tap(find.text('Ajouter'));
+      // La feuille se ferme : le message doit encore être là ensuite.
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Déjà dans votre collection · One Piece 107'),
+        findsOneWidget,
+      );
+      expect(repo.savedVolumes, isEmpty);
+      // Saisi à la main : il reste plus que les 2 s d'un code de la caméra.
+      await tester.pump(const Duration(seconds: 3));
+      // Au-delà des 2 s d'un code de la caméra, en deçà des 4 s d'une saisie.
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(
+        find.text('Déjà dans votre collection · One Piece 107'),
+        findsOneWidget,
+      );
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
     testWidgets('a volume already owned says so, without vibrating', (
       tester,
     ) async {

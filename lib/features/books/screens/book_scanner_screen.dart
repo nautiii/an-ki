@@ -41,8 +41,13 @@ class BookScannerScreen extends ConsumerStatefulWidget {
   ConsumerState<BookScannerScreen> createState() => _BookScannerScreenState();
 }
 
-/// Durée de « Déjà dans votre collection » : le temps de lire, pas plus.
-const _ownedNoticeDuration = Duration(seconds: 2);
+/// Durée de « Déjà dans votre collection » pour un code de la caméra : le
+/// temps de lire, pas plus (la caméra en lit d'autres).
+const _cameraOwnedNoticeDuration = Duration(seconds: 2);
+
+/// Même message après une saisie : on vient de fermer le clavier, le regard
+/// revient à peine sur l'écran.
+const _typedOwnedNoticeDuration = Duration(seconds: 4);
 
 class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
   /// « Déjà dans votre collection » affiché ou en file ; null sinon.
@@ -100,12 +105,16 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
   Future<void> _typeIsbn(BuildContext context) async {
     final isbn = await IsbnEntrySheet.show(context);
     if (isbn == null || !mounted) return;
-    _handle(ref.read(burstScanProvider.notifier).scan(isbn, typed: true));
+    _handle(
+      ref.read(burstScanProvider.notifier).scan(isbn, typed: true),
+      typed: true,
+    );
   }
 
   /// Vibre pour un ajout ; dit « déjà dans votre collection » sans vibrer.
   /// Un code relu ou illisible ne dit rien : la caméra le relit en boucle.
-  void _handle(ScanResult result) {
+  /// [typed] : saisi à la main, le message reste plus longtemps.
+  void _handle(ScanResult result, {bool typed = false}) {
     switch (result) {
       case (outcome: ScanOutcome.added, row: _):
         unawaited(HapticFeedback.lightImpact());
@@ -113,10 +122,17 @@ class _BookScannerScreenState extends ConsumerState<BookScannerScreen> {
         // Un seul à la fois, bref : une pile de tomes possédés ne fait pas
         // défiler des messages en retard sur la caméra. Sans masquer la
         // snackbar en cours : ce peut être l'« Annuler » d'un retrait.
-        if (_ownedNotice != null) return;
+        // Une saisie, demandée, remplace notre message encore affiché (jamais
+        // une autre snackbar).
+        if (_ownedNotice case final shown?) {
+          if (!typed) return;
+          shown.close();
+        }
         final notice = ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            duration: _ownedNoticeDuration,
+            duration: typed
+                ? _typedOwnedNoticeDuration
+                : _cameraOwnedNoticeDuration,
             content: Text(context.l10n.burstAlreadyOwned(ownedVolumeText(row))),
           ),
         );
