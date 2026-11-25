@@ -3,6 +3,8 @@ import 'package:an_ki/core/providers/clock_provider.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/providers/shelf_editor.dart';
+import 'package:an_ki/features/books/widgets/book_sheet_header.dart';
+import 'package:an_ki/features/books/widgets/release_date_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -96,7 +98,6 @@ class _ReleaseDateSheetState extends ConsumerState<ReleaseDateSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).languageCode;
     final picked = _picked;
     final date = _date;
@@ -106,63 +107,79 @@ class _ReleaseDateSheetState extends ConsumerState<ReleaseDateSheet> {
         ? DateFormat.yMMMM(locale).format(picked)
         : DateFormat.yMMMMd(locale).format(picked);
 
+    // Le nuage dit le temps à venir : une date passée garde l'icône.
+    final today = ref.watch(todayProvider);
+    final upcoming = switch (date) {
+      ReleaseDate(:final year, :final month, :final day?) => !DateTime(
+        year,
+        month,
+        day,
+      ).isBefore(today),
+      ReleaseDate(:final year, :final month) => !DateTime(
+        year,
+        month + 1,
+      ).isBefore(DateTime(today.year, today.month, today.day + 1)),
+      null => false,
+    };
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(
+      // `useSafeArea` laisse le bas à la feuille : la barre système ne cache
+      // pas « Effacer la date ».
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.lg,
         0,
         AppSpacing.lg,
-        AppSpacing.lg,
+        AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Semantics(
-            header: true,
-            child: Text(
-              l10n.releaseSheetTitle(widget.number),
-              style: theme.textTheme.headlineSmall,
-            ),
+          BookSheetHeader(
+            // La date à venir, en nuage comme « Prochaines sorties ».
+            leading: date != null && upcoming
+                ? ReleaseDateTile(date: date)
+                : const BookSheetIcon(icon: Icons.event_rounded),
+            title: l10n.releaseSheetTitle(widget.number),
+            subtitle: l10n.releaseSheetHelper,
           ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            l10n.releaseSheetHelper,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.lg),
           OutlinedButton.icon(
             onPressed: _pick,
             icon: const Icon(Icons.calendar_month_rounded),
             label: Text(label),
           ),
-          const SizedBox(height: AppSpacing.xs),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.releaseSheetMonthOnly),
-            value: _monthOnly,
-            onChanged: (value) => setState(() => _monthOnly = value),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Wrap(
-            alignment: WrapAlignment.end,
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xs,
-            children: [
-              if (widget.current != null)
-                TextButton(
-                  onPressed: () => _save(null),
-                  child: Text(l10n.releaseSheetClear),
-                ),
-              FilledButton(
-                onPressed: date == null || date == widget.current
-                    ? null
-                    : () => _save(date),
-                child: Text(l10n.save),
+          const SizedBox(height: AppSpacing.sm),
+          SegmentedButton<bool>(
+            showSelectedIcon: false,
+            segments: [
+              ButtonSegment(
+                value: false,
+                label: Text(l10n.releaseSheetExactDay),
+              ),
+              ButtonSegment(
+                value: true,
+                label: Text(l10n.releaseSheetMonthOnly),
               ),
             ],
+            selected: {_monthOnly},
+            onSelectionChanged: (selection) =>
+                setState(() => _monthOnly = selection.single),
           ),
+          const SizedBox(height: AppSpacing.lg),
+          FilledButton(
+            onPressed: date == null || date == widget.current
+                ? null
+                : () => _save(date),
+            child: Text(l10n.save),
+          ),
+          if (widget.current != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            TextButton(
+              onPressed: () => _save(null),
+              child: Text(l10n.releaseSheetClear),
+            ),
+          ],
         ],
       ),
     );

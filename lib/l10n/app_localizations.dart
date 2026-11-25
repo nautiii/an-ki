@@ -2066,10 +2066,16 @@ abstract class AppLocalizations {
   /// **'Choisir une date'**
   String get releaseSheetPick;
 
-  /// Feuille de saisie de la date de sortie : garder le mois seul
+  /// Feuille de saisie de la date de sortie : segment, garder le jour choisi
   ///
   /// In fr, this message translates to:
-  /// **'Je ne connais que le mois'**
+  /// **'Jour précis'**
+  String get releaseSheetExactDay;
+
+  /// Feuille de saisie de la date de sortie : segment, garder le mois seul
+  ///
+  /// In fr, this message translates to:
+  /// **'Mois seulement'**
   String get releaseSheetMonthOnly;
 
   /// Feuille de saisie de la date de sortie : retirer la date saisie

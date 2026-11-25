@@ -61,6 +61,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(error(), findsOneWidget);
+    // L'aide reste sous le titre, à côté de l'erreur.
+    expect(
+      find.text('10 ou 13 chiffres, au dos du livre près du code-barres'),
+      findsOneWidget,
+    );
     expect(find.byType(IsbnEntrySheet), findsOneWidget);
     expect(closed, isFalse);
   });

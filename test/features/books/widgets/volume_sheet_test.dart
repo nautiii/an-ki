@@ -48,6 +48,7 @@ void main() {
     WidgetTester tester,
     RecordingBookshelfRepository repo, {
     String volumeId = 'v1',
+    Size? phone,
   }) async {
     repository = repo;
     await tester.pumpHarness(
@@ -64,6 +65,12 @@ void main() {
         volumeLookupProvider.overrideWithValue(RecordingVolumeLookup()),
       ],
     );
+    // Après le harnais, qui pose son propre écran de 800 × 1200.
+    if (phone != null) {
+      tester.view
+        ..physicalSize = phone
+        ..devicePixelRatio = 1;
+    }
     await tester.pump();
     await tester.tap(find.text('Ouvrir'));
     await tester.pumpAndSettle();
@@ -98,6 +105,82 @@ void main() {
     expect(find.text('Inconnu des catalogues'), findsNothing);
     expect(find.text('Changer de série ou de numéro'), findsOneWidget);
     expect(find.text('Classer'), findsNothing);
+  });
+
+  testWidgets('reads the series and the title as one heading', (tester) async {
+    // Libéré en fin de test, pas par addTearDown : il passe après la
+    // vérification des poignées ouvertes.
+    final semantics = tester.ensureSemantics();
+    await openSheet(
+      tester,
+      RecordingBookshelfRepository(
+        series: const [_series],
+        volumes: [_volume()],
+      ),
+    );
+
+    expect(
+      tester.getSemantics(
+        find.bySemanticsLabel('One Piece · tome 4\nRomance Dawn'),
+      ),
+      isSemantics(isHeader: true),
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('meets the tap target and label guidelines', (tester) async {
+    await openSheet(
+      tester,
+      RecordingBookshelfRepository(
+        series: const [_series],
+        volumes: [
+          _volume(),
+          _volume(id: 'v0', number: 1),
+        ],
+      ),
+    );
+
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+  });
+
+  testWidgets('a volume to sort meets the guidelines too', (tester) async {
+    await openSheet(
+      tester,
+      RecordingBookshelfRepository(
+        volumes: [_volume(seriesId: null, number: null)],
+      ),
+    );
+
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+  });
+
+  testWidgets('holds at 200 % text on a small phone', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await openSheet(
+      tester,
+      RecordingBookshelfRepository(
+        series: const [_series],
+        volumes: [_volume(lookup: LookupState.pending)],
+      ),
+      phone: const Size(360, 640),
+    );
+
+    expect(tester.takeException(), isNull);
+    // Trop long pour l'écran : il faut faire défiler la feuille.
+    expect(find.text('Retirer de la collection').hitTestable(), findsNothing);
+    await tester.scrollUntilVisible(
+      find.text('Retirer de la collection'),
+      100,
+      scrollable: find.descendant(
+        of: find.byType(VolumeSheet),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    expect(find.text('Retirer de la collection'), findsOneWidget);
   });
 
   testWidgets('adds the previous volumes, then « Annuler »', (tester) async {

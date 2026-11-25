@@ -1253,9 +1253,13 @@
   "@releaseSheetPick": {
     "description": "Feuille de saisie de la date de sortie : bouton qui ouvre le calendrier, avant tout choix"
   },
-  "releaseSheetMonthOnly": "Je ne connais que le mois",
+  "releaseSheetExactDay": "Jour précis",
+  "@releaseSheetExactDay": {
+    "description": "Feuille de saisie de la date de sortie : segment, garder le jour choisi"
+  },
+  "releaseSheetMonthOnly": "Mois seulement",
   "@releaseSheetMonthOnly": {
-    "description": "Feuille de saisie de la date de sortie : garder le mois seul"
+    "description": "Feuille de saisie de la date de sortie : segment, garder le mois seul"
   },
   "releaseSheetClear": "Effacer la date",
   "@releaseSheetClear": {

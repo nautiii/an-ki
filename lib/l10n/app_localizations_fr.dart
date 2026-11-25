@@ -1383,7 +1383,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get releaseSheetPick => 'Choisir une date';
 
   @override
-  String get releaseSheetMonthOnly => 'Je ne connais que le mois';
+  String get releaseSheetExactDay => 'Jour précis';
+
+  @override
+  String get releaseSheetMonthOnly => 'Mois seulement';
 
   @override
   String get releaseSheetClear => 'Effacer la date';

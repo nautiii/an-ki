@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
 import 'package:an_ki/features/books/domain/isbn.dart';
+import 'package:an_ki/features/books/widgets/book_sheet_header.dart';
 import 'package:flutter/material.dart';
 
 /// Feuille « Saisir un ISBN » : le repli quand le code-barres ne se lit pas.
@@ -59,20 +62,23 @@ class _IsbnEntrySheetState extends State<IsbnEntrySheet> {
         AppSpacing.lg,
         0,
         AppSpacing.lg,
-        AppSpacing.lg + MediaQuery.viewInsetsOf(context).bottom,
+        // Le clavier, sinon la barre système (`useSafeArea` laisse le bas).
+        AppSpacing.lg +
+            math.max(
+              MediaQuery.viewInsetsOf(context).bottom,
+              MediaQuery.paddingOf(context).bottom,
+            ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Semantics(
-            header: true,
-            child: Text(
-              l10n.isbnEntryTitle,
-              style: theme.textTheme.headlineSmall,
-            ),
+          BookSheetHeader(
+            leading: const BookSheetIcon(icon: Icons.keyboard_rounded),
+            title: l10n.isbnEntryTitle,
+            subtitle: l10n.isbnEntryHelper,
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.lg),
           TextField(
             controller: _controller,
             autofocus: true,
@@ -85,22 +91,22 @@ class _IsbnEntrySheetState extends State<IsbnEntrySheet> {
             textInputAction: TextInputAction.done,
             onChanged: (_) => setState(() {}),
             onSubmitted: (_) => _submit(),
+            // Des chiffres alignés, faciles à comparer avec le dos du livre.
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontFeatures: const [FontFeature.tabularFigures()],
+              letterSpacing: 1,
+            ),
             decoration: InputDecoration(
               labelText: l10n.isbnEntryLabel,
               hintText: l10n.isbnEntryHint,
-              helperText: error == null ? l10n.isbnEntryHelper : null,
-              helperMaxLines: 3,
               errorText: error,
               errorMaxLines: 3,
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: FilledButton(
-              onPressed: text.isEmpty ? null : _submit,
-              child: Text(l10n.add),
-            ),
+          const SizedBox(height: AppSpacing.lg),
+          FilledButton(
+            onPressed: text.isEmpty ? null : _submit,
+            child: Text(l10n.add),
           ),
         ],
       ),

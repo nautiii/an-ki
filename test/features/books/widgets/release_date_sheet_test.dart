@@ -4,7 +4,9 @@ import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/release_date.dart';
 import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/providers/shelf_editor.dart';
+import 'package:an_ki/features/books/widgets/book_sheet_header.dart';
 import 'package:an_ki/features/books/widgets/release_date_sheet.dart';
+import 'package:an_ki/features/books/widgets/release_date_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -99,7 +101,7 @@ void main() {
     await open(tester);
 
     await pickDay(tester, '20');
-    await tester.tap(find.text('Je ne connais que le mois'));
+    await tester.tap(find.text('Mois seulement'));
     await tester.pumpAndSettle();
     expect(find.text('novembre 2026'), findsOneWidget);
     await tester.tap(find.text('Enregistrer'));
@@ -138,6 +140,51 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(DatePickerDialog), findsOneWidget);
+  });
+
+  testWidgets('the chosen date shows in a cloud tile', (tester) async {
+    await open(tester);
+    expect(find.byType(BookSheetIcon), findsOneWidget);
+    expect(find.byType(ReleaseDateTile), findsNothing);
+
+    await pickDay(tester, '20');
+    expect(find.text('20'), findsOneWidget);
+    expect(find.text('ven.'), findsOneWidget);
+
+    await tester.tap(find.text('Mois seulement'));
+    await tester.pumpAndSettle();
+    expect(find.text('nov.'), findsOneWidget);
+  });
+
+  testWidgets('a date already past keeps the icon', (tester) async {
+    await open(
+      tester,
+      current: const ReleaseDate(year: 2026, month: 10, day: 2),
+    );
+
+    expect(find.byType(BookSheetIcon), findsOneWidget);
+    expect(find.byType(ReleaseDateTile), findsNothing);
+  });
+
+  testWidgets('the segment follows the kind of date', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await open(tester);
+    expect(
+      tester.getSemantics(find.text('Jour précis')),
+      isSemantics(isSelected: true),
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('a month alone opens on « Mois seulement »', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await open(tester, current: const ReleaseDate(year: 2026, month: 12));
+
+    expect(
+      tester.getSemantics(find.text('Mois seulement')),
+      isSemantics(isSelected: true),
+    );
+    semantics.dispose();
   });
 
   testWidgets('meets the tap target and label guidelines', (tester) async {
