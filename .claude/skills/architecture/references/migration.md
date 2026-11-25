@@ -104,18 +104,14 @@ Delete each line once done:
   revoked fingerprint (`biometricToken` changed in the console) signing out with « La connexion
   biométrique n'est plus valide… », sign-out with the fingerprint on (lock only) and off,
   enabling and disabling the fingerprint in the settings (the switch shows only once a screen
-  lock and a finger are enrolled, device recipes §9), birthday with a photo (kept when editing
-  without a new one; the gallery, no camera needed), account deletion with the fingerprint on or
+  lock and a finger are enrolled, device recipes §9), account deletion with the fingerprint on or
   off (identity confirmed first: password in the dialog, the Google picker, nothing for a guest;
   birthdays, books and profile gone, no `user/{uid}` left behind, no error) on a test account, birthdays tab shown again
   after signing back in.
 - Settings in sections and the Système / Clair / Sombre theme (UX piste B, 2026-10-24): an older
-  profile keeps its light or dark choice, Système follows the phone's dark mode live, the
-  security section shows only with an enrolled finger.
-- The reminders-off card (2026-10-24): above the hero once notifications are refused
-  (`perm reset`, then « Ne pas autoriser »), « Activer » reopening the system box, « Réglages »
-  once blocked and the card gone on the way back, the cross keeping it hidden after a restart
-  (stored with `flutter_secure_storage`).
+  profile keeps its light or dark choice; the security section shown once a finger is enrolled
+  (seen on the emulator 2026-11-25: the three choices, Système following the dark mode live, the
+  section hidden without a finger).
 - The forgotten password link (2026-10-24): the Firebase reset e-mail reaching a real
   inbox in the app's language (French and English templates in the console), its link
   setting a new password, and the confirmation shown for an unknown address too.
