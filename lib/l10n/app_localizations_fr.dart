@@ -1536,10 +1536,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get classifyTitle => 'Classer ce tome';
 
   @override
-  String get classifySeries => 'Série';
+  String get classifySearchLabel => 'Chercher ou créer une série';
 
   @override
-  String get classifyNewSeries => 'Nouvelle série';
+  String get classifyNoSeries =>
+      'Aucune série encore : tapez son nom pour la créer.';
+
+  @override
+  String classifyCreate(String name) {
+    return 'Créer « $name »';
+  }
+
+  @override
+  String classifySeriesLast(int number) {
+    return 'Dernier tome $number';
+  }
+
+  @override
+  String get classifySeriesEmpty => 'Aucun tome';
 
   @override
   String get classifyNumberLabel => 'Numéro du tome';

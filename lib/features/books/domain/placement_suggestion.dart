@@ -83,7 +83,7 @@ PlacementSuggestion? suggestPlacement(Volume volume, List<ShelfEntry> entries) {
     return PlacementSuggestion(seriesName: name, number: 1);
   }
   final entry = _entryOf(entries, existing);
-  final number = entry.nextToBuy ?? (entry.last ?? 0) + 1;
+  final number = nextNumberOf(entry);
   return PlacementSuggestion(
     series: existing,
     seriesName: existing.name,

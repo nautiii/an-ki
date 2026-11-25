@@ -384,11 +384,11 @@
   "@moduleBirthdaysDescription": {
     "description": "Description du module Anniversaires, sous son nom (écran des modules)"
   },
-  "moduleBooksDescription": "Vos séries : le dernier tome, le prochain et sa date de sortie",
+  "moduleBooksDescription": "Vos séries\u00a0: le dernier tome, le prochain et sa date de sortie",
   "@moduleBooksDescription": {
     "description": "Description du module Livres, sous son nom (écran des modules)"
   },
-  "moduleDiscoveryTitle": "Nouveau · {name}",
+  "moduleDiscoveryTitle": "Nouveau\u00a0· {name}",
   "@moduleDiscoveryTitle": {
     "description": "Titre de la carte qui présente un module à découvrir, en fin d'agenda",
     "placeholders": {
@@ -397,7 +397,7 @@
       }
     }
   },
-  "moduleBooksDiscoveryMessage": "Suivez vos séries : le dernier tome acheté, le prochain et sa date de sortie.",
+  "moduleBooksDiscoveryMessage": "Suivez vos séries\u00a0: le dernier tome acheté, le prochain et sa date de sortie.",
   "@moduleBooksDiscoveryMessage": {
     "description": "Message de la carte qui présente le module Livres"
   },
@@ -448,7 +448,7 @@
       }
     }
   },
-  "moduleEraseTitle": "Effacer les données {module} ?",
+  "moduleEraseTitle": "Effacer les données {module}\u00a0?",
   "@moduleEraseTitle": {
     "description": "Titre du dialogue d'effacement des données d'un module",
     "placeholders": {
@@ -678,7 +678,7 @@
   "@personView": {
     "description": "Action de la snackbar d'ajout : ouvre la page de la personne"
   },
-  "personTurning": "{age, plural, one{Aura {age} an} other{Aura {age} ans}}",
+  "personTurning": "{age, plural, one{Aura {age}\u00a0an} other{Aura {age}\u00a0ans}}",
   "@personTurning": {
     "description": "Page personne : âge atteint au prochain anniversaire, avant le jour J",
     "placeholders": {
@@ -793,7 +793,7 @@
       "count": { "type": "int" }
     }
   },
-  "guestBackupMergeMessage": "{count, plural, =1{Ouvrez-le avec votre anniversaire : s'il y est déjà, il ne sera pas doublé. Vous pouvez aussi choisir un autre compte Google.} other{Ouvrez-le avec vos {count} anniversaires : ceux qu'il a déjà ne seront pas doublés. Vous pouvez aussi choisir un autre compte Google.}}",
+  "guestBackupMergeMessage": "{count, plural, =1{Ouvrez-le avec votre anniversaire\u00a0: s'il y est déjà, il ne sera pas doublé. Vous pouvez aussi choisir un autre compte Google.} other{Ouvrez-le avec vos {count} anniversaires\u00a0: ceux qu'il a déjà ne seront pas doublés. Vous pouvez aussi choisir un autre compte Google.}}",
   "@guestBackupMergeMessage": {
     "description": "La carte de sauvegarde, quand le compte Google choisi a déjà un agenda AnKi que l'invité peut ouvrir avec ses anniversaires.",
     "placeholders": {
@@ -814,8 +814,8 @@
       "known": { "type": "int" }
     }
   },
-  "guestMergeOffline": "Pas de connexion : vos anniversaires restent sur ce téléphone. Réessayez une fois en ligne.",
-  "guestMergeFailed": "L'ouverture du compte n'a pas abouti : vos anniversaires restent sur ce téléphone. Réessayez.",
+  "guestMergeOffline": "Pas de connexion\u00a0: vos anniversaires restent sur ce téléphone. Réessayez une fois en ligne.",
+  "guestMergeFailed": "L'ouverture du compte n'a pas abouti\u00a0: vos anniversaires restent sur ce téléphone. Réessayez.",
   "guestMergeIncomplete": "Compte ouvert, mais vos anniversaires n'ont pas pu y être ajoutés.",
   "biometricEnabled": "Connexion biométrique activée",
   "biometricDisabled": "Connexion biométrique désactivée",
@@ -906,7 +906,7 @@
       "time": { "type": "String" }
     }
   },
-  "remindersExampleIntro": "Le {date} à {time}, vous recevrez :",
+  "remindersExampleIntro": "Le {date} à {time}, vous recevrez\u00a0:",
   "@remindersExampleIntro": {
     "description": "Au-dessus de l'exemple de notification : jour et heure du prochain vrai rappel du jour J (date « samedi 7 novembre »).",
     "placeholders": {
@@ -1483,13 +1483,35 @@
   "@classifyTitle": {
     "description": "Titre de la feuille de classement d'un tome"
   },
-  "classifySeries": "Série",
-  "@classifySeries": {
-    "description": "Feuille de classement : titre de la liste des séries"
+  "classifySearchLabel": "Chercher ou créer une série",
+  "@classifySearchLabel": {
+    "description": "Feuille de classement : champ qui filtre les séries et nomme celle à créer"
   },
-  "classifyNewSeries": "Nouvelle série",
-  "@classifyNewSeries": {
-    "description": "Feuille de classement : choix d'une série à créer"
+  "classifyNoSeries": "Aucune série encore\u00a0: tapez son nom pour la créer.",
+  "@classifyNoSeries": {
+    "description": "Feuille de classement : aide du champ quand l'étagère n'a aucune série"
+  },
+  "classifyCreate": "Créer «\u00a0{name}\u00a0»",
+  "@classifyCreate": {
+    "description": "Feuille de classement : choix qui crée la série du nom tapé",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "classifySeriesLast": "Dernier tome\u00a0{number}",
+  "@classifySeriesLast": {
+    "description": "Feuille de classement : sous une série, son dernier tome possédé",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "classifySeriesEmpty": "Aucun tome",
+  "@classifySeriesEmpty": {
+    "description": "Feuille de classement : sous une série qui n'a encore aucun tome"
   },
   "classifyNumberLabel": "Numéro du tome",
   "@classifyNumberLabel": {
@@ -1619,7 +1641,7 @@
       }
     }
   },
-  "previousVolumesMissing": "{count, plural, one{J'ai aussi le tome {number}} other{J'ai aussi les {count} tomes manquants}}",
+  "previousVolumesMissing": "{count, plural, one{J'ai aussi le tome {number}} other{J'ai aussi les {count}\u00a0tomes manquants}}",
   "@previousVolumesMissing": {
     "description": "Rafale et feuille d'un tome : ajoute les tomes d'avant qui manquent à la série, quand elle en a déjà certains ; {number} est le seul manquant",
     "placeholders": {
@@ -1631,7 +1653,7 @@
       }
     }
   },
-  "previousVolumesAdded": "{count, plural, one{{count} tome ajouté · infos en cours} other{{count} tomes ajoutés · infos en cours}}",
+  "previousVolumesAdded": "{count, plural, one{{count}\u00a0tome ajouté · infos en cours} other{{count}\u00a0tomes ajoutés · infos en cours}}",
   "@previousVolumesAdded": {
     "description": "Snackbar après « J'ai aussi les tomes … », « Acheté » ou « Je les ai », avec Annuler ; leurs infos se cherchent ensuite",
     "placeholders": {
@@ -1752,15 +1774,15 @@
       }
     }
   },
-  "quickAddLabel": "Qui, et quand ?",
+  "quickAddLabel": "Qui, et quand\u00a0?",
   "@quickAddLabel": {
     "description": "Ajout en une ligne : libellé du champ unique (nom et date)"
   },
-  "quickAddHelper": "Le prénom puis la date, comme « Léa 12 mars ». L'année est facultative. Collez une liste pour ajouter plusieurs personnes, une par ligne.",
+  "quickAddHelper": "Le prénom puis la date, comme «\u00a0Léa 12 mars\u00a0». L'année est facultative. Collez une liste pour ajouter plusieurs personnes, une par ligne.",
   "@quickAddHelper": {
     "description": "Ajout en une ligne : aide sous le champ vide"
   },
-  "quickAddNeedsDate": "Ajoutez la date, comme « 12 mars »",
+  "quickAddNeedsDate": "Ajoutez la date, comme «\u00a012 mars\u00a0»",
   "@quickAddNeedsDate": {
     "description": "Ajout en une ligne : le nom est là, la date manque"
   },
@@ -1783,14 +1805,14 @@
   "@quickAddContinue": {
     "description": "Ajout en une ligne : ajoute la personne et garde la feuille ouverte pour la suivante"
   },
-  "quickAddAll": "{count, plural, one{Ajouter 1 personne} other{Ajouter les {count}}}",
+  "quickAddAll": "{count, plural, one{Ajouter 1\u00a0personne} other{Ajouter les {count}}}",
   "@quickAddAll": {
     "description": "Ajout en une ligne, plusieurs lignes collées : bouton qui ajoute les personnes nouvelles",
     "placeholders": {
       "count": { "type": "int" }
     }
   },
-  "quickAddBatchTitle": "{count, plural, =0{Personne à ajouter} one{1 personne à ajouter} other{{count} personnes à ajouter}}",
+  "quickAddBatchTitle": "{count, plural, =0{Personne à ajouter} one{1\u00a0personne à ajouter} other{{count}\u00a0personnes à ajouter}}",
   "@quickAddBatchTitle": {
     "description": "Ajout en une ligne, plusieurs lignes collées : titre de l'aperçu",
     "placeholders": {
@@ -2300,7 +2322,7 @@
       }
     }
   },
-  "classifyDuplicateHint":"Vous avez déjà ce tome, il comptera comme un deuxième exemplaire.",
+  "classifyDuplicateHint": "Vous avez déjà ce tome, il comptera comme un deuxième exemplaire.",
   "@classifyDuplicateHint": {
     "description": "Feuille de classement : la série choisie a déjà ce numéro"
   },

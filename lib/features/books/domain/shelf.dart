@@ -175,6 +175,10 @@ List<String> seriesEmptiedBy(List<Volume> volumes, Set<String> leaving) {
   ];
 }
 
+/// Le numéro où ranger un nouveau tome de [entry] faute de mieux : le
+/// prochain à acheter, sinon (série terminée sans trou) le suivant du dernier.
+int nextNumberOf(ShelfEntry entry) => entry.nextToBuy ?? (entry.last ?? 0) + 1;
+
 /// Tous les tomes de [shelf], rangés ou non, le plus récemment ajouté d'abord.
 List<Volume> volumesByRecency(Shelf shelf) =>
     [for (final entry in shelf.entries) ...entry.volumes, ...shelf.unclassified]

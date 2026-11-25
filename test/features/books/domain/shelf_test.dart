@@ -336,4 +336,24 @@ void main() {
       expect(seriesEmptiedBy(volumes, {'op-1'}), ['op']);
     });
   });
+
+  group('nextNumberOf', () {
+    test('the next volume to buy: the first hole, else after the last', () {
+      expect(
+        nextNumberOf(entryOf([series('op')], owning('op', [1, 3]), 'op')),
+        2,
+      );
+      expect(
+        nextNumberOf(entryOf([series('op')], owning('op', [1, 2]), 'op')),
+        3,
+      );
+      expect(nextNumberOf(entryOf([series('op')], const [], 'op')), 1);
+    });
+
+    test('a complete series without holes still gets the one after', () {
+      final done = series('fma', complete: true);
+
+      expect(nextNumberOf(entryOf([done], owning('fma', [1, 2]), 'fma')), 3);
+    });
+  });
 }

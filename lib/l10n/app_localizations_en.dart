@@ -1518,10 +1518,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get classifyTitle => 'Sort this volume';
 
   @override
-  String get classifySeries => 'Series';
+  String get classifySearchLabel => 'Search or create a series';
 
   @override
-  String get classifyNewSeries => 'New series';
+  String get classifyNoSeries => 'No series yet: type its name to create it.';
+
+  @override
+  String classifyCreate(String name) {
+    return 'Create “$name”';
+  }
+
+  @override
+  String classifySeriesLast(int number) {
+    return 'Last volume $number';
+  }
+
+  @override
+  String get classifySeriesEmpty => 'No volumes yet';
 
   @override
   String get classifyNumberLabel => 'Volume number';

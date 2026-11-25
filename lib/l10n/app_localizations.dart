@@ -2300,17 +2300,35 @@ abstract class AppLocalizations {
   /// **'Classer ce tome'**
   String get classifyTitle;
 
-  /// Feuille de classement : titre de la liste des séries
+  /// Feuille de classement : champ qui filtre les séries et nomme celle à créer
   ///
   /// In fr, this message translates to:
-  /// **'Série'**
-  String get classifySeries;
+  /// **'Chercher ou créer une série'**
+  String get classifySearchLabel;
 
-  /// Feuille de classement : choix d'une série à créer
+  /// Feuille de classement : aide du champ quand l'étagère n'a aucune série
   ///
   /// In fr, this message translates to:
-  /// **'Nouvelle série'**
-  String get classifyNewSeries;
+  /// **'Aucune série encore : tapez son nom pour la créer.'**
+  String get classifyNoSeries;
+
+  /// Feuille de classement : choix qui crée la série du nom tapé
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer « {name} »'**
+  String classifyCreate(String name);
+
+  /// Feuille de classement : sous une série, son dernier tome possédé
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernier tome {number}'**
+  String classifySeriesLast(int number);
+
+  /// Feuille de classement : sous une série qui n'a encore aucun tome
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun tome'**
+  String get classifySeriesEmpty;
 
   /// Feuille de classement : champ du numéro
   ///
