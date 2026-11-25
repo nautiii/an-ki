@@ -265,7 +265,11 @@ lg 24 · xl 32 · xxl 48`.
 - **Spines** (Livres « Vos tomes »): owned volumes use `AnKiColors.spine` / `onSpine`, every other
   one `spineAlt`, bordered by `spineEdge` (light: `secondary`, 6:1 on the surface — the pale lotus
   container measured 1.2:1; dark: `secondaryContainer` with an `outline` edge); a missing volume
-  is an `outline` slot with « + », the announced next one is cloud.
+  is an `outline` slot with « + », the announced next one is cloud. « Ajouter une série »
+  previews its volumes with the same tokens in small (`VolumeRangePreview`, decorative).
+- **Livres sheets**: one header (`BookSheetHeader`: a cover, the cloud date tile or a lotus
+  icon pad, the title as a heading, one explanation line), one full-width filled action at the
+  bottom; the volume sheet floats its cover like the series header and lists its actions.
 
 ## 8. Motion
 

@@ -15,6 +15,32 @@ what you discover.
 ## 1. Not verified outside the tests
 
 Delete each line once done:
+- Livres redesign and its sheets (ux B9, 2026-11-24 → 25, 8d67a6d → f7ab712), one session on the
+  maintainer's phone with their real account, about 30 min, online then in airplane mode; it
+  also clears the « real barcode » items of steps 6 to 8 below. In order:
+  1. **Shelf**: « À acheter » first, « Acheté » in one tap then « Annuler »; « Prochaines
+     sorties » (cloud date tiles); « N séries, de A à Z ».
+  2. **Scanner**, the app in **light** theme: the camera page stays dark, status-bar icons light,
+     the torch on glass; scan five volumes in a row (one light vibration each, the « Cette
+     session » ticket grouped by series); an owned volume says « Déjà dans votre collection »
+     long enough to read; « Saisir un ISBN » (dark sheet, helper under the title, full-width
+     « Ajouter »); retire the only volume of a series a scan just created from the ticket →
+     the series is gone from the shelf (no « aucun tome »), « Annuler » brings both back.
+  3. **Series page**: blurred cover header, the spine shelf (« Il vous manque … », « Je les
+     ai »), a spine opens the **volume sheet**: floating cover, series and title, date and ISBN
+     rows, actions as a list; « Retirer de la collection » of the last volume closes the page
+     and the series goes with it; with 3-button navigation the last action sits above the bar.
+  4. **Date sheet** (« Ajouter la date »): the chosen date in a cloud tile, « Jour précis ·
+     Mois seulement », a past date keeps the calendar icon.
+  5. **« À classer »**: a one-tap suggestion files the volume; a volume whose number the
+     series already has reads « Tome N déjà dans … » and opens « Classer » with the
+     second-copy hint; « Classer »: search a series, « Créer « … » », the suggestion selected
+     on opening, the keyboard open on the phone (no header, fields keep focus).
+  6. **« Ajouter une série »**: « 1-12, 15 » shows the spines, « 13 tomes », « Il vous manque
+     13, 14 »; the name of an existing series counts only the new volumes.
+  7. TalkBack on the volume sheet (series and title read as one heading) and on « Classer »;
+     200 % text on the sheets.
+  Existing empty series (from before 36f7865) are deleted by hand from their page.
 - Contact link (P5, 2026-11-23, branch `claude/contact-link-348cd9`), on the maintainer's
   phone: the system picker opens with no permission asked (even with contacts refused),
   « Message » opens the SMS app with the number and the wish ready (Google Messages and the

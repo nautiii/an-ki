@@ -50,18 +50,19 @@ reads better as an agenda; a chatbot; streaks or guilt copy; moving familiar nav
 
 ### B9 — Livres module (approved 2026-11-08, built)
 Built 2026-11-09 to 2026-11-15 (modules, shelf, series page, burst scan, release dates,
-discovery card, earlier volumes; decisions D13–D15), its rules deployed. Left:
-- Phone checks in `migration.md` §1 — a real scan needs the phone's camera.
-- **Redesign 2026-11-24** (brief approved with its defaults, 8d67a6d → 9d8f622): the shelf leads
-  with « À acheter » (« Acheté » in one tap) and « Prochaines sorties », then one grouped list
-  « N séries, de A à Z »; the series page has a blurred cover header, a next-volume card and a
-  shelf of spines (« Il vous manque … », « Je les ai »); the scanner is always dark with a
-  « Cette session » ticket grouped by series; « À classer » offers a one-tap suggestion
-  (`suggestPlacement`). Emulator checked for the shelf and the series page. Left:
-  - the sheets (volume, add series, classify, release date, ISBN) keep their old look;
-  - a suggestion into an existing series doesn't check whether that number is already owned
-    (a second edition is filed silently);
-  - a real scan on the phone with the new scanner.
+discovery card, earlier volumes; decisions D13–D15), its rules deployed. Redesigned
+2026-11-24 → 25 (8d67a6d → f7ab712): the shelf leads with « À acheter » and « Prochaines
+sorties »; blurred cover header and spines on the series page; an always-dark scanner with a
+« Cette session » ticket; one-tap « À classer »; the sheets share a header and the shelf's
+look (volume, release date, ISBN), « Classer » searches or creates the series, « Ajouter une
+série » previews its spines; an owned number is never filed in one tap; a series leaves with
+its last volume. Left:
+- The one phone session in `migration.md` §1 (« Livres redesign and its sheets »), which also
+  covers the real barcode never seen on the emulator.
+- A scan during the « Annuler » of a series' last volume files into that hidden series, whose
+  ticket row hides until the write (low: a 5 s window).
+- A second copy scanned into an owned number isn't named on the ticket (« ✓ One Piece · tome
+  108 », no « 2e exemplaire »). Priority: low.
 - **Out of the lot**: Birthdays that can be turned off, a « Plus » tab, a disk cache for covers,
   summaries, a wishlist, prices, loans, sharing, export; a privacy policy before any publication.
 
@@ -69,6 +70,10 @@ discovery card, earlier volumes; decisions D13–D15), its rules deployed. Left:
 - A local notification on the day of an announced release (or the eve), through the combined
   plan of decision D13 (revisit): an id range of its own, payload `books:<seriesId>` opening the
   series. To propose once the reliability of the dates is measured.
+- **Order** (maintainer, 2026-11-25): not next. First the phone session above, then about three
+  weeks noting, per series, the announced date (BnF, Google Books) against the real one (« vérifié
+  le … » is already kept); the brief comes after B8 step 2, which rewrites the same combined
+  plan (one-shots, ids).
 - **Cost**: medium (the combined notification plan in `app/`, the Books planning rule, tests).
 
 ### B8 — The age in reminders (brief 2026-10-25; workmanager approved 2026-11-01)
@@ -126,4 +131,5 @@ Step 1 is in (workmanager, daily background replan on Android, `reminders.md`).
 2. **B9** phone checks.
 3. **B8** measure on the Honor, then step 2; **D17** with iOS.
 4. **P2** cold start on the phone; D29 if it matters.
-5. **B9-ext** release reminders, then **B4** gift ideas when the maintainer picks them up.
+5. **B9-ext** release reminders once the dates are measured and B8 step 2 is in, then **B4**
+   gift ideas when the maintainer picks them up.
