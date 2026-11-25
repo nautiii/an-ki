@@ -101,3 +101,15 @@ bool _sameNumbers(List<int> a, List<int> b) {
   }
   return true;
 }
+
+/// Les numéros de 1 au plus grand de [numbers] qui n'y sont pas, croissants :
+/// les trous que laisserait une série ajoutée avec ces tomes.
+List<int> holesIn(List<int> numbers) {
+  if (numbers.isEmpty) return const [];
+  final owned = numbers.toSet();
+  final last = numbers.reduce((a, b) => a > b ? a : b);
+  return [
+    for (var n = 1; n < last; n++)
+      if (!owned.contains(n)) n,
+  ];
+}

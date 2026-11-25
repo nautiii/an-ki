@@ -1745,6 +1745,19 @@
   "@addSeriesVolumesHelper": {
     "description": "Aide sous le champ des numéros possédés"
   },
+  "addSeriesPreviewCount": "{count, plural, =1{1 tome} other{{count} tomes}}",
+  "@addSeriesPreviewCount": {
+    "description": "Ajout d'une série : sous l'aperçu en dos, le nombre de tomes saisis",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addSeriesPreviewAllOwned": "Déjà tous sur votre étagère",
+  "@addSeriesPreviewAllOwned": {
+    "description": "Ajout d'une série rejointe : tous les tomes saisis y sont déjà, rien ne sera ajouté"
+  },
   "addSeriesComplete": "Série terminée",
   "@addSeriesComplete": {
     "description": "Interrupteur : la série ne paraîtra plus"

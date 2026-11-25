@@ -1,9 +1,11 @@
 import 'package:an_ki/features/auth/providers/session_providers.dart';
 import 'package:an_ki/features/books/data/bookshelf_repository.dart';
 import 'package:an_ki/features/books/domain/series.dart';
+import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/domain/volume_number.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
 import 'package:an_ki/features/books/widgets/add_series_sheet.dart';
+import 'package:an_ki/features/books/widgets/volume_range_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,10 +20,14 @@ void main() {
   String? returned;
   var closed = false;
 
-  Future<void> openSheet(WidgetTester tester) async {
+  Future<void> openSheet(
+    WidgetTester tester, {
+    List<Volume> volumes = const [],
+  }) async {
     returned = null;
     closed = false;
     repository = RecordingBookshelfRepository(
+      volumes: volumes,
       series: const [
         Series(
           id: 's1',
@@ -203,6 +209,50 @@ void main() {
     expect(returned, 's1');
     expect(repository.createdSeries, isEmpty);
     expect(repository.volumes.single.seriesId, 's1');
+  });
+
+  testWidgets('joining a series: the preview counts only the new volumes', (
+    tester,
+  ) async {
+    await openSheet(
+      tester,
+      volumes: [
+        for (final n in [13, 14])
+          Volume(
+            id: 'op$n',
+            seriesId: 's1',
+            number: n,
+            title: '',
+            authors: const [],
+            lookup: LookupState.found,
+            addedAt: DateTime(2026),
+          ),
+      ],
+    );
+
+    await tester.enterText(nameField(), 'One Piece');
+    await tester.enterText(volumesField(), '1-12, 14, 15');
+    await tester.pump();
+
+    expect(find.text('13 tomes'), findsOneWidget);
+    expect(find.textContaining('manque'), findsNothing);
+  });
+
+  testWidgets('previews the volumes typed, holes included', (tester) async {
+    await openSheet(tester);
+    expect(find.byType(VolumeRangePreview), findsNothing);
+
+    await tester.enterText(volumesField(), '1-12, 15');
+    await tester.pump();
+
+    expect(find.byType(VolumeRangePreview), findsOneWidget);
+    expect(find.text('13 tomes'), findsOneWidget);
+    expect(find.text('Il vous manque 13, 14'), findsOneWidget);
+
+    // Une saisie refusée : plus d'aperçu, l'erreur seule.
+    await tester.enterText(volumesField(), '12-1');
+    await tester.pump();
+    expect(find.byType(VolumeRangePreview), findsNothing);
   });
 
   testWidgets('meets the tap target and label guidelines', (tester) async {

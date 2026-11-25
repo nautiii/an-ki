@@ -1698,6 +1698,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Numbers and ranges, separated by commas';
 
   @override
+  String addSeriesPreviewCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count volumes',
+      one: '1 volume',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addSeriesPreviewAllOwned => 'Already all on your shelf';
+
+  @override
   String get addSeriesComplete => 'Series finished';
 
   @override

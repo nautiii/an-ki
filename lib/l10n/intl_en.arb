@@ -463,6 +463,8 @@
   "addSeriesVolumesLabel": "I own volumes",
   "addSeriesVolumesHint": "1-12, 15",
   "addSeriesVolumesHelper": "Numbers and ranges, separated by commas",
+  "addSeriesPreviewCount": "{count, plural, =1{1 volume} other{{count} volumes}}",
+  "addSeriesPreviewAllOwned": "Already all on your shelf",
   "addSeriesComplete": "Series finished",
   "addSeriesCompleteHint": "No more volumes will come out",
   "rangesEmpty": "Enter at least one volume",

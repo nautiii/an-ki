@@ -1719,6 +1719,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'Des numéros et des plages, séparés par des virgules';
 
   @override
+  String addSeriesPreviewCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tomes',
+      one: '1 tome',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addSeriesPreviewAllOwned => 'Déjà tous sur votre étagère';
+
+  @override
   String get addSeriesComplete => 'Série terminée';
 
   @override

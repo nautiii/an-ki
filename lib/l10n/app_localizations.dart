@@ -2558,6 +2558,18 @@ abstract class AppLocalizations {
   /// **'Des numéros et des plages, séparés par des virgules'**
   String get addSeriesVolumesHelper;
 
+  /// Ajout d'une série : sous l'aperçu en dos, le nombre de tomes saisis
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 tome} other{{count} tomes}}'**
+  String addSeriesPreviewCount(int count);
+
+  /// Ajout d'une série rejointe : tous les tomes saisis y sont déjà, rien ne sera ajouté
+  ///
+  /// In fr, this message translates to:
+  /// **'Déjà tous sur votre étagère'**
+  String get addSeriesPreviewAllOwned;
+
   /// Interrupteur : la série ne paraîtra plus
   ///
   /// In fr, this message translates to:

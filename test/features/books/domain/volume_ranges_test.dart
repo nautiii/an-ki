@@ -158,4 +158,13 @@ void main() {
       rejected(VolumeRangesProblem.empty).hashCode,
     );
   });
+
+  group('holesIn', () {
+    test('the numbers missing below the last one', () {
+      expect(holesIn([1, 2, 3, 6, 4]), [5]);
+      expect(holesIn([3]), [1, 2]);
+      expect(holesIn([1, 2]), isEmpty);
+      expect(holesIn(const []), isEmpty);
+    });
+  });
 }

@@ -2,6 +2,7 @@ import 'package:an_ki/features/books/domain/series.dart';
 import 'package:an_ki/features/books/domain/series_artwork.dart';
 import 'package:an_ki/features/books/domain/volume.dart';
 import 'package:an_ki/features/books/domain/volume_number.dart';
+import 'package:an_ki/features/books/domain/volume_ranges.dart';
 import 'package:flutter/foundation.dart';
 
 /// L'étagère : une entrée par série, plus les tomes « à classer ».
@@ -109,11 +110,7 @@ ShelfEntry _entryOf(Series series, List<Volume> numbered) {
   final ownedSet = sorted.map((v) => v.number!).toSet();
   final owned = ownedSet.toList();
   final last = owned.isEmpty ? null : owned.last;
-  final holes = [
-    if (last != null)
-      for (var n = 1; n < last; n++)
-        if (!ownedSet.contains(n)) n,
-  ];
+  final holes = holesIn(owned);
   final int? nextToBuy;
   if (holes.isNotEmpty) {
     nextToBuy = holes.first;

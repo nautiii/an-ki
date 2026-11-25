@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:an_ki/core/extensions/localization_extension.dart';
 import 'package:an_ki/core/theme/app_tokens.dart';
@@ -10,6 +11,8 @@ import 'package:an_ki/features/books/domain/volume_placement.dart';
 import 'package:an_ki/features/books/domain/volume_ranges.dart';
 import 'package:an_ki/features/books/providers/shelf_editor.dart';
 import 'package:an_ki/features/books/providers/shelf_providers.dart';
+import 'package:an_ki/features/books/widgets/book_sheet_header.dart';
+import 'package:an_ki/features/books/widgets/volume_range_preview.dart';
 import 'package:an_ki/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -83,7 +86,6 @@ class _AddSeriesSheetState extends ConsumerState<AddSeriesSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
     // Suit l'étagère : elle peut changer sous la feuille.
     final entries =
         ref.watch(shelfProvider).value?.entries ?? const <ShelfEntry>[];
@@ -107,20 +109,22 @@ class _AddSeriesSheetState extends ConsumerState<AddSeriesSheet> {
         AppSpacing.lg,
         0,
         AppSpacing.lg,
-        AppSpacing.lg + MediaQuery.viewInsetsOf(context).bottom,
+        // Le clavier, sinon la barre système (`useSafeArea` laisse le bas).
+        AppSpacing.lg +
+            math.max(
+              MediaQuery.viewInsetsOf(context).bottom,
+              MediaQuery.paddingOf(context).bottom,
+            ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Semantics(
-            header: true,
-            child: Text(
-              l10n.addSeriesTitle,
-              style: theme.textTheme.headlineSmall,
-            ),
+          BookSheetHeader(
+            leading: const BookSheetIcon(icon: Icons.library_add_rounded),
+            title: l10n.addSeriesTitle,
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.lg),
           TextField(
             controller: _name,
             autofocus: true,
@@ -168,6 +172,18 @@ class _AddSeriesSheetState extends ConsumerState<AddSeriesSheet> {
               errorMaxLines: 3,
             ),
           ),
+          // Ce que la saisie va créer, avant « Ajouter ».
+          if (ranges case ParsedVolumeRanges(:final numbers)
+              when numbers.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            VolumeRangePreview(
+              numbers: numbers,
+              alreadyOwned: [
+                for (final entry in entries)
+                  if (entry.series.id == joined?.id) ...entry.owned,
+              ],
+            ),
+          ],
           const SizedBox(height: AppSpacing.xs),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
