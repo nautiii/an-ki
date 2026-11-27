@@ -68,10 +68,14 @@ Everything here was run on the emulator; the checks owed on a device are listed 
 - The ux B8 measurement on the Honor (`.claude/skills/ux-ui/references/ux-backlog.md`): a debug
   APK through `scripts/build_and_deploy.ps1`, not `flutter run` (its tab force-stops the app),
   default battery settings, a daily reading for at least 10 days, with 3 days without opening
-  AnKi, a reboot and a time offline. Read `period_count`, `last_enqueue_time` and
-  `run_attempt_count` in `no_backup/androidx.work.workdb` (`run-as` + sqlite3), the standby
-  bucket, the alarm count and `adb shell dumpsys activity exit-info`. Good: +1 per ~24 h
-  (≤ 36 h apart), reboot and offline included.
+  AnKi, a reboot and a time offline. `scripts/b8_reading.ps1` takes each reading (`-Force` on
+  day 0, skipped before the next due time since WorkManager ignores an early periodic run;
+  `-Note` for what happened) and appends it to `Documents\AnKi\b8-readings.csv` (`;`): the
+  runs (`period_count` of `no_backup/androidx.work.workdb`, copied through `run-as` and read
+  with Python), the last run, failed attempts, the standby bucket, the job still scheduled, the
+  reminder alarms, force-stops (`dumpsys activity exit-info`) and reboots. Good: +1 per ~24 h
+  (≤ 36 h apart), reboot and offline included. On the emulator a forced run never counts
+  once its clock was moved (the future FORCE STOP, §6).
 - MagicOS may delay or drop exact alarms of apps it puts to sleep: when a reminder doesn't fire
   on the phone while `alarms` showed it, check the phone's battery and app-launch settings for
   AnKi before suspecting the code.

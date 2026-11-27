@@ -83,11 +83,9 @@ Step 1 is in (workmanager, daily background replan on Android, `reminders.md`).
     it: earlier clock moves left a future « FORCE STOP » exit record).
   - The measure on the Honor: debug APK through `scripts/build_and_deploy.ps1` (no
     `flutter run`, its tab force-stops the app), default battery settings, a daily reading for at
-    least 10 days, with 3 days without opening AnKi, a reboot and a time offline. Read
-    `period_count`, `last_enqueue_time` and `run_attempt_count` in
-    `no_backup/androidx.work.workdb` (`run-as` + sqlite3), plus the standby bucket, the alarm
-    count and force-stops (`dumpsys activity exit-info`). Good: +1 per ~24 h (≤ 36 h apart),
-    reboot and offline included → step 2. Nothing runs → revisit decision D12.
+    least 10 days, with 3 days without opening AnKi, a reboot and a time offline, one
+    `scripts/b8_reading.ps1` a day (`-Force` on day 0; device recipes §2). Good: +1 per ~24 h
+    (≤ 36 h apart), reboot and offline included → step 2. Nothing runs → revisit decision D12.
 - **Step 2** (after the measure): one-shots with the age inside a 45-day window, the yearly
   ageless repeat beyond it, on the same ids (`planReminders(…, oneShotUntil:)`,
   `PlannedReminder.repeats`, `ReminderNotification.repeats`); ARB age variants of the two bodies

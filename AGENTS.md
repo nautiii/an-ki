@@ -64,6 +64,7 @@ Every dependency is pinned to an exact version.
 | Strings, after any `.arb` change | `flutter gen-l10n` |
 | Run on a device | `scripts/run.ps1 [-Example] [-d <device id>]` (`secrets.json`, or `secrets.example.json` with `-Example`; agents: device skill) |
 | Build and install an APK | `scripts/build_and_deploy.ps1 [-Release] [-Clean]` |
+| Daily reading of the background replan (ux B8 measure, debug APK on the phone) | `scripts/b8_reading.ps1 [-Force] [-Note <text>] [-Device <serial>]` |
 | Icon / splash, after changing their pubspec config | `dart run flutter_launcher_icons` · `dart run flutter_native_splash:create` |
 
 The app reads `GOOGLE_BOOKS_API_KEY` from `secrets.json` through `--dart-define-from-file`.
